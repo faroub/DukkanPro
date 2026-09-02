@@ -5,43 +5,68 @@
  * Entire application remains visually LTR regardless of selected language.
  */
 
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
+
+export const Fonts = Platform.select({
+  ios: {
+    /** iOS `UIFontDescriptorSystemDesignDefault` */
+    sans: "system-ui",
+    /** iOS `UIFontDescriptorSystemDesignSerif` */
+    serif: "ui-serif",
+    /** iOS `UIFontDescriptorSystemDesignRounded` */
+    rounded: "ui-rounded",
+    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    mono: "ui-monospace",
+  },
+  default: {
+    sans: "normal",
+    serif: "serif",
+    rounded: "normal",
+    mono: "monospace",
+  },
+  web: {
+    sans: "var(--font-display)",
+    serif: "var(--font-serif)",
+    rounded: "var(--font-rounded)",
+    mono: "var(--font-mono)",
+  },
+}) as const;
 
 /**
  * Color palette — LTR-compatible, same layout in all languages.
  */
 export const Colors = {
   light: {
-    background: '#F8F7F4',
-    text: '#1A1A1A',
-    textPrimary: '#1A1A1A',
-    textSecondary: '#6B7280',
-    textMuted: '#9CA3AF',
-    primary: '#1B6B3A',
-    positive: '#1B6B3A',
-    warning: '#D97706',
-    destructive: '#B91C1C',
-    surface: '#FFFFFF',
-    border: '#E5E5E5',
-    borderLight: '#F3F4F6',
-    backgroundElement: '#F0F0F3',
-    notification: '#FBBF24',
+    background: "#F8F7F4",
+    text: "#1A1A1A",
+    textPrimary: "#1A1A1A",
+    textSecondary: "#6B7280",
+    textMuted: "#9CA3AF",
+    primary: "#1B6B3A",
+    positive: "#1B6B3A",
+    warning: "#D97706",
+    destructive: "#B91C1C",
+    surface: "#FFFFFF",
+    border: "#E5E5E5",
+    borderLight: "#F3F4F6",
+    backgroundElement: "#F0F0F3",
+    notification: "#FBBF24",
   } as const,
   dark: {
-    background: '#111827',
-    text: '#F9FAFB',
-    textPrimary: '#F9FAFB',
-    textSecondary: '#6B7280',
-    textMuted: '#9CA3AF',
-    primary: '#22C55E',
-    positive: '#22C55E',
-    warning: '#F59E0B',
-    destructive: '#F87171',
-    surface: '#1F2937',
-    border: '#374151',
-    borderLight: '#4B5563',
-    backgroundElement: '#212225',
-    notification: '#FBBF24',
+    background: "#111827",
+    text: "#F9FAFB",
+    textPrimary: "#F9FAFB",
+    textSecondary: "#6B7280",
+    textMuted: "#9CA3AF",
+    primary: "#22C55E",
+    positive: "#22C55E",
+    warning: "#F59E0B",
+    destructive: "#F87171",
+    surface: "#1F2937",
+    border: "#374151",
+    borderLight: "#4B5563",
+    backgroundElement: "#212225",
+    notification: "#FBBF24",
   } as const,
 } as const;
 
@@ -57,9 +82,9 @@ export const Typography = {
   // Body minimum 16px as required
   body: {
     fontFamily: Platform.select({
-      ios: 'system-ui',
-      android: 'Roboto',
-      default: 'system-ui',
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
     }),
     fontSize: 16,
     lineHeight: 24,
@@ -68,9 +93,9 @@ export const Typography = {
   // Headings
   heading1: {
     fontFamily: Platform.select({
-      ios: 'system-ui',
-      android: 'Roboto',
-      default: 'system-ui',
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
     }),
     fontSize: 32,
     lineHeight: 40,
@@ -79,9 +104,9 @@ export const Typography = {
   },
   heading2: {
     fontFamily: Platform.select({
-      ios: 'system-ui',
-      android: 'Roboto',
-      default: 'system-ui',
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
     }),
     fontSize: 24,
     lineHeight: 32,
@@ -90,9 +115,9 @@ export const Typography = {
   },
   heading3: {
     fontFamily: Platform.select({
-      ios: 'system-ui',
-      android: 'Roboto',
-      default: 'system-ui',
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
     }),
     fontSize: 20,
     lineHeight: 28,
@@ -101,7 +126,7 @@ export const Typography = {
   },
   // Arabic-specific: right-aligned text within LTR layout
   arabic: {
-    textAlign: 'right' as const,
+    textAlign: "right" as const,
     // Arabic text stays LTR in surrounding layout
   },
 } as const;
@@ -119,9 +144,18 @@ export const Spacing = {
   xxxl: 32,
   xxxxl: 40,
   xxxxxx: 48,
+  one: 4,
+  two: 8,
+  three: 12,
+  four: 16,
+  five: 20,
+  six: 24,
 } as const;
 
-export type SpacingValue = typeof Spacing[keyof typeof Spacing];
+export const BottomTabInset = 64;
+export const MaxContentWidth = 640;
+
+export type SpacingValue = (typeof Spacing)[keyof typeof Spacing];
 
 /**
  * Border radius values
@@ -140,21 +174,21 @@ export const BorderRadius = {
  */
 export const Shadows = {
   sm: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
   },
   md: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
   },
   lg: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
