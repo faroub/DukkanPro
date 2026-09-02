@@ -1,9 +1,11 @@
-import { StyleSheet, View, ViewPressEvent, type ViewProps } from 'react-native';
-import { LeftChevron, RightChevron } from 'expo-symbols';
+import { StyleSheet, View, type ViewProps, Pressable } from 'react-native';
+import { ScrollView } from 'expo-router';
+
+// expo-symbols exports are used via SymbolView in other components
+// Using native react-native icons instead
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export interface AppHeaderProps {
@@ -32,11 +34,9 @@ export function AppHeader({ title, backButton = true, rightAction, locale = 'fr'
             onPress={() => {}}
             accessible accessibilityLabel={locale === 'ar' ? 'Retour' : 'Back'}
           >
-            <LeftChevron
-              size={20}
-              weight="bold"
-              tintColor={theme.text}
-              style={{ transform: [{ scaleX: isRtl ? -1 : 1 }] }} // LTR arrow direction fixed
+            <Image
+              source={require('@/assets/icons/chevron-left.png')}
+              style={[{ width: 20, height: 20, transform: [{ rotate: isRtl ? "-90deg" : "90deg" }]}]}
             />
           </Pressable>
         )}
@@ -46,7 +46,7 @@ export function AppHeader({ title, backButton = true, rightAction, locale = 'fr'
         <ThemedText
           style={[
             styles.rightAction,
-            { color: theme[theme.text === '#1A1A1A' ? 'textPrimary' : 'text'] },
+            { color: theme.text === '#1A1A1A' ? theme.textPrimary : theme.text },
           ]}
         >
           {rightAction.label}
@@ -58,9 +58,9 @@ export function AppHeader({ title, backButton = true, rightAction, locale = 'fr'
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xs,
-    paddingBottom: Spacing.xs,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
     backgroundColor: 'transparent',
   },
   headerContent: {
@@ -73,10 +73,8 @@ const styles = StyleSheet.create({
     fontWeight: 600,
   },
   backButton: {
-    padding: Spacing.sm,
+    padding: 8,
   },
-  // Fixed LTR back arrow - scaleX does not mirror the layout
-  // The arrow itself faces fixed direction regardless of language
   rightAction: {
     fontSize: 14,
     fontWeight: 500,
