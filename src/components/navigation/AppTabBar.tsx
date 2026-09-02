@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, ViewStyle } from 'react-native';
+import { StyleSheet, ScrollView, TextStyle, ViewStyle } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';

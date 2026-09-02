@@ -28,6 +28,6 @@ export function AppProviders({ children }: AppProvidersProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: '#F8F7F4',
   },
 });
