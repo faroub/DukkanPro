@@ -24,6 +24,7 @@ export const Colors = {
     surface: '#FFFFFF',
     border: '#E5E5E5',
     borderLight: '#F3F4F6',
+    backgroundElement: '#F0F0F3',
     notification: '#FBBF24',
   } as const,
   dark: {
@@ -39,6 +40,7 @@ export const Colors = {
     surface: '#1F2937',
     border: '#374151',
     borderLight: '#4B5563',
+    backgroundElement: '#212225',
     notification: '#FBBF24',
   } as const,
 } as const;

@@ -11,27 +11,27 @@ import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+const safeAreaInsets = useSafeAreaInsets();
+const insets = {
+  ...safeAreaInsets,
+  bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.lg,
+};
+const theme = useTheme();
+
+const contentPlatformStyle = Platform.select({
+  android: {
+    paddingTop: insets.top,
+    paddingLeft: insets.left,
+    paddingRight: insets.right,
+    paddingBottom: insets.bottom,
+  },
+  web: {
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.md,
+  },
+});
+
 export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
-
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
-
   return (
     <ScrollView
       style={[styles.scrollView, { backgroundColor: theme.background }]}
@@ -46,7 +46,7 @@ export default function TabTwoScreen() {
 
           <ExternalLink href="https://docs.expo.dev" asChild>
             <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
+              <ThemedView type="background" style={styles.linkButton}>
                 <ThemedText type="link">Expo documentation</ThemedText>
                 <SymbolView
                   tintColor={theme.text}
@@ -74,7 +74,7 @@ export default function TabTwoScreen() {
           </Collapsible>
 
           <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
+            <ThemedView type="background" style={styles.collapsibleContent}>
               <ThemedText type="small">
                 You can open this project on Android, iOS, and the web. To open the web version,
                 press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
@@ -119,7 +119,6 @@ export default function TabTwoScreen() {
             </ThemedText>
           </Collapsible>
         </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
       </ThemedView>
     </ScrollView>
   );
