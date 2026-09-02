@@ -43,9 +43,9 @@ export function IconButton({
 }
 
 function getIconName(icon: IconButtonIcon): string {
-  const map: Record<IconButtonIcon, { ios: string; android: string; web: string }> = {
-    chevron-left: { ios: 'chevron.left', android: 'chevron_left', web: 'chevron_left' },
-    chevron-right: { ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' },
+  const map: Record<string, { ios: string; android: string; web: string }> = {
+    'chevron-left': { ios: 'chevron.left', android: 'chevron_left', web: 'chevron_left' },
+    'chevron-right': { ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' },
     menu: { ios: 'menu', android: 'menu', web: 'menu' },
     search: { ios: 'search', android: 'search', web: 'search' },
     download: { ios: 'download', android: 'download', web: 'download' },
@@ -54,10 +54,10 @@ function getIconName(icon: IconButtonIcon): string {
     edit: { ios: 'edit', android: 'edit', web: 'edit' },
     save: { ios: 'save', android: 'save', web: 'save' },
     delete: { ios: 'trash', android: 'trash', web: 'trash' },
-    arrow-left: { ios: 'arrow-left', android: 'arrow_left', web: 'arrow-left' },
-    arrow-right: { ios: 'arrow-right', android: 'arrow_right', web: 'arrow-right' },
+    'arrow-left': { ios: 'arrow-left', android: 'arrow_left', web: 'arrow-left' },
+    'arrow-right': { ios: 'arrow-right', android: 'arrow_right', web: 'arrow-right' },
   };
-  return map[icon] || map.chevron.left;
+  return map[icon]?.ios || map['chevron-left']?.ios;
 }
 
 const styles = StyleSheet.create({
