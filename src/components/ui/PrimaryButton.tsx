@@ -1,14 +1,14 @@
-import { StyleSheet, Pressable, type PressableProps } from 'react-native';
+import { Pressable, StyleSheet, type PressableProps } from "react-native";
 
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Spacing } from "@/constants/theme";
 
 export interface PrimaryButtonProps extends PressableProps {
   title: string;
   disabled?: boolean;
   loading?: boolean;
-  locale?: 'ar' | 'fr' | 'en';
+  locale?: "ar" | "fr" | "en";
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
 }
@@ -20,12 +20,11 @@ export function PrimaryButton({
   startIcon,
   endIcon,
   onPress,
+  locale = "fr",
   ...rest
 }: PrimaryButtonProps) {
-  const theme = useTheme();
-
   return (
-    <ThemedView
+    <Pressable
       style={[
         styles.button,
         disabled && styles.buttonDisabled,
@@ -36,7 +35,9 @@ export function PrimaryButton({
       {...rest}
     >
       <ThemedView style={styles.buttonInner}>
-        {startIcon && <ThemedView style={styles.iconContainer}>{startIcon}</ThemedView>}
+        {startIcon && (
+          <ThemedView style={styles.iconContainer}>{startIcon}</ThemedView>
+        )}
 
         <ThemedText
           style={[
@@ -46,36 +47,44 @@ export function PrimaryButton({
           ]}
         >
           {loading ? (
-            <ThemedText type="small" style={styles.loadingText}>
-              {locale === 'ar' ? 'جاري التحميل' : locale === 'fr' ? 'Chargement' : 'Loading'}
+            <ThemedText type="small" style={styles.buttonTextLoading}>
+              {locale === "ar"
+                ? "جاري التحميل"
+                : locale === "fr"
+                  ? "Chargement"
+                  : "Loading"}
             </ThemedText>
-          ) : title}
+          ) : (
+            title
+          )}
         </ThemedText>
 
-        {endIcon && <ThemedView style={styles.iconContainer}>{endIcon}</ThemedView>}
+        {endIcon && (
+          <ThemedView style={styles.iconContainer}>{endIcon}</ThemedView>
+        )}
       </ThemedView>
-    </ThemedView>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#1B6B3A', // deep green from theme Colors.positive
+    backgroundColor: "#1B6B3A", // deep green from theme Colors.positive
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.xl,
     borderRadius: Spacing.md,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonDisabled: {
-    backgroundColor: '#A0AEC0',
+    backgroundColor: "#A0AEC0",
   },
   buttonLoading: {
     opacity: 0.7,
   },
   buttonInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.sm,
   },
   iconContainer: {
@@ -83,14 +92,14 @@ const styles = StyleSheet.create({
     height: Spacing.xs,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: 600,
   },
   buttonTextDisabled: {
-    color: '#FFF',
+    color: "#FFF",
   },
   buttonTextLoading: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
   },
 });

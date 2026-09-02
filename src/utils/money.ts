@@ -20,43 +20,45 @@ const CENTIMES_PER_DINAR = 100;
  */
 export function formatCentimes(
   centimes: number,
-  locale: 'ar-DZ' | 'fr-DZ' | 'en-DZ' = 'fr-DZ'
+  locale: "ar-DZ" | "fr-DZ" | "en-DZ" = "fr-DZ",
 ): string {
   const dinars = centimes / CENTIMES_PER_DINAR;
 
   switch (locale) {
-    case 'ar-DZ':
+    case "ar-DZ":
       // Arabic locale: Arabic-Indic numerals, "دج" symbol for Algerian Dinar
-      return new Intl.NumberFormat('ar-DZ', {
-        style: 'currency',
-        currency: 'DZD',
+      return new Intl.NumberFormat("ar-DZ", {
+        style: "currency",
+        currency: "DZD",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-      }).format(dinars).replace('د.ج', 'دج') // Normalize currency display;
+      })
+        .format(dinars)
+        .replace("د.ج", "دج"); // Normalize currency display;
 
-    case 'fr-DZ':
+    case "fr-DZ":
       // French locale: Western numerals, "123,45 DZD" or "123 DZD"
-      return new Intl.NumberFormat('fr-DZ', {
-        style: 'currency',
-        currency: 'DZD',
+      return new Intl.NumberFormat("fr-DZ", {
+        style: "currency",
+        currency: "DZD",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       }).format(dinars);
 
-    case 'en-DZ':
+    case "en-DZ":
       // English locale: Western numerals with comma separator, "123.00 DZD"
-      return new Intl.NumberFormat('en-DZ', {
-        style: 'currency',
-        currency: 'DZD',
+      return new Intl.NumberFormat("en-DZ", {
+        style: "currency",
+        currency: "DZD",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       }).format(dinars);
 
     default:
       // Fallback to French locale format
-      return new Intl.NumberFormat('fr-DZ', {
-        style: 'currency',
-        currency: 'DZD',
+      return new Intl.NumberFormat("fr-DZ", {
+        style: "currency",
+        currency: "DZD",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       }).format(dinars);
@@ -70,7 +72,7 @@ export function formatCentimes(
  * @returns Formatted string, e.g. "140 DZD", "١٤٠ دج"
  */
 export function format14000Centimes(
-  locale: 'ar-DZ' | 'fr-DZ' | 'en-DZ' = 'fr-DZ'
+  locale: "ar-DZ" | "fr-DZ" | "en-DZ" = "fr-DZ",
 ): string {
   return formatCentimes(14000, locale);
 }
@@ -85,17 +87,15 @@ export function format14000Centimes(
 export function parseCentimes(formatted: string): number {
   // Remove currency symbol and whitespace, replace Arabic "دج" with "DZD"
   const cleaned = formatted
-    .replace('دج', 'DZD')
-    .replace('د.ج', 'DZD')
-    .replace(/[^\d,.-]/g, '')
+    .replace("دج", "DZD")
+    .replace("د.ج", "DZD")
+    .replace(/[^\d,.-]/g, "")
     .trim();
 
-  const value = parseFloat(cleaned.replace(/,/g, '.'));
+  const value = parseFloat(cleaned.replace(/,/g, "."));
 
   if (isNaN(value)) return 0;
 
   // Convert dinars to centimes (round to nearest integer)
   return Math.round(value * CENTIMES_PER_DINAR);
 }
-
-export type { formatCentimes, format14000Centimes, parseCentimes };

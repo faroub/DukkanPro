@@ -1,17 +1,23 @@
-import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
+import { StyleSheet, Text, type TextProps } from "react-native";
 
-import { Fonts } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { getTextAlignment, textStyle } from '@/utils/text';
+import { Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import { getTextAlignment } from "@/utils/text";
 
 export type AppTextProps = TextProps & {
-  align?: 'left' | 'right' | 'center' | 'auto';
-  locale?: 'ar' | 'fr' | 'en';
+  align?: "left" | "right" | "center" | "auto";
+  locale?: "ar" | "fr" | "en";
 };
 
-export function AppText({ align = 'left', locale = 'fr', style, ...rest }: AppTextProps) {
+export function AppText({
+  align = "left",
+  locale = "fr",
+  style,
+  ...rest
+}: AppTextProps) {
   const theme = useTheme();
-  const alignment = align === 'auto' ? getTextAlignment(locale as 'ar' | 'fr' | 'en') : align;
+  const alignment =
+    align === "auto" ? getTextAlignment(locale as "ar" | "fr" | "en") : align;
 
   return (
     <Text
@@ -28,9 +34,9 @@ export function AppText({ align = 'left', locale = 'fr', style, ...rest }: AppTe
 
 const styles = StyleSheet.create({
   base: {
-    fontFamily: Fonts.body.fontFamily,
-    fontSize: Fonts.body.fontSize,
-    lineHeight: Fonts.body.lineHeight,
-    letterSpacing: Fonts.body.letterSpacing,
+    fontFamily: Typography.body.fontFamily,
+    fontSize: Typography.body.fontSize,
+    lineHeight: Typography.body.lineHeight,
+    letterSpacing: Typography.body.letterSpacing,
   },
 });

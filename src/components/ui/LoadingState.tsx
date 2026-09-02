@@ -1,31 +1,27 @@
-import { StyleSheet, View, type ViewProps } from 'react-native';
-import { Animated, Easing } from 'react-native-reanimated';
+import { ActivityIndicator, StyleSheet, type ViewProps } from "react-native";
 
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Spacing } from "@/constants/theme";
 
-export interface LoadingStateProps {
+export interface LoadingStateProps extends ViewProps {
   message?: string;
-  locale?: 'ar' | 'fr' | 'en';
+  locale?: "ar" | "fr" | "en";
   size?: number;
 }
 
 export function LoadingState({
   message,
-  locale = 'fr',
+  locale = "fr",
   size = 24,
   ...rest
 }: LoadingStateProps) {
   return (
     <ThemedView type="background" style={styles.container} {...rest}>
       <ThemedView style={styles.content}>
-        <Animated.ActivityIndicator
-          size={size}
-          animating
-          style={styles.indicator}
-        />
+        <ActivityIndicator size={size} animating color="#1B6B3A" />
         {message && (
-          <ThemedText style={styles.message} marginTop={Spacing.xs}>
+          <ThemedText style={[styles.message, { marginTop: Spacing.xs }]}>
             {message}
           </ThemedText>
         )}
@@ -36,20 +32,17 @@ export function LoadingState({
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: Spacing.xl,
   },
   content: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: Spacing.md,
-  },
-  indicator: {
-    color: '#1B6B3A',
   },
   message: {
     fontSize: 14,
-    color: '#1A1A1A',
+    color: "#1A1A1A",
     fontWeight: 500,
   },
 });

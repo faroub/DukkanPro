@@ -1,14 +1,14 @@
-import { StyleSheet, Pressable, type PressableProps } from 'react-native';
+import { Pressable, StyleSheet, type PressableProps } from "react-native";
 
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Spacing } from "@/constants/theme";
 
 export interface SecondaryButtonProps extends PressableProps {
   title: string;
   disabled?: boolean;
   loading?: boolean;
-  locale?: 'ar' | 'fr' | 'en';
+  locale?: "ar" | "fr" | "en";
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
 }
@@ -22,10 +22,8 @@ export function SecondaryButton({
   onPress,
   ...rest
 }: SecondaryButtonProps) {
-  const theme = useTheme();
-
   return (
-    <ThemedView
+    <Pressable
       style={[
         styles.button,
         disabled && styles.buttonDisabled,
@@ -36,30 +34,30 @@ export function SecondaryButton({
       {...rest}
     >
       <ThemedView style={styles.buttonInner}>
-        {startIcon && <ThemedView style={styles.iconContainer}>{startIcon}</ThemedView>}
+        {startIcon && (
+          <ThemedView style={styles.iconContainer}>{startIcon}</ThemedView>
+        )}
 
-        <ThemedText
-          style={styles.buttonText}
-        >
-          {title}
-        </ThemedText>
+        <ThemedText style={styles.buttonText}>{title}</ThemedText>
 
-        {endIcon && <ThemedView style={styles.iconContainer}>{endIcon}</ThemedView>}
+        {endIcon && (
+          <ThemedView style={styles.iconContainer}>{endIcon}</ThemedView>
+        )}
       </ThemedView>
-    </ThemedView>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: "#E5E5E5",
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.xl,
     borderRadius: Spacing.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -68,8 +66,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.sm,
   },
   iconContainer: {
@@ -77,7 +75,7 @@ const styles = StyleSheet.create({
     height: Spacing.xs,
   },
   buttonText: {
-    color: '#1A1A1A',
+    color: "#1A1A1A",
     fontSize: 16,
     fontWeight: 500,
   },

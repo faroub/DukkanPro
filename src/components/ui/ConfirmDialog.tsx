@@ -1,7 +1,8 @@
-import { StyleSheet, View, type ViewProps, Pressable, Alert } from 'react-native';
+import { Pressable, StyleSheet, type ViewProps } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Spacing } from "@/constants/theme";
 
 export interface ConfirmDialogProps extends ViewProps {
   title: string;
@@ -11,7 +12,7 @@ export interface ConfirmDialogProps extends ViewProps {
   destructive?: boolean;
   confirmLabel: string;
   cancelLabel: string;
-  locale?: 'ar' | 'fr' | 'en';
+  locale?: "ar" | "fr" | "en";
 }
 
 export function ConfirmDialog({
@@ -22,34 +23,29 @@ export function ConfirmDialog({
   destructive = false,
   confirmLabel,
   cancelLabel,
-  locale = 'fr',
+  locale = "fr",
   ...rest
 }: ConfirmDialogProps) {
   return (
     <ThemedView type="background" style={styles.container} {...rest}>
       <ThemedView style={styles.dialog}>
-        <ThemedText style={styles.title}>
-          {title}
-        </ThemedText>
+        <ThemedText style={styles.title}>{title}</ThemedText>
 
-        <ThemedText style={styles.message}>
-          {message}
-        </ThemedText>
+        <ThemedText style={styles.message}>{message}</ThemedText>
 
         <ThemedView style={styles.buttons}>
           <Pressable style={styles.cancelButton} onPress={() => onCancel()}>
-            <ThemedText style={styles.buttonText}>
-              {cancelLabel}
-            </ThemedText>
+            <ThemedText style={styles.buttonText}>{cancelLabel}</ThemedText>
           </Pressable>
 
           <Pressable
-            style={styles.confirmButton}
+            style={[
+              styles.confirmButton,
+              destructive && styles.destructiveButton,
+            ]}
             onPress={() => onConfirm()}
           >
-            <ThemedText style={styles.buttonText}>
-              {confirmLabel}
-            </ThemedText>
+            <ThemedText style={styles.buttonText}>{confirmLabel}</ThemedText>
           </Pressable>
         </ThemedView>
       </ThemedView>
@@ -60,32 +56,32 @@ export function ConfirmDialog({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   dialog: {
-    width: '80%',
+    width: "80%",
     maxWidth: 350,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: Spacing.lg,
     padding: Spacing.lg,
   },
   title: {
     fontSize: 20,
     fontWeight: 600,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.md,
   },
   message: {
     fontSize: 14,
-    color: '#1A1A1A',
-    textAlign: 'center',
+    color: "#1A1A1A",
+    textAlign: "center",
     marginBottom: Spacing.lg,
   },
   buttons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: Spacing.sm,
   },
   cancelButton: {
@@ -94,18 +90,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: Spacing.md,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
-    alignItems: 'center',
+    borderColor: "#E5E5E5",
+    alignItems: "center",
   },
   confirmButton: {
-    backgroundColor: destructive ? '#B91C1C' : '#1B6B3A',
+    backgroundColor: "#1B6B3A",
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
+  },
+  destructiveButton: {
+    backgroundColor: "#B91C1C",
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
     fontWeight: 500,
   },

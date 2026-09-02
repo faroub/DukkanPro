@@ -30,7 +30,7 @@ export const Fonts = Platform.select({
     rounded: "var(--font-rounded)",
     mono: "var(--font-mono)",
   },
-}) as const;
+});
 
 /**
  * Color palette — LTR-compatible, same layout in all languages.

@@ -15,11 +15,13 @@
  * @param locale - Language locale (ar, fr, en)
  * @returns CSS textAlign value ('left' or 'right')
  */
-export function getTextAlignment(locale: 'ar' | 'fr' | 'en' = 'fr'): 'left' | 'right' {
-  if (locale === 'ar') {
-    return 'right';
+export function getTextAlignment(
+  locale: "ar" | "fr" | "en" = "fr",
+): "left" | "right" {
+  if (locale === "ar") {
+    return "right";
   }
-  return 'left';
+  return "left";
 }
 
 /**
@@ -30,11 +32,13 @@ export function getTextAlignment(locale: 'ar' | 'fr' | 'en' = 'fr'): 'left' | 'r
  * @param locale - Language locale (ar, fr, en)
  * @returns CSS writingDirection value
  */
-export function getWritingDirection(locale: 'ar' | 'fr' | 'en' = 'fr'): 'ltr' | 'rtl' {
-  if (locale === 'ar') {
-    return 'rtl';
+export function getWritingDirection(
+  locale: "ar" | "fr" | "en" = "fr",
+): "ltr" | "rtl" {
+  if (locale === "ar") {
+    return "rtl";
   }
-  return 'ltr';
+  return "ltr";
 }
 
 /**
@@ -49,25 +53,25 @@ export function getWritingDirection(locale: 'ar' | 'fr' | 'en' = 'fr'): 'ltr' | 
 export function truncateText(
   text: string,
   maxWidth: number,
-  locale: 'ar' | 'fr' | 'en' = 'fr'
+  locale: "ar" | "fr" | "en" = "fr",
 ): string {
   if (text.length <= maxWidth) {
     return text;
   }
 
   // For Arabic, we need to handle grapheme clusters differently
-  if (locale === 'ar') {
+  if (locale === "ar") {
     // Arabic: truncate at word boundary if possible
     const available = text.slice(0, maxWidth - 1); // -1 for ellipsis
-    const lastSpace = available.lastIndexOf(' ');
+    const lastSpace = available.lastIndexOf(" ");
     if (lastSpace > maxWidth * 0.5) {
-      return available.slice(0, lastSpace) + '...';
+      return available.slice(0, lastSpace) + "...";
     }
-    return available + '...';
+    return available + "...";
   }
 
   // For French and English
-  return text.slice(0, maxWidth - 3) + '...';
+  return text.slice(0, maxWidth - 3) + "...";
 }
 
 /**
@@ -81,19 +85,19 @@ export function truncateText(
  */
 export function toArabicIndicDigits(text: string): string {
   const arabicDigits: Record<string, string> = {
-    '0': '٠',
-    '1': '١',
-    '2': '٢',
-    '3': '٣',
-    '4': '٤',
-    '5': '٥',
-    '6': '٦',
-    '7': '٧',
-    '8': '٨',
-    '9': '٩',
+    "0": "٠",
+    "1": "١",
+    "2": "٢",
+    "3": "٣",
+    "4": "٤",
+    "5": "٥",
+    "6": "٦",
+    "7": "٧",
+    "8": "٨",
+    "9": "٩",
   };
 
-  return text.replace(/[0-9]/g, digit => arabicDigits[digit] || digit);
+  return text.replace(/[0-9]/g, (digit) => arabicDigits[digit] || digit);
 }
 
 /**
@@ -104,19 +108,19 @@ export function toArabicIndicDigits(text: string): string {
  */
 export function toLatinDigits(text: string): string {
   const arabicToLatin: Record<string, string> = {
-    '٠': '0',
-    '١': '1',
-    '٢': '2',
-    '٣': '3',
-    '٤': '4',
-    '٥': '5',
-    '٦': '6',
-    '٧': '7',
-    '٨': '8',
-    '٩': '9',
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
   };
 
-  return text.replace(/[٠-٩]/g, digit => arabicToLatin[digit] || digit);
+  return text.replace(/[٠-٩]/g, (digit) => arabicToLatin[digit] || digit);
 }
 
 /**
@@ -129,16 +133,16 @@ export function toLatinDigits(text: string): string {
  */
 export function normalizeWhitespace(
   text: string,
-  locale: 'ar' | 'fr' | 'en' = 'fr'
+  locale: "ar" | "fr" | "en" = "fr",
 ): string {
-  if (locale === 'ar') {
+  if (locale === "ar") {
     // For Arabic: collapse multiple spaces but preserve single spaces
     // Arabic spaces behave differently, so we be conservative
-    return text.replace(/[ \t]+/g, ' ').trim();
+    return text.replace(/[ \t]+/g, " ").trim();
   }
 
   // For French and English: standard whitespace normalization
-  return text.replace(/\s+/g, ' ').trim();
+  return text.replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -170,8 +174,8 @@ export function containsRTL(text: string): boolean {
  * @returns Text style object with correct alignment
  */
 export function textStyle(
-  locale: 'ar' | 'fr' | 'en' = 'fr',
-  options: Record<string, unknown> = {}
+  locale: "ar" | "fr" | "en" = "fr",
+  options: Record<string, unknown> = {},
 ): Record<string, unknown> {
   const alignment = getTextAlignment(locale);
   const direction = getWritingDirection(locale);
@@ -182,15 +186,3 @@ export function textStyle(
     ...options,
   };
 }
-
-export type {
-  getTextAlignment,
-  getWritingDirection,
-  truncateText,
-  toArabicIndicDigits,
-  toLatinDigits,
-  normalizeWhitespace,
-  containsArabic,
-  containsRTL,
-  textStyle,
-};

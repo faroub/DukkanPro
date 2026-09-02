@@ -1,12 +1,12 @@
-import { StyleSheet, View, type ViewProps, Pressable } from 'react-native';
-import { ScrollView } from 'expo-router';
+import { Image } from "expo-image";
+import { Pressable, StyleSheet } from "react-native";
 
 // expo-symbols exports are used via SymbolView in other components
 // Using native react-native icons instead
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface AppHeaderProps {
   title: string;
@@ -16,27 +16,41 @@ export interface AppHeaderProps {
     onPress: () => void;
     accessibleLabel?: string;
   };
-  locale?: 'ar' | 'fr' | 'en';
+  locale?: "ar" | "fr" | "en";
 }
 
-export function AppHeader({ title, backButton = true, rightAction, locale = 'fr' }: AppHeaderProps) {
+export function AppHeader({
+  title,
+  backButton = true,
+  rightAction,
+  locale = "fr",
+}: AppHeaderProps) {
   const theme = useTheme();
-  const isRtl = locale === 'ar';
+  const isRtl = locale === "ar";
 
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.headerContent}>
-        <ThemedText type="title" style={styles.title}>{title}</ThemedText>
+        <ThemedText type="title" style={styles.title}>
+          {title}
+        </ThemedText>
 
         {backButton && (
           <Pressable
             style={styles.backButton}
-            onPress={() => {}}
-            accessible accessibilityLabel={locale === 'ar' ? 'Retour' : 'Back'}
+            onPress={rightAction?.onPress}
+            accessible
+            accessibilityLabel={locale === "ar" ? "Retour" : "Back"}
           >
             <Image
-              source={require('@/assets/icons/chevron-left.png')}
-              style={[{ width: 20, height: 20, transform: [{ rotate: isRtl ? "-90deg" : "90deg" }]}]}
+              source={require("@/assets/icons/chevron-left.png")}
+              style={[
+                {
+                  width: 20,
+                  height: 20,
+                  transform: [{ rotate: isRtl ? "-90deg" : "90deg" }],
+                },
+              ]}
             />
           </Pressable>
         )}
@@ -46,7 +60,9 @@ export function AppHeader({ title, backButton = true, rightAction, locale = 'fr'
         <ThemedText
           style={[
             styles.rightAction,
-            { color: theme.text === '#1A1A1A' ? theme.textPrimary : theme.text },
+            {
+              color: theme.text === "#1A1A1A" ? theme.textPrimary : theme.text,
+            },
           ]}
         >
           {rightAction.label}
@@ -61,12 +77,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 8,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   title: {
     fontSize: 24,
