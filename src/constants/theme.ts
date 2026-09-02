@@ -144,12 +144,6 @@ export const Spacing = {
   xxxl: 32,
   xxxxl: 40,
   xxxxxx: 48,
-  one: 4,
-  two: 8,
-  three: 12,
-  four: 16,
-  five: 20,
-  six: 24,
 } as const;
 
 export const BottomTabInset = 64;
