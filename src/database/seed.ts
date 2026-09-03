@@ -202,9 +202,6 @@ export async function seed(db: any): Promise<void> {
         remaining1,
         "cash",
         "مبيعة نقدية",
-        new Date().toISOString(),
-        new Date().toISOString(),
-        new Date().toISOString(),
       ],
     );
 
