@@ -62,7 +62,7 @@ export function BusinessTypeStep({
               >
                 {t(`businessTypeStep.${type.label}`)}
               </ThemedText>
-            </View>
+            </TouchableWithoutFeedback>
           ))}
         </View>
 
