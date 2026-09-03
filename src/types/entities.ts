@@ -62,7 +62,7 @@ export interface Customer extends Entity {
  */
 export interface Sale extends Entity {
   customer_id: ID | null; // nullable FK → customers(id)
-  status: "completed" | "cancelled" | "refunded"; // string enum
+  status: "completed" | "cancelled" | "refunded" | "returned"; // string enum
   subtotal_centimes: number; // integer centimes
   discount_centimes: number; // integer centimes
   total_centimes: number; // integer centimes
