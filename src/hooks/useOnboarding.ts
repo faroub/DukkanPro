@@ -1,13 +1,6 @@
 import * as AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Locale } from '@/localization/types';
 
-declare global {
-  interface AsyncStorage {
-    getItem: (key: string) => Promise<string | null>;
-    setItem: (key: string, value: string) => Promise<void>;
-  }
-}
-
 /**
  * Onboarding profile shape
  * Saved to SQLite for the business profile and AsyncStorage for completion flag
