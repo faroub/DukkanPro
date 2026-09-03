@@ -8,17 +8,16 @@
  */
 
 import { getDatabase } from "../../database";
+import { getOutstandingDebt, getTodayRevenue } from "../dashboardRepository";
 import {
-  create,
   cancel,
-  returnSale,
-  getById,
+  create,
   getAll,
   getByCustomerId,
+  getById,
   getTodaySales,
-  getSalesByDateRange,
+  returnSale,
 } from "../saleRepository";
-import { getTodayRevenue, getOutstandingDebt } from "../dashboardRepository";
 
 let db: any;
 
@@ -27,6 +26,31 @@ beforeAll(async () => {
 });
 
 describe("saleRepository", () => {
+  beforeEach(async () => {
+    await db.execAsync(`
+      DELETE FROM sale_items;
+      DELETE FROM customer_payments;
+      DELETE FROM inventory_movements;
+      DELETE FROM sales;
+      DELETE FROM products;
+      DELETE FROM customers;
+      DELETE FROM sqlite_sequence;
+    `);
+    await db.runAsync("INSERT INTO customers (name) VALUES (?)", [
+      "Test customer",
+    ]);
+    await db.runAsync(
+      `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
+       VALUES (?, ?, ?, ?, ?, 1)`,
+      ["Product A", 5000, 3000, 100, "pcs"],
+    );
+    await db.runAsync(
+      `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
+       VALUES (?, ?, ?, ?, ?, 1)`,
+      ["Product B", 3500, 2000, 50, "pcs"],
+    );
+  });
+
   describe("create()", () => {
     it("creates a sale with 2 items, deducts stock, and creates inventory movements", async () => {
       const sale = await create({
@@ -52,7 +76,7 @@ describe("saleRepository", () => {
       expect(sale).not.toBeNull();
       expect(sale?.id).toBeGreaterThan(0);
       expect(sale?.status).toBe("completed");
-      expect(sale?.total_centimes).toBe(10000); // 3×2000 + 2×1500 = 6000 + 3000 = 9000... wait 3*2000=6000, 2*1500=3000, total=9000
+      expect(sale?.total_centimes).toBe(9000);
       expect(sale?.saleItems?.length).toBe(2);
 
       // Verify stock was deducted
@@ -68,20 +92,6 @@ describe("saleRepository", () => {
     });
 
     it("stores historical cost price on sale items (snapshot)", async () => {
-      // Create products with known cost prices first
-      await db.runAsync(
-        // language=SQLite
-        `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
-         VALUES (?, ?, ?, ?, ?, 1)`,
-        ["Product A", 5000, 3000, 100, "pcs"],
-      );
-      await db.runAsync(
-        // language=SQLite
-        `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
-         VALUES (?, ?, ?, ?, ?, 1)`,
-        ["Product B", 3500, 2000, 50, "pcs"],
-      );
-
       const sale = await create({
         customerId: 1,
         paymentMethod: "cash",
@@ -154,8 +164,8 @@ describe("saleRepository", () => {
         `SELECT stock_quantity FROM products WHERE id = 2`,
       );
       // Stock should be higher than it was during the sale
-      expect(product1Stock).toBeGreaterThan(0);
-      expect(product2Stock).toBeGreaterThan(0);
+      expect(product1Stock?.stock_quantity).toBeGreaterThan(0);
+      expect(product2Stock?.stock_quantity).toBeGreaterThan(0);
     });
 
     it("creates inventory movements with 'in' type for cancelled sale", async () => {
@@ -164,7 +174,7 @@ describe("saleRepository", () => {
       // Check that inventory movements with movement_type='in' were created
       const movements = await db.getAllAsync(
         // language=SQLite
-        `SELECT movement_type, quantity_change FROM inventory_movements
+        `SELECT movement_type, quantity_change, reference_sale_id FROM inventory_movements
          WHERE reference_sale_id = ?`,
         [saleId],
       );
@@ -224,7 +234,7 @@ describe("saleRepository", () => {
       const product1Stock = await db.getFirstAsync(
         `SELECT stock_quantity FROM products WHERE id = 1`,
       );
-      expect(product1Stock).toBeGreaterThan(0);
+      expect(product1Stock?.stock_quantity).toBeGreaterThan(0);
     });
 
     it("creates inventory movements with 'in' type for returned sale", async () => {
@@ -233,7 +243,7 @@ describe("saleRepository", () => {
       // Check that inventory movements with movement_type='in' were created
       const movements = await db.getAllAsync(
         // language=SQLite
-        `SELECT movement_type, quantity_change FROM inventory_movements
+        `SELECT movement_type, quantity_change, reference_sale_id FROM inventory_movements
          WHERE reference_sale_id = ?`,
         [saleId],
       );
@@ -282,7 +292,9 @@ describe("saleRepository", () => {
 
       // Verify no sale was created with id 999 or similar
       const allSales = await getAll({});
-      const cancelledLike = allSales.filter((s) => s.id === 999 || String(s.id).includes("999"));
+      const cancelledLike = allSales.filter(
+        (s) => s.id === 999 || String(s.id).includes("999"),
+      );
       expect(cancelledLike.length).toBe(0);
     });
 

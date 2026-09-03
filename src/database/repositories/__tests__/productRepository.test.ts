@@ -272,11 +272,7 @@ describe("productRepository", () => {
       expect(history.length).toBeGreaterThanOrEqual(2);
       // Stock should be 10 + 5 - 3 = 12
       const product = await getById(created!.id);
-      expect(product?.stock_quantity).toBe(8); // 10 + 5 - 3 = 12? Wait, 10+5-3=12; we set max 0 but logic should produce 12. Actually Math.max(0, 10+5-3)=12. Let's adjust expectation.
-      // Actually stock_quantity should be 12. Let's re-verify the logic.
-      // The adjustStock function sets newStock = Math.max(0, product.stock_quantity + quantityChange).
-      // First call: 10 + 5 = 15. Second call: 15 + (-3) = 12. So stock_quantity should be 12.
-      // Let me fix: we expect 12.
+      expect(product?.stock_quantity).toBe(12);
     });
   });
 });

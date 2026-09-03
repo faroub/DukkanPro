@@ -11,9 +11,14 @@
  * Cancelled and returned sales do NOT count toward revenue, profit, or customer debt.
  */
 
-import { Sale, SaleItem, Product } from "../../types/entities";
-import { executeAll, executeRead, executeWrite, getDatabase, transaction } from "../database";
-import { schema } from "../schema";
+import { Sale } from "../../types/entities";
+import {
+  executeAll,
+  executeRead,
+  executeWrite,
+  getDatabase,
+  transaction,
+} from "../database";
 
 export type SaleFilters = {
   status?: "completed" | "cancelled" | "returned";
@@ -31,19 +36,17 @@ export type SaleResult = {
  - All-or-nothing via SQLite transaction.
  - Historical cost (unit_cost_price_centimes) is snapshotted from the product at sale time.
  */
-export async function create(
-  saleInput: {
-    customerId?: number;
-    paymentMethod: "cash" | "electronic" | "mixed" | "partial" | "credit";
-    items: Array<{
-      productId: number;
-      quantity: number;
-      unitSalePriceCentimes: number; // price at time of sale
-      note?: string;
-    }>;
+export async function create(saleInput: {
+  customerId?: number;
+  paymentMethod: "cash" | "electronic" | "mixed" | "partial" | "credit";
+  items: Array<{
+    productId: number;
+    quantity: number;
+    unitSalePriceCentimes: number; // price at time of sale
     note?: string;
-  }
-): Promise<Sale> {
+  }>;
+  note?: string;
+}): Promise<Sale> {
   const db = await getDatabase();
   return await transaction(db, async (tx: any) => {
     // 1. Insert the sale header
@@ -115,13 +118,7 @@ export async function create(
         `INSERT INTO inventory_movements
          (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-        [
-          product.id,
-          "out",
-          -item.quantity,
-          saleId,
-          `Sale saleId=${saleId}`,
-        ],
+        [product.id, "out", -item.quantity, saleId, `Sale saleId=${saleId}`],
       );
 
       await executeWrite(
@@ -181,7 +178,8 @@ export async function create(
       discount_centimes: saleRows[0].discount_centimes as number,
       total_centimes: saleRows[0].total_centimes as number,
       amount_paid_centimes: saleRows[0].amount_paid_centimes as number,
-      remaining_balance_centimes: saleRows[0].remaining_balance_centimes as number,
+      remaining_balance_centimes: saleRows[0]
+        .remaining_balance_centimes as number,
       payment_method: saleRows[0].payment_method as
         | "cash"
         | "electronic"
@@ -219,7 +217,7 @@ export async function cancel(id: number, reason: string): Promise<void> {
     // 1. Get the sale with its items (lock for update)
     const saleRows: any[] = await executeRead(
       // language=SQLite
-      `SELECT s.id, si.product_id, si.quantity, si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes
+      `SELECT s.id, s.status, si.product_id, si.quantity, si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes
         FROM sales s
         JOIN sale_items si ON si.sale_id = s.id
        WHERE s.id = ?`,
@@ -237,7 +235,7 @@ export async function cancel(id: number, reason: string): Promise<void> {
     }
 
     // 2. For each sale item, restore stock and create a reverse inventory movement
-    for (const item of sale.saleItems as any[]) {
+    for (const item of saleRows) {
       // Restore stock: add back the quantity
       await executeWrite(
         // language=SQLite
@@ -254,13 +252,7 @@ export async function cancel(id: number, reason: string): Promise<void> {
         `INSERT INTO inventory_movements
          (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-        [
-          item.product_id,
-          "in",
-          item.quantity,
-          id,
-          `Sale cancelled: ${reason}`,
-        ],
+        [item.product_id, "in", item.quantity, id, `Sale cancelled: ${reason}`],
       );
     }
 
@@ -288,7 +280,7 @@ export async function returnSale(id: number, reason: string): Promise<void> {
     // 1. Get the sale with its items (lock for update)
     const saleRows: any[] = await executeRead(
       // language=SQLite
-      `SELECT s.id, si.product_id, si.quantity, si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes
+      `SELECT s.id, s.status, si.product_id, si.quantity, si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes
         FROM sales s
         JOIN sale_items si ON si.sale_id = s.id
        WHERE s.id = ?`,
@@ -306,7 +298,7 @@ export async function returnSale(id: number, reason: string): Promise<void> {
     }
 
     // 2. For each sale item, restore stock and create a reverse inventory movement
-    for (const item of sale.saleItems as any[]) {
+    for (const item of saleRows) {
       // Restore stock: add back the quantity
       await executeWrite(
         // language=SQLite
@@ -323,13 +315,7 @@ export async function returnSale(id: number, reason: string): Promise<void> {
         `INSERT INTO inventory_movements
          (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-        [
-          item.product_id,
-          "in",
-          item.quantity,
-          id,
-          `Sale returned: ${reason}`,
-        ],
+        [item.product_id, "in", item.quantity, id, `Sale returned: ${reason}`],
       );
     }
 
@@ -463,7 +449,10 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
 /**
  - Search sales by query string against customer name or sale note.
  */
-export async function search(query: string, filters: SaleFilters = {}): Promise<Sale[]> {
+export async function search(
+  query: string,
+  filters: SaleFilters = {},
+): Promise<Sale[]> {
   const { status } = filters;
   let sql = `SELECT DISTINCT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
              s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
@@ -530,6 +519,9 @@ export async function getTodaySales(): Promise<Sale[]> {
 /**
  - Get sales by date range.
  */
-export async function getSalesByDateRange(start: string, end: string): Promise<Sale[]> {
+export async function getSalesByDateRange(
+  start: string,
+  end: string,
+): Promise<Sale[]> {
   return await getAll({});
 }

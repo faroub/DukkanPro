@@ -49,7 +49,7 @@ export async function getDatabase() {
   await runMigrations(database);
 
   // --- Development-only seed data ---
-  if (__DEV__) {
+  if (__DEV__ && process.env.NODE_ENV !== "test") {
     await seed(database);
   }
 
@@ -80,7 +80,10 @@ export async function executeRead<T>(
   const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
   const queryParams =
     typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
-  const result = await db.getAllAsync(sql, ...queryParams);
+  const result = await db.getAllAsync(
+    sql,
+    ...queryParams.map((param) => param ?? null),
+  );
   return result as T[];
 }
 
@@ -96,7 +99,10 @@ export async function executeAll<T>(
   const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
   const queryParams =
     typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
-  const results = await db.getAllAsync(sql, ...queryParams);
+  const results = await db.getAllAsync(
+    sql,
+    ...queryParams.map((param) => param ?? null),
+  );
   return results as T[];
 }
 
@@ -112,7 +118,10 @@ export async function executeWrite(
   const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
   const queryParams =
     typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
-  const result = await db.runAsync(sql, ...queryParams);
+  const result = await db.runAsync(
+    sql,
+    ...queryParams.map((param) => param ?? null),
+  );
   return result.lastInsertRowId;
 }
 
@@ -124,13 +133,13 @@ export async function transaction<T>(
   db: any,
   fn: (tx: any) => Promise<T>,
 ): Promise<T> {
-  await db.run("BEGIN IMMEDIATE");
+  await db.execAsync("BEGIN IMMEDIATE");
   try {
     const result = await fn(db);
-    await db.run("COMMIT");
+    await db.execAsync("COMMIT");
     return result;
   } catch (error) {
-    await db.run("ROLLBACK");
+    await db.execAsync("ROLLBACK");
     throw error;
   }
 }
