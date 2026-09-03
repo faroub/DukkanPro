@@ -1,7 +1,12 @@
 import * as AsyncStorage from '@react-native-async-storage/async-storage';
-import { formatCurrency as formatCurrencyUtil } from '@/localization/i18n';
-import { formatNumber as formatNumberUtil } from '@/localization/i18n';
 import type { Locale } from '@/localization/types';
+
+declare global {
+  interface AsyncStorage {
+    getItem: (key: string) => Promise<string | null>;
+    setItem: (key: string, value: string) => Promise<void>;
+  }
+}
 
 /**
  * Onboarding profile shape
@@ -21,7 +26,7 @@ export type OnboardingProfile = {
  */
 export async function isOnboardingComplete(): Promise<boolean> {
   try {
-    const stored = await AsyncStorage.getItem('onboardingComplete');
+    const stored = (AsyncStorage as any).getItem('onboardingComplete');
     if (stored === 'true') {
       return true;
     }
@@ -44,7 +49,7 @@ export async function isOnboardingComplete(): Promise<boolean> {
  */
 export async function saveOnboardingComplete(flag: boolean): Promise<void> {
   try {
-    await AsyncStorage.setItem('onboardingComplete', flag ? 'true' : 'false');
+    ;(AsyncStorage as any).setItem('onboardingComplete', flag ? 'true' : 'false');
   } catch (error) {
     if (__DEV__) {
       console.warn('Failed to save onboarding completion to AsyncStorage:', error);
@@ -97,7 +102,7 @@ export async function saveProfileLocally(profile: OnboardingProfile): Promise<vo
  */
 export async function saveLocaleLocally(locale: Locale): Promise<void> {
   try {
-    await AsyncStorage.setItem('selectedLocale', locale);
+    ;(AsyncStorage as any).setItem('selectedLocale', locale);
   } catch (error) {
     if (__DEV__) {
       console.warn('Failed to save selected locale to AsyncStorage:', error);
@@ -111,7 +116,7 @@ export async function saveLocaleLocally(locale: Locale): Promise<void> {
  */
 export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
   try {
-    const stored = await AsyncStorage.getItem('selectedLocale');
+    const stored = (AsyncStorage as any).getItem('selectedLocale');
     if (!stored) {
       return 'fr';
     }
@@ -145,8 +150,6 @@ export async function completeOnboarding(profile: OnboardingProfile): Promise<vo
     console.log('Onboarding completed successfully', profile);
   }
 }
-
-export type { OnboardingProfile };
 
 /**
  * Hook namespace providing onboarding utilities

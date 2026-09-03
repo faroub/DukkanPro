@@ -68,7 +68,7 @@ export function LanguageStep({
                   <ThemedText>{t(`languageStep.${localeOpt.value}`)}</ThemedText>
                 )}
               </ThemedText>
-            </View>
+            </TouchableWithoutFeedback>
           ))}
         </View>
 
