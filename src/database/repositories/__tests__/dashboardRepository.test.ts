@@ -8,20 +8,35 @@
 
 import { getDatabase } from "../../database";
 import {
-  getTodayRevenue,
-  getTodayCost,
-  getTodayProfit,
-  getOutstandingDebt,
-  getLowStockCount,
-  getRecentSales,
-  getLowStockProducts,
-  getSevenDaySales,
+    getLowStockCount,
+    getLowStockProducts,
+    getOutstandingDebt,
+    getRecentSales,
+    getSevenDaySales,
+    getTodayCost,
+    getTodayProfit,
+    getTodayRevenue,
 } from "../dashboardRepository";
 
 let db: any;
 
 beforeAll(async () => {
   db = await getDatabase();
+});
+
+beforeEach(async () => {
+  await db.execAsync(`
+    DELETE FROM sale_items;
+    DELETE FROM customer_payments;
+    DELETE FROM inventory_movements;
+    DELETE FROM sales;
+    DELETE FROM products;
+    DELETE FROM customers;
+    DELETE FROM sqlite_sequence;
+  `);
+  await db.runAsync("INSERT INTO customers (name) VALUES (?)", [
+    "Test customer",
+  ]);
 });
 
 describe("dashboardRepository", () => {
@@ -39,7 +54,7 @@ describe("dashboardRepository", () => {
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
              total_centimes, amount_paid_centimes, remaining_balance_centimes,
              payment_method, note, sold_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
         [1, "completed", 5000, 0, 5000, 5000, 0, "cash"],
       );
 
@@ -54,7 +69,7 @@ describe("dashboardRepository", () => {
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
              total_centimes, amount_paid_centimes, remaining_balance_centimes,
              payment_method, note, sold_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
         [1, "cancelled", 3000, 0, 3000, 0, 0, "cash"],
       );
 
@@ -80,7 +95,7 @@ describe("dashboardRepository", () => {
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
              total_centimes, amount_paid_centimes, remaining_balance_centimes,
              payment_method, note, sold_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
         [1, "completed", 6000, 0, 6000, 6000, 0, "cash"],
       );
 
@@ -114,7 +129,7 @@ describe("dashboardRepository", () => {
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
              total_centimes, amount_paid_centimes, remaining_balance_centimes,
              payment_method, note, sold_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
         [1, "completed", 6000, 0, 6000, 6000, 0, "cash"],
       );
 
@@ -140,7 +155,7 @@ describe("dashboardRepository", () => {
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
              total_centimes, amount_paid_centimes, remaining_balance_centimes,
              payment_method, note, sold_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
         [1, "completed", 5000, 0, 5000, 2000, 3000, "cash"],
       );
 
@@ -156,7 +171,7 @@ describe("dashboardRepository", () => {
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
              total_centimes, amount_paid_centimes, remaining_balance_centimes,
              payment_method, note, sold_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
         [1, "cancelled", 5000, 0, 5000, 0, 3000, "cash"],
       );
 
@@ -206,8 +221,17 @@ describe("dashboardRepository", () => {
           `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
                total_centimes, amount_paid_centimes, remaining_balance_centimes,
                payment_method, note, sold_at, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
-          [1, "completed", 1000 * (i + 1), 0, 1000 * (i + 1), 1000 * (i + 1), 0, "cash"],
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
+          [
+            1,
+            "completed",
+            1000 * (i + 1),
+            0,
+            1000 * (i + 1),
+            1000 * (i + 1),
+            0,
+            "cash",
+          ],
         );
       }
 
@@ -222,7 +246,7 @@ describe("dashboardRepository", () => {
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
              total_centimes, amount_paid_centimes, remaining_balance_centimes,
              payment_method, note, sold_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
         [1, "completed", 1000, 0, 1000, 1000, 0, "cash"],
       );
 
@@ -232,7 +256,7 @@ describe("dashboardRepository", () => {
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
              total_centimes, amount_paid_centimes, remaining_balance_centimes,
              payment_method, note, sold_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
         [1, "cancelled", 1000, 0, 1000, 0, 0, "cash"],
       );
 

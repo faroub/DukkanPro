@@ -1,13 +1,20 @@
+import type { SQLiteOpenOptions } from "expo-sqlite";
+
+const initSqlJs: () => Promise<any> = require("sql.js");
+
+function normalizeParams(params: any[]): any[] {
+  return params.length === 1 && Array.isArray(params[0]) ? params[0] : params;
+}
+
 /**
  * Mock for expo-sqlite used in Jest tests.
- * 
+ *
  * This mock provides the NativeDatabase constructor that the actual
  * expo-sqlite code expects. The jest-expo preset mocks ExpoSQLite
  * but was missing NativeDatabase, causing:
  *   TypeError: _ExpoSQLite.default.NativeDatabase is not a constructor
  */
 
-import type { SQLiteOpenOptions } from 'expo-sqlite';
 
 /**
  * Mock NativeDatabase class - mimics the interface used by ExpoSQLite.
@@ -15,7 +22,10 @@ import type { SQLiteOpenOptions } from 'expo-sqlite';
  * just enough to prevent "NativeDatabase is not a constructor" errors.
  */
 export class NativeDatabase {
-  constructor(public databasePath: string, public options?: SQLiteOpenOptions) {}
+  constructor(
+    public databasePath: string,
+    public options?: SQLiteOpenOptions,
+  ) {}
 
   // Asynchronous API - mock implementations
   public initAsync(): Promise<void> {
@@ -39,7 +49,10 @@ export class NativeDatabase {
   public createSessionAsync(nativeSession: any, dbName: string): Promise<any> {
     return Promise.resolve(nativeSession);
   }
-  public loadExtensionAsync(libPath: string, entryPoint?: string): Promise<void> {
+  public loadExtensionAsync(
+    libPath: string,
+    entryPoint?: string,
+  ): Promise<void> {
     return Promise.resolve();
   }
 
@@ -64,6 +77,57 @@ export class NativeDatabase {
   }
 }
 
+class MockSQLiteDatabase {
+  constructor(private readonly database: any) {}
+
+  async execAsync(source: string): Promise<void> {
+    this.database.exec(source);
+  }
+
+  async getAllAsync<T = any>(source: string, ...params: any[]): Promise<T[]> {
+    const statement = this.database.prepare(source);
+    try {
+      statement.bind(normalizeParams(params));
+      const rows: T[] = [];
+      while (statement.step()) {
+        rows.push(statement.getAsObject() as T);
+      }
+      return rows;
+    } finally {
+      statement.free();
+    }
+  }
+
+  async getFirstAsync<T = any>(
+    source: string,
+    ...params: any[]
+  ): Promise<T | null> {
+    const rows = await this.getAllAsync<T>(source, ...params);
+    return rows[0] ?? null;
+  }
+
+  async runAsync(
+    source: string,
+    ...params: any[]
+  ): Promise<{ lastInsertRowId: number; changes: number }> {
+    const statement = this.database.prepare(source);
+    try {
+      statement.run(normalizeParams(params));
+      const row = this.database.exec("SELECT last_insert_rowid() AS id")[0];
+      return {
+        lastInsertRowId: row?.values[0]?.[0] ?? 0,
+        changes: this.database.getRowsModified(),
+      };
+    } finally {
+      statement.free();
+    }
+  }
+
+  async closeAsync(): Promise<void> {
+    this.database.close();
+  }
+}
+
 /**
  * Mock ExpoSQLite object - provides NativeDatabase constructor and other methods.
  * The actual code uses ExpoSQLite.NativeDatabase to create database instances.
@@ -82,5 +146,10 @@ export const ExpoSQLite = {
   removeListeners: () => {},
   addListener: () => {},
   bundledExtensions: {},
-  defaultDatabaseDirectory: '',
+  defaultDatabaseDirectory: "",
 };
+
+export async function openDatabaseAsync(): Promise<any> {
+  const SQL = await initSqlJs();
+  return new MockSQLiteDatabase(new SQL.Database());
+}

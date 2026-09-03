@@ -18,6 +18,13 @@ beforeAll(async () => {
 });
 
 describe("businessProfileRepository", () => {
+  beforeEach(async () => {
+    await db.execAsync(`
+      DELETE FROM business_profiles;
+      DELETE FROM sqlite_sequence WHERE name = 'business_profiles';
+    `);
+  });
+
   describe("get()", () => {
     it("returns null when no profile exists", async () => {
       const profile = await get();
