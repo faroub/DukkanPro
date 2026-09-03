@@ -1,24 +1,24 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 
 // Use the project root directory
-const PROJECT_ROOT = '/home/faroub/Documents/Projects/DukkanOS/DukkanOS';
-const SRC_APP_DIR = path.resolve(PROJECT_ROOT, 'src/app');
+const PROJECT_ROOT = "/home/faroub/Documents/Projects/DukkanOS/DukkanOS";
+const SRC_APP_DIR = path.resolve(PROJECT_ROOT, "src/app");
 const FORBIDDEN_DIRS = [
-  'components',
-  'hooks',
-  'services',
-  'repositories',
-  'types',
-  'utils',
-  'constants',
-  'stores',
+  "components",
+  "hooks",
+  "services",
+  "repositories",
+  "types",
+  "utils",
+  "constants",
+  "stores",
 ];
 
 const FORBIDDEN_FILE_PATTERNS = [
   /\.test\.tsx?$/,
   /\.spec\.tsx?$/,
-  '/__tests__/',
+  /\/__tests__\//,
 ];
 
 interface Violation {
@@ -66,10 +66,11 @@ function main(): void {
         if (isForbiddenFile(fullPath)) {
           // Determine the reason
           const relPath = path.relative(SRC_APP_DIR, fullPath);
-          let reason = 'File inside src/app/';
+          let reason = "File inside src/app/";
 
-          if (FORBIDDEN_FILE_PATTERNS.some(p => p.test(fullPath))) {
-            reason = 'Test/spec file inside src/app/ - should be in a __tests__ directory or separate';
+          if (FORBIDDEN_FILE_PATTERNS.some((p) => p.test(fullPath))) {
+            reason =
+              "Test/spec file inside src/app/ - should be in a __tests__ directory or separate";
           } else {
             reason = `Found ${path.basename(entry.name)} inside src/app/ - route files only`;
           }
@@ -86,8 +87,8 @@ function main(): void {
   walkDir(SRC_APP_DIR);
 
   if (violations.length > 0) {
-    console.error('❌ Architecture violations found in src/app/:');
-    console.error('');
+    console.error("❌ Architecture violations found in src/app/:");
+    console.error("");
 
     // Group by reason for cleaner output
     const byReason: Record<string, string[]> = {};
@@ -108,8 +109,8 @@ function main(): void {
     console.error(`\nTotal violations: ${violations.length}`);
     process.exit(1);
   } else {
-    console.log('✅ No architecture violations found in src/app/');
-    console.log('   All files are valid route or layout files.');
+    console.log("✅ No architecture violations found in src/app/");
+    console.log("   All files are valid route or layout files.");
     process.exit(0);
   }
 }
