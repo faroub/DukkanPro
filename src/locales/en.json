@@ -33,6 +33,20 @@
   "statusPaid": "Paid",
   "statusPartial": "Partial",
   "statusCancelled": "Cancelled",
+  "products": {
+    "title": "Products",
+    "subtitle": "Manage your product inventory",
+    "description": "Add and track your products in stock",
+    "lowStock": "Low stock",
+    "outOfStock": "Out of stock",
+    "archived": "Archived",
+    "noProducts": "No products found",
+    "searchNoResults": "No products match your search",
+    "filterAll": "All",
+    "filterLowStock": "Low stock",
+    "filterOutOfStock": "Out of stock",
+    "filterArchived": "Archived"
+  },
   "onboarding": {
     "appText": "App Text",
     "screen": "Screen",

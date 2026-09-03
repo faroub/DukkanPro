@@ -1,0 +1,57 @@
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
+import { useTranslation } from 'react-i18next';
+import { Colors, Spacing } from '@/constants/theme';
+
+interface ProductFilterTabsProps {
+  activeFilter: string;
+  onFilterChange: (filter: string) => void;
+}
+
+const FILTER_OPTIONS = [
+  { key: "all", labelKey: "products:filterAll" },
+  { key: "lowStock", labelKey: "products:filterLowStock" },
+  { key: "outOfStock", labelKey: "products:filterOutOfStock" },
+  { key: "archived", labelKey: "products:filterArchived" },
+] as const;
+
+export function ProductFilterTabs({ activeFilter, onFilterChange }: ProductFilterTabsProps) {
+  const { t } = useTranslation();
+
+  return (
+    <ThemedView style={styles.container}>
+      {FILTER_OPTIONS.map((option) => (
+        <TouchableOpacity
+          key={option.key}
+          style={styles.tab}
+          onPress={() => onFilterChange(option.key)}
+          active={activeFilter === option.key}
+        >
+          <ThemedText type="caption" style={styles.tabText}>
+            {t(option.labelKey)}
+          </ThemedText>
+        </TouchableOpacity>
+      ))}
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    marginBottom: Spacing.lg,
+  },
+  tab: {
+    flex: 1,
+    padding: Spacing.sm,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 2,
+  },
+  tabText: {
+    ...Typography.body,
+    fontSize: 12,
+  },
+});
