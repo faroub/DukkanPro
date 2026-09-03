@@ -107,7 +107,7 @@ export default {
     subtitle: "إدارة المخزون",
     totalItems: "إجمالي العناصر",
     lowStock: "مخزون منخفض",
-    outOfStock: "نفذت المخزون",
+    outOfStock: "نفذ المخزون",
     restock: "تزويد",
     addStock: "إضافة مخزون",
     removeStock: "إزالة مخزون",
