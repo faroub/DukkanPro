@@ -27,7 +27,7 @@ export function ProductFilterTabs({ activeFilter, onFilterChange }: ProductFilte
           style={activeFilter === option.key ? styles.tabActive : styles.tab}
           onPress={() => onFilterChange(option.key)}
         >
-          <ThemedText type="caption" style={styles.tabText}>
+          <ThemedText type="small" style={styles.tabText}>
             {t(option.labelKey)}
           </ThemedText>
         </TouchableOpacity>

@@ -99,7 +99,8 @@ describe("useProducts hook", () => {
   it("should handle error state", () => {
     // The hook should manage error state
     const { error } = useProducts({});
-    expect(error).toBeNull() || typeof error === "string";
+    expect(error).toBeNull();
+    expect(typeof error).toBe("string");
   });
 
   it("should refetch/reload products", () => {

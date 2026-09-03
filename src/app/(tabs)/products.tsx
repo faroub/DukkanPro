@@ -1,4 +1,4 @@
-import ProductListScreen from "@/features/products/ProductListScreen";
+import { ProductListScreen } from "@/features/products/ProductListScreen";
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from "react-i18next";
 import { ThemedView } from '@/components/themed-view';
