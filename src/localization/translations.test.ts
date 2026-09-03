@@ -1,6 +1,6 @@
 import ar from "./ar";
-import fr from "./fr";
 import en from "./en";
+import fr from "./fr";
 
 const REQUIRED_SECTIONS = [
   "common",
@@ -23,7 +23,7 @@ const REQUIRED_SECTIONS = [
   "permissions",
 ] as const;
 
-type RequiredSections = typeof REQUIRED_SECTIONS[number];
+type RequiredSections = (typeof REQUIRED_SECTIONS)[number];
 
 /**
  * Verifies that all three translation dictionaries have identical keys
@@ -37,7 +37,7 @@ type RequiredSections = typeof REQUIRED_SECTIONS[number];
  *
  * @throws {Error} If any key is missing or keys don't match across languages
  */
-function validateTranslationDictionaries(): void {
+export function validateTranslationDictionaries(): void {
   const languages = { ar, fr, en };
 
   // 1. Verify all three dictionaries have the same top-level keys
@@ -100,7 +100,10 @@ function validateTranslationDictionaries(): void {
 
     // Check each key matches
     for (let i = 0; i < arSectionKeys.length; i++) {
-      if (arSectionKeys[i] !== frSectionKeys[i] || arSectionKeys[i] !== enSectionKeys[i]) {
+      if (
+        arSectionKeys[i] !== frSectionKeys[i] ||
+        arSectionKeys[i] !== enSectionKeys[i]
+      ) {
         throw new Error(
           `Section "${section}" key ${i} mismatch: ar="${arSectionKeys[i]}", fr="${frSectionKeys[i]}", en="${enSectionKeys[i]}"`,
         );
@@ -114,7 +117,10 @@ function validateTranslationDictionaries(): void {
     const sectionKeys = Object.keys(sectionObj);
 
     for (const key of sectionKeys) {
-      if (!(key in fr[section as RequiredSections]) || !(key in en[section as RequiredSections])) {
+      if (
+        !(key in fr[section as RequiredSections]) ||
+        !(key in en[section as RequiredSections])
+      ) {
         throw new Error(
           `Key "${key}" missing in section "${section}" in one or more languages`,
         );
@@ -127,3 +133,7 @@ function validateTranslationDictionaries(): void {
 validateTranslationDictionaries();
 
 export default validateTranslationDictionaries;
+
+test("translation dictionaries have identical keys", () => {
+  expect(() => validateTranslationDictionaries()).not.toThrow();
+});
