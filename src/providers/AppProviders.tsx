@@ -1,11 +1,9 @@
-import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LocaleProvider } from './LocaleProvider';
-import { DatabaseProvider } from './DatabaseProvider';
-import { LoadingState } from '@/components/ui/LoadingState';
-import { ErrorState } from '@/components/ui/ErrorState';
-import { useTheme } from '@/hooks/use-theme';
-import { Colors } from '@/constants/theme';
+import { useTheme } from "@/hooks/use-theme";
+import React from "react";
+import { StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { DatabaseProvider } from "./DatabaseProvider";
+import { LocaleProvider } from "./LocaleProvider";
 
 export interface AppProvidersProps {
   children: React.ReactNode;
@@ -17,9 +15,7 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <SafeAreaView style={styles.container}>
       <DatabaseProvider>
-        <LocaleProvider>
-          {children}
-        </LocaleProvider>
+        <LocaleProvider>{children}</LocaleProvider>
       </DatabaseProvider>
     </SafeAreaView>
   );
@@ -28,6 +24,6 @@ export function AppProviders({ children }: AppProvidersProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
+    backgroundColor: "#F8F7F4",
   },
 });
