@@ -32,5 +32,16 @@
   "errorMessage": "Error",
   "statusPaid": "Paid",
   "statusPartial": "Partial",
-  "statusCancelled": "Cancelled"
+  "statusCancelled": "Cancelled",
+  onboarding: {
+    appText: "App Text",
+    screen: "Screen",
+    header: "Header",
+    back: "Back",
+    title: "Welcome to Dukkan OS",
+    subtitle: "App for Algerian micro-entrepreneurs",
+    description: "Record sales, track customers, manage inventory",
+    getStarted: "Get Started",
+    skip: "Skip"
+  }
 }

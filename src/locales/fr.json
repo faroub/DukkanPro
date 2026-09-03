@@ -32,5 +32,16 @@
   "errorMessage": "Erreur",
   "statusPaid": "Payé",
   "statusPartial": "Partiel",
-  "statusCancelled": "Annulé"
+  "statusCancelled": "Annulé",
+  onboarding: {
+    appText: "Texte de l'application",
+    screen: "Écran",
+    header: "En-tête",
+    back: "Retour",
+    title: "Bienvenue sur Dukkan OS",
+    subtitle: "Application pour micro-entrepreneurs algériens",
+    description: "Enregistrez les ventes, suivez les clients, gérez les stocks",
+    getStarted: "Commencer",
+    skip: "Sauter"
+  }
 }
