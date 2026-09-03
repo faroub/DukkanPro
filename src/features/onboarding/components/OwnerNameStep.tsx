@@ -38,7 +38,7 @@ export function OwnerNameStep({
         </ThemedText>
 
         <View style={styles.inputContainer}>
-          <ThemedText type="caption" style={styles.inputLabel}>
+          <ThemedText type="small" style={styles.inputLabel}>
             {/* i18n: ownerNameStep.label */}
             {t('ownerNameStep.label')}
           </ThemedText>
@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     marginBottom: Spacing.xs,
-    display: 'block',
   },
   input: {
     height: 50,

@@ -1,6 +1,6 @@
 import * as AsyncStorage from '@react-native-async-storage/async-storage';
-import { formatCurrency } from '@/localization/i18n';
-import { formatNumber } from '@/localization/i18n';
+import { formatCurrency as formatCurrencyUtil } from '@/localization/i18n';
+import { formatNumber as formatNumberUtil } from '@/localization/i18n';
 import type { Locale } from '@/localization/types';
 
 /**

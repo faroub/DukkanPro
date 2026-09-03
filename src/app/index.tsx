@@ -47,6 +47,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F8F7F4",
   },
+  content: {
+    padding: Spacing.xl,
+    width: '100%',
+  },
   subtitle: {
     fontSize: 16,
     color: "#6B7280",

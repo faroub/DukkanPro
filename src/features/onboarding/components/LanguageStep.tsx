@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Spacing } from '@/constants/theme';
@@ -53,7 +53,7 @@ export function LanguageStep({
 
         <View style={styles.localeContainer}>
           {locales.map((localeOpt) => (
-            <View
+            <TouchableWithoutFeedback
               key={localeOpt.value}
               style={[
                 styles.localeOption,
@@ -63,7 +63,7 @@ export function LanguageStep({
             >
               <ThemedText style={styles.localeText}>
                 {localeOpt.label === 'ar' ? (
-                  <ThemedText type="arabic">{t(`languageStep.${localeOpt.value}`)}</ThemedText>
+                  <ThemedText type="small">{t(`languageStep.${localeOpt.value}`)}</ThemedText>
                 ) : (
                   <ThemedText>{t(`languageStep.${localeOpt.value}`)}</ThemedText>
                 )}
