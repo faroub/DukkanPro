@@ -6,7 +6,6 @@
  - Down migrations are NOT supported — financial records must never be physically deleted.
  */
 
-import { openDatabase } from "expo-sqlite";
 import { schema } from "./schema";
 
 export type Migration = {
@@ -51,21 +50,21 @@ const ALL_MIGRATIONS: Migration[] = [
 
 export async function runMigrations(db: any): Promise<void> {
   // Ensure the version table exists first
-  await db.execBatch([schema.migrationVersion]);
+  await db.execAsync(schema.migrationVersion);
 
   // Get already-applied versions
-  const appliedRows: any[] = await db.getAll(
-    "SELECT version FROM _migration_version ORDER BY version"
+  const appliedRows: any[] = await db.getAllAsync(
+    "SELECT version FROM _migration_version ORDER BY version",
   );
   const appliedVersions = new Set(appliedRows.map((r: any) => r.version));
 
   // Run pending migrations in order
   for (const migration of ALL_MIGRATIONS) {
     if (!appliedVersions.has(migration.version)) {
-      await db.exec(migration.sql);
-      await db.run(
+      await db.execAsync(migration.sql);
+      await db.runAsync(
         "INSERT INTO _migration_version (version) VALUES (?)",
-        [migration.version]
+        migration.version,
       );
       // Note: we do not log here; the app will notify the user on next start
     }

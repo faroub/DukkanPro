@@ -19,8 +19,11 @@ export type Result<T, E = Error> =
   | { success: false; error: E };
 
 // Overload: create a success-only result helper type (optional)
-export const ok = <T>(data: T): Result<T, Error> => ({ success: true, data: ok });
-export const err = <E>(error: E): Result<never, Error> => ({ success: false, error: error });
+export const ok = <T>(data: T): Result<T, Error> => ({ success: true, data });
+export const err = <E extends Error>(error: E): Result<never, E> => ({
+  success: false,
+  error,
+});
 
 // ---------------------------------------------------------------------------
 // PaginatedResult — wrapper for list queries that return a page of items

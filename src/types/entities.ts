@@ -11,6 +11,10 @@
 // ---------------------------------------------------------------------------
 export type ID = number;
 
+export interface Entity {
+  id: ID;
+}
+
 /**
  * BusinessProfile — Merchant / shop configuration stored in business_profiles.
  */
