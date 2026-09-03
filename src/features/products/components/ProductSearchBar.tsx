@@ -1,7 +1,8 @@
 import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState } from 'react';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing, Colors } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTranslation } from 'react-i18next';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -31,13 +32,12 @@ export function ProductSearchBar({ onSearch, onClear, initialQuery = '', disable
           placeholder={t("products:placeholder")}
           value={query}
           onChangeText ={(text: string) => setQuery(text)}
-          disabled={disabled}
           returnKeyType="search"
           onSubmitEditing={handleSubmit}
         />
-        {query.length > 0 && !disabled && (
+        {query.length > 0 && (
           <TouchableOpacity style={styles.clearButton} onPress={onClear}>
-            <ThemedText type="caption" style={styles.clearButtonText}>
+            <ThemedText type="body" style={styles.clearButtonText}>
               {t("common:clear")}
             </ThemedText>
           </TouchableOpacity>

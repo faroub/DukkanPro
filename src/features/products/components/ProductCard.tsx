@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing, Colors } from '@/constants/theme';
 import { useTranslation } from 'react-i18next';
 
 interface ProductCardProps {
@@ -26,7 +25,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.imageArea}>
-        <ThemedText type="title" style={styles.name}>
+        <ThemedText type="subtitle" style={styles.name}>
           {product.name}
         </ThemedText>
       </ThemedView>
@@ -47,7 +46,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
       {isOutOfStock && (
         <ThemedView style={styles.outOfStockBadge}>
-          <ThemedText type="caption" style={styles.badgeText}>
+          <ThemedText type="caption" style={styles.badge}>
             {t("products:outOfStock")}
           </ThemedText>
         </ThemedView>
@@ -55,7 +54,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
       {isLowStock && !isOutOfStock && (
         <ThemedView style={styles.lowStockBadge}>
-          <ThemedText type="caption" style={styles.badgeText}>
+          <ThemedText type="caption" style={styles.badge}>
             {t("products:lowStock")}
           </ThemedText>
         </ThemedView>
@@ -69,7 +68,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     overflow: 'hidden',
-    marginBottom: Spacing.md,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
@@ -83,29 +82,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   name: {
-    ...Typography.body,
     fontSize: 14,
     fontWeight: 500,
     textAlign: 'center',
   },
   details: {
-    padding: Spacing.md,
+    padding: 12,
   },
   sku: {
-    ...Typography.body,
     fontSize: 12,
     color: '#6B7280',
     marginBottom: 4,
   },
   price: {
-    ...Typography.body,
     fontSize: 14,
     color: '#1B6B3A',
     fontWeight: 600,
     marginBottom: 2,
   },
   stock: {
-    ...Typography.body,
     fontSize: 12,
     color: '#6B7280',
   },
@@ -119,10 +114,10 @@ const styles = StyleSheet.create({
   },
   outOfStockBadge: {
     backgroundColor: '#EF4444',
-    marginTop: Spacing.sm,
+    marginTop: 8,
   },
   lowStockBadge: {
     backgroundColor: '#F59E0B',
-    marginTop: Spacing.sm,
+    marginTop: 8,
   },
 });

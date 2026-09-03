@@ -2,7 +2,7 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 
 interface ProductFilterTabsProps {
   activeFilter: string;
@@ -24,9 +24,8 @@ export function ProductFilterTabs({ activeFilter, onFilterChange }: ProductFilte
       {FILTER_OPTIONS.map((option) => (
         <TouchableOpacity
           key={option.key}
-          style={styles.tab}
+          style={activeFilter === option.key ? styles.tabActive : styles.tab}
           onPress={() => onFilterChange(option.key)}
-          active={activeFilter === option.key}
         >
           <ThemedText type="caption" style={styles.tabText}>
             {t(option.labelKey)}
@@ -49,9 +48,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 2,
+    backgroundColor: '#F3F4F6',
+  },
+  tabActive: {
+    flex: 1,
+    padding: Spacing.sm,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 2,
+    backgroundColor: '#1B6B3A',
+    color: 'white',
   },
   tabText: {
-    ...Typography.body,
     fontSize: 12,
   },
 });
