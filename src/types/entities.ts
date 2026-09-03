@@ -73,6 +73,7 @@ export interface Sale extends Entity {
   sold_at: string; // ISO datetime
   created_at: string;
   updated_at: string;
+  saleItems?: SaleItem[]; // optional, loaded separately via join
 }
 
 /**

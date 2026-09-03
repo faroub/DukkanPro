@@ -12,7 +12,7 @@
  */
 
 import { Sale, SaleItem, Product } from "../../types/entities";
-import { executeAll, executeRead, executeWrite, transaction } from "../database";
+import { executeAll, executeRead, executeWrite, getDatabase, transaction } from "../database";
 import { schema } from "../schema";
 
 export type SaleFilters = {
@@ -32,17 +32,20 @@ export type SaleResult = {
  - Historical cost (unit_cost_price_centimes) is snapshotted from the product at sale time.
  */
 export async function create(
-  customerId: number | undefined,
-  paymentMethod: "cash" | "electronic" | "mixed" | "partial" | "credit",
-  items: Array<{
-    productId: number;
-    quantity: number;
-    unitSalePriceCentimes: number; // price at time of sale
+  saleInput: {
+    customerId?: number;
+    paymentMethod: "cash" | "electronic" | "mixed" | "partial" | "credit";
+    items: Array<{
+      productId: number;
+      quantity: number;
+      unitSalePriceCentimes: number; // price at time of sale
+      note?: string;
+    }>;
     note?: string;
-  }>,
-  note?: string
+  }
 ): Promise<Sale> {
-  return await transaction(async (db: any) => {
+  const db = await getDatabase();
+  return await transaction(db, async (tx: any) => {
     // 1. Insert the sale header
     const saleResult = await executeWrite(
       // language=SQLite
@@ -51,15 +54,15 @@ export async function create(
         amount_paid_centimes, remaining_balance_centimes, payment_method, note, sold_at, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
       [
-        customerId,
+        saleInput.customerId,
         "completed",
         0, // will be computed below
         0,
         0,
         0,
         0,
-        paymentMethod,
-        note,
+        saleInput.paymentMethod,
+        saleInput.note,
       ],
     );
 
@@ -68,7 +71,7 @@ export async function create(
     // 2. Process each item: insert sale item, deduct stock, create inventory movement
     let subtotal = 0;
 
-    for (const item of items) {
+    for (const item of saleInput.items) {
       // Fetch product details
       const productRows: any[] = await executeRead(
         // language=SQLite
@@ -211,7 +214,8 @@ export async function create(
  - Cancelled sales are excluded from revenue, profit, and customer debt calculations.
  */
 export async function cancel(id: number, reason: string): Promise<void> {
-  await transaction(async (db: any) => {
+  const db = await getDatabase();
+  await transaction(db, async (tx: any) => {
     // 1. Get the sale with its items (lock for update)
     const saleRows: any[] = await executeRead(
       // language=SQLite
@@ -279,7 +283,8 @@ export async function cancel(id: number, reason: string): Promise<void> {
  - Returned sales are excluded from revenue, profit, and customer debt calculations.
  */
 export async function returnSale(id: number, reason: string): Promise<void> {
-  await transaction(async (db: any) => {
+  const db = await getDatabase();
+  await transaction(db, async (tx: any) => {
     // 1. Get the sale with its items (lock for update)
     const saleRows: any[] = await executeRead(
       // language=SQLite

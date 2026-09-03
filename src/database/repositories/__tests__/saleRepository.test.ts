@@ -18,6 +18,7 @@ import {
   getTodaySales,
   getSalesByDateRange,
 } from "../saleRepository";
+import { getTodayRevenue, getOutstandingDebt } from "../dashboardRepository";
 
 let db: any;
 
