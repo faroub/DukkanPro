@@ -1,6 +1,7 @@
 import * as Device from "expo-device";
 import { Platform, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as SplashScreen from "expo-splash-screen";
 
 import { AnimatedIcon } from "@/components/animated-icon";
 import { HintRow } from "@/components/hint-row";
@@ -9,6 +10,7 @@ import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
+import { useTranslation } from "react-i18next";
 import i18n from "@/localization/i18n";
 
 SplashScreen.preventAutoHideAsync();

@@ -6,8 +6,8 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { formatCurrency } from '@/localization/i18n';
-import * as Router from 'expo-router';
+import { formatCurrency } from '@/localization/localeConfig';
+import { Router } from 'expo-router';
 
 /**
  * Onboarding Screen - multi-step onboarding flow for Dukkan OS

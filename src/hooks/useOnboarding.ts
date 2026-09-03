@@ -147,3 +147,15 @@ export async function completeOnboarding(profile: OnboardingProfile): Promise<vo
 }
 
 export type { OnboardingProfile };
+
+/**
+ * Hook namespace providing onboarding utilities
+ * Used by: import { useOnboarding } from '@/hooks/useOnboarding'
+ */
+export const useOnboarding = {
+  isOnboardingComplete,
+  completeOnboarding,
+  saveProfileLocally,
+  saveLocaleLocally,
+  readStoredLocaleFromAsyncStorage,
+};
