@@ -11,9 +11,10 @@
  - Seed data loads only in development (__DEV__).
  */
 
-import { openDatabase } from "expo-sqlite";
+import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import { runMigrations } from "./migrations";
 import { schema } from "./schema";
+import { seed } from "./seed";
 
 // Use a persistent database file in the app's document cache.
 // On Android: /data/user/.../files/DukkanOS.db
@@ -22,7 +23,7 @@ import { schema } from "./schema";
 const DATABASE_NAME = "DukkanOS.db";
 const DATABASE_DESCRIPTION = "Dukkan OS — offline-first business app";
 
-let database: any = null;
+let database: SQLiteDatabase | null = null;
 
 /**
  * Returns the singleton SQLite database instance, opening it if needed.
@@ -32,12 +33,12 @@ export async function getDatabase() {
     return database;
   }
 
-  database = await openDatabase(DATABASE_NAME, DATABASE_DESCRIPTION);
+  database = await openDatabaseAsync(DATABASE_NAME);
 
   // --- Setup pragmas on every fresh connection ---
   // Foreign keys must be set on every connection (SQLite does not persist across connections).
   // WAL mode improves concurrent read/write performance.
-  await database.exec(`
+  await database.execAsync(`
     PRAGMA foreign_keys = ON;
     PRAGMA journal_mode = WAL;
     PRAGMA synchronous = NORMAL;
@@ -75,7 +76,7 @@ export async function executeRead<T>(
   sql: string,
   params: Array<any> = [],
 ): Promise<T | null> {
-  const result = await db.getFirstSync(sql, ...params);
+  const result = await db.getFirstAsync(sql, ...params);
   return result as T | null;
 }
 
@@ -87,8 +88,8 @@ export async function executeAll<T>(
   sql: string,
   params: Array<any> = [],
 ): Promise<T[]> {
-  const results: T[] = await db.getAllSync(sql, ...params);
-  return results;
+  const results = await db.getAllAsync(sql, ...params);
+  return results as T[];
 }
 
 /**
@@ -99,7 +100,7 @@ export async function executeWrite(
   sql: string,
   params: Array<any> = [],
 ): Promise<number> {
-  const result = await db.runSync(sql, ...params);
+  const result = await db.runAsync(sql, ...params);
   return result.lastInsertRowId;
 }
 

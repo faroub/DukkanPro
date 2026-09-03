@@ -12,13 +12,13 @@
    - Initial inventory movements
  */
 
-import { executeWrite, executeAll, schema } from "./";
+import { executeAll, executeWrite } from "./database";
 
 export async function seed(db: any): Promise<void> {
   // -- 1. Business profile (idempotent: upsert by checking existence) --
   const existingBusiness: any[] = await executeAll(
     db,
-    "SELECT id FROM business_profiles LIMIT 1"
+    "SELECT id FROM business_profiles LIMIT 1",
   );
   if (existingBusiness.length === 0) {
     await executeWrite(
@@ -26,12 +26,15 @@ export async function seed(db: any): Promise<void> {
       `INSERT INTO business_profiles
        (business_name, owner_name, business_type, currency, selected_locale, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-      ["Dukan Grocery", "محمد العلوي", "grocery", "DZD", "fr"]
+      ["Dukan Grocery", "محمد العلوي", "grocery", "DZD", "fr"],
     );
   }
 
   // -- 2. Products (idempotent: skip if already exist) --
-  const existingProducts: any[] = await executeAll(db, "SELECT id FROM products");
+  const existingProducts: any[] = await executeAll(
+    db,
+    "SELECT id FROM products",
+  );
   if (existingProducts.length === 0) {
     // Sample products for a grocery/shop
     const sampleProducts = [
@@ -98,13 +101,16 @@ export async function seed(db: any): Promise<void> {
           p.minimum_stock_quantity,
           p.unit,
           p.is_active ? 1 : 0,
-        ]
+        ],
       );
     }
   }
 
   // -- 3. Customers (idempotent) --
-  const existingCustomers: any[] = await executeAll(db, "SELECT id FROM customers");
+  const existingCustomers: any[] = await executeAll(
+    db,
+    "SELECT id FROM customers",
+  );
   if (existingCustomers.length === 0) {
     const sampleCustomers = [
       {
@@ -126,7 +132,7 @@ export async function seed(db: any): Promise<void> {
         db,
         `INSERT INTO customers (name, phone, note, is_active, created_at, updated_at)
          VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-        [c.name, c.phone, c.note, c.is_active ? 1 : 0]
+        [c.name, c.phone, c.note, c.is_active ? 1 : 0],
       );
     }
   }
@@ -135,11 +141,19 @@ export async function seed(db: any): Promise<void> {
   const existingSales: any[] = await executeAll(db, "SELECT id FROM sales");
   if (existingSales.length === 0) {
     // Grab product IDs and customer IDs we just seeded
-    const productRows: any[] = await executeAll(db, "SELECT id, sale_price_centimes, stock_quantity FROM products LIMIT 4");
-    const customerRows: any[] = await executeAll(db, "SELECT id FROM customers");
+    const productRows: any[] = await executeAll(
+      db,
+      "SELECT id, sale_price_centimes, stock_quantity FROM products LIMIT 4",
+    );
+    const customerRows: any[] = await executeAll(
+      db,
+      "SELECT id FROM customers",
+    );
 
     if (productRows.length < 4 || customerRows.length < 1) {
-      console.warn("Seed skipped: not enough products/customers to create sample sales.");
+      console.warn(
+        "Seed skipped: not enough products/customers to create sample sales.",
+      );
       return;
     }
 
@@ -149,8 +163,16 @@ export async function seed(db: any): Promise<void> {
     const c1 = customerRows[0].id;
 
     const sale1Items = [
-      { product_id: p1.id, quantity: 3, unit_sale_price_centimes: p1.sale_price_centimes },
-      { product_id: p2.id, quantity: 2, unit_sale_price_centimes: p2.sale_price_centimes },
+      {
+        product_id: p1.id,
+        quantity: 3,
+        unit_sale_price_centimes: p1.sale_price_centimes,
+      },
+      {
+        product_id: p2.id,
+        quantity: 2,
+        unit_sale_price_centimes: p2.sale_price_centimes,
+      },
     ];
 
     let subtotal1 = 0;
@@ -183,7 +205,7 @@ export async function seed(db: any): Promise<void> {
         new Date().toISOString(),
         new Date().toISOString(),
         new Date().toISOString(),
-      ]
+      ],
     );
 
     // Insert sale items for sale 1
@@ -200,27 +222,36 @@ export async function seed(db: any): Promise<void> {
           /* quantity */ item.quantity,
           /* unit_sale_price_centimes */ item.unit_sale_price_centimes,
           /* unit_cost_price_centimes */ // we need cost price
-          /* line_total_centimes */ item.quantity * item.unit_sale_price_centimes,
+          /* line_total_centimes */ item.quantity *
+            item.unit_sale_price_centimes,
           /* created_at */ new Date().toISOString(),
-        ]
+        ],
       );
     }
 
     // Simplified: just create the sales header for now; items can be added later
-    console.log("Seed: sample sales headers created (items via separate step).");
+    console.log(
+      "Seed: sample sales headers created (items via separate step).",
+    );
   }
 
   // -- 5. Inventory movements (initial stock entry) --
-  const existingMovements: any[] = await executeAll(db, "SELECT id FROM inventory_movements");
+  const existingMovements: any[] = await executeAll(
+    db,
+    "SELECT id FROM inventory_movements",
+  );
   if (existingMovements.length === 0) {
-    const productRows: any[] = await executeAll(db, "SELECT id, stock_quantity FROM products LIMIT 4");
+    const productRows: any[] = await executeAll(
+      db,
+      "SELECT id, stock_quantity FROM products LIMIT 4",
+    );
     for (const p of productRows) {
       await executeWrite(
         db,
         `INSERT INTO inventory_movements
          (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-        [p.id, "in", p.stock_quantity, null, "estock initial entry"]
+        [p.id, "in", p.stock_quantity, null, "estock initial entry"],
       );
     }
   }
