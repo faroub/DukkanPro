@@ -7,9 +7,9 @@
  - All assertions are on the return values of the repository methods.
  */
 
-import { getDatabase } from "../../database/database";
-import { get, create, update } from "../businessProfileRepository";
-import { BusinessProfile } from "../../types/entities";
+import { BusinessProfile } from "../../../types/entities";
+import { getDatabase } from "../../database";
+import { create, get, update } from "../businessProfileRepository";
 
 let db: any;
 
@@ -40,7 +40,13 @@ describe("businessProfileRepository", () => {
     });
 
     it("is idempotent — returning the same profile on repeated calls", async () => {
-      await create({ business_name: "Idempotent Test", owner_name: "I.T.", business_type: "grocery", currency: "DZD", selected_locale: "ar" });
+      await create({
+        business_name: "Idempotent Test",
+        owner_name: "I.T.",
+        business_type: "grocery",
+        currency: "DZD",
+        selected_locale: "ar",
+      });
       const p1 = await get();
       const p2 = await get();
       expect(p1?.business_name).toBe(p2?.business_name);
@@ -50,7 +56,10 @@ describe("businessProfileRepository", () => {
 
   describe("create()", () => {
     it("creates a new profile and returns it", async () => {
-      const newProfile = {
+      const newProfile: Omit<
+        BusinessProfile,
+        "id" | "created_at" | "updated_at"
+      > = {
         business_name: "New Test Shop",
         owner_name: "Tester",
         business_type: "baker",
@@ -86,7 +95,13 @@ describe("businessProfileRepository", () => {
 
   describe("update()", () => {
     it("updates the profile fields", async () => {
-      await create({ business_name: "Before Update", owner_name: "Old Owner", business_type: "grocery", currency: "DZD", selected_locale: "fr" });
+      await create({
+        business_name: "Before Update",
+        owner_name: "Old Owner",
+        business_type: "grocery",
+        currency: "DZD",
+        selected_locale: "fr",
+      });
       const updated = await update({
         id: 1, // will be resolved by get() after create
         business_name: "After Update",

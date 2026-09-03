@@ -6,18 +6,17 @@
  - All assertions are on the return values of the repository methods.
  */
 
-import { getDatabase } from "../../database/database";
+import { getDatabase } from "../../database";
 import {
-  getAll,
-  getById,
-  search,
-  create,
-  update,
-  archive,
-  adjustStock,
-  getInventoryHistory,
-} from "../src database/repositories/productRepository";
-import { Product } from "../../types/entities";
+    adjustStock,
+    archive,
+    create,
+    getAll,
+    getById,
+    getInventoryHistory,
+    search,
+    update,
+} from "../productRepository";
 
 let db: any;
 

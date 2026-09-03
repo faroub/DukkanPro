@@ -6,8 +6,8 @@
  - Archived customers retain all historical data (sales, payments, movements).
  */
 
-import { executeAll, executeWrite, executeRead } from "../database";
 import { Customer } from "../../types/entities";
+import { executeAll, executeRead, executeWrite } from "../database";
 
 export type CustomerFilters = {
   is_active?: boolean;
@@ -21,7 +21,9 @@ export type CustomerResult = {
 /**
  - Retrieve all customers, optionally filtered by is_active.
  */
-export async function getAll(filters: CustomerFilters = {}): Promise<Customer[]> {
+export async function getAll(
+  filters: CustomerFilters = {},
+): Promise<Customer[]> {
   const { is_active } = filters;
   let sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers`;
   const params: unknown[] = [];
@@ -52,7 +54,7 @@ export async function getById(id: number): Promise<Customer | null> {
   const rows: any[] = await executeRead(
     // language=SQLite
     `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE id = ?`,
-    [id]
+    [id],
   );
   if (rows.length === 0) {
     return null;
@@ -93,7 +95,9 @@ export async function search(query: string): Promise<Customer[]> {
  - If a customer with the same phone number already exists, the existing one is returned
    (idempotent).
  */
-export async function create(customer: Omit<Customer, "id" | "created_at" | "updated_at">): Promise<Customer> {
+export async function create(
+  customer: Omit<Customer, "id" | "created_at" | "updated_at">,
+): Promise<Customer> {
   // Check if a customer with the same phone already exists.
   if (customer.phone) {
     const existing: Customer | null = await getByPhone(customer.phone);
@@ -106,28 +110,38 @@ export async function create(customer: Omit<Customer, "id" | "created_at" | "upd
     // language=SQLite
     `INSERT INTO customers (name, phone, note, is_active, created_at, updated_at)
      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-    [
-      customer.name,
-      customer.phone,
-      customer.note,
-      customer.is_active ? 1 : 0,
-    ]
+    [customer.name, customer.phone, customer.note, customer.is_active ? 1 : 0],
   );
 
   // Re-fetch the newly created row.
   if (customer.phone) {
-    return await getByPhone(customer.phone);
+    const created = await getByPhone(customer.phone);
+    if (!created) throw new Error("Customer was not created");
+    return created;
   }
   // If no phone, fetch the last inserted.
   const all = await getAll({});
-  return all[all.length - 1] || { id: -1, name: customer.name, phone: customer.phone || "", note: customer.note, is_active: customer.is_active, created_at: "", updated_at: "" };
+  return (
+    all[all.length - 1] || {
+      id: -1,
+      name: customer.name,
+      phone: customer.phone || "",
+      note: customer.note,
+      is_active: customer.is_active,
+      created_at: "",
+      updated_at: "",
+    }
+  );
 }
 
 /**
  - Update an existing customer by id.
  - Only the provided fields are updated; id, created_at remain unchanged.
  */
-export async function update(id: number, customer: Partial<Omit<Customer, "id" | "created_at">>): Promise<Customer> {
+export async function update(
+  id: number,
+  customer: Partial<Omit<Customer, "id" | "created_at">>,
+): Promise<Customer> {
   const fields: string[] = [];
   const values: unknown[] = [];
 
@@ -149,7 +163,9 @@ export async function update(id: number, customer: Partial<Omit<Customer, "id" |
   }
 
   if (fields.length === 0) {
-    return await getById(id);
+    const existing = await getById(id);
+    if (!existing) throw new Error(`Customer id=${id} not found`);
+    return existing;
   }
 
   values.push(id);
@@ -160,9 +176,11 @@ export async function update(id: number, customer: Partial<Omit<Customer, "id" |
      SET ${fields.join(", ")},
          updated_at = datetime('now')
      WHERE id = ?`,
-    values
+    values,
   );
-  return await getById(id);
+  const updated = await getById(id);
+  if (!updated) throw new Error(`Customer id=${id} not found`);
+  return updated;
 }
 
 /**
@@ -177,7 +195,7 @@ export async function archive(id: number): Promise<void> {
      SET is_active = 0,
          updated_at = datetime('now')
      WHERE id = ?`,
-    [id]
+    [id],
   );
 }
 
@@ -188,7 +206,7 @@ async function getByPhone(phone: string): Promise<Customer | null> {
   const rows: any[] = await executeAll(
     // language=SQLite
     `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE phone = ?`,
-    [phone]
+    [phone],
   );
   if (rows.length === 0) {
     return null;

@@ -5,16 +5,15 @@
  - Archived customers retain history; assertions verify is_active = false without deletion.
  */
 
-import { getDatabase } from "../../database/database";
+import { getDatabase } from "../../database";
 import {
-  getAll,
-  getById,
-  search,
-  create,
-  update,
-  archive,
+    archive,
+    create,
+    getAll,
+    getById,
+    search,
+    update,
 } from "../customerRepository";
-import { Customer } from "../../types/entities";
 
 let db: any;
 

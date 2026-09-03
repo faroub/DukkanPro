@@ -7,8 +7,8 @@
  - Archived products cannot be sold (is_active = false filter applied in UI/query layer).
  */
 
-import { executeAll, executeWrite, executeRead } from "../database";
-import { Product } from "../../types/entities";
+import { InventoryMovement, Product } from "../../types/entities";
+import { executeAll, executeRead, executeWrite } from "../database";
 
 export type ProductFilters = {
   is_active?: boolean;
@@ -82,7 +82,7 @@ export async function getById(id: number): Promise<Product | null> {
            created_at, updated_at
      FROM products
      WHERE id = ?`,
-    [id]
+    [id],
   );
   if (rows.length === 0) {
     return null;
@@ -108,7 +108,10 @@ export async function getById(id: number): Promise<Product | null> {
  - Search products by name or SKU substring, with optional filters (is_active, category).
  - Performs a ILIKE-%query% match on both name and sku columns.
  */
-export async function search(query: string, filters: ProductFilters = {}): Promise<Product[]> {
+export async function search(
+  query: string,
+  filters: ProductFilters = {},
+): Promise<Product[]> {
   const { is_active, category } = filters;
   let sql = `
     SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
@@ -151,7 +154,9 @@ export async function search(query: string, filters: ProductFilters = {}): Promi
  - If a product with the same SKU already exists, the existing one is returned
    (idempotent). If no SKU is provided, a new product is created.
  */
-export async function create(product: Omit<Product, "id" | "created_at" | "updated_at">): Promise<Product> {
+export async function create(
+  product: Omit<Product, "id" | "created_at" | "updated_at">,
+): Promise<Product> {
   // Check if a product with the same SKU already exists.
   if (product.sku) {
     const existing: Product | null = await getBySku(product.sku);
@@ -176,23 +181,43 @@ export async function create(product: Omit<Product, "id" | "created_at" | "updat
       product.minimum_stock_quantity,
       product.unit,
       product.is_active ? 1 : 0,
-    ]
+    ],
   );
 
   // Re-fetch the newly created row.
   if (product.sku) {
-    return await getBySku(product.sku);
+    const created = await getBySku(product.sku);
+    if (!created) throw new Error("Product was not created");
+    return created;
   }
   // If no SKU, fetch by name (last inserted — approximate; callers should use id).
   const all = await getAll({ is_active: true });
-  return all[all.length - 1] || { id: -1, name: product.name, sku: product.sku || "", category: product.category, sale_price_centimes: product.sale_price_centimes, cost_price_centimes: product.cost_price_centimes, stock_quantity: product.stock_quantity, minimum_stock_quantity: product.minimum_stock_quantity, unit: product.unit, is_active: product.is_active, created_at: "", updated_at: "" };
+  return (
+    all[all.length - 1] || {
+      id: -1,
+      name: product.name,
+      sku: product.sku || "",
+      category: product.category,
+      sale_price_centimes: product.sale_price_centimes,
+      cost_price_centimes: product.cost_price_centimes,
+      stock_quantity: product.stock_quantity,
+      minimum_stock_quantity: product.minimum_stock_quantity,
+      unit: product.unit,
+      is_active: product.is_active,
+      created_at: "",
+      updated_at: "",
+    }
+  );
 }
 
 /**
  - Update an existing product by id.
  - Only the provided fields are updated; id, created_at remain unchanged.
  */
-export async function update(id: number, product: Partial<Omit<Product, "id" | "created_at">>): Promise<Product> {
+export async function update(
+  id: number,
+  product: Partial<Omit<Product, "id" | "created_at">>,
+): Promise<Product> {
   // Build dynamic UPDATE set from provided fields.
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -231,7 +256,9 @@ export async function update(id: number, product: Partial<Omit<Product, "id" | "
   }
 
   if (fields.length === 0) {
-    return await getById(id);
+    const existing = await getById(id);
+    if (!existing) throw new Error(`Product id=${id} not found`);
+    return existing;
   }
 
   values.push(id);
@@ -242,9 +269,11 @@ export async function update(id: number, product: Partial<Omit<Product, "id" | "
      SET ${fields.join(", ")},
          updated_at = datetime('now')
      WHERE id = ?`,
-    values
+    values,
   );
-  return await getById(id);
+  const updated = await getById(id);
+  if (!updated) throw new Error(`Product id=${id} not found`);
+  return updated;
 }
 
 /**
@@ -258,7 +287,7 @@ export async function archive(id: number): Promise<void> {
      SET is_active = 0,
          updated_at = datetime('now')
      WHERE id = ?`,
-    [id]
+    [id],
   );
 }
 
@@ -271,7 +300,11 @@ export async function archive(id: number): Promise<void> {
  - Negative quantityChange → stock removal (stock_adjustment movement type).
  - Zero or omitted → no-op (movement still created with quantity_change=0 if called).
  */
-export async function adjustStock(id: number, quantityChange: number, reason: string): Promise<InventoryMovement> {
+export async function adjustStock(
+  id: number,
+  quantityChange: number,
+  reason: string,
+): Promise<InventoryMovement> {
   // Fetch current product to get product_id and current stock.
   const product: Product | null = await getById(id);
   if (!product) {
@@ -292,7 +325,7 @@ export async function adjustStock(id: number, quantityChange: number, reason: st
       quantityChange,
       null, // reference_sale_id; can be set later if linked to a sale
       reason,
-    ]
+    ],
   );
 
   // Update the product's stock quantity.
@@ -302,7 +335,7 @@ export async function adjustStock(id: number, quantityChange: number, reason: st
      SET stock_quantity = ?,
          updated_at = datetime('now')
      WHERE id = ?`,
-    [newStock, product.id]
+    [newStock, product.id],
   );
 
   return {
@@ -326,7 +359,7 @@ export async function getInventoryHistory(id: number): Promise<any[]> {
      FROM inventory_movements
      WHERE product_id = ?
      ORDER BY created_at DESC`,
-    [id]
+    [id],
   );
   return rows.map((r) => ({
     id: r.id,
@@ -350,7 +383,7 @@ async function getBySku(sku: string): Promise<Product | null> {
            created_at, updated_at
      FROM products
      WHERE sku = ?`,
-    [sku]
+    [sku],
   );
   if (rows.length === 0) {
     return null;

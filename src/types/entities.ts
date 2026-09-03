@@ -109,4 +109,5 @@ export interface InventoryMovement extends Entity {
   quantity_change: number; // integer (can be negative for 'out')
   reference_sale_id: ID | null; // nullable FK → sales(id)
   note: string | null; // nullable
+  created_at: string;
 }

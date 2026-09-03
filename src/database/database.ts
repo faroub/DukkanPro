@@ -72,23 +72,31 @@ export async function closeDatabase(): Promise<void> {
  * The callback receives a `statement` object from `database.run()` or `database.exec()`.
  */
 export async function executeRead<T>(
-  db: any,
-  sql: string,
+  dbOrSql: SQLiteDatabase | string,
+  sqlOrParams: string | Array<any> = [],
   params: Array<any> = [],
-): Promise<T | null> {
-  const result = await db.getFirstAsync(sql, ...params);
-  return result as T | null;
+): Promise<T[]> {
+  const db = typeof dbOrSql === "string" ? await getDatabase() : dbOrSql;
+  const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
+  const queryParams =
+    typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
+  const result = await db.getAllAsync(sql, ...queryParams);
+  return result as T[];
 }
 
 /**
  * Execute a statement and return all rows (array).
  */
 export async function executeAll<T>(
-  db: any,
-  sql: string,
+  dbOrSql: SQLiteDatabase | string,
+  sqlOrParams: string | Array<any> = [],
   params: Array<any> = [],
 ): Promise<T[]> {
-  const results = await db.getAllAsync(sql, ...params);
+  const db = typeof dbOrSql === "string" ? await getDatabase() : dbOrSql;
+  const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
+  const queryParams =
+    typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
+  const results = await db.getAllAsync(sql, ...queryParams);
   return results as T[];
 }
 
@@ -96,11 +104,15 @@ export async function executeAll<T>(
  * Execute a write statement (INSERT / UPDATE / DELETE) and return the last inserted rowID.
  */
 export async function executeWrite(
-  db: any,
-  sql: string,
+  dbOrSql: SQLiteDatabase | string,
+  sqlOrParams: string | Array<any> = [],
   params: Array<any> = [],
 ): Promise<number> {
-  const result = await db.runAsync(sql, ...params);
+  const db = typeof dbOrSql === "string" ? await getDatabase() : dbOrSql;
+  const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
+  const queryParams =
+    typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
+  const result = await db.runAsync(sql, ...queryParams);
   return result.lastInsertRowId;
 }
 
