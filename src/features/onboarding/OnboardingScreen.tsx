@@ -6,8 +6,11 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { BusinessNameStep } from '@/features/onboarding/components/BusinessNameStep';
+import { OwnerNameStep } from '@/features/onboarding/components/OwnerNameStep';
+import { BusinessTypeStep } from '@/features/onboarding/components/BusinessTypeStep';
+import { LanguageStep } from '@/features/onboarding/components/LanguageStep';
 import { formatCurrency } from '@/localization/localeConfig';
-import { Router } from 'expo-router';
 
 /**
  * Onboarding Screen - multi-step onboarding flow for Dukkan OS
@@ -38,18 +41,6 @@ export function OnboardingScreen({
     currency: 'DZD',
   } as any);
 
-  // Check if onboarding was already completed on mount
-  useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      const isComplete = await useOnboarding.isOnboardingComplete();
-      if (isComplete) {
-        // Navigate to tabs and unmount this screen
-        Router.replace('/(tabs)/');
-      }
-    };
-    checkOnboardingStatus();
-  }, [navigation]);
-
   const steps = [
     'businessName',
     'ownerName',
@@ -58,11 +49,11 @@ export function OnboardingScreen({
   ];
 
   const handleStepChange = (stepData: any) => {
-    setProfile((prev) => ({
+    setProfile((prev: any) => ({
       ...prev,
       ...stepData,
     }));
-    setStep((prev) => prev + 1);
+    setStep((prev: number) => prev + 1);
   };
 
   const handleCompleteOnboarding = async () => {
@@ -77,9 +68,6 @@ export function OnboardingScreen({
 
     // Save profile to SQLite and mark onboarding as complete
     await useOnboarding.completeOnboarding(finalProfile);
-
-    // Navigate to tabs
-    Router.replace('/(tabs)/');
   };
 
   // Determine the current step content
@@ -154,7 +142,6 @@ export function OnboardingScreen({
         <ThemedView style={styles.actionBar}>
           <PrimaryButton
             title={t('onboarding.skip')}
-            size="sm"
             onPress={() => setStep(4)}
           />
         </ThemedView>
@@ -213,6 +200,9 @@ const styles = StyleSheet.create({
   },
   progressDotActive: {
     backgroundColor: '#1B6B3A',
+  },
+  progressDotInactive: {
+    backgroundColor: '#CCCCCC',
   },
   stepContainer: {
     width: '100%',

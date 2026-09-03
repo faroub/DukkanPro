@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Spacing } from '@/constants/theme';
@@ -49,7 +49,7 @@ export function BusinessTypeStep({
 
         <View style={styles.typeContainer}>
           {businessTypes.map((type) => (
-            <View
+            <TouchableWithoutFeedback
               key={type.value}
               style={styles.typeOption}
               onPress={() => setSelectedTypeLocal(type.value)}
