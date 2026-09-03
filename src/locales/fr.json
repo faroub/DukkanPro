@@ -33,6 +33,20 @@
   "statusPaid": "Payé",
   "statusPartial": "Partiel",
   "statusCancelled": "Annulé",
+  "products": {
+    "title": "Produits",
+    "subtitle": "Gérer votre inventaire de produits",
+    "description": "Ajoutez et suivez vos produits en stock",
+    "lowStock": "Stock bas",
+    "outOfStock": "Rupture de stock",
+    "archived": "Archivé",
+    "noProducts": "Aucun produit trouvé",
+    "searchNoResults": "Aucun produit ne correspond à votre recherche",
+    "filterAll": "Tout",
+    "filterLowStock": "Stock bas",
+    "filterOutOfStock": "Rupture de stock",
+    "filterArchived": "Archivé"
+  },
   "onboarding": {
     "appText": "Texte de l'application",
     "screen": "Écran",
