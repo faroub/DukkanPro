@@ -31,22 +31,22 @@ export function ProductCard({ product }: ProductCardProps) {
       </ThemedView>
 
       <ThemedView style={styles.details}>
-        <ThemedText type="caption" style={styles.sku}>
+        <ThemedText type="small" style={styles.sku}>
           SKU: {product.sku ?? t("common:unknown")}
         </ThemedText>
 
-        <ThemedText type="caption" style={styles.price}>
+        <ThemedText type="small" style={styles.price}>
           {priceDzd} {t("appText:money")}
         </ThemedText>
 
-        <ThemedText type="caption" style={styles.stock}>
+        <ThemedText type="small" style={styles.stock}>
           Stock: {product.stock_quantity} {product.unit}
         </ThemedText>
       </ThemedView>
 
       {isOutOfStock && (
         <ThemedView style={styles.outOfStockBadge}>
-          <ThemedText type="caption" style={styles.badge}>
+          <ThemedText type="small" style={styles.badge}>
             {t("products:outOfStock")}
           </ThemedText>
         </ThemedView>
@@ -54,7 +54,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
       {isLowStock && !isOutOfStock && (
         <ThemedView style={styles.lowStockBadge}>
-          <ThemedText type="caption" style={styles.badge}>
+          <ThemedText type="small" style={styles.badge}>
             {t("products:lowStock")}
           </ThemedText>
         </ThemedView>

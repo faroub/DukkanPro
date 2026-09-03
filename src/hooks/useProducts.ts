@@ -12,6 +12,14 @@ export type ProductsFilters = {
 };
 
 /**
+ * Product list item - Product with badge information for UI display
+ */
+export type ProductListItem = Product & {
+  lowStock: boolean;
+  outOfStock: boolean;
+};
+
+/**
  * UseProducts hook - manages product list state with filtering
  *
  * Features:
@@ -21,7 +29,7 @@ export type ProductsFilters = {
  * - Loading and error state management
  */
 export function useProducts(filters: ProductsFilters = {}) {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -49,7 +49,8 @@ export function ProductListScreen({ route, navigation }: ProductListScreenProps)
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    reload().then(() => setRefreshing(false));
+    reload();
+    setRefreshing(false);
   }, [reload]);
 
   if (loading) {
@@ -108,7 +109,7 @@ export function ProductListScreen({ route, navigation }: ProductListScreenProps)
           <ThemedText type="subtitle" style={styles.emptyTitle}>
             {t("products:noProducts")}
           </ThemedText>
-          <ThemedText type="caption" style={styles.emptyDescription}>
+          <ThemedText type="small" style={styles.emptyDescription}>
             {t("products:searchNoResults")}
           </ThemedText>
         </View>

@@ -28,28 +28,28 @@ export function ProductRow({ product }: ProductRowProps) {
   return (
     <ThemedView style={styles.row} testID={`product-row-${product.id}`}>
       <ThemedView style={styles.leftCell}>
-        <ThemedText type="body" style={styles.text}>
+        <ThemedText type="subtitle" style={styles.text}>
           {product.name}
         </ThemedText>
-        <ThemedText type="caption" style={styles.caption}>
+        <ThemedText type="small" style={styles.caption}>
           {product.sku ?? t("common:unknown")}
         </ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.centerCell}>
-        <ThemedText type="caption" style={styles.text}>
+        <ThemedText type="small" style={styles.text}>
           {priceDzd} {t("appText:money")}
         </ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.rightCell}>
-        <ThemedText type="caption" style={styles.caption}>
+        <ThemedText type="small" style={styles.caption}>
           {product.stock_quantity} {product.unit}
         </ThemedText>
 
         {isOutOfStock && (
           <ThemedView style={styles.outOfStockBadge}>
-            <ThemedText type="caption" style={styles.badge}>
+            <ThemedText type="small" style={styles.badge}>
               {t("products:outOfStock")}
             </ThemedText>
           </ThemedView>
@@ -57,7 +57,7 @@ export function ProductRow({ product }: ProductRowProps) {
 
         {isLowStock && !isOutOfStock && (
           <ThemedView style={styles.lowStockBadge}>
-            <ThemedText type="caption" style={styles.badge}>
+            <ThemedText type="small" style={styles.badge}>
               {t("products:lowStock")}
             </ThemedText>
           </ThemedView>
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   text: {
-    fontSize: 16,
+    fontSize: 14,
   },
   caption: {
     fontSize: 12,

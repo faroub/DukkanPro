@@ -37,7 +37,7 @@ export function ProductSearchBar({ onSearch, onClear, initialQuery = '', disable
         />
         {query.length > 0 && (
           <TouchableOpacity style={styles.clearButton} onPress={onClear}>
-            <ThemedText type="body" style={styles.clearButtonText}>
+            <ThemedText type="small" style={styles.clearButtonText}>
               {t("common:clear")}
             </ThemedText>
           </TouchableOpacity>
