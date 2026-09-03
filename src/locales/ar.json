@@ -32,5 +32,16 @@
   "errorMessage": "Error",
   "statusPaid": "Paid",
   "statusPartial": "Partial",
-  "statusCancelled": "Cancelled"
+  "statusCancelled": "Cancelled",
+  "onboarding": {
+    "appText": "نص التطبيق",
+    "screen": "شاشة",
+    "header": "رأس",
+    "back": "خلف",
+    "title": "مرحباً بك في دكان OS",
+    "subtitle": "تطبيق يساعد التجار الصغار",
+    "description": "سجل المبيعات، تتبع الزبائن، إدارة المخزون",
+    "getStarted": "ابدأ",
+    "skip": "تخطي"
+  }
 }
