@@ -71,4 +71,3 @@ export function useProducts(filters: ProductsFilters = {}) {
   };
 }
 
-export type { ProductsFilters, Product };

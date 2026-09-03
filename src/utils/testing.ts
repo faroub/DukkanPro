@@ -79,5 +79,3 @@ export function renderWithProviders(
 
   return render(baseProviders);
 }
-
-export type { mockDatabase };

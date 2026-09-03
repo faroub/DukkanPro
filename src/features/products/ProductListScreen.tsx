@@ -1,6 +1,8 @@
 import { View, ScrollView, RefreshControl, StyleSheet } from 'react-native';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { ThemedText } from "@/components/themed-text";
+import { Typography } from "@/constants/theme";
 import { useProducts } from "@/hooks/useProducts";
 import { ProductSearchBar } from "@/features/products/components/ProductSearchBar";
 import { ProductFilterTabs } from "@/features/products/components/ProductFilterTabs";
@@ -47,7 +49,7 @@ export function ProductListScreen({ route, navigation }: ProductListScreenProps)
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    reload().finally(() => setRefreshing(false));
+    reload().then(() => setRefreshing(false));
   }, [reload]);
 
   if (loading) {

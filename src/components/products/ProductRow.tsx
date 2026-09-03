@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing, Colors, Typography } from '@/constants/theme';
 import { useTranslation } from 'react-i18next';
 
 interface ProductRowProps {
@@ -38,7 +37,7 @@ export function ProductRow({ product }: ProductRowProps) {
       </ThemedView>
 
       <ThemedView style={styles.centerCell}>
-        <ThemedText type="body" style={styles.text}>
+        <ThemedText type="caption" style={styles.text}>
           {priceDzd} {t("appText:money")}
         </ThemedText>
       </ThemedView>
@@ -72,7 +71,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
+    padding: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#E5E5E5',
     backgroundColor: 'white',
@@ -93,11 +92,9 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   text: {
-    ...Typography.body,
     fontSize: 16,
   },
   caption: {
-    ...Typography.body,
     fontSize: 12,
     color: '#6B7280',
   },
