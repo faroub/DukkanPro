@@ -1,17 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React from "react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
+import { I18nextProvider } from "react-i18next";
 
-import i18n from "@/localization/i18n";
-import { changeLocale as changeI18nLocale } from "@/localization/i18n";
-import type { Locale } from "@/localization/types";
+import i18n, { changeLocale as changeI18nLocale } from "@/localization/i18n";
 import {
-  getCurrentDeviceLocale,
-  getFormattedLocale,
-  isSupportedLocale,
-  readStoredLocaleFromAsyncStorage,
-  storeLocaleInAsyncStorage,
+    getCurrentDeviceLocale,
+    isSupportedLocale,
+    readStoredLocaleFromAsyncStorage,
+    storeLocaleInAsyncStorage
 } from "@/localization/localeConfig";
+import type { Locale } from "@/localization/types";
 
 export type { Locale };
 
@@ -85,17 +83,18 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
 
   // Sync locale state with i18n language changes
   useEffect(() => {
-    const listener = i18n.on("languageChanged", (lng: string) => {
+    const handleLanguageChange = (lng: string) => {
       // Update locale state to match i18n, but keep isRTL as false
       // The app layout remains LTR regardless of language
       if (isSupportedLocale(lng as Locale)) {
         // Locale is informational only; layout direction is always LTR
         // We do NOT call I18nManager.forceRTL(true) or allowRTL(true)
       }
-    });
+    };
+    i18n.on("languageChanged", handleLanguageChange);
 
     return () => {
-      listener();
+      i18n.off("languageChanged", handleLanguageChange);
     };
   }, []);
 
@@ -109,9 +108,7 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
 
   return (
     // Provide i18n context to the rest of the app via React context
-    <React.i18next.Provider i18n={i18n} locale={safeLocale}>
-      {children}
-    </React.i18next.Provider>
+    <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
   );
 }
 

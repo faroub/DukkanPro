@@ -1,8 +1,7 @@
-import { useTranslation as useReactTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
-import i18n from "@/localization/i18n";
-import { changeLocale as changeI18nLocale } from "@/localization/i18n";
+import i18n, { changeLocale as changeI18nLocale } from "@/localization/i18n";
 import type { Locale } from "@/localization/types";
+import { useEffect, useState } from "react";
+import { useTranslation as useReactTranslation } from "react-i18next";
 
 /**
  * Options for interpolation in translated strings
@@ -73,10 +72,10 @@ export function useTranslation(): UseTranslationReturn {
     };
 
     // Subscribe to locale changes from the i18n instance
-    const unsub = i18n.on("languageChanged", handleLanguageChange);
+    i18n.on("languageChanged", handleLanguageChange);
 
     return () => {
-      unsub();
+      i18n.off("languageChanged", handleLanguageChange);
     };
   }, [i18n]);
 
