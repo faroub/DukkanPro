@@ -101,7 +101,7 @@ export function OnboardingScreen({
               index < step ? styles.progressDotActive : styles.progressDotInactive,
             ]}
           >
-            {index + 1}
+            <ThemedText type="small">{index + 1}</ThemedText>
           </View>
         ))}
       </View>
