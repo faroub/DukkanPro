@@ -15,6 +15,7 @@ import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import { runMigrations } from "./migrations";
 import { schema } from "./schema";
 import { seed } from "./seed";
+import { executeAll, executeRead, executeWrite, transaction } from "./query";
 
 // Use a persistent database file in the app's document cache.
 // On Android: /data/user/.../files/DukkanOS.db
@@ -68,84 +69,26 @@ export async function closeDatabase(): Promise<void> {
 }
 
 /**
- * Execute a read-only statement and return the first row.
- * The callback receives a `statement` object from `database.run()` or `database.exec()`.
+ * Re-export query helpers for convenience, now binding them to the default database
  */
-export async function executeRead<T>(
-  dbOrSql: SQLiteDatabase | string,
-  sqlOrParams: string | Array<any> = [],
-  params: Array<any> = [],
-): Promise<T[]> {
-  const db = typeof dbOrSql === "string" ? await getDatabase() : dbOrSql;
-  const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
-  const queryParams =
-    typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
-  const result = await db.getAllAsync(
-    sql,
-    ...queryParams.map((param) => param ?? null),
-  );
-  return result as T[];
+export async function dbAll<T>(sql: string, params: any[] = []): Promise<T[]> {
+  const db = await getDatabase();
+  return executeAll<T>(db, sql, params);
 }
 
-/**
- * Execute a statement and return all rows (array).
- */
-export async function executeAll<T>(
-  dbOrSql: SQLiteDatabase | string,
-  sqlOrParams: string | Array<any> = [],
-  params: Array<any> = [],
-): Promise<T[]> {
-  const db = typeof dbOrSql === "string" ? await getDatabase() : dbOrSql;
-  const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
-  const queryParams =
-    typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
-  const results = await db.getAllAsync(
-    sql,
-    ...queryParams.map((param) => param ?? null),
-  );
-  return results as T[];
+export async function dbRead<T>(sql: string, params: any[] = []): Promise<T[]> {
+  const db = await getDatabase();
+  return executeRead<T>(db, sql, params);
 }
 
-/**
- * Execute a write statement (INSERT / UPDATE / DELETE) and return the last inserted rowID.
- */
-export async function executeWrite(
-  dbOrSql: SQLiteDatabase | string,
-  sqlOrParams: string | Array<any> = [],
-  params: Array<any> = [],
-): Promise<number> {
-  const db = typeof dbOrSql === "string" ? await getDatabase() : dbOrSql;
-  const sql = typeof dbOrSql === "string" ? dbOrSql : (sqlOrParams as string);
-  const queryParams =
-    typeof dbOrSql === "string" ? (sqlOrParams as Array<any>) : params;
-  const result = await db.runAsync(
-    sql,
-    ...queryParams.map((param) => param ?? null),
-  );
-  return result.lastInsertRowId;
-}
-
-/**
- * Run a function inside a SQLite transaction.
- * If the callback throws, the transaction is rolled back and the error is re-thrown.
- */
-export async function transaction<T>(
-  db: any,
-  fn: (tx: any) => Promise<T>,
-): Promise<T> {
-  await db.execAsync("BEGIN IMMEDIATE");
-  try {
-    const result = await fn(db);
-    await db.execAsync("COMMIT");
-    return result;
-  } catch (error) {
-    await db.execAsync("ROLLBACK");
-    throw error;
-  }
+export async function dbWrite(sql: string, params: any[] = []): Promise<number> {
+  const db = await getDatabase();
+  return executeWrite(db, sql, params);
 }
 
 /**
  * Expose the schema SQL strings externally so callers can build their own queries
  * without writing raw strings. Import { schema } from "@/database/schema".
  */
-export { schema };
+export { schema, transaction };
+export { dbAll as executeAll, dbRead as executeRead, dbWrite as executeWrite };
