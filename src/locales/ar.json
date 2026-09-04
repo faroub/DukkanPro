@@ -66,6 +66,7 @@
     "adjustmentQuantity": "تغير الكمية",
     "adjustmentPositive": "زيادة المخزون",
     "adjustmentNegative": "تقليل المخزون",
+    "currentStock": "المخزون الحالي: {stock}",
     "deleteConfirm": "هل أنت متأكد تريد أرشفة هذا المنتج؟",
     "deleteTitle": "أرشفة المنتج",
     "archiveSuccess": "تم أرشفة المنتج بنجاح",
@@ -74,13 +75,13 @@
     "noInventoryHistory": "لا توجد حركات مخزون",
     "movementIn": "دخول",
     "movementOut": "خروج",
-    "movementAdjustment": "تعديل"
+    "movementAdjustment": "تعديل",
+    "reactivateConfirm": "هل تريد إعادة تفعيل هذا المنتج؟",
   },
   "onboarding": {
     "appText": "نص التطبيق",
     "screen": "شاشة",
     "header": "رأس",
-    "back": "خلف",
     "title": "مرحباً بك في دكان OS",
     "subtitle": "تطبيق يساعد التجار الصغار",
     "description": "سجل المبيعات، تتبع الزبائن، إدارة المخزون",

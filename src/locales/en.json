@@ -66,6 +66,7 @@
     "adjustmentQuantity": "Quantity Change",
     "adjustmentPositive": "Add stock",
     "adjustmentNegative": "Remove stock",
+    "currentStock": "Current stock: {stock}",
     "deleteConfirm": "Are you sure you want to archive this product?",
     "deleteTitle": "Archive Product",
     "archiveSuccess": "Product archived successfully",
@@ -74,13 +75,13 @@
     "noInventoryHistory": "No inventory history",
     "movementIn": "In",
     "movementOut": "Out",
-    "movementAdjustment": "Adjustment"
+    "movementAdjustment": "Adjustment",
+    "reactivateConfirm": "Are you sure you want to reactivate this product?",
   },
   "onboarding": {
     "appText": "App Text",
     "screen": "Screen",
     "header": "Header",
-    "back": "Back",
     "title": "Welcome to Dukkan OS",
     "subtitle": "App for Algerian micro-entrepreneurs",
     "description": "Record sales, track customers, manage inventory",
