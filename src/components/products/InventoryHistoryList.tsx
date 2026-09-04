@@ -95,7 +95,7 @@ export function InventoryHistoryList({ productId, productName, locale = "fr" }: 
               {movement.note || t('common:noNote')}
             </ThemedText>
 
-            <ThemedText type="caption" style={styles.dateLabel}>
+            <ThemedText type="small" style={styles.dateLabel}>
               {new Date(movement.created_at).toLocaleDateString(locale)}
             </ThemedText>
           </ThemedView>
@@ -119,6 +119,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
+    color: '#6B7280',
+  },
+  emptyText: {
     color: '#6B7280',
   },
   header: {

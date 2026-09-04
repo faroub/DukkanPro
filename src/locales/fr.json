@@ -74,7 +74,7 @@
     "noInventoryHistory": "Aucun historique de mouvement",
     "movementIn": "Entrée",
     "movementOut": "Sortie",
-    "movementAdjustment": "Ajustement",
+    "movementAdjustment": "Ajustement"
   },
   "onboarding": {
     "appText": "Texte de l'application",

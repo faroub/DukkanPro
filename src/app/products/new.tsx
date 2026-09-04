@@ -1,4 +1,4 @@
-import { useNavigation } from '@expo-router';
+import { useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Alert } from 'react-native';
@@ -91,7 +91,7 @@ export default function ProductCreateScreen() {
           form.is_active ? 1 : 0,
         ],
       );
-      navigation.back();
+      (navigation as any).back();
     } catch (err) {
       setErrorMessage(t('common:error'));
       setShowError(true);
@@ -225,7 +225,7 @@ export default function ProductCreateScreen() {
             locale="en"
           />
 
-          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.back()}>
+          <TouchableOpacity style={styles.cancelButton} onPress={() => (navigation as any).back()}>
             <ThemedText type="small" style={styles.cancelText}>
               {t('products:formCancel')}
             </ThemedText>
@@ -293,5 +293,11 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: '#6B7280',
+  },
+  content: {
+    flexGrow: 1,
+    maxWidth: 400,
+    width: '100%',
+    padding: 20,
   },
 });

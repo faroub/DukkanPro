@@ -1,4 +1,4 @@
-import { useRoute, useNavigation } from '@expo/router';
+import { useRoute, useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Alert } from 'react-native';
@@ -9,13 +9,13 @@ import { FormField } from '@/components/ui/FormField';
 import { executeWrite, executeRead } from '@/database/database';
 
 export default function ProductEditScreen() {
-  const { params } = useRoute();
+  const { params } = useRoute() as { params: { id: string } };
   const productId = params?.id;
   const { t } = useTranslation();
   const navigation = useNavigation();
 
   if (!productId) {
-    navigation.back();
+    (navigation as any).back();
     return null;
   }
 
@@ -139,7 +139,7 @@ export default function ProductEditScreen() {
           product.id,
         ],
       );
-      navigation.back();
+      (navigation as any).back();
     } catch (err) {
       setErrorMessage(t('common:error'));
       setShowError(true);
@@ -158,7 +158,7 @@ export default function ProductEditScreen() {
          WHERE id = ?`,
         [product.id],
       );
-      navigation.back();
+      (navigation as any).back();
     } catch (err) {
       setErrorMessage(t('common:error'));
       setShowError(true);
@@ -279,7 +279,7 @@ export default function ProductEditScreen() {
               locale="en"
             />
 
-            <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.back()}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => (navigation as any).back()}>
               <ThemedText type="small" style={styles.cancelText}>
                 {t('products:formCancel')}
               </ThemedText>
@@ -365,5 +365,11 @@ const styles = StyleSheet.create({
   },
   archiveText: {
     color: '#B91C1C',
+  },
+  form: {
+    flex: 1,
+    maxWidth: 400,
+    padding: 20,
+    backgroundColor: 'white',
   },
 });
