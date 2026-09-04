@@ -12,6 +12,36 @@
 const CENTIMES_PER_DINAR = 100;
 
 /**
+ * Arabic-Indic digit mapping for number conversion
+ */
+const ArabicIndicDigits: Record<string, string> = {
+  "0": "٠",
+  "1": "١",
+  "2": "٢",
+  "3": "٣",
+  "4": "٤",
+  "5": "٥",
+  "6": "٦",
+  "7": "٧",
+  "8": "٨",
+  "9": "٩",
+};
+
+/**
+ * Get Arabic-Indic digit from Western digit
+ */
+function toArabicIndicDigit(digit: string): string {
+  return ArabicIndicDigits[digit] || digit;
+}
+
+/**
+ * Convert Western numeral string to Arabic-Indic numerals
+ */
+function toArabicIndicNumerals(text: string): string {
+  return text.replace(/[0-9]/g, (digit) => toArabicIndicDigit(digit));
+}
+
+/**
  * Format centimes amount to a DZD display string for the given locale.
  *
  * @param centimes - Amount in centimes (integer)
@@ -26,7 +56,7 @@ export function formatCentimes(
 
   switch (locale) {
     case "ar-DZ":
-      // Arabic locale: Arabic-Indic numerals, "دج" symbol for Algerian Dinar
+      // Arabic locale: Arabic-Indic numerals, "دj" symbol for Algerian Dinar
       return new Intl.NumberFormat("ar-DZ", {
         style: "currency",
         currency: "DZD",
@@ -34,7 +64,8 @@ export function formatCentimes(
         maximumFractionDigits: 0,
       })
         .format(dinars)
-        .replace("د.ج", "دج"); // Normalize currency display;
+        // Convert Western numerals to Arabic-Indic
+        .replace(/[0-9]/g, (digit) => ArabicIndicDigits[digit] || digit);
 
     case "fr-DZ":
       // French locale: Western numerals, "123,45 DZD" or "123 DZD"
@@ -79,16 +110,32 @@ export function format14000Centimes(
 
 /**
  * Parse a DZD formatted string back to centimes integer.
- * Accepts "140 DZD", "140,00 DZD", "١٤٠ دج", etc.
+ * Accepts "140 DZD", "140,00 DZD", "١٤٠ دj", etc.
  *
  * @param formatted - The formatted DZD string
  * @returns Amount in centimes (integer), or 0 if parsing fails
  */
 export function parseCentimes(formatted: string): number {
-  // Remove currency symbol and whitespace, replace Arabic "دج" with "DZD"
+  // Remove currency symbol and whitespace, replace Arabic "دj" with "DZD"
   const cleaned = formatted
-    .replace("دج", "DZD")
+    .replace("دj", "DZD")
     .replace("د.ج", "DZD")
+    // Convert Arabic-Indic digits to Western digits for parsing
+    .replace(/[٠-٩]/g, (digit) => {
+      const reverseMap: Record<string, string> = {
+        "٠": "0",
+        "١": "1",
+        "٢": "2",
+        "٣": "3",
+        "٤": "4",
+        "٥": "5",
+        "٦": "6",
+        "٧": "7",
+        "٨": "8",
+        "٩": "9",
+      };
+      return reverseMap[digit] || digit;
+    })
     .replace(/[^\d,.-]/g, "")
     .trim();
 
