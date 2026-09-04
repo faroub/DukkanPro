@@ -14,16 +14,25 @@ export type OnboardingProfile = {
 };
 
 /**
+ * Checks if a string is a valid AsyncStorage value
+ */
+const isValidAsyncStorageValue = (value: any): value is string => {
+  return typeof value === 'string';
+};
+
+/**
  * Check if onboarding has been completed
  * Reads from AsyncStorage
+ * Falls back to false if AsyncStorage is not available
  */
 export async function isOnboardingComplete(): Promise<boolean> {
   try {
-    const stored = (AsyncStorage as any).getItem('onboardingComplete');
-    if (stored === 'true') {
+    // Use explicit type assertion for AsyncStorage.getItem
+    const stored: string | null = (AsyncStorage as any).getItem('onboardingComplete');
+    if (isValidAsyncStorageValue(stored) && stored === 'true') {
       return true;
     }
-    if (stored === 'false') {
+    if (isValidAsyncStorageValue(stored) && stored === 'false') {
       return false;
     }
     // No stored value — default to false (need onboarding)
@@ -42,7 +51,9 @@ export async function isOnboardingComplete(): Promise<boolean> {
  */
 export async function saveOnboardingComplete(flag: boolean): Promise<void> {
   try {
-    ;(AsyncStorage as any).setItem('onboardingComplete', flag ? 'true' : 'false');
+    const value = flag ? 'true' : 'false';
+    // Use explicit type assertion for AsyncStorage.setItem
+    await (AsyncStorage as any).setItem('onboardingComplete', value);
   } catch (error) {
     if (__DEV__) {
       console.warn('Failed to save onboarding completion to AsyncStorage:', error);
@@ -95,7 +106,8 @@ export async function saveProfileLocally(profile: OnboardingProfile): Promise<vo
  */
 export async function saveLocaleLocally(locale: Locale): Promise<void> {
   try {
-    ;(AsyncStorage as any).setItem('selectedLocale', locale);
+    // Use explicit type assertion for AsyncStorage.setItem
+    await (AsyncStorage as any).setItem('selectedLocale', locale);
   } catch (error) {
     if (__DEV__) {
       console.warn('Failed to save selected locale to AsyncStorage:', error);
@@ -109,7 +121,8 @@ export async function saveLocaleLocally(locale: Locale): Promise<void> {
  */
 export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
   try {
-    const stored = (AsyncStorage as any).getItem('selectedLocale');
+    // Use explicit type assertion for AsyncStorage.getItem
+    const stored: string | null = (AsyncStorage as any).getItem('selectedLocale');
     if (!stored) {
       return 'fr';
     }
