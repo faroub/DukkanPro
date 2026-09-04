@@ -1,4 +1,4 @@
-import { useRoute } from '@expo-router';
+import { useRoute } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
@@ -7,12 +7,13 @@ import { ThemedText } from '@/components/themed-text';
 import { ProductRow } from '@/components/products/ProductRow';
 import { useProducts } from '@/hooks/useProducts';
 import { getInventoryHistory } from '@/database/repositories/productRepository';
+import type { Product } from '@/types/entities';
 
 export default function ProductDetailScreen() {
-  const { params } = useRoute();
-  const productId = params?.id;
+  const { params } = useRoute() as { params: { id: string } };
+  const productId = Number(params?.id);
   const { t } = useTranslation();
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [inventory, setInventory] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -173,7 +174,7 @@ export default function ProductDetailScreen() {
                   <ThemedText type="small" style={styles.inventoryNote}>
                     {movement.note || t('common:noNote')}
                   </ThemedText>
-                  <ThemedText type="caption" style={styles.inventoryDate}>
+                  <ThemedText type="small" style={styles.inventoryDate}>
                     {new Date(movement.created_at).toLocaleDateString()}
                   </ThemedText>
                 </ThemedView>
@@ -222,6 +223,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
+    color: '#6B7280',
+  },
+  placeholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
     color: '#6B7280',
   },
   inventoryList: {

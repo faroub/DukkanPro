@@ -30,6 +30,7 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
     minimum_stock_quantity: mode === 'create' ? 0 : (initialProduct?.minimum_stock_quantity || 0),
     unit: 'pcs',
     is_active: true,
+    id: mode === 'edit' ? (initialProduct?.id || undefined) : undefined,
   });
   const [submitting, setSubmitting] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -48,6 +49,7 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
         minimum_stock_quantity: initialProduct.minimum_stock_quantity,
         unit: initialProduct.unit || 'pcs',
         is_active: initialProduct.is_active,
+        id: initialProduct.id,
       });
     }
   }, [mode, initialProduct]);
@@ -144,7 +146,7 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
             form.id,
           ],
         );
-        result = { id: form.id, ...form };
+        result = { ...form };
       }
 
       onSave(result);
@@ -388,5 +390,11 @@ const styles = StyleSheet.create({
   },
   archiveText: {
     color: '#B91C1C',
+  },
+  form: {
+    flex: 1,
+    maxWidth: 400,
+    padding: 20,
+    backgroundColor: 'white',
   },
 });

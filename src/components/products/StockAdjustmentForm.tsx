@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/themed-text';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { FormField } from '@/components/ui/FormField';
 import { executeWrite, executeRead } from '@/database/database';
+import type { Product } from '@/types/entities';
 
 export interface StockAdjustmentFormProps {
   productId: number;
@@ -26,7 +27,7 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
   const [errorMessage, setErrorMessage] = useState('');
 
   // Fetch product data
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [stockDisplay, setStockDisplay] = useState(0);
 
   useEffect(() => {
@@ -232,5 +233,11 @@ const styles = StyleSheet.create({
   successBannerText: {
     color: '#166534',
     fontSize: 12,
+  },
+  form: {
+    flex: 1,
+    maxWidth: 400,
+    padding: 20,
+    backgroundColor: 'white',
   },
 });
