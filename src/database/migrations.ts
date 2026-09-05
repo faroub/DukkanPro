@@ -46,6 +46,10 @@ const ALL_MIGRATIONS: Migration[] = [
     version: 8,
     sql: schema.inventoryMovements,
   },
+  {
+    version: 9,
+    sql: schema.appSettings,
+  },
 ];
 
 export async function runMigrations(db: any): Promise<void> {

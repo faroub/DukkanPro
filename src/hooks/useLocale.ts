@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import type { Locale } from "@/localization/types";
 import i18n from "@/localization/i18n";
-import { getCurrentDeviceLocale, getFormattedLocale, isSupportedLocale } from "@/localization/localeConfig";
+import { getCurrentDeviceLocale, getFormattedLocale, isSupportedLocale, readStoredLocaleFromAsyncStorage, storeLocaleInAsyncStorage } from "@/localization/localeConfig";
 
 /**
  * Return type for the useLocale hook
@@ -50,7 +49,7 @@ export function useLocale(): UseLocaleReturn {
 
   /**
    * Change the application locale
-   * - Persists the selection in AsyncStorage
+   * - Persists the selection in SQLite
    * - Updates i18n next language dynamically
    * - Does NOT call I18nManager APIs (app stays LTR)
    */
@@ -64,6 +63,13 @@ export function useLocale(): UseLocaleReturn {
     // Update i18n language (dynamic, no app reload)
     i18n.changeLanguage(newLocale);
     setLocale(newLocale);
+
+    // Persist the selected locale in SQLite
+    storeLocaleInAsyncStorage(newLocale).catch((error) => {
+      if (__DEV__) {
+        console.warn("Failed to store locale in SQLite:", error);
+      }
+    });
   };
 
   return {
@@ -79,19 +85,9 @@ export function useLocale(): UseLocaleReturn {
 }
 
 /**
- * Read the selected locale from AsyncStorage
+ * Read the selected locale from SQLite
  * Returns the default French locale if nothing is stored
  */
-async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
-  try {
-    const stored = await AsyncStorage.getItem("selectedLocale");
-    if (!stored || !isSupportedLocale(stored)) {
-      return "fr";
-    }
-    return stored as Locale;
-  } catch (error) {
-    // AsyncStorage may not be available in all environments (e.g., web)
-    // Default to French if storage fails
-    return "fr";
-  }
+async function readStoredLocaleFromSQLite(): Promise<Locale> {
+  return readStoredLocaleFromAsyncStorage();
 }

@@ -1,7 +1,8 @@
 import * as Device from "expo-device";
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
+import { useState, useEffect } from "react";
 
 import { AnimatedIcon } from "@/components/animated-icon";
 import { HintRow } from "@/components/hint-row";
@@ -17,7 +18,30 @@ SplashScreen.preventAutoHideAsync();
 
 export default function Root() {
   const { t } = useTranslation();
-  const isOnboardingComplete = useOnboarding.isOnboardingComplete();
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function check() {
+      try {
+        const complete = await useOnboarding.isOnboardingComplete();
+        setIsOnboardingComplete(complete);
+      } catch (e) {
+        console.error("Failed to check onboarding", e);
+        setIsOnboardingComplete(false); // fallback to onboarding
+      } finally {
+        await SplashScreen.hideAsync();
+      }
+    }
+    check();
+  }, []);
+
+  if (isOnboardingComplete === null) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </SafeAreaView>
+    );
+  }
 
   // Determine the initial route based on onboarding completion:
   // - Fresh app opens on onboarding

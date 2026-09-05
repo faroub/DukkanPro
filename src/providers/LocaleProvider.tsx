@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect } from "react";
 import { I18nextProvider } from "react-i18next";
 
@@ -32,7 +31,7 @@ export interface LocaleProviderProps {
  * - Arabic text may use right alignment inside individual components only
  */
 export function LocaleProvider({ children }: LocaleProviderProps) {
-  // Initialize locale from AsyncStorage or device locale on first mount
+  // Initialize locale from SQLite or device locale on first mount
   useEffect(() => {
     async function initializeLocale() {
       // Read the stored locale from AsyncStorage (merchant selection override)
@@ -61,7 +60,7 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
 
   /**
    * Change the application locale
-   * - Persists the selection in AsyncStorage
+   * - Persists the selection in SQLite
    * - Updates i18n next language dynamically
    * - Does NOT call I18nManager APIs (app stays LTR)
    * - Language switching never triggers an RTL reload
@@ -76,9 +75,13 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
     // Update i18n language (dynamic, no app reload)
     changeI18nLocale(newLocale);
 
-    // Persist the selected locale in AsyncStorage
+    // Store the selected locale in SQLite
     // This is the merchant's override of device locale
-    AsyncStorage.setItem("selectedLocale", newLocale);
+    storeLocaleInAsyncStorage(newLocale).catch((error) => {
+      if (__DEV__) {
+        console.warn("Failed to store locale in SQLite:", error);
+      }
+    });
   };
 
   // Sync locale state with i18n language changes

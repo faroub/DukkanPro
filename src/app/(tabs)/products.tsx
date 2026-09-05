@@ -1,26 +1,32 @@
+import { ProductListScreen } from "@/features/products/ProductListScreen";
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from "react-i18next";
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 
 export default function ProductsScreen() {
+  const { t } = useTranslation();
+
   return (
     <ThemedView type="background" style={styles.container}>
       <ThemedView style={styles.content}>
         <ThemedText type="title" style={styles.title}>
           {/* i18n: products.title */}
-          Catalogue produits
+          {t("products:title")}
         </ThemedText>
 
         <ThemedText type="subtitle" style={styles.subtitle}>
           {/* i18n: products.subtitle */}
-          Gérer votre inventaire de produits
+          {t("products:subtitle")}
         </ThemedText>
 
         <ThemedText type="small" style={styles.description}>
           {/* i18n: products.description */}
-          Ajoutez et suivez vos produits en stock.
+          {t("products:description")}
         </ThemedText>
+
+        <ProductListScreen />
       </ThemedView>
     </ThemedView>
   );

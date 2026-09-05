@@ -12,7 +12,7 @@
    - Initial inventory movements
  */
 
-import { executeAll, executeWrite } from "./database";
+import { executeAll, executeWrite } from "./query";
 
 export async function seed(db: any): Promise<void> {
   // -- 1. Business profile (idempotent: upsert by checking existence) --
