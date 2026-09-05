@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, Pressable } from 'react-native';
-import { SearchBar } from 'react-native-paper';
-import { Modal } from '@react-native-community/masked-view';
+import { View, Text, FlatList, Pressable, Modal } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
-import { IconButton } from '@/components/ui/icon-button';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatCentimes } from '@/utils/money';
+import { SearchInput } from '@/components/ui/SearchInput';
 
 type Product = {
   id: number;
@@ -62,15 +60,14 @@ export function ProductSearchSheet({
         <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: '#fff', padding: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
             <ThemedText type="title">{t('sell.search_products')}</ThemedText>
-            <IconButton onPress={onRequestClose} icon="x-mark" size={20} color="gray" />
+            <MaterialCommunityIcons name="delete" size={20} color="gray" onPress={onRequestClose} />
           </View>
-          
-          <SearchBar
+
+          <SearchInput
             placeholder={t('sell.search_placeholder')}
             value={searchQuery}
             onChangeText={handleSearchChange}
             autoFocus
-            showLoading={false}
           />
 
           <FlatList
@@ -80,22 +77,22 @@ export function ProductSearchSheet({
               <Pressable onPress={() => handleAddToCart(item)} style={styles.item}>
                 <View style={{ flexDirection: 'row' }}>
                   <View style={{ flex: 1, marginRight: 12 }}>
-                    <Text style={styles.name}>{item.name}</Text>
-                    {item.sku && <Text style={styles.sku}>SKU: {item.sku}</Text>}
+                    <ThemedText style={styles.name}>{item.name}</ThemedText>
+                    {item.sku && <ThemedText style={styles.sku}>SKU: {item.sku}</ThemedText>}
                   </View>
-                  <Text style={styles.price}>{formatCentimes(item.sale_price_centimes)}</Text>
+                  <ThemedText style={styles.price}>{formatCentimes(item.sale_price_centimes)}</ThemedText>
                 </View>
               </Pressable>
             )}
-            ListEmptyComponent={[
-              searchQuery 
+            ListEmptyComponent={
+              searchQuery
                 ? <ThemedText type="body" style={{ textAlign: 'center', marginTop: 20, color: '#666' }}>
                     {t('sell.no_results', { query: searchQuery })}
                   </ThemedText>
                 : <ThemedText type="body" style={{ textAlign: 'center', marginTop: 20, color: '#666' }}>
                     {t('sell.no_products')}
                   </ThemedText>
-            ]}
+            }
             contentContainerStyle={{ padding: 8 }}
           />
         </View>
@@ -106,25 +103,25 @@ export function ProductSearchSheet({
 
 const styles = {
   item: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
     padding: 12,
     borderBottomWidth: 1,
-    borderColor: '#eee',
-  },
+    borderColor: '#eee' as const,
+  } as const,
   name: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+    fontSize: 16 as const,
+    fontWeight: '600' as const,
+  } as const,
   sku: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
+    fontSize: 12 as const,
+    color: '#666' as const,
+    marginTop: 4 as const,
+  } as const,
   price: {
-    marginLeft: 12,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#28a745',
-  },
+    marginLeft: 12 as const,
+    fontSize: 16 as const,
+    fontWeight: '600' as const,
+    color: '#28a745' as const,
+  } as const,
 };

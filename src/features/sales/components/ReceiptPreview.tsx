@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import { Modal } from '@react-native-community/masked-view';
-import { ThemedView, ThemedText } from '@/components/themed-view';
+import React, { Dispatch, SetStateAction } from 'react';
+import { View, Text, Pressable, ScrollView, Modal } from 'react-native';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
-import { IconButton } from '@/components/ui/icon-button';
+import type { TFunction } from 'i18next';
+import { IconButton } from '@/components/ui/IconButton';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatCentimes } from '@/utils/money';
 import { Sale } from '@/types/entities';
@@ -13,6 +14,7 @@ interface ReceiptPreviewProps {
   onRequestClose: () => void;
   onNewSale: () => void;
   sale: Sale | null;
+  t?: TFunction<'translation', undefined>;
 }
 
 export function ReceiptPreview({
@@ -119,7 +121,7 @@ const styles = {
     flex: 1,
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: 'center' as const,
     marginHorizontal: 4,
   },
   primaryButton: {

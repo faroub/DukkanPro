@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { Sale } from '@/types/entities';
-import { saleRepository } from '@/database/repositories/saleRepository';
+import { create } from '@/database/repositories/saleRepository';
 
 export function useSales() {
   const [isSaving, setIsSaving] = useState(false);
@@ -21,15 +21,15 @@ export function useSales() {
   }) => {
     setIsSaving(true);
     setError(null);
-    
+
     try {
-      const sale = await saleRepository.create({
+      const sale = await create({
         customerId: saleInput.customerId,
         paymentMethod: saleInput.paymentMethod,
         items: saleInput.items,
         note: saleInput.note,
       });
-      
+
       setLastSale(sale);
       return sale;
     } catch (err) {
