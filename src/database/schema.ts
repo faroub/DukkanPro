@@ -139,4 +139,15 @@ export const schema = {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `,
+  // ============================================================
+  // app_settings — Key-value store for app configuration
+  // ============================================================
+  appSettings: `
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `,
+
 };

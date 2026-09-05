@@ -2,10 +2,12 @@ import ar from "@/locales/ar.json";
 import en from "@/locales/en.json";
 import fr from "@/locales/fr.json";
 import { AppProviders } from "@/providers/AppProviders";
-import { render } from "@testing-library/react-native";
 import i18n from "i18next";
 import React from "react";
 import { initReactI18next } from "react-i18next";
+
+// @ts-ignore - types for @testing-library/react-native not installed
+import { render } from "@testing-library/react-native";
 
 // Mock SQLite database instance
 export function mockDatabase() {
@@ -37,6 +39,7 @@ export function mockDatabase() {
     // Mock exec method for executing multiple statements
     exec: jest.fn((sqlStatements: string[]) => {
       sqlStatements.forEach((sql) => {
+        // @ts-ignore - this context for exec method
         this.run(sql);
       });
       return [];
@@ -79,5 +82,3 @@ export function renderWithProviders(
 
   return render(baseProviders);
 }
-
-export type { mockDatabase };

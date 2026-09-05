@@ -20,7 +20,7 @@
  */
 
 import { getLocales } from "expo-localization";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { executeAll, executeRead, executeWrite } from "../database/database";
 
 import type { Locale } from "@/localization/types";
 
@@ -133,36 +133,52 @@ export function parseStoredLocale(
 }
 
 /**
- * Store the selected locale in AsyncStorage
+ * Store the selected locale in SQLite
  * Used by the merchant to override device locale
  */
 export async function storeLocaleInAsyncStorage(
   locale: Locale,
 ): Promise<void> {
   try {
-    await AsyncStorage.setItem("selectedLocale", locale);
+    await executeWrite(
+      `INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
+      ['selectedLocale', locale]
+    );
   } catch (error) {
-    // AsyncStorage may not be available in all environments (e.g., web)
+    // SQLite may not be available in all environments (e.g., web)
     // Silently ignore storage errors - the app will use the default locale
     if (__DEV__) {
-      console.warn("Failed to store locale in AsyncStorage:", error);
+      console.warn("Failed to store locale in SQLite:", error);
     }
   }
 }
 
 /**
- * Read the selected locale from AsyncStorage
+ * Read the selected locale from SQLite
  * Used by the merchant to override device locale
  * Returns the default French locale if nothing is stored
  */
 export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
   try {
-    const stored = await AsyncStorage.getItem("selectedLocale");
-    return parseStoredLocale(stored);
+    const rows: any[] = await executeRead(
+      `SELECT value FROM app_settings WHERE key = ?`,
+      ['selectedLocale']
+    );
+    if (rows.length === 0) {
+      return 'fr';
+    }
+    const stored = rows[0].value;
+    if (!stored || !isSupportedLocale(stored)) {
+      return 'fr';
+    }
+    return stored as Locale;
   } catch (error) {
-    // AsyncStorage may not be available in all environments (e.g., web)
+    // SQLite may not be available in all environments (e.g., web)
     // Default to French if storage fails
-    return "fr";
+    if (__DEV__) {
+      console.warn("Failed to read locale from SQLite:", error);
+    }
+    return 'fr';
   }
 }
 
