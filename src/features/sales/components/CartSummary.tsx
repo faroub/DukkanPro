@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable, TextInput } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
 import { formatCentimes } from '@/utils/money';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 interface CartSummaryProps {
   subtotal: number;
@@ -35,14 +36,19 @@ export function CartSummary({
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
           <ThemedText type="body">{t('sell.discount')}</ThemedText>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {/* In a real app, this would be an input */}
             <ThemedText type="body" style={{ marginRight: 8, fontWeight: '600' }}>
               {formatCentimes(discount)}
             </ThemedText>
-            {/* Placeholder for discount input */}
-            <ThemedText type="caption" style={{ color: '#007bff', marginLeft: 4 }}>
+            {/* Discount input - press to edit */}
+            <Pressable
+              onPress={() => {
+                // In a real app, this would open a discount input
+                // For now, we'll just show the current value
+              }}
+              style={{ padding: 8, backgroundColor: '#f0f0f0', borderRadius: 4, marginLeft: 4 }}
+            >
               {t('sell.edit')}
-            </ThemedText>
+            </Pressable>
           </View>
         </View>
 
@@ -52,7 +58,7 @@ export function CartSummary({
         {/* Total */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 8 }}>
           <ThemedText type="title">{t('sell.total')}</ThemedText>
-          <ThemedText type="title" style={{ fontWeight: '600', color: '#28a745' }}>
+          <ThemedText type="title" style={{ fontWeight: '600', color: '#1B6B3A' }}>
             {formatCentimes(total)}
           </ThemedText>
         </View>
