@@ -17,15 +17,15 @@ const arabicNumbers: Record<string, number> = {
   ثمانية: 8,
   تسعة: 9,
   عشرة: 10,
-  أحد عشر: 11,
-  اثنا عشر: 12,
-  ثلاثة عشر: 13,
-  أربعة عشر: 14,
-  خمسة عشر: 15,
-  ستة عشر: 16,
-  سبعة عشر: 17,
-  ثمانية عشر: 18,
-  تسعة عشر: 19,
+  "أحد عشر": 11,
+  "اثنا عشر": 12,
+  "ثلاثة عشر": 13,
+  "أربعة عشر": 14,
+  "خمسة عشر": 15,
+  "ستة عشر": 16,
+  "سبعة عشر": 17,
+  "ثمانية عشر": 18,
+  "تسعة عشر": 19,
   عشرون: 20,
 };
 
@@ -49,9 +49,9 @@ const frenchNumbers: Record<string, number> = {
   quatorze: 14,
   quinze: 15,
   seize: 16,
-  dix-sept: 17, // hyphenated form
-  dix-huit: 18, // hyphenated form
-  dix-neuf: 19, // hyphenated form
+  "dix-sept": 17, // hyphenated form
+  "dix-huit": 18, // hyphenated form
+  "dix-neuf": 19, // hyphenated form
   vingt: 20,
 };
 
@@ -115,43 +115,43 @@ export function normalizeNumberWord(text: string): number {
 export function normalizeSalesText(text: string): {
   normalized: string;
   detectedQuantity?: number;
-  language: 'ar' | 'fr' | 'en';
+  language: "ar" | "fr" | "en";
 } {
   const lower = text.toLowerCase().trim();
   let detectedQuantity: number | undefined = undefined;
-  let language: 'ar' | 'fr' | 'en' = 'en';
+  let language: "ar" | "fr" | "en" = "en";
 
   // Try to detect language and extract number
   // Arabic number words
   for (const [word, value] of Object.entries(arabicNumbers)) {
-    const regex = new RegExp(`\\b${word}\\b`, 'i');
+    const regex = new RegExp(`\\b${word}\\b`, "i");
     if (regex.test(lower)) {
       detectedQuantity = value;
-      language = 'ar';
+      language = "ar";
       // Replace the word with a placeholder
-      const normalized = lower.replace(regex, '<QUANTITY>');
+      const normalized = lower.replace(regex, "<QUANTITY>");
       return { normalized, detectedQuantity, language };
     }
   }
 
   // French number words (including hyphenated forms)
   for (const [word, value] of Object.entries(frenchNumbers)) {
-    const regex = new RegExp(`\\b${word.replace(/-/g, '\\-')}\\b`, 'i');
+    const regex = new RegExp(`\\b${word.replace(/-/g, "\\-")}\\b`, "i");
     if (regex.test(lower)) {
       detectedQuantity = value;
-      language = 'fr';
-      const normalized = lower.replace(regex, '<QUANTITY>');
+      language = "fr";
+      const normalized = lower.replace(regex, "<QUANTITY>");
       return { normalized, detectedQuantity, language };
     }
   }
 
   // English number words
   for (const [word, value] of Object.entries(englishNumbers)) {
-    const regex = new RegExp(`\\b${word}\\b`, 'i');
+    const regex = new RegExp(`\\b${word}\\b`, "i");
     if (regex.test(lower)) {
       detectedQuantity = value;
-      language = 'en';
-      const normalized = lower.replace(regex, '<QUANTITY>');
+      language = "en";
+      const normalized = lower.replace(regex, "<QUANTITY>");
       return { normalized, detectedQuantity, language };
     }
   }
@@ -169,31 +169,98 @@ export function normalizeProductName(text: string): string {
   const lower = text.toLowerCase().trim();
 
   // Remove common number words across languages
-  const arabicStop = ['صفر', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة', 'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر', 'عشرون'];
-  const frenchStop = ['zéro', 'un', 'une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt'];
-  const englishStop = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+  const arabicStop = [
+    "صفر",
+    "واحد",
+    "اثنان",
+    "ثلاثة",
+    "أربعة",
+    "خمسة",
+    "ستة",
+    "سبعة",
+    "ثمانية",
+    "تسعة",
+    "عشرة",
+    "أحد عشر",
+    "اثنا عشر",
+    "ثلاثة عشر",
+    "أربعة عشر",
+    "خمسة عشر",
+    "ستة عشر",
+    "سبعة عشر",
+    "ثمانية عشر",
+    "تسعة عشر",
+    "عشرون",
+  ];
+  const frenchStop = [
+    "zéro",
+    "un",
+    "une",
+    "deux",
+    "trois",
+    "quatre",
+    "cinq",
+    "six",
+    "sept",
+    "huit",
+    "neuf",
+    "dix",
+    "onze",
+    "douze",
+    "treize",
+    "quatorze",
+    "quinze",
+    "seize",
+    "dix-sept",
+    "dix-huit",
+    "dix-neuf",
+    "vingt",
+  ];
+  const englishStop = [
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+    "thirteen",
+    "fourteen",
+    "fifteen",
+    "sixteen",
+    "seventeen",
+    "eighteen",
+    "nineteen",
+    "twenty",
+  ];
 
   let result = lower;
 
   // Remove Arabic number words
   for (const word of arabicStop) {
-    const regex = new RegExp(`\\b${word}\\b`, 'i');
-    result = result.replace(regex, '').replace(/\s+/g, ' ');
+    const regex = new RegExp(`\\b${word}\\b`, "i");
+    result = result.replace(regex, "").replace(/\s+/g, " ");
   }
 
   // Remove French number words
   for (const word of frenchStop) {
-    const regex = new RegExp(`\\b${word.replace(/-/g, '\\-')}\\b`, 'i');
-    result = result.replace(regex, '').replace(/\s+/g, ' ');
+    const regex = new RegExp(`\\b${word.replace(/-/g, "\\-")}\\b`, "i");
+    result = result.replace(regex, "").replace(/\s+/g, " ");
   }
 
   // Remove English number words
   for (const word of englishStop) {
-    const regex = new RegExp(`\\b${word}\\b`, 'i');
-    result = result.replace(regex, '').replace(/\s+/g, ' ');
+    const regex = new RegExp(`\\b${word}\\b`, "i");
+    result = result.replace(regex, "").replace(/\s+/g, " ");
   }
 
-  return result.replace(/\s+/g, ' ').trim();
+  return result.replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -202,11 +269,14 @@ export function normalizeProductName(text: string): string {
  * @param language - Language code
  * @returns Translated quantity label
  */
-export function getQuantityLabel(t: (key: string) => string, language: 'ar' | 'fr' | 'en'): string {
-  const labels: Record<'ar' | 'fr' | 'en', string> = {
-    ar: 'الكمية',
-    fr: 'Quantité',
-    en: 'Quantity',
+export function getQuantityLabel(
+  t: (key: string) => string,
+  language: "ar" | "fr" | "en",
+): string {
+  const labels: Record<"ar" | "fr" | "en", string> = {
+    ar: "الكمية",
+    fr: "Quantité",
+    en: "Quantity",
   };
   return labels[language];
 }
@@ -217,11 +287,14 @@ export function getQuantityLabel(t: (key: string) => string, language: 'ar' | 'f
  * @param language - Language code
  * @returns Translated product label
  */
-export function getProductLabel(t: (key: string) => string, language: 'ar' | 'fr' | 'en'): string {
-  const labels: Record<'ar' | 'fr' | 'en', string> = {
-    ar: 'اسم المنتج',
-    fr: 'Nom du produit',
-    en: 'Product Name',
+export function getProductLabel(
+  t: (key: string) => string,
+  language: "ar" | "fr" | "en",
+): string {
+  const labels: Record<"ar" | "fr" | "en", string> = {
+    ar: "اسم المنتج",
+    fr: "Nom du produit",
+    en: "Product Name",
   };
   return labels[language];
 }
