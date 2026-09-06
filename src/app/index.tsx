@@ -1,24 +1,22 @@
-import * as Device from "expo-device";
-import { Platform, StyleSheet, ActivityIndicator } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter, type Href } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AnimatedIcon } from "@/components/animated-icon";
-import { HintRow } from "@/components/hint-row";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { Spacing } from "@/constants/theme";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { useTranslation } from "react-i18next";
-import i18n from "@/localization/i18n";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function Root() {
   const { t } = useTranslation();
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
+  const router = useRouter();
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     async function check() {
@@ -35,6 +33,12 @@ export default function Root() {
     check();
   }, []);
 
+  useEffect(() => {
+    if (isOnboardingComplete) {
+      router.replace("/(tabs)" as Href);
+    }
+  }, [isOnboardingComplete, router]);
+
   if (isOnboardingComplete === null) {
     return (
       <SafeAreaView style={styles.container}>
@@ -48,18 +52,17 @@ export default function Root() {
   // - Restarting app with completed onboarding skips to tabs
   const shouldShowOnboarding = !isOnboardingComplete;
 
+  if (!shouldShowOnboarding) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      {shouldShowOnboarding ? (
-        <OnboardingScreen />
-      ) : (
-        <ThemedView style={styles.content}>
-          <ThemedText type="subtitle" style={styles.subtitle}>
-            {/* i18n: app.title */}
-            {t('app.title')}
-          </ThemedText>
-        </ThemedView>
-      )}
+      <OnboardingScreen />
     </SafeAreaView>
   );
 }
@@ -73,7 +76,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: Spacing.xl,
-    width: '100%',
+    width: "100%",
   },
   subtitle: {
     fontSize: 16,

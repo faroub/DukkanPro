@@ -11,23 +11,25 @@
  - Refresh after sales, payments, edits, cancellations, and returns
  * (the calling screen or app state manager should trigger a re-fetch).
  */
-import { View, StyleSheet, ScrollView } from "react-native";
 import { ThemedView } from "@/components/themed-view";
 import { GreetingCard } from "@/features/dashboard/components/GreetingCard";
-import { SummaryCards } from "@/features/dashboard/components/SummaryCards";
-import { RecentSalesList } from "@/features/dashboard/components/RecentSalesList";
 import { LowStockList } from "@/features/dashboard/components/LowStockList";
 import { QuickActions } from "@/features/dashboard/components/QuickActions";
-import { formatCentimes } from "@/utils/money";
+import { RecentSalesList } from "@/features/dashboard/components/RecentSalesList";
+import { SummaryCards } from "@/features/dashboard/components/SummaryCards";
 import { useDashboard } from "@/hooks/useDashboard";
 import { getTextAlignment } from "@/utils/text";
+import { ScrollView, StyleSheet } from "react-native";
 
 interface DashboardScreenProps {
   t: (key: string, ...args: any[]) => string;
   locale: "ar" | "fr" | "en";
 }
 
-export default function DashboardScreenDefault({ t, locale }: DashboardScreenProps) {
+export default function DashboardScreenDefault({
+  t,
+  locale,
+}: DashboardScreenProps) {
   const {
     greeting,
     todayDate,
@@ -69,11 +71,11 @@ export default function DashboardScreenDefault({ t, locale }: DashboardScreenPro
 
         {/* Summary Cards */}
         <SummaryCards
-          revenueKey={t("dashboard:summary.revenue")}
+          revenueKey={t("dashboard.summary.revenue")}
           revenueValue_centimes={todayRevenue_centimes}
-          profitKey={t("dashboard:summary.profit")}
+          profitKey={t("dashboard.summary.profit")}
           profitValue_centimes={todayProfit_centimes}
-          toCollectKey={t("dashboard:summary.toCollect")}
+          toCollectKey={t("dashboard.summary.toCollect")}
           toCollectValue_centimes={toCollect_centimes}
           locale={locale}
           textAlignment={alignment}
@@ -84,8 +86,8 @@ export default function DashboardScreenDefault({ t, locale }: DashboardScreenPro
           recentSales={recentSales}
           locale={locale}
           textAlignment={alignment}
-          recentSalesHeader={t("dashboard:recentSales.title")}
-          recentSalesNoResults={t("dashboard:recentSales.noSales")}
+          recentSalesHeader={t("dashboard.recentSales.title")}
+          recentSalesNoResults={t("dashboard.recentSales.noSales")}
         />
 
         {/* Low-Stock List */}
@@ -94,9 +96,9 @@ export default function DashboardScreenDefault({ t, locale }: DashboardScreenPro
           lowStockProducts={lowStockProducts}
           locale={locale}
           textAlignment={alignment}
-          lowStockTitle={t("dashboard:lowStock.title")}
-          lowStockNoLowStock={t("dashboard:lowStock.noLowStock")}
-          lowStockNote={t("dashboard:lowStock.note", { count: lowStockCount })}
+          lowStockTitle={t("dashboard.lowStock.title")}
+          lowStockNoLowStock={t("dashboard.lowStock.noLowStock")}
+          lowStockNote={t("dashboard.lowStock.note", { count: lowStockCount })}
         />
 
         {/* Quick Actions */}

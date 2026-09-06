@@ -1,4 +1,40 @@
 {
+  "app": {
+    "title": "دكان OS"
+  },
+  "tabs": {
+    "home": "الرئيسية",
+    "sell": "بيع",
+    "products": "المنتجات",
+    "customers": "الزبائن",
+    "more": "المزيد"
+  },
+  "dashboard": {
+    "greeting": "مرحباً",
+    "summary": {
+      "revenue": "الإيرادات",
+      "profit": "الربح التقديري",
+      "toCollect": "المبالغ المستحقة"
+    },
+    "recentSales": {
+      "title": "المبيعات الأخيرة",
+      "noSales": "لا توجد مبيعات حديثة"
+    },
+    "lowStock": {
+      "title": "مخزون منخفض",
+      "noLowStock": "لا توجد منتجات منخفضة المخزون",
+      "note": "عدد المنتجات التي تحتاج إلى إعادة تخزين: {{count}}"
+    },
+    "quick": {
+      "newSale": "بيع جديد",
+      "addProduct": "إضافة منتج",
+      "addCustomer": "إضافة زبون",
+      "recordPayment": "تسجيل دفعة"
+    }
+  },
+  "common": {
+    "primaryButton": "متابعة"
+  },
   "appText": "نص التطبيق",
   "screen": "شاشة",
   "header": "رأس",
@@ -176,6 +212,36 @@
     "description": "سجل المبيعات، تتبع الزبائن، إدارة المخزون",
     "getStarted": "ابدأ",
     "skip": "تخطي"
+  },
+  "businessNameStep": {
+    "title": "اسم نشاطك التجاري",
+    "subtitle": "لنبدأ باسم نشاطك",
+    "label": "اسم النشاط التجاري",
+    "placeholder": "أدخل اسم نشاطك التجاري"
+  },
+  "ownerNameStep": {
+    "title": "اسمك",
+    "subtitle": "كيف يمكننا مناداتك؟",
+    "label": "اسم المالك",
+    "placeholder": "أدخل اسمك"
+  },
+  "businessTypeStep": {
+    "title": "نوع النشاط",
+    "subtitle": "اختر النوع الذي يناسب نشاطك",
+    "grocery": "بقالة",
+    "bakery": "مخبزة",
+    "instagram seller": "بائع عبر إنستغرام",
+    "market vendor": "بائع في السوق",
+    "service seller": "مقدم خدمات",
+    "other": "أخرى"
+  },
+  "languageStep": {
+    "title": "اختر لغتك",
+    "subtitle": "يمكنك تغييرها لاحقاً",
+    "note": "تبقى بنية التطبيق من اليسار إلى اليمين.",
+    "ar": "العربية",
+    "fr": "الفرنسية",
+    "en": "الإنجليزية"
   },
   "settings": {
     "title": "إعدادات",

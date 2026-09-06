@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, TextInput } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { useOnboarding } from '@/hooks/useOnboarding';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Spacing } from '@/constants/theme';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BusinessNameStep } from '@/features/onboarding/components/BusinessNameStep';
-import { OwnerNameStep } from '@/features/onboarding/components/OwnerNameStep';
-import { BusinessTypeStep } from '@/features/onboarding/components/BusinessTypeStep';
-import { LanguageStep } from '@/features/onboarding/components/LanguageStep';
-import { formatCurrency } from '@/localization/localeConfig';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { Spacing } from "@/constants/theme";
+import { BusinessNameStep } from "@/features/onboarding/components/BusinessNameStep";
+import { BusinessTypeStep } from "@/features/onboarding/components/BusinessTypeStep";
+import { LanguageStep } from "@/features/onboarding/components/LanguageStep";
+import { OwnerNameStep } from "@/features/onboarding/components/OwnerNameStep";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 /**
  * Onboarding Screen - multi-step onboarding flow for Dukkan OS
@@ -28,31 +27,38 @@ import { formatCurrency } from '@/localization/localeConfig';
  * - Completing onboarding navigates to tabs
  * - Screen structure remains LTR in all languages
  */
-export function OnboardingScreen({
-  navigation,
-}: any) {
+export function OnboardingScreen({ navigation }: any) {
   const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [profile, setProfile] = useState({
-    businessName: '',
-    ownerName: '',
-    businessType: '',
-    locale: 'fr',
-    currency: 'DZD',
+    businessName: "",
+    ownerName: "",
+    businessType: "",
+    locale: "fr",
+    currency: "DZD",
   } as any);
 
-  const steps = [
-    'businessName',
-    'ownerName',
-    'businessType',
-    'language',
-  ];
+  const steps = ["businessName", "ownerName", "businessType", "language"];
 
-  const handleStepChange = (stepData: any) => {
-    setProfile((prev: any) => ({
-      ...prev,
+  const handleStepChange = async (stepData: any) => {
+    const nextProfile = {
+      ...profile,
       ...stepData,
-    }));
+    };
+
+    setProfile(nextProfile);
+
+    if (step === 4) {
+      await useOnboarding.completeOnboarding({
+        businessName: nextProfile.businessName,
+        ownerName: nextProfile.ownerName,
+        businessType: nextProfile.businessType,
+        locale: nextProfile.locale,
+        currency: "DZD",
+      });
+      return;
+    }
+
     setStep((prev: number) => prev + 1);
   };
 
@@ -63,7 +69,7 @@ export function OnboardingScreen({
       ownerName: profile.ownerName,
       businessType: profile.businessType,
       locale: profile.locale,
-      currency: 'DZD',
+      currency: "DZD",
     };
 
     // Save profile to SQLite and mark onboarding as complete
@@ -82,12 +88,12 @@ export function OnboardingScreen({
       <ThemedView style={styles.header}>
         <ThemedText type="title" style={styles.headerTitle}>
           {/* i18n: onboarding.screen */}
-          {t('onboarding.screen')}
+          {t("onboarding.screen")}
         </ThemedText>
 
         <ThemedText type="small" style={styles.headerSubtitle}>
           {/* i18n: onboarding.subtitle */}
-          {t('onboarding.subtitle')}
+          {t("onboarding.subtitle")}
         </ThemedText>
       </ThemedView>
 
@@ -98,7 +104,9 @@ export function OnboardingScreen({
             key={stepKey}
             style={[
               styles.progressDot,
-              index < step ? styles.progressDotActive : styles.progressDotInactive,
+              index < step
+                ? styles.progressDotActive
+                : styles.progressDotInactive,
             ]}
           >
             <ThemedText type="small">{index + 1}</ThemedText>
@@ -108,28 +116,28 @@ export function OnboardingScreen({
 
       {/* Step content */}
       <ThemedView style={styles.stepContainer}>
-        {currentStepContent === 'businessName' && (
+        {currentStepContent === "businessName" && (
           <BusinessNameStep
             onContinue={handleStepChange}
             businessName={profile.businessName}
           />
         )}
 
-        {currentStepContent === 'ownerName' && (
+        {currentStepContent === "ownerName" && (
           <OwnerNameStep
             onContinue={handleStepChange}
             ownerName={profile.ownerName}
           />
         )}
 
-        {currentStepContent === 'businessType' && (
+        {currentStepContent === "businessType" && (
           <BusinessTypeStep
             onContinue={handleStepChange}
             selectedType={profile.businessType}
           />
         )}
 
-        {currentStepContent === 'language' && (
+        {currentStepContent === "language" && (
           <LanguageStep
             onContinue={handleStepChange}
             selectedLocale={profile.locale}
@@ -141,15 +149,19 @@ export function OnboardingScreen({
       {step > 1 ? (
         <ThemedView style={styles.actionBar}>
           <PrimaryButton
-            title={t('onboarding.skip')}
+            title={t("onboarding.skip")}
             onPress={() => setStep(4)}
           />
         </ThemedView>
       ) : (
         <ThemedView style={styles.actionBar}>
           <PrimaryButton
-            title={step < 4 ? t('common.primaryButton') : t('onboarding.getStarted')}
-            onPress={step === 4 ? handleCompleteOnboarding : () => handleStepChange({})}
+            title={
+              step < 4 ? t("common.primaryButton") : t("onboarding.getStarted")
+            }
+            onPress={
+              step === 4 ? handleCompleteOnboarding : () => handleStepChange({})
+            }
           />
         </ThemedView>
       )}
@@ -160,60 +172,60 @@ export function OnboardingScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
+    backgroundColor: "#F8F7F4",
   },
   content: {
     padding: Spacing.xl,
-    width: '100%',
+    width: "100%",
   },
   header: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
     borderBottomWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: "#E5E5E5",
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: 600,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.sm,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
   },
   progress: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: Spacing.lg,
   },
   progressDot: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#E5E5E5',
+    backgroundColor: "#E5E5E5",
     marginHorizontal: 4,
   },
   progressDotActive: {
-    backgroundColor: '#1B6B3A',
+    backgroundColor: "#1B6B3A",
   },
   progressDotInactive: {
-    backgroundColor: '#CCCCCC',
+    backgroundColor: "#CCCCCC",
   },
   stepContainer: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
   },
   actionBar: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
     padding: Spacing.lg,
     gap: Spacing.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 });

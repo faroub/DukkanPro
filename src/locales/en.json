@@ -1,4 +1,40 @@
 {
+  "app": {
+    "title": "Dukkan OS"
+  },
+  "tabs": {
+    "home": "Home",
+    "sell": "Sell",
+    "products": "Products",
+    "customers": "Customers",
+    "more": "More"
+  },
+  "dashboard": {
+    "greeting": "Hello",
+    "summary": {
+      "revenue": "Revenue",
+      "profit": "Estimated profit",
+      "toCollect": "To collect"
+    },
+    "recentSales": {
+      "title": "Recent sales",
+      "noSales": "No recent sales"
+    },
+    "lowStock": {
+      "title": "Low stock",
+      "noLowStock": "No low-stock products",
+      "note": "{{count}} product(s) need restocking"
+    },
+    "quick": {
+      "newSale": "New sale",
+      "addProduct": "Add product",
+      "addCustomer": "Add customer",
+      "recordPayment": "Record payment"
+    }
+  },
+  "common": {
+    "primaryButton": "Continue"
+  },
   "appText": "App Text",
   "screen": "Screen",
   "header": "Header",
@@ -77,7 +113,7 @@
     "movementIn": "In",
     "movementOut": "Out",
     "movementAdjustment": "Adjustment",
-    "reactivateConfirm": "Are you sure you want to reactivate this product?",
+    "reactivateConfirm": "Are you sure you want to reactivate this product?"
   },
   "catalogue": {
     "catalogue": "Catalogue",
@@ -178,6 +214,36 @@
     "description": "Record sales, track customers, manage inventory",
     "getStarted": "Get Started",
     "skip": "Skip"
+  },
+  "businessNameStep": {
+    "title": "Your business name",
+    "subtitle": "Let's start with the name of your business",
+    "label": "Business name",
+    "placeholder": "Enter your business name"
+  },
+  "ownerNameStep": {
+    "title": "Your name",
+    "subtitle": "What should we call you?",
+    "label": "Owner name",
+    "placeholder": "Enter your name"
+  },
+  "businessTypeStep": {
+    "title": "Business type",
+    "subtitle": "Choose the type that best matches your business",
+    "grocery": "Grocery shop",
+    "bakery": "Bakery",
+    "instagram seller": "Instagram seller",
+    "market vendor": "Market vendor",
+    "service seller": "Service seller",
+    "other": "Other"
+  },
+  "languageStep": {
+    "title": "Choose your language",
+    "subtitle": "You can change it later",
+    "note": "The app structure remains left to right.",
+    "ar": "Arabic",
+    "fr": "French",
+    "en": "English"
   },
   "settings": {
     "title": "Settings",
