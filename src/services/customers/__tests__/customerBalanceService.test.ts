@@ -1,9 +1,12 @@
 /// <reference types="jest" />
 // @ts-nocheck
-import { beforeEach, describe, expect, it } from "@jest/globals";
-import * as customerBalanceService from "@/services/customers/customerBalanceService";
-import * as saleRepository from "@/database/repositories/saleRepository";
 import * as customerRepository from "@/database/repositories/customerRepository";
+import * as saleRepository from "@/database/repositories/saleRepository";
+import * as customerBalanceService from "@/services/customers/customerBalanceService";
+import { beforeEach, describe, expect, it } from "@jest/globals";
+
+let mockedSales: any[] = [];
+let mockedPayments: any[] = [];
 
 // Mock the database module - service imports executeRead/executeWrite from here
 jest.mock("@/database/database", () => ({
@@ -11,39 +14,14 @@ jest.mock("@/database/database", () => ({
     // Mock SQL query results based on common patterns
     if (sql.includes("sales") && sql.includes("customer_id")) {
       // Return columns that the service's getSalesByCustomer expects
-      return [
-        {
-          id: 1,
-          customer_id: 1,
-          status: "completed",
-          subtotal_centimes: 0,
-          discount_centimes: 0,
-          total_centimes: 28000,
-          amount_paid_centimes: 0,
-          remaining_balance_centimes: 28000,
-          payment_method: "cash",
-          note: null,
-          sold_at: "2026-09-01T10:00:00Z",
-          created_at: "2026-09-01T10:00:00Z",
-        },
-      ];
+      return mockedSales;
     }
     if (sql.includes("customer_payments") && sql.includes("customer_id")) {
-      return [
-        {
-          id: 1,
-          customer_id: 1,
-          amount_centimes: 5000,
-          payment_method: "cash",
-          note: "Partial payment",
-          paid_at: "2026-09-15T10:00:00Z",
-          created_at: "2026-09-15T10:00:00Z",
-        },
-      ];
+      return mockedPayments;
     }
     return [];
   }),
-  executeWrite: jest.fn(),
+  executeWrite: jest.fn().mockResolvedValue({ lastID: 1 }),
 }));
 
 jest.mock("@/database/repositories/saleRepository", () => ({
@@ -127,6 +105,8 @@ describe("customerBalanceService", () => {
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
+    mockedSales = [];
+    mockedPayments = [];
   });
 
   describe("getCustomerDebt", () => {
@@ -135,6 +115,7 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCompletedSale,
       ]);
+      mockedSales = [mockCompletedSale];
 
       const debt = await customerBalanceService.getCustomerDebt(1);
       // Debt = 28000 - 0 = 28000
@@ -145,6 +126,7 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCancelledSale,
       ]);
+      mockedSales = [mockCancelledSale];
 
       const debt = await customerBalanceService.getCustomerDebt(1);
       // Cancelled sales should be excluded, so debt = 0
@@ -155,6 +137,7 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockReturnedSale,
       ]);
+      mockedSales = [mockReturnedSale];
 
       const debt = await customerBalanceService.getCustomerDebt(1);
       // Returned sales should be excluded, so debt = 0
@@ -166,6 +149,15 @@ describe("customerBalanceService", () => {
         mockCompletedSale,
         { ...mockCompletedSale, id: 2, total_centimes: 15000 },
       ]);
+      mockedSales = [
+        mockCompletedSale,
+        {
+          ...mockCompletedSale,
+          id: 2,
+          total_centimes: 15000,
+          remaining_balance_centimes: 15000,
+        },
+      ];
 
       const debt = await customerBalanceService.getCustomerDebt(1);
       // Debt = 28000 + 15000 - 0 = 43000
@@ -176,9 +168,15 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCompletedSale,
       ]);
+      mockedSales = [mockCompletedSale];
+      mockedSales = [mockCompletedSale];
 
       // Make a payment larger than debt
-      const result = await customerBalanceService.recordPayment(1, 999999, "cash");
+      const result = await customerBalanceService.recordPayment(
+        1,
+        999999,
+        "cash",
+      );
       // Should block overpayment and return null or indicate failure
       expect(result).toBeNull();
     });
@@ -200,8 +198,6 @@ describe("customerBalanceService", () => {
     });
 
     it("should return empty array when no payments exist", async () => {
-      ;
-
       const payments = await customerBalanceService.getCustomerPayments(1);
       expect(payments).toEqual([]);
     });
@@ -212,6 +208,8 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCompletedSale,
       ]);
+      mockedSales = [mockCompletedSale];
+      mockedSales = [mockCompletedSale];
 
       const result = await customerBalanceService.canRecordPayment(1, 28000);
       expect(result).toBe(true);
@@ -221,6 +219,7 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCompletedSale,
       ]);
+      mockedSales = [mockCompletedSale];
 
       const result = await customerBalanceService.canRecordPayment(1, 99999);
       expect(result).toBe(false);
@@ -230,6 +229,7 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCompletedSale,
       ]);
+      mockedSales = [mockCompletedSale];
 
       const result = await customerBalanceService.canRecordPayment(1, 0);
       expect(result).toBe(false);
@@ -250,6 +250,7 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCompletedSale,
       ]);
+      mockedSales = [mockCompletedSale];
 
       (customerRepository.create as jest.Mock).mockResolvedValueOnce({
         id: 1,
@@ -262,7 +263,11 @@ describe("customerBalanceService", () => {
         updated_at: new Date(),
       });
 
-      const result = await customerBalanceService.recordPayment(1, 40000, "cash");
+      const result = await customerBalanceService.recordPayment(
+        1,
+        20000,
+        "cash",
+      );
       // Should record the payment successfully
       expect(result).not.toBeNull();
     });
@@ -271,8 +276,13 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCompletedSale,
       ]);
+      mockedSales = [mockCompletedSale];
 
-      const result = await customerBalanceService.recordPayment(1, 99999, "cash");
+      const result = await customerBalanceService.recordPayment(
+        1,
+        99999,
+        "cash",
+      );
       // Should return null when payment exceeds debt
       expect(result).toBeNull();
     });
@@ -281,6 +291,7 @@ describe("customerBalanceService", () => {
       (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
         mockCompletedSale,
       ]);
+      mockedSales = [mockCompletedSale];
 
       (customerRepository.create as jest.Mock).mockResolvedValueOnce({
         id: 1,
@@ -293,7 +304,11 @@ describe("customerBalanceService", () => {
         updated_at: new Date(),
       });
 
-      const result = await customerBalanceService.recordPayment(1, 20000, "electronic");
+      const result = await customerBalanceService.recordPayment(
+        1,
+        20000,
+        "electronic",
+      );
       expect(result).not.toBeNull();
     });
   });
@@ -307,8 +322,8 @@ describe("customerBalanceService", () => {
       const summary = await customerBalanceService.getCustomerBalanceSummary(1);
       // Summary should have debt, totalPaid, and paymentCount
       expect(summary).toMatchObject({
-        debt: expect.any(Number),
-        totalPaid: expect.any(Number),
+        debt_centimes: expect.any(Number),
+        total_paid_centime: expect.any(Number),
         paymentCount: expect.any(Number),
       });
     });
@@ -318,8 +333,8 @@ describe("customerBalanceService", () => {
 
       const summary = await customerBalanceService.getCustomerBalanceSummary(1);
       expect(summary).toMatchObject({
-        debt: 0,
-        totalPaid: 0,
+        debt_centimes: 0,
+        total_paid_centime: 0,
         paymentCount: 0,
       });
     });

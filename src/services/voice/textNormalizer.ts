@@ -17,6 +17,8 @@ const arabicNumbers: Record<string, number> = {
   ثمانية: 8,
   تسعة: 9,
   عشرة: 10,
+  حبتين: 2,
+  حبتان: 2,
   "أحد عشر": 11,
   "اثنا عشر": 12,
   "ثلاثة عشر": 13,
@@ -123,35 +125,39 @@ export function normalizeSalesText(text: string): {
 
   // Try to detect language and extract number
   // Arabic number words
-  for (const [word, value] of Object.entries(arabicNumbers)) {
-    const regex = new RegExp(`\\b${word}\\b`, "i");
+  for (const [word, value] of Object.entries(arabicNumbers).sort(
+    ([a], [b]) => b.length - a.length,
+  )) {
+    const regex = wordBoundaryRegex(word);
     if (regex.test(lower)) {
       detectedQuantity = value;
       language = "ar";
       // Replace the word with a placeholder
-      const normalized = lower.replace(regex, "<QUANTITY>");
+      const normalized = lower.replace(regex, "$1<QUANTITY>");
       return { normalized, detectedQuantity, language };
     }
   }
 
   // French number words (including hyphenated forms)
-  for (const [word, value] of Object.entries(frenchNumbers)) {
-    const regex = new RegExp(`\\b${word.replace(/-/g, "\\-")}\\b`, "i");
+  for (const [word, value] of Object.entries(frenchNumbers).sort(
+    ([a], [b]) => b.length - a.length,
+  )) {
+    const regex = wordBoundaryRegex(word);
     if (regex.test(lower)) {
       detectedQuantity = value;
       language = "fr";
-      const normalized = lower.replace(regex, "<QUANTITY>");
+      const normalized = lower.replace(regex, "$1<QUANTITY>");
       return { normalized, detectedQuantity, language };
     }
   }
 
   // English number words
   for (const [word, value] of Object.entries(englishNumbers)) {
-    const regex = new RegExp(`\\b${word}\\b`, "i");
+    const regex = wordBoundaryRegex(word);
     if (regex.test(lower)) {
       detectedQuantity = value;
       language = "en";
-      const normalized = lower.replace(regex, "<QUANTITY>");
+      const normalized = lower.replace(regex, "$1<QUANTITY>");
       return { normalized, detectedQuantity, language };
     }
   }
@@ -191,6 +197,8 @@ export function normalizeProductName(text: string): string {
     "ثمانية عشر",
     "تسعة عشر",
     "عشرون",
+    "حبتين",
+    "حبتان",
   ];
   const frenchStop = [
     "zéro",
@@ -239,28 +247,43 @@ export function normalizeProductName(text: string): string {
     "nineteen",
     "twenty",
   ];
+  const commandStop = [
+    "<quantity>",
+    "بعتل",
+    "بعت",
+    "vendu",
+    "vendre",
+    "sold",
+    "sell",
+  ];
 
   let result = lower;
 
   // Remove Arabic number words
   for (const word of arabicStop) {
-    const regex = new RegExp(`\\b${word}\\b`, "i");
-    result = result.replace(regex, "").replace(/\s+/g, " ");
+    result = result.replace(wordBoundaryRegex(word), "$1").replace(/\s+/g, " ");
   }
 
   // Remove French number words
   for (const word of frenchStop) {
-    const regex = new RegExp(`\\b${word.replace(/-/g, "\\-")}\\b`, "i");
-    result = result.replace(regex, "").replace(/\s+/g, " ");
+    result = result.replace(wordBoundaryRegex(word), "$1").replace(/\s+/g, " ");
   }
 
   // Remove English number words
   for (const word of englishStop) {
-    const regex = new RegExp(`\\b${word}\\b`, "i");
-    result = result.replace(regex, "").replace(/\s+/g, " ");
+    result = result.replace(wordBoundaryRegex(word), "$1").replace(/\s+/g, " ");
+  }
+
+  for (const word of commandStop) {
+    result = result.replace(wordBoundaryRegex(word), "$1").replace(/\s+/g, " ");
   }
 
   return result.replace(/\s+/g, " ").trim();
+}
+
+function wordBoundaryRegex(word: string): RegExp {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, "i");
 }
 
 /**
