@@ -1,16 +1,21 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, Pressable, Modal } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { useTranslation } from 'react-i18next';
-import { useProducts } from '@/hooks/useProducts';
-import { useCartStoreHook } from '@/stores/cartStore';
-import { formatCentimes } from '@/utils/money';
-import { create } from '@/database/repositories/saleRepository';
-import { ProductSearchSheet } from '@/features/sales/components/ProductSearchSheet';
-import { CartList } from '@/features/sales/components/CartList';
-import { CheckoutSheet } from '@/features/sales/components/CheckoutSheet';
-import { ReceiptPreview } from '@/features/sales/components/ReceiptPreview';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { create } from "@/database/repositories/saleRepository";
+import { CartList } from "@/features/sales/components/CartList";
+import { CheckoutSheet } from "@/features/sales/components/CheckoutSheet";
+import { ReceiptPreview } from "@/features/sales/components/ReceiptPreview";
+import { ReviewSheet } from "@/features/voice/components/ReviewSheet";
+import { VoiceButton } from "@/features/voice/components/VoiceButton";
+import { useProducts } from "@/hooks/useProducts";
+import {
+    AvailableProduct,
+    parseSaleCommand,
+} from "@/services/voice/voiceSaleParser";
+import { useCartStoreHook } from "@/stores/cartStore";
+import { formatCentimes } from "@/utils/money";
+import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { FlatList, Modal, Pressable, View } from "react-native";
 
 export default function SellScreen() {
   const { t } = useTranslation();
@@ -31,20 +36,45 @@ export default function SellScreen() {
     setPreserveCart,
   } = useCartStoreHook();
 
+  // Update voice available products when products change
+  useEffect(() => {
+    const availableProducts = products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      category: p.category ?? "",
+      price_centimes: p.sale_price_centimes,
+      stock: p.stock_quantity,
+    }));
+    setVoiceAvailableProducts(availableProducts);
+  }, [products]);
+
   const [cartVisible, setCartVisible] = useState(false);
   const [checkoutVisible, setCheckoutVisible] = useState(false);
   const [receiptVisible, setReceiptVisible] = useState(false);
   const [sale, setSale] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [errorState, setErrorState] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'electronic' | 'mixed' | 'partial' | 'credit'>('cash');
-  const [note, setNote] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cash" | "electronic" | "mixed" | "partial" | "credit"
+  >("cash");
+  const [note, setNote] = useState<string>("");
   const [customerId, setCustomerId] = useState<number | null>(null);
 
+  // Voice input state
+  const [voiceVisible, setVoiceVisible] = useState(false);
+  const [voiceCommand, setVoiceCommand] = useState<string>("");
+  const [parsedVoice, setParsedVoice] = useState<any | null>(null);
+  const [voiceAvailableProducts, setVoiceAvailableProducts] = useState<
+    AvailableProduct[]
+  >([]);
+
   // Handle product add to cart from search sheet
-  const handleAddToCart = useCallback((product: any, quantity: number) => {
-    addItemWithProduct(product, quantity);
-  }, [addItemWithProduct]);
+  const handleAddToCart = useCallback(
+    (product: any, quantity: number) => {
+      addItemWithProduct(product, quantity);
+    },
+    [addItemWithProduct],
+  );
 
   // Handle cart open/close
   const toggleCart = useCallback(() => {
@@ -54,7 +84,7 @@ export default function SellScreen() {
   // Handle checkout
   const handleCheckout = useCallback(async () => {
     if (items.length === 0) {
-      setErrorState(t('sell.empty_cart'));
+      setErrorState(t("sell.empty_cart"));
       return;
     }
 
@@ -85,12 +115,12 @@ export default function SellScreen() {
       // Clear cart after successful sale
       clearCart();
       setCheckoutVisible(false);
-      setPaymentMethod('cash');
-      setNote('');
+      setPaymentMethod("cash");
+      setNote("");
       setCustomerId(null);
-
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create sale';
+      const message =
+        err instanceof Error ? err.message : "Failed to create sale";
       setErrorState(message);
       setIsSaving(false);
     }
@@ -102,19 +132,48 @@ export default function SellScreen() {
     setPreserveCart(newValue);
   }, [preserveCart]);
 
+  // Voice command handling
+  const handleVoiceStart = async () => {
+    setVoiceVisible(true);
+    setVoiceCommand("");
+    setParsedVoice(null);
+  };
+
+  const handleVoiceEnd = () => {
+    // Parse the voice command if we have text
+    if (voiceCommand.trim()) {
+      const availableProducts = products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category ?? "",
+        price_centimes: p.sale_price_centimes,
+        stock: p.stock_quantity,
+      }));
+      const parsed = parseSaleCommand(voiceCommand, availableProducts);
+      setParsedVoice(parsed);
+      setVoiceVisible(Boolean(parsed));
+    }
+  };
+
   return (
     <ThemedView type="background" style={{ flex: 1 }}>
       {loading && (
         <ThemedView type="background" style={{ flex: 1, padding: 16 }}>
-          <ThemedText type="caption" style={{ textAlign: 'center', marginTop: 40 }}>
-            {t('sell.loading')}
+          <ThemedText
+            type="caption"
+            style={{ textAlign: "center", marginTop: 40 }}
+          >
+            {t("sell.loading")}
           </ThemedText>
         </ThemedView>
       )}
 
       {error && (
         <ThemedView type="background" style={{ flex: 1, padding: 16 }}>
-          <ThemedText type="body" style={{ textAlign: 'center', marginTop: 40, color: 'red' }}>
+          <ThemedText
+            type="body"
+            style={{ textAlign: "center", marginTop: 40, color: "red" }}
+          >
             {error}
           </ThemedText>
         </ThemedView>
@@ -125,13 +184,21 @@ export default function SellScreen() {
           data={products}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={{ padding: 16, borderBottomWidth: 1, borderColor: '#eee' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <ThemedText type="body" style={{ flex: 1, fontWeight: '600' }}>
+            <View
+              style={{ padding: 16, borderBottomWidth: 1, borderColor: "#eee" }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <ThemedText type="body" style={{ flex: 1, fontWeight: "600" }}>
                   {item.name}
                 </ThemedText>
-                <ThemedText type="caption" style={{ color: '#666' }}>
-                  {item.sku || ''}
+                <ThemedText type="caption" style={{ color: "#666" }}>
+                  {item.sku || ""}
                 </ThemedText>
               </View>
               <ThemedText type="caption" style={{ marginTop: 2 }}>
@@ -146,23 +213,33 @@ export default function SellScreen() {
                 style={{
                   padding: 16,
                   borderWidth: 1,
-                  borderColor: '#1B6B3A',
+                  borderColor: "#1B6B3A",
                   borderRadius: 8,
                   marginTop: 8,
                 }}
               >
-                <ThemedText type="body" style={{ color: '#1B6B3A' }}>
-                  {t('sell.add_to_cart')}
+                <ThemedText type="body" style={{ color: "#1B6B3A" }}>
+                  {t("sell.add_to_cart")}
                 </ThemedText>
               </Pressable>
             </View>
           )}
           ListFooterComponent={
             <View style={{ padding: 16 }}>
-              <ThemedText type="body">Cart: {itemCount} items - {formatCentimes(total)}</ThemedText>
+              <ThemedText type="body">
+                Cart: {itemCount} items - {formatCentimes(total)}
+              </ThemedText>
               <Pressable onPress={toggleCart} style={{ marginTop: 8 }}>
-                <ThemedText type="body" style={{ color: '#1B6B3A' }}>
-                  {t('sell.open_cart')}
+                <ThemedText type="body" style={{ color: "#1B6B3A" }}>
+                  {t("sell.open_cart")}
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                onPress={handleVoiceStart}
+                style={{ marginTop: 8, marginLeft: 8 }}
+              >
+                <ThemedText type="body" style={{ color: "#1B6B3A" }}>
+                  {t("voice.microphone")}
                 </ThemedText>
               </Pressable>
             </View>
@@ -174,11 +251,19 @@ export default function SellScreen() {
       {cartVisible && (
         <Modal
           visible={cartVisible}
-          transparent animationType="slide"
+          transparent
+          animationType="slide"
           onRequestClose={toggleCart}
         >
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}>
-            <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: '#fff', padding: 16 }}>
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "flex-end",
+                backgroundColor: "#fff",
+                padding: 16,
+              }}
+            >
               <CartList
                 items={items}
                 onRemove={removeItem}
@@ -190,13 +275,23 @@ export default function SellScreen() {
                 total={total}
                 setDiscount={setDiscount}
               />
-              <ThemedText type="small" style={{ marginTop: 8, textAlign: 'center', color: '#6B7280' }}>
-                {t('sell.clear_cart')}
+              <ThemedText
+                type="small"
+                style={{ marginTop: 8, textAlign: "center", color: "#6B7280" }}
+              >
+                {t("sell.clear_cart")}
               </ThemedText>
             </View>
           </View>
         </Modal>
       )}
+
+      {/* Voice Input Button */}
+      <VoiceButton
+        onVoiceStart={handleVoiceStart}
+        onVoiceEnd={handleVoiceEnd}
+        disabled={isSaving}
+      />
 
       {/* Checkout Sheet */}
       {checkoutVisible && (
@@ -207,7 +302,6 @@ export default function SellScreen() {
           cartTotal={total}
           isSaving={isSaving}
           error={errorState}
-
           setPaymentMethod={setPaymentMethod}
           customerId={customerId || undefined}
           setCustomerId={setCustomerId}
@@ -231,6 +325,25 @@ export default function SellScreen() {
           }}
           sale={sale}
           t={t}
+        />
+      )}
+
+      {/* Voice Review Sheet */}
+      {parsedVoice && (
+        <ReviewSheet
+          isVisible={voiceVisible}
+          onClose={() => setVoiceVisible(false)}
+          onConfirm={(parsed) => {
+            // Add the confirmed item to cart
+            const product = products.find(
+              (item) => item.name === parsed.productName,
+            );
+            if (product) addItemWithProduct(product, parsed.quantity);
+            setVoiceVisible(false);
+            setParsedVoice(null);
+          }}
+          availableProducts={voiceAvailableProducts}
+          commandText={voiceCommand}
         />
       )}
     </ThemedView>
