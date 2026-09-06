@@ -9,8 +9,13 @@
  * - All financial changes use SQLite transactions
  */
 
-import { executeRead, executeWrite } from "@/database/database";
-import { Sale, CustomerPayment } from "@/types/entities";
+import {
+    executeRead,
+    executeWrite,
+    getDatabase,
+    transaction,
+} from "@/database/database";
+import { CustomerPayment, Sale } from "@/types/entities";
 
 /**
  - Retrieve all sales for a customer, optionally filtered by status.
@@ -72,7 +77,9 @@ async function getSalesByCustomer(
 /**
  - Retrieve all customer payments from the customer_payments table.
  */
-export async function getCustomerPayments(customerId: number): Promise<CustomerPayment[]> {
+export async function getCustomerPayments(
+  customerId: number,
+): Promise<CustomerPayment[]> {
   const rows: any[] = await executeRead(
     // language=SQLite
     `SELECT cp.id, cp.customer_id, cp.amount_centimes, cp.payment_method,
@@ -146,7 +153,10 @@ export async function getCustomerDebt(customerId: number): Promise<number> {
  - @param amount - Payment amount in centimes
  - @returns True if payment can be recorded, false if it would overpay
  */
-export async function canRecordPayment(customerId: number, amount: number): Promise<boolean> {
+export async function canRecordPayment(
+  customerId: number,
+  amount: number,
+): Promise<boolean> {
   if (amount <= 0) {
     return false;
   }
@@ -187,18 +197,21 @@ export async function recordPayment(
 
   const now = new Date().toISOString();
 
-  const result: any = await executeWrite(
-    // language=SQLite
-    `INSERT INTO customer_payments
-       (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
-     VALUES
-       (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-    [customerId, amount, method, note],
+  const db = await getDatabase();
+  const paymentId = await transaction(db, async () =>
+    executeWrite(
+      // language=SQLite
+      `INSERT INTO customer_payments
+         (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
+       VALUES
+         (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      [customerId, amount, method, note],
+    ),
   );
 
   // Return the newly created payment record
   return {
-    id: result.lastID,
+    id: paymentId,
     customer_id: customerId,
     amount_centimes: amount,
     payment_method: method,
@@ -221,10 +234,7 @@ export async function getCustomerBalanceSummary(customerId: number) {
   return {
     customerId,
     debt_centimes: debt,
-    total_paid_centime: payments.reduce(
-      (sum, p) => sum + p.amount_centimes,
-      0,
-    ),
+    total_paid_centime: payments.reduce((sum, p) => sum + p.amount_centimes, 0),
     paymentCount: payments.length,
   };
 }

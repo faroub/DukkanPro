@@ -21,7 +21,11 @@ jest.mock("@/database/database", () => ({
     }
     return [];
   }),
-  executeWrite: jest.fn().mockResolvedValue({ lastID: 1 }),
+  executeWrite: jest.fn().mockResolvedValue(1),
+  getDatabase: jest.fn().mockResolvedValue({}),
+  transaction: jest.fn(async (_db: unknown, callback: () => Promise<unknown>) =>
+    callback(),
+  ),
 }));
 
 jest.mock("@/database/repositories/saleRepository", () => ({
