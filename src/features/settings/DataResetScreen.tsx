@@ -120,7 +120,7 @@ export function DataResetScreen() {
             style={styles.formInput}
             value={businessNameInput}
             onChangeText={handleBusinessNameChange}
-            placeholder={t("data, Name Pin talking → On ( (t("dataReset.typeBusinessName"))}
+            placeholder={t("dataReset.businessNameConfirmation")}
           />
         </ThemedView>
 

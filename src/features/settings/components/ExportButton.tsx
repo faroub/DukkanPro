@@ -76,9 +76,7 @@ export function ExportButton({
         })}
         cancelButtonIndex={0}
         cancelButtonTitle={t("common:cancel")}
-        onPress: () => {
-          handlePerformExport();
-        }
+        onPress={handlePerformExport}
       }
     );
   }
