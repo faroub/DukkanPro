@@ -1,7 +1,7 @@
 import React from "react";
 import { ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
 import { ThemedView, ThemedText, useToast } from "@/components";
-import { useTranslation, changeLocale } from "@/localization/i18n";
+import { useTranslation } from "react-i18next";
 import i18n from "@/localization/i18n";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback } from "react";
@@ -24,14 +24,14 @@ export function MoreScreen() {
   const handleLanguageChange = useCallback(
     (language: string) => {
       // Apply language immediately using changeLocale
-      changeLocale(language);
+      i18n.changeLanguage(language);
       // Do NOT reload the app
       // Do NOT change layout direction
       // Keep app architecture LTR in all languages
       // Arabic text may use right alignment inside individual text components
       // Do not show Darija
     },
-    [changeLocale]
+    [i18n]
   );
 
   const handleDataReset = useCallback(
