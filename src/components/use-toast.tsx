@@ -1,5 +1,3 @@
-import { toast } from "expo-haptics";
-
 /**
  * useToast - A simple toast notification hook
  * Shows a transient message at the bottom of the screen
