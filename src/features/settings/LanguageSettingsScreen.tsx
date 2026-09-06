@@ -1,9 +1,9 @@
-import React from "react";
-import { ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
-import { ThemedView, ThemedText, useToast } from "@/components";
-import { useTranslation } from "react-i18next";
+import { ThemedText, ThemedView } from "@/components";
 import i18n from "@/localization/i18n";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 
 /**
  * LanguageSettingsScreen - Screen for managing application language settings.
@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
  */
 export function LanguageSettingsScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation();
+  const router = useRouter();
 
   const handleLanguageChange = React.useCallback(
     (language: string) => {
@@ -27,7 +27,7 @@ export function LanguageSettingsScreen() {
       // Arabic text may use right alignment inside individual text components
       // Do not show Darija
     },
-    [i18n]
+    [i18n],
   );
 
   return (
@@ -42,11 +42,9 @@ export function LanguageSettingsScreen() {
           </ThemedText>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
           >
-            <ThemedText style={styles.backButtonText}>
-              {t("back")}
-            </ThemedText>
+            <ThemedText style={styles.backButtonText}>{t("back")}</ThemedText>
           </TouchableOpacity>
         </ThemedView>
 
@@ -61,7 +59,9 @@ export function LanguageSettingsScreen() {
                 style={styles.languageOptionItem}
                 onPress={() => handleLanguageChange("ar")}
                 accessibilityRole="radio"
-                accessibilityState={i18n.language === "ar" ? { checked: true } : undefined}
+                accessibilityState={
+                  i18n.language === "ar" ? { checked: true } : undefined
+                }
               >
                 <ThemedText style={styles.languageOptionLabel}>
                   {t("settings.arabic")}
@@ -74,7 +74,9 @@ export function LanguageSettingsScreen() {
                 style={styles.languageOptionItem}
                 onPress={() => handleLanguageChange("fr")}
                 accessibilityRole="radio"
-                accessibilityState={i18n.language === "fr" ? { checked: true } : undefined}
+                accessibilityState={
+                  i18n.language === "fr" ? { checked: true } : undefined
+                }
               >
                 <ThemedText style={styles.languageOptionLabel}>
                   {t("settings.french")}
@@ -87,7 +89,9 @@ export function LanguageSettingsScreen() {
                 style={styles.languageOptionItem}
                 onPress={() => handleLanguageChange("en")}
                 accessibilityRole="radio"
-                accessibilityState={i18n.language === "en" ? { checked: true } : undefined}
+                accessibilityState={
+                  i18n.language === "en" ? { checked: true } : undefined
+                }
               >
                 <ThemedText style={styles.languageOptionLabel}>
                   {t("settings.english")}
@@ -154,4 +158,3 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
-

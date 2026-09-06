@@ -1,13 +1,11 @@
-import React from "react";
-import { ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
-import { ThemedView, ThemedText, useToast } from "@/components";
-import { useTranslation } from "react-i18next";
+import { ThemedText, ThemedView } from "@/components";
 import i18n from "@/localization/i18n";
-import { useNavigation } from "@react-navigation/native";
-import { useCallback } from "react";
+import React, { useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
-import { SettingsSection } from "@/features/settings/components/SettingsSection";
 import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
+import { SettingsSection } from "@/features/settings/components/SettingsSection";
 
 /**
  * MoreScreen - The "More" tab screen showing all settings sections.
@@ -18,8 +16,8 @@ import { LanguageSelector } from "@/features/settings/components/LanguageSelecto
  */
 export function MoreScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation();
-  const [showResetConfirmation, setShowResetConfirmation] = React.useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] =
+    React.useState(false);
 
   const handleLanguageChange = useCallback(
     (language: string) => {
@@ -31,31 +29,22 @@ export function MoreScreen() {
       // Arabic text may use right alignment inside individual text components
       // Do not show Darija
     },
-    [i18n]
+    [i18n],
   );
 
-  const handleDataReset = useCallback(
-    () => {
-      setShowResetConfirmation(true);
-    },
-    []
-  );
+  const handleDataReset = useCallback(() => {
+    setShowResetConfirmation(true);
+  }, []);
 
-  const confirmDataReset = useCallback(
-    () => {
-      // TODO: Implement data reset logic
-      // This would clear user data, sales, inventory, etc.
-      setShowResetConfirmation(false);
-    },
-    []
-  );
+  const confirmDataReset = useCallback(() => {
+    // TODO: Implement data reset logic
+    // This would clear user data, sales, inventory, etc.
+    setShowResetConfirmation(false);
+  }, []);
 
-  const cancelDataReset = useCallback(
-    () => {
-      setShowResetConfirmation(false);
-    },
-    []
-  );
+  const cancelDataReset = useCallback(() => {
+    setShowResetConfirmation(false);
+  }, []);
 
   return (
     <ScrollView
@@ -66,7 +55,9 @@ export function MoreScreen() {
         {/* Business Profile Section */}
         <SettingsSection
           title={t("settings.businessProfile")}
-          description={t("settings.currencyDZD", { currency: t("settings.currencyDisplayOnly") })}
+          description={t("settings.currencyDZD", {
+            currency: t("settings.currencyDisplayOnly"),
+          })}
         >
           {/* Business Name */}
           <View style={styles.settingRow}>
@@ -121,9 +112,7 @@ export function MoreScreen() {
         </SettingsSection>
 
         {/* Inventory Rules Section */}
-        <SettingsSection
-          title={t("settings.inventoryRules")}
-        >
+        <SettingsSection title={t("settings.inventoryRules")}>
           {/* TODO: Add inventory rules settings items */}
           <View style={styles.emptyState}>
             <ThemedText style={styles.emptyText}>
@@ -133,9 +122,7 @@ export function MoreScreen() {
         </SettingsSection>
 
         {/* Catalogue Section */}
-        <SettingsSection
-          title={t("settings.catalogue")}
-        >
+        <SettingsSection title={t("settings.catalogue")}>
           {/* TODO: Add catalogue settings items */}
           <View style={styles.emptyState}>
             <ThemedText style={styles.emptyText}>
@@ -145,9 +132,7 @@ export function MoreScreen() {
         </SettingsSection>
 
         {/* Data Export Section */}
-        <SettingsSection
-          title={t("settings.dataExport")}
-        >
+        <SettingsSection title={t("settings.dataExport")}>
           <TouchableOpacity
             style={styles.settingRow}
             onPress={() => {
@@ -164,13 +149,8 @@ export function MoreScreen() {
         </SettingsSection>
 
         {/* Data Reset Section */}
-        <SettingsSection
-          title={t("settings.dataReset")}
-        >
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={handleDataReset}
-          >
+        <SettingsSection title={t("settings.dataReset")}>
+          <TouchableOpacity style={styles.settingRow} onPress={handleDataReset}>
             <ThemedText style={styles.settingLabel}>
               {t("settings.dataReset")}
             </ThemedText>
@@ -181,9 +161,7 @@ export function MoreScreen() {
         </SettingsSection>
 
         {/* About Section */}
-        <SettingsSection
-          title={t("settings.about")}
-        >
+        <SettingsSection title={t("settings.about")}>
           <View style={styles.settingRow}>
             <ThemedText style={styles.settingLabel}>
               {t("settings.version")}
@@ -239,4 +217,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-

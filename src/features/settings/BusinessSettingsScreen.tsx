@@ -1,9 +1,14 @@
+import { ThemedText, ThemedView, useToast } from "@/components";
+import { useRouter } from "expo-router";
 import React from "react";
-import { ScrollView, View, StyleSheet, TouchableOpacity, TextInput } from "react-native";
-import { ThemedView, ThemedText, useToast } from "@/components";
 import { useTranslation } from "react-i18next";
-import i18n from "@/localization/i18n";
-import { useNavigation } from "@react-navigation/native";
+import {
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 /**
  * BusinessSettingsScreen - Screen for managing business profile settings.
@@ -13,7 +18,7 @@ import { useNavigation } from "@react-navigation/native";
  */
 export function BusinessSettingsScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation();
+  const router = useRouter();
 
   const [businessName, setBusinessName] = React.useState("");
   const [ownerName, setOwnerName] = React.useState("");
@@ -36,11 +41,9 @@ export function BusinessSettingsScreen() {
           </ThemedText>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
           >
-            <ThemedText style={styles.backButtonText}>
-              {t("back")}
-            </ThemedText>
+            <ThemedText style={styles.backButtonText}>{t("back")}</ThemedText>
           </TouchableOpacity>
         </ThemedView>
 
@@ -89,9 +92,7 @@ export function BusinessSettingsScreen() {
             <ThemedText style={styles.formLabel}>
               {t("settings.currencyDZD")}
             </ThemedText>
-            <ThemedText style={styles.formValueDisplay}>
-              DZD
-            </ThemedText>
+            <ThemedText style={styles.formValueDisplay}>DZD</ThemedText>
           </View>
         </ThemedView>
 
@@ -180,4 +181,3 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
-
