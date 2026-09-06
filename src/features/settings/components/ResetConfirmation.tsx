@@ -1,6 +1,6 @@
-import { ThemedText, ThemedView } from "@/components";
 import React from "react";
-import { TouchableOpacity, View, Alert, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Alert } from "react-native";
 
 /**
  * ResetConfirmation - A confirmation dialog for destructive data reset actions.
@@ -26,24 +26,29 @@ export function ResetConfirmation({
     return null;
   }
 
-  return (
-    <Alert
-      title={t("dataReset.confirmTitle")}
-      message={t("dataReset.confirmMessage")}
-      cancelButtonIndex={0}
-      cancelButtonTitle={t("common:cancel")}
-      onPressCancel={onCancel}
-    />
-  );
+  React.useEffect(() => {
+    Alert.alert(t("dataReset.confirmTitle"), t("dataReset.confirmMessage"), [
+      { text: t("common:cancel"), style: "cancel", onPress: onCancel },
+      {
+        text: t("dataReset.confirm"),
+        style: "destructive",
+        onPress: onConfirm,
+      },
+    ]);
+  }, [onCancel, onConfirm, t]);
+
+  return null;
 }
 
 // Export a reusable confirmation hook/component
 export function useDataResetConfirmation({
   t,
   expectedBusinessName = "Dukan Grocery",
+  onConfirm,
 }: {
   t: ReturnType<typeof useTranslation>["t"];
   expectedBusinessName?: string;
+  onConfirm: () => void | Promise<void>;
 }) {
   const [showConfirmation, setShowConfirmation] = React.useState(false);
   const [enteredBusinessName, setEnteredBusinessName] = React.useState("");
@@ -57,28 +62,22 @@ export function useDataResetConfirmation({
     setShowConfirmation(false);
   }, []);
 
-  const handleConfirm = React.useCallback(
-    async () => {
-      // Verify exact business name match
-      if (enteredBusinessName.trim() !== expectedBusinessName) {
-        // TODO: Show error toast - wrong business name
-        setShowConfirmation(false);
-        return;
-      }
-
-      // Proceed with data reset
-      await onConfirm();
+  const handleConfirm = React.useCallback(async () => {
+    // Verify exact business name match
+    if (enteredBusinessName.trim() !== expectedBusinessName) {
+      // TODO: Show error toast - wrong business name
       setShowConfirmation(false);
-    },
-    [enteredBusinessName, expectedBusinessName, onConfirm, t],
-  );
+      return;
+    }
 
-  const handleNameChange = React.useCallback(
-    (text: string) => {
-      setEnteredBusinessName(text);
-    },
-    [],
-  );
+    // Proceed with data reset
+    await onConfirm();
+    setShowConfirmation(false);
+  }, [enteredBusinessName, expectedBusinessName, onConfirm, t]);
+
+  const handleNameChange = React.useCallback((text: string) => {
+    setEnteredBusinessName(text);
+  }, []);
 
   return {
     showConfirmation,

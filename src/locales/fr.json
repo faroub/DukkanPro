@@ -226,7 +226,7 @@
     "selectType": "Sélectionner le type",
     "exportButton": "Exporter",
     "exportConfirmTitle": "Confirmation d'export",
-    "exportConfirmMessage": 'Vous voulez vraiment exporter les données {exportType} au format CSV ?',
+    "exportConfirmMessage": "Vous voulez vraiment exporter les données {exportType} au format CSV ?",
     "exportedProducts": "Les produits ont été exportés avec succès",
     "exportedCustomers": "Les clients ont été exportés avec succès",
     "exportedSales": "Les ventes ont été exportées avec succès",

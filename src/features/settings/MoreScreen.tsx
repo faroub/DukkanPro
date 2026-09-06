@@ -1,13 +1,13 @@
 import { ThemedText, ThemedView } from "@/components";
 import i18n from "@/localization/i18n";
+import { type Href, useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
+import { ExportButton } from "@/features/settings/components/ExportButton";
 import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
 import { SettingsSection } from "@/features/settings/components/SettingsSection";
-import { ExportButton } from "@/features/settings/components/ExportButton";
-import { DataResetScreen } from "@/features/settings/DataResetScreen";
 
 /**
  * MoreScreen - The "More" tab screen showing all settings sections.
@@ -20,7 +20,8 @@ import { DataResetScreen } from "@/features/settings/DataResetScreen";
 export function MoreScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [showResetConfirmation, setShowResetConfirmation] = React.useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] =
+    React.useState(false);
 
   const handleLanguageChange = useCallback(
     (language: string) => {
@@ -43,7 +44,7 @@ export function MoreScreen() {
     // TODO: Implement data reset logic
     // This would clear user data, sales, inventory, etc.
     // For now, just navigate to the data reset screen
-    router.push("/settings/data-reset");
+    router.push("/settings/data-reset" as Href);
     setShowResetConfirmation(false);
   }, [router]);
 

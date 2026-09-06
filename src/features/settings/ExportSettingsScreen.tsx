@@ -1,13 +1,12 @@
 import { ThemedText, ThemedView, useToast } from "@/components";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+    Alert,
     ScrollView,
     StyleSheet,
-    TouchableOpacity,
-    View,
-    Alert,
+    TouchableOpacity
 } from "react-native";
 
 /**
@@ -22,7 +21,14 @@ import {
 export function ExportSettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [selectedExport, setSelectedExport] = useState<"products" | "customers" | "sales" | "saleItems" | "payments" | "inventoryMovements">("products");
+  const [selectedExport, setSelectedExport] = useState<
+    | "products"
+    | "customers"
+    | "sales"
+    | "saleItems"
+    | "payments"
+    | "inventoryMovements"
+  >("products");
   const [confirmExport, setConfirmExport] = useState(false);
 
   const exportOptions = [
@@ -31,60 +37,68 @@ export function ExportSettingsScreen() {
     { value: "sales", label: t("exportSettings.sales") },
     { value: "saleItems", label: t("exportSettings.saleItems") },
     { value: "payments", label: t("exportSettings.payments") },
-    { value: "inventoryMovements", label: t("exportSettings.inventoryMovements") },
+    {
+      value: "inventoryMovements",
+      label: t("exportSettings.inventoryMovements"),
+    },
   ];
 
-  const handleExportSelect = useCallback(
-    (value: string) => {
-      setSelectedExport(value as typeof selectedExport);
-    },
-    [],
-  );
+  const handleExportSelect = useCallback((value: string) => {
+    setSelectedExport(value as typeof selectedExport);
+  }, []);
 
-  const handleConfirmExport = useCallback(
-    () => {
-      setConfirmExport(true);
-    },
-    [],
-  );
+  const handleConfirmExport = useCallback(() => {
+    setConfirmExport(true);
+  }, []);
 
-  const handleCancelExport = useCallback(
-    () => {
-      setConfirmExport(false);
-    },
-    [],
-  );
+  const handleCancelExport = useCallback(() => {
+    setConfirmExport(false);
+  }, []);
 
-  const handlePerformExport = useCallback(
-    async () => {
-      // TODO: Implement actual export using csvExportService
-      // For now, show a toast with the selected option
-      useToast(t(`exportSettings.exported${selectedExport.charAt(0).toUpperCase() + selectedExport.slice(1)}`));
-      setConfirmExport(false);
-    },
-    [selectedExport, t],
-  );
-
-  // Handle export confirmation dialog
-  if (confirmExport) {
-    return (
-      <Alert
-        title={t("exportSettings.exportConfirmTitle")}
-        message={t("exportSettings.exportConfirmMessage", {
-          exportType: t(`exportSettings.${selectedExport}`),
-        })}
-        cancelButtonIndex={0}
-        cancelButtonTitle={t("common:cancel")}
-        onPress={handlePerformExport}
-      }
+  const handlePerformExport = useCallback(async () => {
+    // TODO: Implement actual export using csvExportService
+    // For now, show a toast with the selected option
+    useToast(
+      t(
+        `exportSettings.exported${selectedExport.charAt(0).toUpperCase() + selectedExport.slice(1)}`,
+      ),
     );
-  }
+    setConfirmExport(false);
+  }, [selectedExport, t]);
+
+  React.useEffect(() => {
+    if (confirmExport) {
+      Alert.alert(
+        t("exportSettings.exportConfirmTitle"),
+        t("exportSettings.exportConfirmMessage", {
+          exportType: t(`exportSettings.${selectedExport}`),
+        }),
+        [
+          {
+            text: t("common:cancel"),
+            style: "cancel",
+            onPress: handleCancelExport,
+          },
+          {
+            text: t("exportSettings.exportButton"),
+            onPress: handlePerformExport,
+          },
+        ],
+      );
+    }
+  }, [
+    confirmExport,
+    handleCancelExport,
+    handlePerformExport,
+    selectedExport,
+    t,
+  ]);
 
   return (
     <ScrollView
       contentContainerStyle={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersist="handled"
+      keyboardShouldPersistTaps="handled"
     >
       <ThemedView style={styles.content}>
         <ThemedView style={styles.header}>
@@ -109,15 +123,15 @@ export function ExportSettingsScreen() {
               key={option.value}
               style={styles.exportOptionItem}
               onPress={() => handleExportSelect(option.value)}
-              accessibilityRole={selectedExport === option.value ? "radio" : undefined}
+              accessibilityRole={
+                selectedExport === option.value ? "radio" : undefined
+              }
             >
               <ThemedText style={styles.exportOptionLabel}>
                 {option.label}
               </ThemedText>
               {selectedExport === option.value && (
-                <ThemedText style={styles.exportOptionCheck}>
-                  ✓
-                </ThemedText>
+                <ThemedText style={styles.exportOptionCheck}>✓</ThemedText>
               )}
             </TouchableOpacity>
           ))}
@@ -192,7 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: selectedExport === "products" ? "#1B6B3A" : "#E5E5E5",
+    borderColor: "#E5E5E5",
   },
   exportOptionLabel: {
     fontSize: 15,
