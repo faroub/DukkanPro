@@ -19,7 +19,7 @@ export function BusinessSettingsScreen() {
   const [ownerName, setOwnerName] = React.useState("");
   const [businessType, setBusinessType] = React.useState("");
 
-  const handleSave = useCallback(() => {
+  const handleSave = React.useCallback(() => {
     // TODO: Implement business profile save logic
     useToast(t("settings.saveChanges"));
   }, [t]);

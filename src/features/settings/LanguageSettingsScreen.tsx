@@ -17,7 +17,7 @@ export function LanguageSettingsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation();
 
-  const handleLanguageChange = useCallback(
+  const handleLanguageChange = React.useCallback(
     (language: string) => {
       // Apply language immediately using i18n.changeLanguage
       i18n.changeLanguage(language);
