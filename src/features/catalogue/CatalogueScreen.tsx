@@ -54,6 +54,9 @@ export function CatalogueScreen() {
     setSearchQuery(query);
   };
 
+  const captionColorShow = '#1B6B3A';
+  const captionColorHide = '#666';
+
   const filteredProducts = products.filter((p: any) => {
     const matchesSearch = !searchQuery ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -149,9 +152,9 @@ export function CatalogueScreen() {
           <TextInput
             placeholder={t('catalogue.enter_contact')}
             value={settings.contact}
-            onChangeText_text => handleSettingChange('contact', text)}
+            onChangeText={(text) => handleSettingChange('contact', text)}
             style={styles.input}
-            {settings.contact && <ThemedText type="caption" style={{ color: '#666' }}>{settings.contact}</ThemedText>}
+            {settings.contact && <ThemedText type="caption" style={{ color: captionColorHide }}>{settings.contact}</ThemedText>}
           />
         </View>
 
@@ -163,9 +166,9 @@ export function CatalogueScreen() {
           <TextInput
             placeholder={t('catalogue.enter_address')}
             value={settings.address}
-            onChangeText_text => handleSettingChange('address', text)}
+            onChangeText={(text) => handleSettingChange('address', text)}
             style={styles.input}
-            {settings.address && <ThemedText type="caption" style={{ color: '#666' }}>{settings.address}</ThemedText>}
+            {settings.address && <ThemedText type="caption" style={{ color: captionColorHide }}>{settings.address}</ThemedText>}
           />
         </View>
       </ThemedView>
@@ -201,7 +204,7 @@ export function CatalogueScreen() {
               {settings.showPrices && (
                 <ThemedText type="body" style={{ color: '#1B6B3A' }}>
                   {formatCentimes(item.price_centimes)}
-                </ThemedText)
+                </ThemedText>
               }}
             </View>
           )}
