@@ -210,7 +210,16 @@ export function useDashboard(deps: {
     // Fetch data async and hydrate state
     (async () => {
       const dashboardData = await fetchDashboardData(deps.locale);
-      setData(dashboardData);
+      setData({
+        ...dashboardData,
+        greeting: deps.t("dashboard.greeting"),
+        quickActionNewSale: deps.t(dashboardData.quickActionNewSale),
+        quickActionAddProduct: deps.t(dashboardData.quickActionAddProduct),
+        quickActionAddCustomer: deps.t(dashboardData.quickActionAddCustomer),
+        quickActionRecordPayment: deps.t(
+          dashboardData.quickActionRecordPayment,
+        ),
+      });
     })();
   }, [deps]);
 

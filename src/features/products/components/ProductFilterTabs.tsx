@@ -1,8 +1,8 @@
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { useTranslation } from 'react-i18next';
-import { Spacing } from '@/constants/theme';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Spacing } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, TouchableOpacity } from "react-native";
 
 interface ProductFilterTabsProps {
   activeFilter: string;
@@ -10,13 +10,16 @@ interface ProductFilterTabsProps {
 }
 
 const FILTER_OPTIONS = [
-  { key: "all", labelKey: "products:filterAll" },
-  { key: "lowStock", labelKey: "products:filterLowStock" },
-  { key: "outOfStock", labelKey: "products:filterOutOfStock" },
-  { key: "archived", labelKey: "products:filterArchived" },
+  { key: "all", labelKey: "products.filterAll" },
+  { key: "lowStock", labelKey: "products.filterLowStock" },
+  { key: "outOfStock", labelKey: "products.filterOutOfStock" },
+  { key: "archived", labelKey: "products.filterArchived" },
 ] as const;
 
-export function ProductFilterTabs({ activeFilter, onFilterChange }: ProductFilterTabsProps) {
+export function ProductFilterTabs({
+  activeFilter,
+  onFilterChange,
+}: ProductFilterTabsProps) {
   const { t } = useTranslation();
 
   return (
@@ -38,27 +41,27 @@ export function ProductFilterTabs({ activeFilter, onFilterChange }: ProductFilte
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: Spacing.lg,
   },
   tab: {
     flex: 1,
     padding: Spacing.sm,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginHorizontal: 2,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#F3F4F6",
   },
   tabActive: {
     flex: 1,
     padding: Spacing.sm,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginHorizontal: 2,
-    backgroundColor: '#1B6B3A',
-    color: 'white',
+    backgroundColor: "#1B6B3A",
+    color: "white",
   },
   tabText: {
     fontSize: 12,
