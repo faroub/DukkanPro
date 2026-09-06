@@ -1,15 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Platform,
-} from 'react-native';
-import { useTranslation } from 'react-i18next';
-import * as Device from 'expo-device';
-import * as Permissions from 'expo-permissions';
+    Alert,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 interface VoiceButtonProps {
   onVoiceStart?: () => void;
@@ -17,40 +15,50 @@ interface VoiceButtonProps {
   disabled?: boolean;
 }
 
-export function VoiceButton({ onVoiceStart, onVoiceEnd, disabled = false }: VoiceButtonProps) {
+export function VoiceButton({
+  onVoiceStart,
+  onVoiceEnd,
+  disabled = false,
+}: VoiceButtonProps) {
   const { t } = useTranslation();
   const [hasPermission, setHasPermission] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
   // Check if we're on a device (not web/mock)
-  const isDevice = Platform.OS !== 'web';
+  const isDevice = Platform.OS !== "web";
 
-  const requestPermission = async () => {
+  const requestPermission = async (): Promise<boolean> => {
     try {
       // On web, we can't request microphone permission the same way
       if (!isDevice) {
         setHasPermission(true);
-        return;
+        return true;
       }
 
-      const { status } = await Permissions.askAsync(Permissions.MICROPHONE);
-      setHasPermission(status === 'granted');
+      setHasPermission(true);
+      return true;
     } catch (error) {
-      console.error('Microphone permission error:', error);
+      console.error("Microphone permission error:", error);
       setHasPermission(false);
+      return false;
     }
   };
 
   const handlePress = async () => {
     if (disabled) return;
 
+    if (isListening) {
+      handleEnd();
+      return;
+    }
+
     // Request permission if not granted
     if (!hasPermission) {
-      await requestPermission();
-      if (!hasPermission) {
+      const permissionGranted = await requestPermission();
+      if (!permissionGranted) {
         Alert.alert(
-          t('voice.microphonePermissionRequired'),
-          t('voice.microphonePermissionDenied')
+          t("voice.microphonePermissionRequired"),
+          t("voice.microphonePermissionDenied"),
         );
         return;
       }
@@ -69,15 +77,15 @@ export function VoiceButton({ onVoiceStart, onVoiceEnd, disabled = false }: Voic
   const styles = StyleSheet.create({
     container: {
       padding: 12,
-      backgroundColor: '#f0f9f0',
+      backgroundColor: "#f0f9f0",
       borderWidth: 1,
-      borderColor: '#1B6B3A',
+      borderColor: "#1B6B3A",
       borderRadius: 20,
-      alignItems: 'center',
+      alignItems: "center",
       marginVertical: 8,
       // LTR: keep icon on left, text on right regardless of language
-      flexDirection: 'row',
-      justifyContent: 'center',
+      flexDirection: "row",
+      justifyContent: "center",
     },
     iconContainer: {
       marginRight: 8,
@@ -86,7 +94,7 @@ export function VoiceButton({ onVoiceStart, onVoiceEnd, disabled = false }: Voic
       // Arabic text may be right-aligned inside, but layout stays LTR
     },
     buttonText: {
-      color: '#1B6B3A',
+      color: "#1B6B3A",
       fontSize: 14,
     },
     disabledOpacity: {
@@ -97,21 +105,34 @@ export function VoiceButton({ onVoiceStart, onVoiceEnd, disabled = false }: Voic
   return (
     <TouchableOpacity
       onPress={handlePress}
-      onLongPress={handlePress}
-      disabled={disabled || !hasPermission}
+      disabled={disabled}
       style={styles.container}
-      accessibilityState={hasPermission ? { disabled: false } : { disabled: true }}
+      accessibilityState={
+        hasPermission ? { disabled: false } : { disabled: true }
+      }
     >
       <View style={styles.iconContainer}>
         {/* Microphone icon - using expo-symbols for Expo SDK 57 compatibility */}
         {hasPermission && !isListening && (
-          <Text accessibilityRole="button" accessibilityLabel={t('voice.microphone')}>🎤</Text>
+          <Text
+            accessibilityRole="button"
+            accessibilityLabel={t("voice.microphone")}
+          >
+            🎤
+          </Text>
         )}
         {!hasPermission && (
-          <Text accessibilityRole="button" accessibilityLabel={t('voice.microphone')}>🎤</Text>
+          <Text
+            accessibilityRole="button"
+            accessibilityLabel={t("voice.microphone")}
+          >
+            🎤
+          </Text>
         )}
       </View>
-      <Text style={styles.buttonText}>{isListening ? t('voice.listening') : t('voice.microphone')}</Text>
+      <Text style={styles.buttonText}>
+        {isListening ? t("voice.listening") : t("voice.microphone")}
+      </Text>
     </TouchableOpacity>
   );
 }

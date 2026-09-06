@@ -1,16 +1,16 @@
-import React from 'react';
+import type { AvailableProduct } from "@/services/voice/voiceSaleParser";
+import { parseSaleCommand } from "@/services/voice/voiceSaleParser";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-  Alert,
-  FlatList,
-} from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { parseSaleCommand } from '@/services/voice/voiceSaleParser';
-import type { AvailableProduct } from '@/services/voice/voiceSaleParser';
+    Alert,
+    FlatList,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 interface ReviewSheetProps {
   isVisible: boolean;
@@ -20,7 +20,13 @@ interface ReviewSheetProps {
   commandText: string;
 }
 
-export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, commandText }: ReviewSheetProps) {
+export function ReviewSheet({
+  isVisible,
+  onClose,
+  onConfirm,
+  availableProducts,
+  commandText,
+}: ReviewSheetProps) {
   const { t } = useTranslation();
   const [parsed, setParsed] = useState<any | null>(null);
   const [showAmbiguityChoices, setShowAmbiguityChoices] = useState(false);
@@ -32,7 +38,7 @@ export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, 
     if (result) {
       setParsed(result);
       // Check if ambiguous and show choices
-      if (result.matchType === 'ambiguous') {
+      if (result.matchType === "ambiguous") {
         setShowAmbiguityChoices(true);
         setAmbiguousChoices(result.productMatchResult?.choices || []);
       } else {
@@ -49,15 +55,18 @@ export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, 
   }
 
   const handleConfirm = () => {
-    if (parsed.matchType === 'ambiguous') {
+    if (parsed.matchType === "ambiguous") {
       // Show choices and wait for user selection
       // In a full implementation, this would open a choice sheet
-      Alert.alert(t('voice.commandNotRecognized'), t('voice.pleaseSelectProduct'));
+      Alert.alert(
+        t("voice.commandNotRecognized"),
+        t("voice.pleaseSelectProduct"),
+      );
       return;
     }
 
-    if (parsed.matchType === 'none') {
-      Alert.alert(t('voice.commandNotRecognized'), t('voice.noProductFound'));
+    if (parsed.matchType === "none") {
+      Alert.alert(t("voice.commandNotRecognized"), t("voice.noProductFound"));
       return;
     }
 
@@ -72,20 +81,20 @@ export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, 
     modalContainer: {
       margin: 0,
       marginTop: 20,
-      backgroundColor: '#fff',
+      backgroundColor: "#fff",
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      maxHeight: '80%',
+      maxHeight: "80%",
     },
     header: {
       padding: 12,
       borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-      justifyContent: 'space-between',
+      borderBottomColor: "#eee",
+      justifyContent: "space-between",
     },
     title: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     closeButton: {
       padding: 8,
@@ -93,29 +102,32 @@ export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, 
     listItem: {
       padding: 12,
       borderBottomWidth: 1,
-      borderBottomColor: '#eee',
+      borderBottomColor: "#eee",
     },
     productInfo: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    productName: {
+      flex: 1,
     },
     quantityText: {
       fontSize: 14,
-      color: '#666',
+      color: "#666",
     },
     paymentText: {
       fontSize: 12,
-      color: '#888',
+      color: "#888",
     },
     confirmButton: {
       padding: 12,
-      backgroundColor: '#1B6B3A',
+      backgroundColor: "#1B6B3A",
       margin: 12,
       borderRadius: 8,
-      alignItems: 'center',
+      alignItems: "center",
     },
     confirmButtonText: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 16,
     },
     ambiguityList: {
@@ -124,30 +136,35 @@ export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, 
     },
     ambiguityItem: {
       padding: 8,
-      backgroundColor: '#fafafa',
+      backgroundColor: "#fafafa",
       borderRadius: 6,
       marginBottom: 4,
     },
   });
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent={false}
-      animationType="fade"
-      statusBarStyle="default"
-    >
+    <Modal visible={isVisible} transparent={false} animationType="fade">
       <View style={styles.modalContainer}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('voice.reviewSheetTitle')}</Text>
+          <Text style={styles.title}>{t("voice.reviewSheetTitle")}</Text>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Text>{t('common.close')}</Text>
+            <Text>{t("common.close")}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Parsed items summary */}
         <FlatList
-          data={parsed ? [{ quantity: parsed.quantity, product: parsed.productName, payment: parsed.paymentMethod }] : []}
+          data={
+            parsed
+              ? [
+                  {
+                    quantity: parsed.quantity,
+                    product: parsed.productName,
+                    payment: parsed.paymentMethod,
+                  },
+                ]
+              : []
+          }
           keyExtractor={(item) => item.product}
           renderItem={({ item }) => (
             <View style={styles.listItem}>
@@ -156,25 +173,27 @@ export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, 
                 <Text style={styles.quantityText}>x{parsed.quantity}</Text>
               </View>
               <Text style={styles.paymentText}>
-                {parsed.paymentMethod === 'cash' ? t('cash') : t('credit')}
+                {parsed.paymentMethod === "cash" ? t("cash") : t("credit")}
               </Text>
             </View>
           )}
         />
 
         {/* Ambiguity choices if needed */}
-        {parsed.matchType === 'ambiguous' && showAmbiguityChoices && (
+        {parsed.matchType === "ambiguous" && showAmbiguityChoices && (
           <View style={styles.ambiguityList}>
-            <Text>{t('voice.ambiguousProduct')}</Text>
+            <Text>{t("voice.ambiguousProduct")}</Text>
             {ambiguousChoices.map((choice, index) => (
               <View key={index} style={styles.ambiguityItem}>
                 <Text>{choice.name}</Text>
-                <TouchableOpacity onPress={() => {
-                  // User selected this choice
-                  const newParsed = { ...parsed, productName: choice.name };
-                  onConfirm(newParsed);
-                }}>
-                  <Text style={{ color: '#1B6B3A' }}>{t('select')}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    // User selected this choice
+                    const newParsed = { ...parsed, productName: choice.name };
+                    onConfirm(newParsed);
+                  }}
+                >
+                  <Text style={{ color: "#1B6B3A" }}>{t("select")}</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -183,10 +202,8 @@ export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, 
 
         {/* Confirmation button */}
         <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
-          <Text style={styles.confirmButtonText}>{t('common.add')}</Text>
+          <Text style={styles.confirmButtonText}>{t("common.add")}</Text>
         </TouchableOpacity>
-
-        {handleClose}
       </View>
     </Modal>
   );
