@@ -207,5 +207,43 @@
     "aboutDescription": "App for Algerian micro-entrepreneurs",
     "version": "Version",
     "copyright": "Copyright © {year} Dukkan OS. All rights reserved."
+  },
+  "inventorySettings": {
+    "allowNegativeStock": "Allow negative stock",
+    "negativeStockWarning": "Warning: Enabling negative stock allows stock to go below zero. This may result in inaccurate inventory counts.",
+    "defaultLowStockThreshold": "Default low-stock threshold",
+    "defaultLowStockThresholdPlaceholder": "Enter threshold (e.g. 5)",
+    "negativeStockDisabled": "Negative stock is disabled",
+    "negativeStockEnabled": "Negative stock is enabled"
+  },
+  "exportSettings": {
+    "products": "Products",
+    "customers": "Customers",
+    "sales": "Sales",
+    "saleItems": "Sale Items",
+    "payments": "Customer Payments",
+    "inventoryMovements": "Inventory Movements",
+    "selectType": "Select export type",
+    "exportButton": "Export",
+    "exportConfirmTitle": "Confirm Export",
+    "exportConfirmMessage": "Are you sure you want to export {exportType} data as CSV?",
+    "exportedProducts": "Products exported successfully",
+    "exportedCustomers": "Customers exported successfully",
+    "exportedSales": "Sales exported successfully",
+    "exportedSaleItems": "Sale items exported successfully",
+    "exportedPayments": "Payments exported successfully",
+    "exportedInventoryMovements": "Inventory movements exported successfully",
+    "infoText": "{count} export options available",
+    "exportInProgress": "Export in progress..."
+  },
+  "dataReset": {
+    "businessNameConfirmation": "Enter your business name to confirm data reset",
+    "wrongBusinessName": "Business name does not match. Please type the exact business name.",
+    "confirmTitle": "Confirm Data Reset",
+    "confirmMessage": "Are you sure you want to reset ALL data? This action cannot be undone.",
+    "irreversibleWarning": "This will permanently delete all business data including products, customers, sales, payments, and inventory movements. This action cannot be undone.",
+    "resetData": "Reset Data",
+    "success": "All data has been reset successfully.",
+    "error": "An error occurred during data reset."
   }
 }

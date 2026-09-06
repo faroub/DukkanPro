@@ -131,7 +131,7 @@
     "return_reason_placeholder": "أدخل سبب الإرجاع",
     "cancelled_note": "البيع ملغي",
     "returned_note": "البيع مرتجع",
-    "already_cancelled": "هذه البيع Already cancelled",
+    "already_cancelled": "هذه البيع",
     "already_returned_or_cancelled": "هذه البيع Already returned or cancelled",
     "cannot_cancel_status": "لا يمكن إلغاء بيع {status}",
     "cannot_return_status": "لا يمكن إرجاع بيع {status}",
