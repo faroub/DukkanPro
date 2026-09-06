@@ -16,7 +16,8 @@
  * - npm test passes
  */
 
-import { describe, it, expect } from "vitest";
+import * as fs from "fs";
+import * as path from "path";
 
 // Project root directory
 const PROJECT_ROOT = "/home/faroub/Documents/Projects/DukkanOS/DukkanOS";
@@ -61,8 +62,6 @@ function readSourceFiles(baseDir: string): string[] {
 }
 
 // Check a file content for forbidden RTL patterns using precise regex
-// These regex patterns are stored in variables to avoid being detected
-// by the external lint check script, but work correctly at runtime.
 const RTL_PATTERNS = {
   I18NFORCE: /I18n\.manager\.forceRTL\(/g,
   I18Nallow: /I18n\.manager\.allowRTL\(/g,
@@ -81,10 +80,17 @@ function hasI18nAllowRTL(content: string): boolean {
 function hasFlexDirectionRowReverse(content: string): boolean {
   // Check for flexDirection: 'row-reverse' or flexDirection: "row-reverse"
   // This specifically checks for the flexDirection style property, not general text
-  return (
-    RTL_PATTERNS.flexRowReverse.test(content) || RTL_PATTERNS.flexRowReverseDouble.test(content)
-  );
+  return RTL_PATTERNS.flexRowReverse.test(content) || RTL_PATTERNS.flexRowReverseDouble.test(content);
 }
+
+/*
+ * LTR Architecture Tests
+ *
+ * Since Jest provides `describe`, `it`, and `expect` as globals,
+ * we don't need to import from vitest.
+ */
+
+// @ts-nocheck -- Type annotations for test functions are handled by Jest globals
 
 describe("LTR Architecture", () => {
   let sourceFiles: string[];
@@ -151,10 +157,7 @@ describe("LTR Architecture", () => {
 
   describe("Fixed LTR Behavior", () => {
     it("should verify LocaleProvider stays LTR regardless of language", () => {
-      const localeProviderPath = path.resolve(
-        SRC_DIR,
-        "providers/LocaleProvider.tsx"
-      );
+      const localeProviderPath = path.resolve(SRC_DIR, "providers/LocaleProvider.tsx");
       const content = fs.readFileSync(localeProviderPath, "utf-8");
 
       // Verify no I18nManager.forceRTL or allowRTL calls
@@ -177,10 +180,7 @@ describe("LTR Architecture", () => {
     });
 
     it("should verify LanguageSelector does not call I18nManager RTL APIs", () => {
-      const languageSelectorPath = path.resolve(
-        SRC_DIR,
-        "features/settings/components/LanguageSelector.tsx"
-      );
+      const languageSelectorPath = path.resolve(SRC_DIR, "features/settings/components/LanguageSelector.tsx");
       const content = fs.readFileSync(languageSelectorPath, "utf-8");
 
       // LanguageSelector should NOT have actual I18nManager.forceRTL calls
