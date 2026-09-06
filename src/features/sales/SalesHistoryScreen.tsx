@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  FlatList,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +21,6 @@ export function SalesHistoryScreen() {
   const [sales, setSales] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // Load sales on mount
   useEffect(() => {
@@ -51,15 +58,6 @@ export function SalesHistoryScreen() {
         salesData = await getSalesByDateRange(startStr, endStr);
         break;
       }
-      case 'custom': {
-        // Use the date range selected
-        if (dateRange.start && dateRange.end) {
-          salesData = await getSalesByDateRange(dateRange.start, dateRange.end);
-        } else {
-          salesData = [];
-        }
-        break;
-      }
       case 'cancelled': {
         salesData = await getAllSales({ status: 'cancelled' });
         break;
@@ -95,18 +93,15 @@ export function SalesHistoryScreen() {
     // Apply search filter
     if (searchQuery.trim()) {
       const results = await search(searchQuery);
-      setSearchResults(results);
+      setSales(results);
     } else {
-      setSearchResults([]);
+      setSales(salesData);
     }
-
-    setSales(searchQuery.trim() ? searchResults : salesData);
   };
 
   const handleFilterChange = (newFilter: string) => {
     setFilter(newFilter);
     setSearchQuery(''); // Clear search when changing filter
-    setDateRange({ start: null, end: null }); // Clear date range for non-custom filters
     loadSales();
   };
 
@@ -163,7 +158,7 @@ export function SalesHistoryScreen() {
             onChangeText={handleSearch}
             style={{ flex: 1, fontSize: 14 }}
           />
-          <TouchableOpacity style={{ padding: 4, paddingTop: 4, paddingBottom: 4 }} onPress={() => handleSearch('')}>
+          <TouchableOpacity onPress={() => handleSearch('')} style={{ padding: 4, paddingTop: 4, paddingBottom: 4 }}>
             <ThemedText type="caption" style={{ color: '#1B6B3A' }}>
               {t('sales.clear')}
             </ThemedText>
