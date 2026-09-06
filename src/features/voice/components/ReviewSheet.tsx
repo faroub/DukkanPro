@@ -147,7 +147,7 @@ export function ReviewSheet({ isVisible, onClose, onConfirm, availableProducts, 
 
         {/* Parsed items summary */}
         <FlatList
-          data: parsed ? [{ quantity: parsed.quantity, product: parsed.productName, payment: parsed.paymentMethod }] : []
+          data={parsed ? [{ quantity: parsed.quantity, product: parsed.productName, payment: parsed.paymentMethod }] : []}
           keyExtractor={(item) => item.product}
           renderItem={({ item }) => (
             <View style={styles.listItem}>

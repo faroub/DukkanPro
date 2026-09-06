@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, Pressable, Modal } from 'react-native';
+import { View, Text, FlatList, Pressable, Modal, Alert } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
@@ -7,10 +7,14 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCartStoreHook } from '@/stores/cartStore';
 import { formatCentimes } from '@/utils/money';
 import { create } from '@/database/repositories/saleRepository';
+import { parseSaleCommand } from '@/services/voice/voiceSaleParser';
+import { AvailableProduct } from '@/services/voice/voiceSaleParser';
 import { ProductSearchSheet } from '@/features/sales/components/ProductSearchSheet';
 import { CartList } from '@/features/sales/components/CartList';
 import { CheckoutSheet } from '@/features/sales/components/CheckoutSheet';
 import { ReceiptPreview } from '@/features/sales/components/ReceiptPreview';
+import { ReviewSheet } from '@/features/voice/components/ReviewSheet';
+import { VoiceButton } from '@/features/voice/components/VoiceButton';
 
 export default function SellScreen() {
   const { t } = useTranslation();
@@ -31,6 +35,18 @@ export default function SellScreen() {
     setPreserveCart,
   } = useCartStoreHook();
 
+  // Update voice available products when products change
+  useEffect(() => {
+    const availableProducts = products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      category: p.category,
+      price_centimes: p.sale_price_centimes,
+      stock: p.stock,
+    }));
+    setVoiceAvailableProducts(availableProducts);
+  }, [products]);
+
   const [cartVisible, setCartVisible] = useState(false);
   const [checkoutVisible, setCheckoutVisible] = useState(false);
   const [receiptVisible, setReceiptVisible] = useState(false);
@@ -40,6 +56,12 @@ export default function SellScreen() {
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'electronic' | 'mixed' | 'partial' | 'credit'>('cash');
   const [note, setNote] = useState<string>('');
   const [customerId, setCustomerId] = useState<number | null>(null);
+
+  // Voice input state
+  const [voiceVisible, setVoiceVisible] = useState(false);
+  const [voiceCommand, setVoiceCommand] = useState<string>('');
+  const [parsedVoice, setParsedVoice] = useState<any | null>(null);
+  const [voiceAvailableProducts, setVoiceAvailableProducts] = useState<AvailableProduct[]>([]);
 
   // Handle product add to cart from search sheet
   const handleAddToCart = useCallback((product: any, quantity: number) => {
@@ -101,6 +123,34 @@ export default function SellScreen() {
     const newValue = !preserveCart;
     setPreserveCart(newValue);
   }, [preserveCart]);
+
+  // Voice command handling
+  const handleVoiceStart = async () => {
+    setVoiceVisible(true);
+    setVoiceCommand('');
+    setParsedVoice(null);
+  };
+
+  const handleVoiceEnd = () => {
+    setVoiceVisible(false);
+    // Parse the voice command if we have text
+    if (voiceCommand.trim()) {
+      const availableProducts = products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        price_centimes: p.sale_price_centimes,
+        stock: p.stock,
+      }));
+      const parsed = parseSaleCommand(voiceCommand, availableProducts);
+      setParsedVoice(parsed);
+      if (parsed && parsed.matchType !== 'ambiguous' && parsed.matchType !== 'none') {
+        // Add the parsed item to cart
+        addItemWithProduct(parsed.productName, parsed.quantity);
+        setVoiceVisible(false);
+      }
+    }
+  };
 
   return (
     <ThemedView type="background" style={{ flex: 1 }}>
@@ -165,6 +215,11 @@ export default function SellScreen() {
                   {t('sell.open_cart')}
                 </ThemedText>
               </Pressable>
+              <Pressable onPress={handleVoiceStart} style={{ marginTop: 8, marginLeft: 8 }}>
+                <ThemedText type="body" style={{ color: '#1B6B3A' }}>
+                  {t('voice.microphone')}
+                </ThemedText>
+              </Pressable>
             </View>
           }
         />
@@ -197,6 +252,13 @@ export default function SellScreen() {
           </View>
         </Modal>
       )}
+
+      {/* Voice Input Button */}
+      <VoiceButton
+        onVoiceStart={handleVoiceStart}
+        onVoiceEnd={handleVoiceEnd}
+        disabled={isSaving}
+      />
 
       {/* Checkout Sheet */}
       {checkoutVisible && (
@@ -231,6 +293,22 @@ export default function SellScreen() {
           }}
           sale={sale}
           t={t}
+        />
+      )}
+
+      {/* Voice Review Sheet */}
+      {parsedVoice && (
+        <ReviewSheet
+          isVisible={voiceVisible}
+          onClose={() => setVoiceVisible(false)}
+          onConfirm={(parsed) => {
+            // Add the confirmed item to cart
+            addItemWithProduct(parsed.productName, parsed.quantity);
+            setVoiceVisible(false);
+            setParsedVoice(null);
+          }}
+          availableProducts={voiceAvailableProducts}
+          commandText={voiceCommand}
         />
       )}
     </ThemedView>
