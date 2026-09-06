@@ -22,7 +22,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
   const { t } = useTranslation();
   const [sale, setSale] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const saleId = route.params.id;
+  const saleId = parseInt(route.params.id, 10);
 
   // Load sale by ID
   useEffect(() => {
@@ -32,7 +32,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
   const loadSale = async () => {
     setIsLoading(true);
     try {
-      const saleData = await getSaleById(parseInt(saleId));
+      const saleData = await getSaleById(saleId);
       setSale(saleData);
     } catch (err) {
       console.error('Failed to load sale:', err);

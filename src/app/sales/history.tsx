@@ -1,5 +1,5 @@
-import SalesHistoryScreen from '@/features/sales/SalesHistoryScreen';
+import { SalesHistoryScreen } from '@/features/sales/SalesHistoryScreen';
 
-export default function SalesHistoryRoute() {
-  return SalesHistoryScreen;
+export default function SalesHistoryScreenRoute() {
+  return <SalesHistoryScreen />;
 }

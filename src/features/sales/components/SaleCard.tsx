@@ -28,18 +28,17 @@ interface SaleCardProps {
 export function SaleCard({ sale, onPress, showStatus = true }: SaleCardProps) {
   const { t } = useTranslation();
 
-  const statusClassName =
+  const statusStyles =
     sale.status === 'cancelled'
-      ? 'status-cancelled'
+      ? styles.statusCancelled
       : sale.status === 'returned'
-      ? 'status-returned'
-      : 'status-completed';
+      ? styles.statusReturned
+      : styles.statusCompleted;
 
   return (
     <ThemedView
       style={styles.container}
       onPress={onPress}
-      activeOpacity={0.8}
     >
       <View style={styles.infoContainer}>
         <View style={styles.leftColumn}>
@@ -52,7 +51,7 @@ export function SaleCard({ sale, onPress, showStatus = true }: SaleCardProps) {
         </View>
 
         <View style={styles.rightColumn}>
-          <ThemedText type="body" style={[styles.total, statusClassName]}>
+          <ThemedText type="body" style={[styles.total, statusStyles]}>
             {formatCentimes(sale.total_centimes)}
           </ThemedText>
         </View>
@@ -103,6 +102,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1B6B3A',
   },
+  saleId: {
+    fontSize: 14,
+    color: '#333',
+  },
+  date: {
+    fontSize: 12,
+    color: '#666',
+  },
   statusContainer: {
     marginTop: 8,
     alignSelf: 'flex-start',
@@ -111,5 +118,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     textTransform: 'uppercase',
+  },
+  statusCancelled: {
+    color: '#6c757d',
+  },
+  statusReturned: {
+    color: '#842029',
+  },
+  statusCompleted: {
+    color: '#155724',
   },
 });

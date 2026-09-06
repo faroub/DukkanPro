@@ -252,8 +252,8 @@ const styles = {
     marginBottom: 12,
   },
   summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
     marginBottom: 8,
   },
   summaryLabel: {
@@ -267,7 +267,7 @@ const styles = {
   },
   summaryNote: {
     marginTop: 4,
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-end' as const,
     color: '#6c757d',
     fontSize: 12,
   },
