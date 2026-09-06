@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { ThemedView, ThemedText } from "@/components";
-import { TouchableOpacity, View, StyleSheet, TextStyle } from "react-native";
+import { ThemedText, ThemedView } from "@/components";
+import { BorderRadius, Spacing } from "@/constants/theme";
 import i18n from "@/localization/i18n";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Spacing, Colors, BorderRadius } from "@/constants/theme";
+import { StyleSheet, TextStyle, TouchableOpacity, View } from "react-native";
 
 /**
  * LanguageSelector - A language selection component for settings.
@@ -41,9 +41,7 @@ export function LanguageSelector({
     onLanguageChange(language);
     // Apply language immediately using i18n.changeLanguage
     i18n.changeLanguage(language);
-    // Do NOT call I18nManager.forceRTL(true)
-    // Do NOT call I18nManager.allowRTL(true)
-    // Do NOT change layout direction
+    // Do NOT enable global RTL layout or change direction
     // Keep app architecture LTR in all languages
     // Arabic text may use right alignment inside individual text components
   };
@@ -66,6 +64,7 @@ export function LanguageSelector({
             style={styles.languageOptionContainer}
             onPress={() => handleLanguageSelect(lang.code)}
             accessibilityRole="radio"
+            accessibilityLabel={lang.label}
             accessibilityState={isSelected ? { checked: true } : undefined}
           >
             <View style={styles.optionInner}>
@@ -114,6 +113,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: Spacing.md,
+    minHeight: 48,
     backgroundColor: "#FFFFFF",
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
