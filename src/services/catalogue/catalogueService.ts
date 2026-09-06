@@ -1,5 +1,4 @@
 import { formatCentimes } from "@/utils/money";
-import * as Print from "expo-print";
 
 export interface CatalogueExportOptions {
   showPrices: boolean;
@@ -16,9 +15,7 @@ export interface CatalogueProduct {
   stock: number;
 }
 
-type CatalogueExportResult =
-  | { type: "pdf"; uri: string }
-  | { type: "text"; text: string };
+type CatalogueExportResult = { type: "text"; text: string };
 
 export async function exportCataloguePDF(
   options: CatalogueExportOptions,
@@ -95,17 +92,7 @@ export async function exportCataloguePDF(
   lines.push("---");
   lines.push("Generated: " + new Date().toLocaleDateString());
 
-  // Try to generate PDF
-  try {
-    const html = `<html><body><pre>${lines.join("\n")}</pre></body></html>`;
-    const { uri } = await Print.printToFileAsync({
-      html,
-    });
-
-    return { type: "pdf", uri };
-  } catch (pdfError) {
-    // PDF generation failed - return text fallback
-    const text = lines.join("\n");
-    return { type: "text", text };
-  }
+  // Return text format (PDF generation not available without expo-print native module)
+  const text = lines.join("\n");
+  return { type: "text", text };
 }

@@ -87,14 +87,7 @@ export function CatalogueScreen() {
         },
         t,
       );
-      if (result.type === "pdf") {
-        await Sharing.shareAsync(result.uri, {
-          mimeType: "application/pdf",
-          dialogTitle: t("catalogue.share"),
-        });
-      } else {
-        Alert.alert(t("catalogue.share"), result.text);
-      }
+      Alert.alert(t("catalogue.share"), result.text);
       setSharing(false);
     } catch (err) {
       Alert.alert(t("common.error"), t("catalogue.share_failed"));
