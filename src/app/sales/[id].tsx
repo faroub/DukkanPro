@@ -1,6 +1,8 @@
 import { SaleDetailScreen } from '@/features/sales/SaleDetailScreen';
-import type { ReactNode } from 'react';
+import { useRoute } from 'expo-router';
 
-export default function SaleDetailRoute({ route }: { route: { params: { id: string } } }) {
+export default function SaleDetailRoute() {
+  const route = useRoute();
+  // @ts-ignore - expo-router route typing
   return <SaleDetailScreen params={route.params} />;
 }
