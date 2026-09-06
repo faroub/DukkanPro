@@ -1,11 +1,10 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
-import AppTabs from "@/components/app-tabs";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import i18n from "@/localization/i18n";
 
@@ -22,7 +21,7 @@ export default function TabLayout() {
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
             <AnimatedSplashOverlay />
-            <AppTabs />
+            <Stack screenOptions={{ headerShown: false }} />
           </ThemeProvider>
         </SafeAreaProvider>
       </ErrorBoundary>
