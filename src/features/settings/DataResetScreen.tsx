@@ -1,14 +1,13 @@
 import { ThemedText, ThemedView, useToast } from "@/components";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+    Alert,
     ScrollView,
     StyleSheet,
     TextInput,
-    TouchableOpacity,
-    View,
-    Alert,
+    TouchableOpacity
 } from "react-native";
 
 /**
@@ -31,72 +30,66 @@ export function DataResetScreen() {
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleBusinessNameChange = useCallback(
-    (text: string) => {
-      setBusinessNameInput(text);
-    },
-    [],
-  );
+  const handleBusinessNameChange = useCallback((text: string) => {
+    setBusinessNameInput(text);
+  }, []);
 
-  const handleResetData = useCallback(
-    async () => {
-      const expectedBusinessName = "Dukan Grocery"; // Default from seed data
+  const handleResetData = useCallback(async () => {
+    const expectedBusinessName = "Dukan Grocery"; // Default from seed data
 
-      // Check if the entered business name matches exactly
-      if (businessNameInput.trim() !== expectedBusinessName) {
-        useToast(t("dataReset.wrongBusinessName"));
-        setBusinessNameInput("");
-        return;
-      }
+    // Check if the entered business name matches exactly
+    if (businessNameInput.trim() !== expectedBusinessName) {
+      useToast(t("dataReset.wrongBusinessName"));
+      setBusinessNameInput("");
+      return;
+    }
 
-      // Show final confirmation dialog
-      const confirmation = await Alert.alert(
-        t("dataReset.confirmTitle"),
-        t("dataReset.confirmMessage"),
-        [
-          {
-            text: t("common:cancel"),
-            style: "cancel",
-            onPress: () => {
-              setShowResetConfirmation(false);
-            },
+    // Show final confirmation dialog
+    const confirmation = await Alert.alert(
+      t("dataReset.confirmTitle"),
+      t("dataReset.confirmMessage"),
+      [
+        {
+          text: t("common:cancel"),
+          style: "cancel",
+          onPress: () => {
+            setShowResetConfirmation(false);
           },
-          {
-            text: t("dataReset.confirm"),
-            style: "destructive",
-            onPress: async () => {
-              setIsLoading(true);
-              try {
-                // TODO: Implement actual data reset logic
-                // - Clear all SQLite tables (sales, products, customers, payments, movements)
-                // - Clear app preferences
-                // - Reset locale to French
-                // - Navigate to onboarding
-                useToast(t("dataReset.success"));
-                setIsLoading(false);
-                // Navigate back to onboarding
-                router.replace("/onboarding");
-              } catch (error) {
-                console.error("Data reset error:", error);
-                useToast(t("dataReset.error"));
-                setIsLoading(false);
-              }
-            },
+        },
+        {
+          text: t("dataReset.confirm"),
+          style: "destructive",
+          onPress: async () => {
+            setIsLoading(true);
+            try {
+              // TODO: Implement actual data reset logic
+              // - Clear all SQLite tables (sales, products, customers, payments, movements)
+              // - Clear app preferences
+              // - Reset locale to French
+              // - Navigate to onboarding
+              useToast(t("dataReset.success"));
+              setIsLoading(false);
+              // Navigate back to onboarding
+              router.replace("/onboarding");
+            } catch (error) {
+              console.error("Data reset error:", error);
+              useToast(t("dataReset.error"));
+              setIsLoading(false);
+            }
           },
-        ],
-        { cancelable: false },
-      );
+        },
+      ],
+      { cancelable: false },
+    );
 
-      setShowResetConfirmation(false);
-    },
-    [businessNameInput, t, router],
-  );
+    setShowResetConfirmation(false);
+  }, [businessNameInput, t, router]);
 
   return (
     <ScrollView
       contentContainerStyle={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersist="handled"
+      keyboardShouldPersistTaps="handled"
     >
       <ThemedView style={styles.content}>
         <ThemedView style={styles.header}>

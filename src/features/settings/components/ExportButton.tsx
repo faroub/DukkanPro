@@ -1,9 +1,7 @@
-import { ThemedText, ThemedView, useToast } from "@/components";
-import React from "react";
-import { TouchableOpacity, View, Alert, StyleSheet } from "react-native";
+import { ThemedText, useToast } from "@/components";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
+import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 
 /**
  * ExportButton - A reusable button component that triggers CSV export.
@@ -32,60 +30,62 @@ export function ExportButton({
     { value: "sales", label: t("exportSettings.sales") },
     { value: "saleItems", label: t("exportSettings.saleItems") },
     { value: "payments", label: t("exportSettings.payments") },
-    { value: "inventoryMovements", label: t("exportSettings.inventoryMovements") },
+    {
+      value: "inventoryMovements",
+      label: t("exportSettings.inventoryMovements"),
+    },
   ];
 
-  const handleExportSelect = useCallback(
-    (value: string) => {
-      setSelectedExport(value);
-    },
-    [],
-  );
+  const handleExportSelect = useCallback((value: string) => {
+    setSelectedExport(value);
+  }, []);
 
-  const handleConfirmExport = useCallback(
-    () => {
-      setShowConfirmation(true);
-    },
-    [],
-  );
+  const handleConfirmExport = useCallback(() => {
+    setShowConfirmation(true);
+  }, []);
 
-  const handleCancelExport = useCallback(
-    () => {
-      setShowConfirmation(false);
-    },
-    [],
-  );
+  const handleCancelExport = useCallback(() => {
+    setShowConfirmation(false);
+  }, []);
 
-  const handlePerformExport = useCallback(
-    async () => {
-      // Read data from database and export
-      // TODO: Integrate with actual database repositories
-      useToast(t("exportSettings.exportInProgress"));
-      setShowConfirmation(false);
-    },
-    [t],
-  );
+  const handlePerformExport = useCallback(async () => {
+    // Read data from database and export
+    // TODO: Integrate with actual database repositories
+    useToast(t("exportSettings.exportInProgress"));
+    setShowConfirmation(false);
+  }, [t]);
 
   // Handle the alert confirmation
-  if (showConfirmation) {
-    return (
-      <Alert
-        title={t("exportSettings.exportConfirmTitle")}
-        message={t("exportSettings.exportConfirmMessage", {
+  React.useEffect(() => {
+    if (showConfirmation) {
+      Alert.alert(
+        t("exportSettings.exportConfirmTitle"),
+        t("exportSettings.exportConfirmMessage", {
           exportType: t(`exportSettings.${selectedExport}`),
-        })}
-        cancelButtonIndex={0}
-        cancelButtonTitle={t("common:cancel")}
-        onPress={handlePerformExport}
-      }
-    );
-  }
+        }),
+        [
+          {
+            text: t("common:cancel"),
+            style: "cancel",
+            onPress: handleCancelExport,
+          },
+          {
+            text: t("exportSettings.exportButton"),
+            onPress: handlePerformExport,
+          },
+        ],
+      );
+    }
+  }, [
+    handleCancelExport,
+    handlePerformExport,
+    selectedExport,
+    showConfirmation,
+    t,
+  ]);
 
   return (
-    <TouchableOpacity
-      style={styles.button}
-      onPress={handleConfirmExport}
-    >
+    <TouchableOpacity style={styles.button} onPress={handleConfirmExport}>
       <ThemedText style={styles.buttonText}>
         {t("exportSettings.exportButton")}
       </ThemedText>

@@ -1,15 +1,14 @@
 import { ThemedText, ThemedView, useToast } from "@/components";
 import { useRouter } from "expo-router";
-import React, { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ScrollView,
     StyleSheet,
     Switch,
     TextInput,
-    View,
     TouchableOpacity,
-    Alert,
+    View
 } from "react-native";
 
 /**
@@ -27,30 +26,21 @@ export function InventorySettingsScreen() {
   const [defaultLowStockThreshold, setDefaultLowStockThreshold] = useState(10);
   const [businessName, setBusinessName] = useState("");
 
-  const handleToggleChange = useCallback(
-    (value: boolean) => {
-      setAllowNegativeStock(value);
-    },
-    [],
-  );
+  const handleToggleChange = useCallback((value: boolean) => {
+    setAllowNegativeStock(value);
+  }, []);
 
-  const handleThresholdChange = useCallback(
-    (value: string) => {
-      const num = parseInt(value, 10);
-      if (!isNaN(num) && num >= 0) {
-        setDefaultLowStockThreshold(num);
-      }
-    },
-    [],
-  );
+  const handleThresholdChange = useCallback((value: string) => {
+    const num = parseInt(value, 10);
+    if (!isNaN(num) && num >= 0) {
+      setDefaultLowStockThreshold(num);
+    }
+  }, []);
 
-  const handleSave = useCallback(
-    async () => {
-      // TODO: Persist inventory settings to app_settings or backend
-      useToast(t("settings.saveChanges"));
-    },
-    [t],
-  );
+  const handleSave = useCallback(async () => {
+    // TODO: Persist inventory settings to app_settings or backend
+    useToast(t("settings.saveChanges"));
+  }, [t]);
 
   // Show confirmation if negative stock is enabled
   const negativeStockWarning = !allowNegativeStock ? null : (
@@ -65,7 +55,7 @@ export function InventorySettingsScreen() {
     <ScrollView
       contentContainerStyle={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersist="handled"
+      keyboardShouldPersistTaps="handled"
     >
       <ThemedView style={styles.content}>
         <ThemedView style={styles.header}>
@@ -90,7 +80,7 @@ export function InventorySettingsScreen() {
               value={allowNegativeStock}
               onValueChange={handleToggleChange}
               trackColor={{ false: "#e0e0e0", true: "#1B6B3A" }}
-              thumbColor={{ false: "#767676", true: "#FFFFFF" }}
+              thumbColor="#FFFFFF"
             />
           </View>
 
@@ -106,7 +96,9 @@ export function InventorySettingsScreen() {
               keyboardType="numeric"
               value={defaultLowStockThreshold.toString()}
               onChangeText={handleThresholdChange}
-              placeholder={t("inventorySettings.defaultLowStockThresholdPlaceholder")}
+              placeholder={t(
+                "inventorySettings.defaultLowStockThresholdPlaceholder",
+              )}
             />
           </View>
 
