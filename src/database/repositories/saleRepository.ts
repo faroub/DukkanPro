@@ -533,3 +533,11 @@ export async function getSalesByDateRange(
 ): Promise<Sale[]> {
   return await getAll({});
 }
+
+/**
+ - Get a sale by ID, including its sale items.
+ * Alias for getSaleById for backwards compatibility.
+ */
+export async function getById(id: number): Promise<Sale | null> {
+  return await getSaleById(id);
+}

@@ -13,7 +13,7 @@ import {
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
-import { cancel, returnSale as returnSaleFn, getSaleById, getAllSales, search } from '@/database/repositories/saleRepository';
+import { getSaleById, cancel, returnSale as returnSaleFn } from '@/database/repositories/saleRepository';
 import { formatCentimes } from '@/utils/money';
 import { CancelSaleDialog } from '@/features/sales/components/CancelSaleDialog';
 import { ReturnSaleDialog } from '@/features/sales/components/ReturnSaleDialog';
@@ -87,18 +87,24 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
     }
   };
 
-  // Search functionality
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-
-  const performSearch = async (query: string) => {
-    setSearchQuery(query);
-    if (query.trim()) {
-      const results = await search(query);
-      setSearchResults(results);
-    } else {
-      setSearchResults([]);
+  // Open cancel confirmation dialog
+  const openCancelDialog = () => {
+    // Check if sale can be cancelled (must be completed)
+    if (sale?.status !== 'completed') {
+      Alert.alert(t('common.error'), t('sales.cannot_cancel_status', { status: sale?.status }));
+      return;
     }
+    setCancelReason('');
+  };
+
+  // Open return confirmation dialog
+  const openReturnDialog = () => {
+    // Check if sale can be returned (must be completed)
+    if (sale?.status !== 'completed') {
+      Alert.alert(t('common.error'), t('sales.cannot_return_status', { status: sale?.status }));
+      return;
+    }
+    setReturnReason('');
   };
 
   if (!sale) {
@@ -215,17 +221,12 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
         {/* Action buttons - only for completed sales */}
         {sale.status === 'completed' && (
           <View style={{ marginTop: 24, flexDirection: 'row', justifyContent: 'flex-end' }}>
-            <TouchableOpacity style={{ padding: 12, borderRadius: 8, backgroundColor: '#dc3545', marginRight: 8 }}>
+            <TouchableOpacity onPress={openCancelDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: '#dc3545', marginRight: 8 }}>
               <ThemedText type="body" style={{ color: '#fff' }}>
                 {t('sales.cancel_sale')}
               </ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsCancelModalOpen(true)} style={{ padding: 12, borderRadius: 8, backgroundColor: '#6c757d', marginLeft: 8 }}>
-              <ThemedText type="body" style={{ color: '#fff' }}>
-                {t('sales.cancel_sale')}
-              </ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsReturnModalOpen(true)} style={{ padding: 12, borderRadius: 8, backgroundColor: '#1B6B3A', marginLeft: 8 }}>
+            <TouchableOpacity onPress={openReturnDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: '#1B6B3A', marginLeft: 8 }}>
               <ThemedText type="body" style={{ color: '#fff' }}>
                 {t('sales.return_sale')}
               </ThemedText>
