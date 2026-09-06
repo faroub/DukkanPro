@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { ThemedView, ThemedText, TouchableOpacity, View, StyleSheet } from "@/components";
+import { ThemedView, ThemedText } from "@/components";
+import { TouchableOpacity, View, StyleSheet, TextStyle } from "react-native";
 import i18n from "@/localization/i18n";
 import { useTranslation } from "react-i18next";
 import { Spacing, Colors, BorderRadius } from "@/constants/theme";
@@ -68,7 +69,7 @@ export function LanguageSelector({
             accessibilityState={isSelected ? { checked: true } : undefined}
           >
             <View style={styles.optionInner}>
-              <ThemedText style={styles.optionLabel}>
+              <ThemedText style={optionLabelStyle(lang.code)}>
                 {lang.label}
               </ThemedText>
             </View>
@@ -85,6 +86,13 @@ export function LanguageSelector({
     </ThemedView>
   );
 }
+
+const optionLabelStyle = (langCode: string): TextStyle => {
+  if (langCode === "ar") {
+    return { fontSize: 15, textAlign: "right" };
+  }
+  return { fontSize: 15 };
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -117,7 +125,6 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     fontSize: 15,
-    ...(currentLanguage === "ar" ? { textAlign: "right" } : {}),
   },
   optionCheck: {
     width: 24,
@@ -137,3 +144,8 @@ const styles = StyleSheet.create({
 });
 
 export type { LanguageSelectorProps };
+
+interface LanguageSelectorProps {
+  defaultLanguage?: string;
+  onLanguageChange: (language: string) => void;
+}

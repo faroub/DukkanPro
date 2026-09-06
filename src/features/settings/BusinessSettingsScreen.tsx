@@ -181,4 +181,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export type { BusinessSettingsScreenProps };

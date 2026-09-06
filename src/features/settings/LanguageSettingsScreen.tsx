@@ -155,4 +155,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export type { LanguageSettingsScreenProps };

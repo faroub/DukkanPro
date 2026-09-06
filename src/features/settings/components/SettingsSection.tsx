@@ -1,5 +1,6 @@
 import React from "react";
-import { ThemedView, ThemedText, StyleSheet } from "@/components";
+import { ThemedView, ThemedText } from "@/components";
+import { StyleSheet } from "react-native";
 import { Spacing } from "@/constants/theme";
 
 /**
