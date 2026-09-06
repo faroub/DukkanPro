@@ -1,4 +1,4 @@
-import { Image } from "expo-image";
+import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet } from "react-native";
 
 // expo-symbols exports are used via SymbolView in other components
@@ -42,15 +42,22 @@ export function AppHeader({
             accessible
             accessibilityLabel={locale === "ar" ? "Retour" : "Back"}
           >
-            <Image
-              source={require("@/assets/icons/chevron-left.png")}
-              style={[
-                {
-                  width: 20,
-                  height: 20,
-                  transform: [{ rotate: isRtl ? "-90deg" : "90deg" }],
-                },
-              ]}
+            <SymbolView
+              name={
+                isRtl
+                  ? {
+                      ios: "chevron.right",
+                      android: "chevron_right",
+                      web: "chevron_right",
+                    }
+                  : {
+                      ios: "chevron.left",
+                      android: "chevron_left",
+                      web: "chevron_left",
+                    }
+              }
+              size={20}
+              tintColor={theme.text}
             />
           </Pressable>
         )}
