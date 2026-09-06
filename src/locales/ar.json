@@ -147,6 +147,28 @@
     "items": "Articles",
     "close": "Fermer"
   },
+  "catalogue": {
+    "catalogue": "كتالوج",
+    "settings": "إعدادات",
+    "show_prices": "عرض الأسعار",
+    "hide_out_of_stock": "اخفاء المنتجات منتهية الصلاحية",
+    "select_products": "حدد المنتجات",
+    "contact": "الاتصال",
+    "address": "العنوان",
+    "products": "المنتجات",
+    "no_products": "لا توجد منتجات متاحة",
+    "available": "متوفر",
+    "out_of_stock": "حسب الطلب",
+    "share": "مشاركة الكتالوج",
+    "sharing": "مشاركة",
+    "sharing_catalogue": "مشاركة إخراج الكتالوج",
+    "share_failed": "فشل مشاركة الكتالوج",
+    "no_products_available": "لا توجد منتجات متاحة للمشاركة",
+    "selected_items": "المنتجات المحددة",
+    "generated": "مُدرَج",
+    "products_title": "المنتجات:",
+    "close": "إغلاق"
+  },
   "onboarding": {
     "appText": "نص التطبيق",
     "screen": "شاشة",
