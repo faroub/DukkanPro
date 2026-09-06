@@ -334,7 +334,7 @@ export async function returnSale(id: number, reason: string): Promise<void> {
 /**
  - Get a sale by ID, including its sale items.
  */
-export async function getById(id: number): Promise<Sale | null> {
+export async function getSaleById(id: number): Promise<Sale | null> {
   const saleRows: any[] = await executeRead(
     // language=SQLite
     `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
@@ -514,6 +514,14 @@ export async function getTodaySales(): Promise<Sale[]> {
   return await getAll({
     status: "completed",
   });
+}
+
+/**
+ - Get all sales, optionally filtered by status and/or customerId.
+ * Alias for getAll for convenience.
+ */
+export async function getAllSales(filters: SaleFilters = {}): Promise<Sale[]> {
+  return await getAll(filters);
 }
 
 /**
