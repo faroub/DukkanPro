@@ -6,6 +6,8 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
 import { SettingsSection } from "@/features/settings/components/SettingsSection";
+import { ExportButton } from "@/features/settings/components/ExportButton";
+import { DataResetScreen } from "@/features/settings/DataResetScreen";
 
 /**
  * MoreScreen - The "More" tab screen showing all settings sections.
@@ -13,11 +15,12 @@ import { SettingsSection } from "@/features/settings/components/SettingsSection"
  * - Language switching works immediately without reload
  * - Layout remains LTR in all languages
  * - Arabic text may use right alignment inside individual text components
+ * - Does not show Darija (not available in MVP)
  */
 export function MoreScreen() {
   const { t } = useTranslation();
-  const [showResetConfirmation, setShowResetConfirmation] =
-    React.useState(false);
+  const router = useRouter();
+  const [showResetConfirmation, setShowResetConfirmation] = React.useState(false);
 
   const handleLanguageChange = useCallback(
     (language: string) => {
@@ -36,11 +39,13 @@ export function MoreScreen() {
     setShowResetConfirmation(true);
   }, []);
 
-  const confirmDataReset = useCallback(() => {
+  const confirmDataReset = useCallback(async () => {
     // TODO: Implement data reset logic
     // This would clear user data, sales, inventory, etc.
+    // For now, just navigate to the data reset screen
+    router.push("/settings/data-reset");
     setShowResetConfirmation(false);
-  }, []);
+  }, [router]);
 
   const cancelDataReset = useCallback(() => {
     setShowResetConfirmation(false);
@@ -52,67 +57,42 @@ export function MoreScreen() {
       showsVerticalScrollIndicator={false}
     >
       <ThemedView style={styles.content}>
-        {/* Business Profile Section */}
-        <SettingsSection
-          title={t("settings.businessProfile")}
-          description={t("settings.currencyDZD", {
-            currency: t("settings.currencyDisplayOnly"),
-          })}
-        >
-          {/* Business Name */}
-          <View style={styles.settingRow}>
-            <ThemedText style={styles.settingLabel}>
-              {t("settings.businessName")}
-            </ThemedText>
-            <ThemedText style={styles.settingValue} numberOfLines={1}>
-              DUKKAN OS
-            </ThemedText>
-          </View>
+        <ThemedView style={styles.header}>
+          <ThemedText style={styles.headerTitle}>
+            {t("settings.languageTitle")}
+          </ThemedText>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ThemedText style={styles.backButtonText}>{t("back")}</ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
 
-          {/* Owner Name */}
-          <View style={styles.settingRow}>
-            <ThemedText style={styles.settingLabel}>
-              {t("settings.ownerName")}
-            </ThemedText>
-            <ThemedText style={styles.settingValue} numberOfLines={1}>
-              --
-            </ThemedText>
-          </View>
+        <ThemedView style={styles.settingsSection}>
+          <ThemedText style={styles.settingsTitle}>
+            {t("settings.languageDescription")}
+          </ThemedText>
 
-          {/* Business Type */}
-          <View style={styles.settingRow}>
-            <ThemedText style={styles.settingLabel}>
-              {t("settings.businessType")}
-            </ThemedText>
-            <ThemedText style={styles.settingValue} numberOfLines={1}>
-              --
-            </ThemedText>
-          </View>
-
-          {/* Currency display */}
-          <View style={styles.settingRow}>
-            <ThemedText style={styles.settingLabel}>
-              {t("settings.currencyDZD")}
-            </ThemedText>
-            <ThemedText style={styles.settingValue}>
-              {t("settings.currencyDisplayOnly")}
-            </ThemedText>
-          </View>
-        </SettingsSection>
-
-        {/* Language Section */}
-        <SettingsSection
-          title={t("settings.language")}
-          description={t("settings.languageDescription")}
-        >
           <LanguageSelector
             defaultLanguage={i18n.language}
             onLanguageChange={handleLanguageChange}
           />
-        </SettingsSection>
+        </ThemedView>
 
         {/* Inventory Rules Section */}
         <SettingsSection title={t("settings.inventoryRules")}>
+          <ExportButton
+            t={t}
+            onExportTypeSelect={(type) => {
+              // Handle export type selection
+              console.log("Export type selected:", type);
+            }}
+            onPerformExport={() => {
+              // Handle perform export
+              console.log("Perform export");
+            }}
+          />
           {/* TODO: Add inventory rules settings items */}
           <View style={styles.emptyState}>
             <ThemedText style={styles.emptyText}>
@@ -133,19 +113,15 @@ export function MoreScreen() {
 
         {/* Data Export Section */}
         <SettingsSection title={t("settings.dataExport")}>
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() => {
-              // TODO: Implement data export
+          <ExportButton
+            t={t}
+            onExportTypeSelect={(type) => {
+              // Handle export type selection
             }}
-          >
-            <ThemedText style={styles.settingLabel}>
-              {t("settings.dataExport")}
-            </ThemedText>
-            <ThemedText style={styles.settingValue} numberOfLines={1}>
-              Exporter
-            </ThemedText>
-          </TouchableOpacity>
+            onPerformExport={() => {
+              // Handle perform export
+            }}
+          />
         </SettingsSection>
 
         {/* Data Reset Section */}
@@ -191,6 +167,34 @@ const styles = StyleSheet.create({
   },
   content: {
     width: "100%",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  backButton: {
+    padding: 8,
+  },
+  backButtonText: {
+    fontSize: 14,
+    color: "#1B6B3A",
+  },
+  settingsSection: {
+    padding: 24,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  settingsTitle: {
+    fontSize: 16,
+    color: "#333333",
+    marginBottom: 16,
   },
   settingRow: {
     flexDirection: "row",

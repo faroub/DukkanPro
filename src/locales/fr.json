@@ -77,7 +77,7 @@
     "movementIn": "Entrée",
     "movementOut": "Sortie",
     "movementAdjustment": "Ajustement",
-    "reactivateConfirm": "Êtes-vous sûr de vouloir réactiver ce produit ?",
+    "reactivateConfirm": "Êtes-vous sûr de vouloir réactiver this produit ?"
   },
   "catalogue": {
     "catalogue": "Catalogue",
@@ -206,6 +206,44 @@
     "aboutTitle": "À propos de Dukkan OS",
     "aboutDescription": "Application pour micro-entrepreneurs algériens",
     "version": "Version",
-    "copyright": "Copyright © {year} Dukkan OS. Tous droits réservés."
+    "copyright": "Copyright © 2026 Dukkan OS. Tous droits réservés."
+  },
+  "inventorySettings": {
+    "allowNegativeStock": "Autoriser stock négatif",
+    "negativeStockWarning": "Attention : La mise en autorise le stock négatif permet au stock de descendre en dessous de zéro. Cela peut entraîner des comptes d'inventaire inexactes.",
+    "defaultLowStockThreshold": "Seuil de stock minimum par défaut",
+    "defaultLowStockThresholdPlaceholder": "Entrez le seuil (ex. 5)",
+    "negativeStockDisabled": "Stock négatif désactivé",
+    "negativeStockEnabled": "Stock négatif activé"
+  },
+  "exportSettings": {
+    "products": "Produits",
+    "customers": "Clients",
+    "sales": "Ventes",
+    "saleItems": "Articles de vente",
+    "payments": "Règlements clients",
+    "inventoryMovements": "Mouvements de stock",
+    "selectType": "Sélectionner le type",
+    "exportButton": "Exporter",
+    "exportConfirmTitle": "Confirmation d'export",
+    "exportConfirmMessage": 'Vous voulez vraiment exporter les données {exportType} au format CSV ?',
+    "exportedProducts": "Les produits ont été exportés avec succès",
+    "exportedCustomers": "Les clients ont été exportés avec succès",
+    "exportedSales": "Les ventes ont été exportées avec succès",
+    "exportedSaleItems": "Les articles de vente ont été exportés avec succès",
+    "exportedPayments": "Les règlements ont été exportés avec succès",
+    "exportedInventoryMovements": "Les mouvements de stock ont été exportés avec succès",
+    "infoText": "{count} options d'export disponibles",
+    "exportInProgress": "Export en cours..."
+  },
+  "dataReset": {
+    "businessNameConfirmation": "Entrez le nom de votre entreprise pour confirmer la réinitialisation des données",
+    "wrongBusinessName": "Le nom d'entreprise ne correspond pas. Veuillez saisir le nom exact.",
+    "confirmTitle": "Confirmation de réinitialisation",
+    "confirmMessage": "Êtes-vous sûr de vouloir réinitialiser TOUTES vos données ? Cette action ne peut pas être annulée.",
+    "irreversibleWarning": "Cette action supprimera définitivement toutes les données commerciales incluant les produits, les clients, les ventes, les règlements et les mouvements de stock. Cette action ne peut pas être annulée.",
+    "resetData": "Réinitialiser les données",
+    "success": "Toutes les données ont été réinitialisées avec succès.",
+    "error": "Une erreur est survenue lors de la réinitialisation des données."
   }
 }

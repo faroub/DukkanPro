@@ -75,9 +75,7 @@ export function ExportSettingsScreen() {
         })}
         cancelButtonIndex={0}
         cancelButtonTitle={t("common:cancel")}
-        onPress: () => {
-          handlePerformExport();
-        }
+        onPress={handlePerformExport}
       }
     );
   }
@@ -212,11 +210,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 16,
     marginBottom: 8,
+    width: "100%",
   },
   exportButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+    textAlign: "center",
   },
   infoBox: {
     backgroundColor: "#F0FDF4",

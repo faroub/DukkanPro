@@ -33,7 +33,6 @@ export function ResetConfirmation({
       cancelButtonIndex={0}
       cancelButtonTitle={t("common:cancel")}
       onPressCancel={onCancel}
-      [other options...]
     />
   );
 }

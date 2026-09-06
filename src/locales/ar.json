@@ -77,7 +77,7 @@
     "movementIn": "دخول",
     "movementOut": "خروج",
     "movementAdjustment": "تعديل",
-    "reactivateConfirm": "هل تريد إعادة تفعيل this producto؟"
+    "reactivateConfirm": "هل تريد إعادة تفعيل thisProducto ؟"
   },
   "catalogue": {
     "catalogue": "كتالوج",
@@ -172,7 +172,7 @@
     "screen": "شاشة",
     "header": "رأس",
     "title": "مرحباً بك في دkan OS",
-    "subtitle": "تطبيق يساعد التجار الصغار",
+    "subtitle": "تطبيق helps التجار الصغار",
     "description": "سجل المبيعات، تتبع الزبائن، إدارة المخزون",
     "getStarted": "ابدأ",
     "skip": "تخطي"
@@ -182,7 +182,7 @@
     "more": "أكثر",
     "businessProfile": "ملف التعريف التجاري",
     "language": "اللغة",
-    "inventoryRules": "قواعد'inventaire",
+    "inventoryRules": "قواعد inventory",
     "catalogue": "Catalogue",
     "dataExport": "Exportation de données",
     "dataReset": "Réinitialisation des données",
@@ -199,11 +199,49 @@
     "currencyDZD": "DZD",
     "currencyDisplayOnly": "Affichage seulement",
     "saveChanges": "Enregistrer les modifications",
-    "resetDataConfirm": "Êtes-vous sûr de vouloir réinitialiser toutes vos données ? Cette action ne peut pas être annulée.",
+    "resetDataConfirm": "Êtes-vous sûr de vouloir réinitialiser toutes vos البيانات ? Cette action ne peut pas être annulée.",
     "resetData": "Réinitialiser les données",
     "aboutTitle": "À propos de Dukkan OS",
     "aboutDescription": "Application pour micro-entrepreneurs algériens",
     "version": "Version",
-    "copyright": "Copyright © {year} Dukkan OS. Tous droits réservés."
+    "copyright": "Copyright © 2026 Dukkan OS. Tous droits réservés."
+  },
+  "inventorySettings": {
+    "allowNegativeStock": "Allow negative stock",
+    "negativeStockWarning": "تنبيه: تمكين المخزون السلبي يسمح للمخزون بالانخفاض تحت الصفر. This may result in inaccurate inventory counts.",
+    "defaultLowStockThreshold": "الحد الأدنى لدرجة المخزون الافتراضية",
+    "defaultLowStockThresholdPlaceholder": "أدخل الحد (مثال: 5)",
+    "negativeStockDisabled": "المخزون السلبي已被disabled",
+    "negativeStockEnabled": "المخزون السلبي已被enabled"
+  },
+  "exportSettings": {
+    "products": "منتجات",
+    "customers": "عملاء",
+    "sales": "مبيعات",
+    "saleItems": "عناصر المبيعات",
+    "payments": "مدفوعات",
+    "inventoryMovements": "حركات المخزون",
+    "selectType": "حدد نوع",
+    "exportButton": "تصدير",
+    "exportConfirmTitle": "تأكيد التصدير",
+    "exportConfirmMessage": "هل متأكد تريد تصدر بيانات {exportType} كملف CSV؟",
+    "exportedProducts": "تم تصدير المنتجات بنجاح",
+    "exportedCustomers": "تم تصدير العملاء بنجاح",
+    "exportedSales": "تم تصدير المبيعات بنجاح",
+    "exportedSaleItems": "تم تصدير عناصر المبيعات بنجاح",
+    "exportedPayments": "تم تصريف المدفوعات بنجاح",
+    "exportedInventoryMovements": "تم تصدير حركات المخزون بنجاح",
+    "infoText": "{count} خيارات تصدير متاحة",
+    "exportInProgress": "جاري التصدير..."
+  },
+  "dataReset": {
+    "businessNameConfirmation": " أدخل اسم'entreprise لتأكيد إعادة تعيين البيانات",
+    "wrongBusinessName": "اسم الشركة لا يطابق. الرجاء كتابة الاسم بالضبط.",
+    "confirmTitle": "تأكيد إعادة التعيين",
+    "confirmMessage": "هل متأكد تريد reinitialiser TOUTES vos البيانات ؟ These action cannot be undone.",
+    "irreversibleWarning": "هذه الإ Eliminate كل البيانات التجارية بما فيها المنتجات، الزبائن، المبيعات، المدفوعات وحركات المخزون. These action cannot be undone.",
+    "resetData": "إعادة تعيين البيانات",
+    "success": "تم حذف جميع البيانات بنجاح",
+    "error": "حدث خطأ أثناء إعادة تعيين البيانات"
   }
 }
