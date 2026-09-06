@@ -1,8 +1,12 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Checkbox } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { useTranslation } from 'react-i18next';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useTranslation } from "react-i18next";
+import {
+    FlatList,
+    StyleSheet,
+    TouchableOpacity,
+    View
+} from "react-native";
 
 interface ProductSelectorProps {
   products: any[];
@@ -13,7 +17,14 @@ interface ProductSelectorProps {
   showPrices: boolean;
 }
 
-export function ProductSelector({ products, onSelect, onToggleStock, hideOutOfStock, selectedProducts, showPrices }: ProductSelectorProps) {
+export function ProductSelector({
+  products,
+  onSelect,
+  onToggleStock,
+  hideOutOfStock,
+  selectedProducts,
+  showPrices,
+}: ProductSelectorProps) {
   const { t } = useTranslation();
 
   const isSelected = (product: any) =>
@@ -22,7 +33,7 @@ export function ProductSelector({ products, onSelect, onToggleStock, hideOutOfSt
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="body" style={styles.title}>
-        {t('catalogue.products')}
+        {t("catalogue.products")}
       </ThemedText>
 
       <FlatList
@@ -48,7 +59,7 @@ export function ProductSelector({ products, onSelect, onToggleStock, hideOutOfSt
                 ]}
               >
                 <ThemedText type="caption" style={styles.actionButtonText}>
-                  {t('catalogue.select')}
+                  {t("catalogue.select")}
                 </ThemedText>
               </TouchableOpacity>
 
@@ -58,7 +69,9 @@ export function ProductSelector({ products, onSelect, onToggleStock, hideOutOfSt
                   style={styles.actionButton}
                 >
                   <ThemedText type="caption" style={styles.actionButtonText}>
-                    {item.stock > 0 || !hideOutOfStock ? t('catalogue.available') : t('catalogue.out_of_stock')}
+                    {item.stock > 0 || !hideOutOfStock
+                      ? t("catalogue.available")
+                      : t("catalogue.out_of_stock")}
                   </ThemedText>
                 </TouchableOpacity>
               )}
@@ -73,20 +86,20 @@ export function ProductSelector({ products, onSelect, onToggleStock, hideOutOfSt
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: "#fafafa",
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   productItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 12,
     marginBottom: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
   },
   productInfo: {
@@ -94,30 +107,30 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   productCategory: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
   },
   productActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   actionButton: {
     padding: 6,
     paddingHorizontal: 8,
     borderWidth: 1,
-    borderColor: '#1B6B3A',
+    borderColor: "#1B6B3A",
     borderRadius: 4,
-    backgroundColor: '#f0f9f0',
+    backgroundColor: "#f0f9f0",
     marginRight: 4,
   },
   actionButtonSelected: {
-    backgroundColor: '#1B6B3A',
+    backgroundColor: "#1B6B3A",
   },
   actionButtonText: {
-    color: '#1B6B3A',
+    color: "#1B6B3A",
     fontSize: 12,
   },
 });

@@ -1,9 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { useTranslation } from 'react-i18next';
-import { formatCentimes } from '@/utils/money';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { formatCentimes } from "@/utils/money";
+import { useTranslation } from "react-i18next";
+import { FlatList, StyleSheet, View } from "react-native";
 
 interface CataloguePreviewProps {
   products: any[];
@@ -27,13 +26,13 @@ export function CataloguePreview({
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="headline" style={styles.title}>
-        {t('catalogue.catalogue_preview')}
+      <ThemedText type="heading" style={styles.title}>
+        {t("catalogue.catalogue_preview")}
       </ThemedText>
 
       {displayProducts.length === 0 && (
         <ThemedText type="body" style={styles.emptyState}>
-          {t('catalogue.no_products')}
+          {t("catalogue.no_products")}
         </ThemedText>
       )}
 
@@ -47,11 +46,13 @@ export function CataloguePreview({
             </ThemedText>
             {showPrices && (
               <ThemedText type="body" style={styles.productPrice}>
-                {formatCentimes(item.price_centimes)} {t('currency_dzd')}
+                {formatCentimes(item.price_centimes)} {t("currency_dzd")}
               </ThemedText>
             )}
             <ThemedText type="body" style={styles.productAvailability}>
-              {item.stock > 0 ? t('catalogue.available') : t('catalogue.out_of_stock')}
+              {item.stock > 0
+                ? t("catalogue.available")
+                : t("catalogue.out_of_stock")}
             </ThemedText>
           </View>
         )}
@@ -60,10 +61,10 @@ export function CataloguePreview({
       {selectedProductNames.length > 0 && (
         <View style={styles.selectedSummary}>
           <ThemedText type="body" style={styles.summaryLabel}>
-            {t('catalogue.selected_items')}: {selectedProductNames.length}
+            {t("catalogue.selected_items")}: {selectedProductNames.length}
           </ThemedText>
           <ThemedText type="body" style={styles.summaryValue}>
-            {selectedProductNames.join(', ')}
+            {selectedProductNames.join(", ")}
           </ThemedText>
         </View>
       )}
@@ -74,56 +75,56 @@ export function CataloguePreview({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: "#fafafa",
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   productRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 8,
     marginBottom: 4,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 6,
   },
   productName: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   productPrice: {
-    color: '#1B6B3A',
+    color: "#1B6B3A",
     fontSize: 14,
     marginLeft: 8,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   productAvailability: {
-    color: '#6c757d',
+    color: "#6c757d",
     fontSize: 12,
     marginLeft: 8,
   },
   selectedSummary: {
     marginTop: 12,
     padding: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#555',
+    color: "#555",
     marginRight: 8,
   },
   summaryValue: {
     fontSize: 14,
-    color: '#1B6B3A',
+    color: "#1B6B3A",
   },
   emptyState: {
-    textAlign: 'center',
-    color: '#666',
+    textAlign: "center",
+    color: "#666",
     marginTop: 20,
     fontSize: 14,
   },

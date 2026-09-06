@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Switch } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { useTranslation } from 'react-i18next';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, Switch, TouchableOpacity, View } from "react-native";
 
 interface CatalogueSettingsProps {
   onSettingChange: (key: string, value: any) => void;
@@ -14,7 +13,10 @@ interface CatalogueSettingsProps {
   };
 }
 
-export function CatalogueSettings({ onSettingChange, currentSettings }: CatalogueSettingsProps) {
+export function CatalogueSettings({
+  onSettingChange,
+  currentSettings,
+}: CatalogueSettingsProps) {
   const { t } = useTranslation();
 
   const handleToggleChange = (key: string) => {
@@ -23,26 +25,29 @@ export function CatalogueSettings({ onSettingChange, currentSettings }: Catalogu
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="headline" style={styles.title}>
-        {t('catalogue.settings')}
+      <ThemedText type="heading" style={styles.title}>
+        {t("catalogue.settings")}
       </ThemedText>
 
       {/* Show prices toggle */}
       <View style={styles.settingRow}>
         <ThemedText type="body" style={styles.settingLabel}>
-          {t('catalogue.show_prices')}
+          {t("catalogue.show_prices")}
         </ThemedText>
         <ThemedText type="body" style={styles.settingValue}>
-          {currentSettings.showPrices ? t('yes') : t('no')}
+          {currentSettings.showPrices ? t("yes") : t("no")}
         </ThemedText>
       </View>
-      <View style={styles.settingToggle}>
-        <TouchableOpacity onPress={() => handleToggleChange('showPrices')} style={styles.toggleContainer}>
+      <View style={styles.toggleContainer}>
+        <TouchableOpacity
+          onPress={() => handleToggleChange("showPrices")}
+          style={styles.toggleContainer}
+        >
           <Switch
             value={currentSettings.showPrices}
-            onValueChange={() => handleToggleChange('showPrices')}
+            onValueChange={() => handleToggleChange("showPrices")}
             thumbColor="#1B6B3A"
-            trackColor={{ false: '#666', true: '#1B6B3A' }}
+            trackColor={{ false: "#666", true: "#1B6B3A" }}
           />
         </TouchableOpacity>
       </View>
@@ -50,19 +55,22 @@ export function CatalogueSettings({ onSettingChange, currentSettings }: Catalogu
       {/* Hide out-of-stock toggle */}
       <View style={styles.settingRow}>
         <ThemedText type="body" style={styles.settingLabel}>
-          {t('catalogue.hide_out_of_stock')}
+          {t("catalogue.hide_out_of_stock")}
         </ThemedText>
         <ThemedText type="body" style={styles.settingValue}>
-          {currentSettings.hideOutOfStock ? t('yes') : t('no')}
+          {currentSettings.hideOutOfStock ? t("yes") : t("no")}
         </ThemedText>
       </View>
-      <View style={styles.settingToggle}>
-        <TouchableOpacity onPress={() => handleToggleChange('hideOutOfStock')} style={styles.toggleContainer}>
+      <View style={styles.toggleContainer}>
+        <TouchableOpacity
+          onPress={() => handleToggleChange("hideOutOfStock")}
+          style={styles.toggleContainer}
+        >
           <Switch
             value={currentSettings.hideOutOfStock}
-            onValueChange={() => handleToggleChange('hideOutOfStock')}
+            onValueChange={() => handleToggleChange("hideOutOfStock")}
             thumbColor="#1B6B3A"
-            trackColor={{ false: '#666', true: '#1B6B3A' }}
+            trackColor={{ false: "#666", true: "#1B6B3A" }}
           />
         </TouchableOpacity>
       </View>
@@ -70,20 +78,20 @@ export function CatalogueSettings({ onSettingChange, currentSettings }: Catalogu
       {/* Contact field */}
       <View style={styles.settingRow}>
         <ThemedText type="body" style={styles.settingLabel}>
-          {t('catalogue.contact')}
+          {t("catalogue.contact")}
         </ThemedText>
         <ThemedText type="body" style={styles.settingValue} numberOfLines={1}>
-          {currentSettings.contact || t('catalogue.not_set')}
+          {currentSettings.contact || t("catalogue.not_set")}
         </ThemedText>
       </View>
 
       {/* Address field */}
       <View style={styles.settingRow}>
         <ThemedText type="body" style={styles.settingLabel}>
-          {t('catalogue.address')}
+          {t("catalogue.address")}
         </ThemedText>
         <ThemedText type="body" style={styles.settingValue} numberOfLines={1}>
-          {currentSettings.address || t('catalogue.not_set')}
+          {currentSettings.address || t("catalogue.not_set")}
         </ThemedText>
       </View>
     </ThemedView>
@@ -93,34 +101,34 @@ export function CatalogueSettings({ onSettingChange, currentSettings }: Catalogu
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: "#fafafa",
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   settingLabel: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   settingValue: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   toggleContainer: {
     padding: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 20,
     width: 50,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

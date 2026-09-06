@@ -1,7 +1,5 @@
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import * as Print from 'expo-print';
-import { formatCentimes } from '@/utils/money';
+import { formatCentimes } from "@/utils/money";
+import * as Print from "expo-print";
 
 export interface CatalogueExportOptions {
   showPrices: boolean;
@@ -18,45 +16,51 @@ export interface CatalogueProduct {
   stock: number;
 }
 
+type CatalogueExportResult =
+  | { type: "pdf"; uri: string }
+  | { type: "text"; text: string };
+
 export async function exportCataloguePDF(
   options: CatalogueExportOptions,
-  t: (key: string) => string
-): Promise<{ type: 'pdf' | 'text'; uri?: string; text?: string }> {
-  const {
-    showPrices,
-    hideOutOfStock,
-    contact,
-    address,
-  } = options;
+  t: (key: string) => string,
+): Promise<CatalogueExportResult> {
+  const { showPrices, hideOutOfStock, contact, address } = options;
 
   // Availability translations keys (will be resolved by caller)
-  const availabilityKeys = {
-    available: 'catalogue.available',
-    out_of_stock: 'catalogue.out_of_stock',
-  };
-
   // Sample products - in full implementation, these come from database
   const sampleProducts: CatalogueProduct[] = [
-    { id: 1, name: 'Wheat Bread', category: 'Bakery', price_centimes: 500, stock: 10 },
-    { id: 2, name: 'Milk', category: 'Dairy', price_centimes: 300, stock: 0 },
-    { id: 3, name: 'Olive Oil', category: 'Oils', price_centimes: 800, stock: 5 },
-    { id: 4, name: 'Cheese', category: 'Dairy', price_centimes: 700, stock: 0 },
+    {
+      id: 1,
+      name: "Wheat Bread",
+      category: "Bakery",
+      price_centimes: 500,
+      stock: 10,
+    },
+    { id: 2, name: "Milk", category: "Dairy", price_centimes: 300, stock: 0 },
+    {
+      id: 3,
+      name: "Olive Oil",
+      category: "Oils",
+      price_centimes: 800,
+      stock: 5,
+    },
+    { id: 4, name: "Cheese", category: "Dairy", price_centimes: 700, stock: 0 },
   ];
 
   const lines: string[] = [];
 
   // Header
-  lines.push('Dukkan OS Catalogue');
-  lines.push('');
+  lines.push("Dukkan OS Catalogue");
+  lines.push("");
 
   // Contact and address
-  lines.push('Contact: ' + contact);
-  lines.push('Address: ' + address);
-  lines.push('');
+  lines.push("Contact: " + contact);
+  lines.push("Address: " + address);
+  lines.push("");
 
   // Products
-  lines.push('Products:');
-  lines.push('');
+  lines.push("Products:");
+  lines.push("");
 
   let hasProducts = false;
 
@@ -65,38 +69,43 @@ export async function exportCataloguePDF(
     if (hideOutOfStock && product.stock <= 0) continue;
     hasProducts = true;
 
-    const availabilityKey = product.stock > 0 ? 'available' : 'out_of_stock';
+    const availabilityKey = product.stock > 0 ? "available" : "out_of_stock";
 
     const priceLine = showPrices
-      ? 'Price: ' + formatCentimes(product.price_centimes) + ' DZD'
-      : '';
+      ? "Price: " + formatCentimes(product.price_centimes) + " DZD"
+      : "";
 
-    lines.push('• ' + product.name + ' (' + (product.category || '') + ')');
-    lines.push('  ' + availabilityKey + ': ' + availabilityKeys[availabilityKey]);
-    lines.push('  ' + priceLine);
-    lines.push('');
+    lines.push("• " + product.name + " (" + (product.category || "") + ")");
+    lines.push(
+      "  " +
+        t("catalogue." + availabilityKey) +
+        ": " +
+        t("catalogue." + availabilityKey),
+    );
+    lines.push("  " + priceLine);
+    lines.push("");
   }
 
   if (!hasProducts) {
-    lines.push('No products available');
-    lines.push('');
+    lines.push("No products available");
+    lines.push("");
   }
 
   // Footer
-  lines.push('---');
-  lines.push('Generated: ' + new Date().toLocaleDateString());
+  lines.push("---");
+  lines.push("Generated: " + new Date().toLocaleDateString());
 
   // Try to generate PDF
   try {
-    const { uri } = await Print.printToPDF({
-      body: lines.join('\n'),
-      title: 'Dukkan OS Catalogue',
+    const html = `<html><body><pre>${lines.join("\n")}</pre></body></html>`;
+    const { uri } = await Print.printToFileAsync({
+      html,
     });
 
-    return { type: 'pdf', uri };
+    return { type: "pdf", uri };
   } catch (pdfError) {
     // PDF generation failed - return text fallback
-    const text = lines.join('\n');
-    return { type: 'text', text };
+    const text = lines.join("\n");
+    return { type: "text", text };
   }
 }
