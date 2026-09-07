@@ -13,6 +13,7 @@ import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
 import { getSalesByDateRange, getAllSales, search } from '@/database/repositories/saleRepository';
 import { SaleFilterTabs } from '@/features/sales/components/SaleFilterTabs';
+import { Colors } from '@/constants/theme';
 import { SaleCard } from '@/features/sales/components/SaleCard';
 import { formatCentimes } from '@/utils/money';
 

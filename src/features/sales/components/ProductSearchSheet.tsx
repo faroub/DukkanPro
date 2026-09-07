@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, Pressable, Modal } from 'react-native';
+import { View, Text, FlatList, Pressable, Modal, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatCentimes } from '@/utils/money';
+import { Colors } from '@/constants/theme';
 import { SearchInput } from '@/components/ui/SearchInput';
 
 type Product = {
@@ -101,27 +102,27 @@ export function ProductSearchSheet({
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   item: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 12,
     borderBottomWidth: 1,
-    borderColor: '#eee' as const,
-  } as const,
+    borderColor: '#eee',
+  },
   name: {
-    fontSize: 16 as const,
-    fontWeight: '600' as const,
-  } as const,
+    fontSize: 16,
+    fontWeight: '600',
+  },
   sku: {
-    fontSize: 12 as const,
-    color: Colors.light.textSecondary as const,
-    marginTop: 4 as const,
-  } as const,
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+    marginTop: 4,
+  },
   price: {
-    marginLeft: 12 as const,
-    fontSize: 16 as const,
-    fontWeight: '600' as const,
-    color: '#28a745' as const,
-  } as const,
-};
+    marginLeft: 12,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#28a745',
+  },
+});

@@ -19,8 +19,8 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
   ];
 
   // Compute tab styles based on activeFilter
-  const tabBackgroundColor = activeFilter === undefined ? Colors.light.surface : Colors.light.surface,
-  const tabTextColor = activeFilter === undefined ? Colors.light.textPrimary : Colors.light.textOnSurface,
+  const tabBackgroundColor = activeFilter === undefined ? Colors.light.surface : Colors.light.surface;
+  const tabTextColor = activeFilter === undefined ? Colors.light.textPrimary : Colors.light.textPrimary;
   const tabFontWeight = activeFilter === undefined ? '500' : '600';
 
   const activeTabStyle = {

@@ -5,6 +5,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useTranslation } from "react-i18next";
 import { useCartStoreHook } from "@/stores/cartStore";
 import { formatCentimes } from "@/utils/money";
+import { Colors } from "@/constants/theme";
 import { validateSale } from "@/services/sales/saleService";
 
 interface SaleConfirmationProps {

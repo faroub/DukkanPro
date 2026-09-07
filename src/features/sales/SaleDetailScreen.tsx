@@ -13,6 +13,7 @@ import {
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
+import { Colors } from '@/constants/theme';
 import { getSaleById, cancel, returnSale as returnSaleFn } from '@/database/repositories/saleRepository';
 import { formatCentimes } from '@/utils/money';
 import { CancelSaleDialog } from '@/features/sales/components/CancelSaleDialog';
@@ -273,7 +274,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   statusBadgeCompleted: {
-    backgroundColor: Colors.light.success,
+    backgroundColor: Colors.light.positive,
     color: Colors.light.destructive,
   },
   statusBadgeCancelled: {

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import { cancel } from '@/database/repositories/saleRepository';
 import { formatCentimes } from '@/utils/money';
+import { Colors } from '@/constants/theme';
 
 interface CancelSaleDialogProps {
   visible: boolean;
