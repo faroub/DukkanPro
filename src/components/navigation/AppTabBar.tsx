@@ -1,83 +1,141 @@
-import { StyleSheet, ScrollView, TextStyle, ViewStyle } from 'react-native';
-import { TouchableOpacity } from 'react-native';
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { SymbolView } from "expo-symbols";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useTranslation } from 'react-i18next';
+import { Colors, ComponentDimensions, Typography } from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 
-type TabKey = 'home' | 'sell' | 'products' | 'customers' | 'more';
-
-const tabKeys: TabKey[] = ['home', 'sell', 'products', 'customers', 'more'];
-
-const TabConfig = {
-  home: { label: 'tabs.home' },
-  sell: { label: 'tabs.sell' },
-  products: { label: 'tabs.products' },
-  customers: { label: 'tabs.customers' },
-  more: { label: 'tabs.more' },
-} as const;
-
-export interface AppTabBarProps {
-  navigation: any;
-  state: any;
-  descriptors: any;
+interface TabItemDef {
+  routeName: string;
+  labelKey: string;
+  symbol: {
+    ios: string;
+    android: string;
+    web: string;
+  };
 }
 
-export function AppTabBar({ navigation, state, descriptors }: AppTabBarProps) {
+const TABS: TabItemDef[] = [
+  {
+    routeName: "index",
+    labelKey: "tabs.home",
+    symbol: { ios: "house.fill", android: "home", web: "home" },
+  },
+  {
+    routeName: "sell",
+    labelKey: "tabs.sell",
+    symbol: { ios: "cart.fill", android: "shopping_cart", web: "shopping_cart" },
+  },
+  {
+    routeName: "products",
+    labelKey: "tabs.products",
+    symbol: { ios: "shippingbox.fill", android: "inventory_2", web: "inventory_2" },
+  },
+  {
+    routeName: "customers",
+    labelKey: "tabs.customers",
+    symbol: { ios: "person.2.fill", android: "group", web: "group" },
+  },
+  {
+    routeName: "more",
+    labelKey: "tabs.more",
+    symbol: { ios: "ellipsis.circle.fill", android: "more_horiz", web: "more_horiz" },
+  },
+];
+
+export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView
-      horizontal
-      pagingEnabled
-      showsHorizontalScrollIndicator={false}
+    <View
+      style={[
+        styles.container,
+        {
+          paddingBottom: Math.max(insets.bottom, 4),
+          height: ComponentDimensions.tabBarHeight + Math.max(insets.bottom, 0),
+        },
+      ]}
     >
-      {tabKeys.map((key) => {
-        const isFocused = state.index === tabKeys.indexOf(key);
+      {TABS.map((tab) => {
+        const routeIndex = state.routes.findIndex((r) => r.name === tab.routeName);
+        const isFocused = state.index === routeIndex;
+        const color = isFocused ? Colors.light.primary : Colors.light.textSecondary;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: "tabPress",
+            target: state.routes[routeIndex]?.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(tab.routeName);
+          }
+        };
 
         return (
-          <TouchableOpacity
-            key={key}
+          <Pressable
+            key={tab.routeName}
+            onPress={onPress}
             style={styles.tab}
+            accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : { selected: false }}
-            accessibilityLabel={t(TabConfig[key as keyof typeof TabConfig].label)}
-            onPress={() => navigation?.navigate(key)}
+            accessibilityLabel={t(tab.labelKey)}
           >
-            <ThemedView style={styles.iconContainer}>
-              <ThemedText type="small" style={styles.icon}>
-                {/* Icon will be rendered based on tab key */}
-              </ThemedText>
-            </ThemedView>
-
-            <ThemedText style={styles.label}>
-              {t(TabConfig[key as keyof typeof TabConfig].label)}
-            </ThemedText>
-          </TouchableOpacity>
+            <View style={styles.iconContainer}>
+              <SymbolView
+                name={tab.symbol}
+                size={22}
+                tintColor={color}
+              />
+            </View>
+            <Text
+              style={[
+                styles.label,
+                {
+                  color,
+                  fontWeight: isFocused ? "600" : "500",
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {t(tab.labelKey)}
+            </Text>
+          </Pressable>
         );
       })}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    backgroundColor: Colors.light.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.border,
+    alignItems: "center",
+    justifyContent: "space-around",
+  },
   tab: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-  } as ViewStyle,
+    height: ComponentDimensions.tabBarHeight,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 4,
+  },
   iconContainer: {
     width: 24,
     height: 24,
-    marginBottom: 4,
-  } as ViewStyle,
-  icon: {
-    fontSize: 20,
-    color: '#1B6B3A',
-  } as TextStyle,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
+  },
   label: {
-    fontSize: 10,
-    fontWeight: 500,
-    textAlign: 'center',
-  } as TextStyle,
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: "center",
+  },
 });
