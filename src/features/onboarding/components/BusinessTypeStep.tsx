@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Spacing } from '@/constants/theme';
@@ -78,7 +78,7 @@ export function BusinessTypeStep({
       <ThemedView style={styles.contentPadding}>
         {/* Step indicator & Progress */}
         <View style={styles.progress}>
-          <View style={styles.progressDotActive} />
+          <View style={styles.progressDotActive as any} />
           <View style={styles.progressDotInactive} />
           <View style={styles.progressDotInactive} />
         </View>
@@ -90,7 +90,7 @@ export function BusinessTypeStep({
 
         {/* Header Text */}
         <View style={styles.header}>
-          <ThemedText type="headline-1" style={styles.title}>
+          <ThemedText type="heading" style={styles.title}>
             {t('businessTypeStep.title')}
           </ThemedText>
           <ThemedText type="body" style={styles.subtitle}>
@@ -99,9 +99,9 @@ export function BusinessTypeStep({
         </View>
 
         {/* Business Type Options */}
-        <View style={styles.optionsContainer} ariaLabel="Business Category Selection" role="radiogroup">
+        <View style={styles.optionsContainer} aria-label="Business Category Selection" role="radiogroup">
           {businessTypes.map((type, index) => (
-            <View
+            <TouchableWithoutFeedback
               key={type.value}
               style={styles.optionCard}
               role="radio"
@@ -119,7 +119,7 @@ export function BusinessTypeStep({
               <View style={styles.checkPill}>
                 <SvgIcon name="check" size={18} />
               </View>
-            </View>
+            </TouchableWithoutFeedback>
           ))}
         </View>
 
@@ -152,126 +152,6 @@ export function BusinessTypeStep({
   );
 };
 
-const progressDotActiveStyle = {
-  width: 24,
-  height: 24,
-  borderRadius: 12,
-  backgroundColor: '#1B6B3A',
-};
-
-const progressDotInactiveStyle = {
-  width: 24,
-  height: 24,
-  borderRadius: 12,
-  backgroundColor: '#CCCCCC',
-};
-
-const stepDotActiveStyle = {
-  width: 12,
-  height: 12,
-  borderRadius: 6,
-  backgroundColor: '#1B6B3A',
-};
-
-const stepLabelStyle = {
-  fontSize: 12,
-  fontWeight: 600,
-  color: '#6B7280',
-  textTransform: 'uppercase',
-};
-
-const titleStyle = {
-  fontSize: 22,
-  fontWeight: 600,
-  color: '#1A1A1A',
-  marginBottom: 4,
-  textAlign: 'center',
-};
-
-const subtitleStyle = {
-  fontSize: 14,
-  color: '#6B7280',
-  textAlign: 'center',
-};
-
-const optionCardStyle = {
-  width: '100%',
-  borderRadius: 16,
-  padding: 20,
-  backgroundColor: '#FFFFFF',
-  marginBottom: 12,
-};
-
-const iconBubbleStyle = {
-  width: 44,
-  height: 44,
-  borderRadius: 22,
-  backgroundColor: '#F8F7F4',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: 12,
-};
-
-const checkPillStyle = {
-  width: 24,
-  height: 24,
-  borderRadius: 12,
-  backgroundColor: '#F0EFEA',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const microDelightStyle = {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 8,
-  marginBottom: 24,
-  padding: 12,
-  backgroundColor: '#F8F7F4',
-  borderRadius: 12,
-};
-
-const microDelightTextStyle = {
-  fontSize: 12,
-  color: '#6B7280',
-};
-
-const ctaContainerStyle = {
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 12,
-  paddingHorizontal: Spacing.lg,
-  paddingBottom: Spacing.xxl,
-};
-
-const continueBtnStyle = {
-  height: 48,
-  borderRadius: 12,
-  backgroundColor: '#1B6B3A',
-  color: '#FFFFFF',
-  fontSize: 16,
-  fontWeight: 600,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-};
-
-const backBtnStyle = {
-  height: 40,
-  borderRadius: 10,
-  backgroundColor: 'transparent',
-  color: '#6B7280',
-  fontSize: 14,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -291,46 +171,134 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.lg,
   },
-  progressDotActive: progressDotActiveStyle,
-  progressDotInactive: progressDotInactiveStyle,
+  progressDotActive: {
+    width: 32,
+    height: 4,
+    backgroundColor: '#1B6B3A',
+    borderRadius: 2,
+    marginHorizontal: 4,
+  },
+  progressDotInactive: {
+    width: 32,
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    marginHorizontal: 4,
+  },
   stepIndicator: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     marginBottom: Spacing.lg,
   },
-  stepDotActive: stepDotActiveStyle,
-  stepLabel: stepLabelStyle,
+  stepDotActive: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#1B6B3A',
+  },
+  stepLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+  },
   header: {
     width: '100%',
     marginBottom: Spacing.md,
   },
-  title: titleStyle,
-  subtitle: subtitleStyle,
+  title: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
   optionsContainer: {
     width: '100%',
     gap: Spacing.sm,
   },
-  optionCard: optionCardStyle,
-  iconBubble: iconBubbleStyle,
+  optionCard: {
+    width: '100%',
+    borderRadius: 16,
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 12,
+  },
+  iconBubble: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F8F7F4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
   optionText: {
-    display: 'flex',
     flexDirection: 'column',
     gap: 2,
   },
   optionName: {
     fontSize: 18,
-    fontWeight: 600,
+    fontWeight: '600',
     color: '#1A1A1A',
   },
   optionCaption: {
     fontSize: 12,
     color: '#6B7280',
   },
-  checkPill: checkPillStyle,
-  microDelight: microDelightStyle,
-  microDelightText: microDelightTextStyle,
-  ctaContainer: ctaContainerStyle,
-  continueBtn: continueBtnStyle,
-  backBtn: backBtnStyle,
+  checkPill: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#F0EFEA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  microDelight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+    padding: 12,
+    backgroundColor: '#F8F7F4',
+    borderRadius: 12,
+  },
+  microDelightText: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  ctaContainer: {
+    width: '100%',
+    flexDirection: 'column',
+    gap: 12,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+  },
+  continueBtn: {
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#1B6B3A',
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  backBtn: {
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: 'transparent',
+    color: '#6B7280',
+    fontSize: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
 });
