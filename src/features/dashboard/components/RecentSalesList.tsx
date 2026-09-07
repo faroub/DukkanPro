@@ -114,6 +114,6 @@ const styles = StyleSheet.create({
   },
   saleDate: {
     fontSize: 12,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
 });

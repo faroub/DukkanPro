@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 2,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: Colors.light.borderLight,
   },
   tabActive: {
     flex: 1,

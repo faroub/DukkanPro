@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: Colors.light.border,
   },
   optionInner: {
     flex: 1,

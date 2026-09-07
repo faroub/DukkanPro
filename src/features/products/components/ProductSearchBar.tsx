@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     backgroundColor: "#FFFFFF",
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#E5E5E5",
+    borderColor: Colors.light.border,
     borderRadius: 8,
     paddingHorizontal: Spacing.md,
     elevation: 1,

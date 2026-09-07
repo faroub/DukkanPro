@@ -87,7 +87,7 @@ export default function ProductDetailScreen() {
                 };
                 loadInventory();
               }}
-              tintColor="#6B7280"
+              tintColor={Colors.light.textSecondary}
             />
           }
           style={styles.scroll}
@@ -116,7 +116,7 @@ export default function ProductDetailScreen() {
               };
               loadInventory();
             }}
-            tintColor="#6B7280"
+            tintColor={Colors.light.textSecondary}
           />
         }
         style={styles.scroll}
@@ -244,14 +244,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   placeholder: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   inventoryList: {
     marginTop: 16,
@@ -262,12 +262,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: Colors.light.border,
     backgroundColor: 'white',
   },
   inventoryType: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   inventoryQty: {
     fontSize: 12,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   },
   inventoryNote: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginHorizontal: 4,
   },
   inventoryDate: {

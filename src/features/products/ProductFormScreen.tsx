@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginBottom: 24,
     textAlign: "center",
   },
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 10,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginTop: 4,
   },
   emptyState: {
@@ -571,15 +571,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 40,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
   adjustmentSection: {
     marginVertical: 20,
     paddingVertical: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#E5E5E5",
+    borderTopColor: Colors.light.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E5E5",
+    borderBottomColor: Colors.light.border,
   },
   sectionTitle: {
     fontSize: 16,
@@ -609,20 +609,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   emptyText: {
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
   form: {
     padding: 24,
   },
   cancelText: {
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
   archiveText: {
     color: "#B91C1C",
   },
   archiveButton: {
     padding: 8,
-    backgroundColor: "#E5E5E5",
+    backgroundColor: Colors.light.surface,
     borderRadius: 8,
   },
   loadingView: {
@@ -633,6 +633,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
 });
