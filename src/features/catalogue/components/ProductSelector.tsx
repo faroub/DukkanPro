@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontSize: 14,
-    color: "#333",
+    color: Colors.light.textPrimary,
   },
   productCategory: {
     fontSize: 12,

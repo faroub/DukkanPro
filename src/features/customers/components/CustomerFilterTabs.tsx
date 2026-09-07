@@ -18,7 +18,7 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
   ];
 
   // Compute tab styles based on activeFilter
-  const tabBackgroundColor = activeFilter === undefined ? '#fff' : '#F3F4F6';
+  const tabBackgroundColor = activeFilter === undefined ? Colors.light.surface : Colors.light.surface,
   const tabTextColor = activeFilter === undefined ? Colors.light.textPrimary : Colors.light.textOnSurface,
   const tabFontWeight = activeFilter === undefined ? '500' : '600';
 
@@ -39,7 +39,7 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
         >
           <ThemedText style={[
             styles.tabText,
-            { color: activeFilter === filter.value ? '#fff' : tabTextColor,
+            { color: activeFilter === filter.value ? Colors.light.textPrimary : tabTextColor,
               fontWeight: activeFilter === filter.value ? '600' : tabFontWeight,
             }]}
           >

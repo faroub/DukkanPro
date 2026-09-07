@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontSize: 14,
-    color: "#333333",
+    color: Colors.light.textPrimary,
     marginBottom: 8,
   },
   formInput: {
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 16,
     fontSize: 16,
-    backgroundColor: "#F9F9F9",
+    backgroundColor: Colors.light.surface,
   },
   warningBox: {
     backgroundColor: "#FFF3E0",

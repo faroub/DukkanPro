@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 14,
-    color: "#333",
+    color: Colors.light.textPrimary,
   },
   settingValue: {
     fontSize: 14,

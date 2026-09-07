@@ -80,6 +80,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   tabLabelActive: {
-    color: '#fff',
+    color: Colors.light.textPrimary,
   },
 });

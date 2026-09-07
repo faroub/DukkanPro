@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   totalCardLabel: {
     ...Typography.caption,
     fontSize: 11,
-    color: "#A5F4B6",
+    color: Colors.light.primary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#F4FAF6",
+    backgroundColor: Colors.light.surface,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,

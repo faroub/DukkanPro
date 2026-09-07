@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
   },
   addPaymentText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontWeight: '600',
     fontSize: 14,
   },

@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.destructive,
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontSize: 14,
     fontWeight: 500,
   },
