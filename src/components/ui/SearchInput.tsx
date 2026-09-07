@@ -1,5 +1,12 @@
 import { SymbolView } from "expo-symbols";
-import { StyleSheet, TextInput, type TextInputProps, View } from "react-native";
+import {
+  StyleProp,
+  StyleSheet,
+  TextInput,
+  type TextInputProps,
+  View,
+  ViewStyle,
+} from "react-native";
 
 import { ThemedView } from "@/components/themed-view";
 import {
@@ -14,17 +21,19 @@ export interface SearchInputProps extends TextInputProps {
   placeholder: string;
   onSearch?: () => void;
   locale?: "ar" | "fr" | "en";
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export function SearchInput({
   placeholder,
   onSearch,
   locale = "fr",
+  containerStyle,
   style,
   ...rest
 }: SearchInputProps) {
   return (
-    <ThemedView style={[styles.container, style]}>
+    <ThemedView style={[styles.container, containerStyle]}>
       <View style={styles.iconWrapper}>
         <SymbolView
           name={{
@@ -37,7 +46,7 @@ export function SearchInput({
         />
       </View>
       <TextInput
-        style={styles.input}
+        style={[styles.input, style]}
         placeholder={placeholder}
         placeholderTextColor={Colors.light.textMuted}
         onSubmitEditing={onSearch}

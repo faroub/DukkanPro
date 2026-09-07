@@ -50,9 +50,17 @@ function toArabicIndicNumerals(text: string): string {
  */
 export function formatCentimes(
   centimes: number,
-  locale: "ar-DZ" | "fr-DZ" | "en-DZ" = "fr-DZ",
+  localeInput: "ar-DZ" | "fr-DZ" | "en-DZ" | "ar" | "fr" | "en" = "fr-DZ",
 ): string {
   const dinars = centimes / CENTIMES_PER_DINAR;
+  const locale =
+    localeInput === "ar"
+      ? "ar-DZ"
+      : localeInput === "fr"
+        ? "fr-DZ"
+        : localeInput === "en"
+          ? "en-DZ"
+          : localeInput;
 
   switch (locale) {
     case "ar-DZ":

@@ -1,18 +1,29 @@
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Colors, ComponentDimensions, Typography } from "@/constants/theme";
+import { Colors, ComponentDimensions } from "@/constants/theme";
 import { useTranslation } from "react-i18next";
+
+export interface AppTabBarProps {
+  state: {
+    index: number;
+    routes: Array<{ key: string; name: string }>;
+  };
+  descriptors?: any;
+  navigation: {
+    emit: (event: any) => any;
+    navigate: (name: string) => void;
+  };
+}
 
 interface TabItemDef {
   routeName: string;
   labelKey: string;
   symbol: {
-    ios: string;
-    android: string;
-    web: string;
+    ios: any;
+    android: any;
+    web: any;
   };
 }
 
@@ -44,7 +55,7 @@ const TABS: TabItemDef[] = [
   },
 ];
 
-export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -59,7 +70,7 @@ export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps)
       ]}
     >
       {TABS.map((tab) => {
-        const routeIndex = state.routes.findIndex((r) => r.name === tab.routeName);
+        const routeIndex = state.routes.findIndex((r: { name: string }) => r.name === tab.routeName);
         const isFocused = state.index === routeIndex;
         const color = isFocused ? Colors.light.primary : Colors.light.textSecondary;
 
@@ -86,7 +97,7 @@ export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps)
           >
             <View style={styles.iconContainer}>
               <SymbolView
-                name={tab.symbol}
+                name={tab.symbol as any}
                 size={22}
                 tintColor={color}
               />
