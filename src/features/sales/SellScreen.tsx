@@ -15,7 +15,7 @@ import { useCartStoreHook } from "@/stores/cartStore";
 import { formatCentimes } from "@/utils/money";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FlatList, Modal, Pressable, View } from "react-native";
+import { Alert, FlatList, Modal, Pressable, View } from "react-native";
 
 export default function SellScreen() {
   const { t } = useTranslation();
