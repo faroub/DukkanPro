@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
+import { Colors, BorderRadius, Spacing, Shadows } from '@/constants/theme';
 import { useTranslation } from 'react-i18next';
 
 interface ProductCardProps {

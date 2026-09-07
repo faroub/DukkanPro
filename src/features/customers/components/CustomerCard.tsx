@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from "react-i18next";
 import { formatCentimes } from "@/utils/money";
 import { ThemedText } from "@/components/themed-text";
+import { Colors, BorderRadius, Spacing, Shadows } from "@/constants/theme";
 
 interface CustomerCardProps {
   customer: {

@@ -1,6 +1,7 @@
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
 import { getTextAlignment } from "@/utils/text";
 
 interface QuickActionsProps {

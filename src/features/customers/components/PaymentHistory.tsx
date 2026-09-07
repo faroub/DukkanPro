@@ -1,5 +1,5 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Typography } from "@/constants/theme";
+import { Typography, Colors, BorderRadius, Spacing } from "@/constants/theme";
 import { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import { ThemedView } from "@/components/themed-view";

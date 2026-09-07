@@ -1,6 +1,7 @@
 import { View, StyleSheet, Text, ScrollView } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
 import { getTextAlignment } from "@/utils/text";
 

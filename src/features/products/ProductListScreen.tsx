@@ -1,6 +1,6 @@
 import { ProductRow } from "@/components/products/ProductRow";
 import { ThemedText } from "@/components/themed-text";
-import { Typography } from "@/constants/theme";
+import { Colors, Typography } from "@/constants/theme";
 import { ProductFilterTabs } from "@/features/products/components/ProductFilterTabs";
 import { ProductSearchBar } from "@/features/products/components/ProductSearchBar";
 import { useProducts } from "@/hooks/useProducts";

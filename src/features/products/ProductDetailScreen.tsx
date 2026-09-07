@@ -1,5 +1,6 @@
 import { useRoute } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Colors } from '@/constants/theme';
 import { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';

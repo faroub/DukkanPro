@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import { formatCentimes } from "@/utils/money";
+import { Colors } from "@/constants/theme";
 import { recordPayment, canRecordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
 
 interface RecordPaymentSheetProps {

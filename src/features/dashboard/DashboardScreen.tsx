@@ -15,6 +15,7 @@ import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
 
 import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
 import { GreetingCard } from "@/features/dashboard/components/GreetingCard";
 import { LowStockList } from "@/features/dashboard/components/LowStockList";
 import { QuickActions } from "@/features/dashboard/components/QuickActions";
