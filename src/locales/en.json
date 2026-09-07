@@ -279,6 +279,65 @@
     "aboutTitle": "About Dukkan OS",
     "aboutDescription": "App for Algerian micro-entrepreneurs",
     "version": "Version",
+    "copyright": "Copyright © 2026 Dukkan OS. All rights reserved."
+  }
+  "businessNameStep": {
+    "title": "Your business name",
+    "subtitle": "Let's start with the name of your business",
+    "label": "Business name",
+    "placeholder": "Enter your business name"
+  },
+  "ownerNameStep": {
+    "title": "Your name",
+    "subtitle": "What should we call you?",
+    "label": "Owner name",
+    "placeholder": "Enter your name"
+  },
+  "businessTypeStep": {
+    "title": "Business type",
+    "subtitle": "Choose the type that best matches your business",
+    "grocery": "Grocery shop",
+    "bakery": "Bakery",
+    "instagram seller": "Instagram seller",
+    "market vendor": "Market vendor",
+    "service seller": "Service seller",
+    "other": "Other"
+  },
+  "languageStep": {
+    "title": "Choose your language",
+    "subtitle": "You can change it later",
+    "note": "The app structure remains left to right.",
+    "ar": "Arabic",
+    "fr": "French",
+    "en": "English"
+  },
+  "settings": {
+    "title": "Settings",
+    "more": "More",
+    "businessProfile": "Business Profile",
+    "language": "Language",
+    "inventoryRules": "Inventory Rules",
+    "catalogue": "Catalogue",
+    "dataExport": "Data Export",
+    "dataReset": "Data Reset",
+    "about": "About",
+    "languageTitle": "Language",
+    "languageDescription": "Choose the application language",
+    "arabic": "Arabic",
+    "french": "French",
+    "english": "English",
+    "darijaNote": "Darija is not available in the MVP",
+    "businessName": "Business name",
+    "ownerName": "Owner name",
+    "businessType": "Business type",
+    "currencyDZD": "DZD",
+    "currencyDisplayOnly": "Display only",
+    "saveChanges": "Save changes",
+    "resetDataConfirm": "Are you sure you want to reset all data? This action cannot be undone.",
+    "resetData": "Reset data",
+    "aboutTitle": "About Dukkan OS",
+    "aboutDescription": "App for Algerian micro-entrepreneurs",
+    "version": "Version",
     "copyright": "Copyright © {year} Dukkan OS. All rights reserved."
   },
   "inventorySettings": {
