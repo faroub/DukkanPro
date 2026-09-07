@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   emptyText: {
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   sectionTitle: {
     fontSize: 16,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   list: {
     flexGrow: 1,
@@ -121,12 +121,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: Colors.light.border,
     backgroundColor: 'white',
   },
   inventoryType: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   inventoryQty: {
     fontSize: 12,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   inventoryNote: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginHorizontal: 4,
   },
   inventoryDate: {

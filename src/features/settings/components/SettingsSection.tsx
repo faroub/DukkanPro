@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   container: {
     padding: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E5E5",
+    borderBottomColor: Colors.light.border,
   },
   title: {
     fontSize: 16,

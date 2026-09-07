@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: Colors.light.border,
   },
   exportOptionLabel: {
     fontSize: 15,

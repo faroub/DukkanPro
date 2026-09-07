@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   formInput: {
     height: 50,
-    borderColor: "#E5E5E5",
+    borderColor: Colors.light.border,
     borderWidth: 1,
     borderRadius: 6,
     paddingHorizontal: 16,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: "#FFFFFF",
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#E5E5E5",
+    borderTopColor: Colors.light.border,
   },
   saveButton: {
     backgroundColor: "#1B6B3A",

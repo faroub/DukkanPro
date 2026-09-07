@@ -85,7 +85,7 @@ export function ProductListScreen({
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor="#6B7280"
+          tintColor={Colors.light.textSecondary}
         />
       }
       contentContainerStyle={styles.contentContainer}
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     ...Typography.body,
     fontSize: 16,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginBottom: 8,
     textAlign: "center",
   },
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   loadingText: {
     ...Typography.body,
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
   errorContainer: {
     flex: 1,

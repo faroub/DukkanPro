@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -279,11 +279,11 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 10,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginTop: 4,
   },
   errorBanner: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.light.warningLight,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
@@ -297,6 +297,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelText: {
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
 });

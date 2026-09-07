@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1B6B3A',
   },
   methodInactive: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.borderLight,
   },
   methodText: {
     fontSize: 12,

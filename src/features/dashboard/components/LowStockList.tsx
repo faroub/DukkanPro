@@ -78,12 +78,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginBottom: 4,
   },
   noLowStock: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     textAlign: "center",
     margin: 20,
   },
@@ -108,11 +108,11 @@ const styles = StyleSheet.create({
   },
   productStock: {
     fontSize: 12,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
   lowStockNote: {
     fontSize: 12,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginTop: 4,
     textAlign: "center",
   },
