@@ -211,7 +211,7 @@ export default function ProductDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
+    backgroundColor: Colors.light.background,
   },
   scroll: {
     flexGrow: 1,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: '#1A1A1A',
+    color: Colors.light.textPrimary,
     marginBottom: 8,
   },
   sectionTitle: {
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   },
   inventoryQty: {
     fontSize: 12,
-    color: '#1A1A1A',
+    color: Colors.light.textPrimary,
     fontWeight: 500,
   },
   inventoryNote: {

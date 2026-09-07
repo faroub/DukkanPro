@@ -110,7 +110,7 @@ export function DebtSummary({ customerId, customerName, showDetails = false, onP
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F8F7F4',
+    backgroundColor: Colors.light.background,
     padding: 24,
   },
   summarySection: {

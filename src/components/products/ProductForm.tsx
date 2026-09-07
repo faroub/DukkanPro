@@ -326,7 +326,7 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
+    backgroundColor: Colors.light.background,
   },
   scroll: {
     flexGrow: 1,
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -360,17 +360,17 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 10,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginTop: 4,
   },
   errorBanner: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: Colors.light.warningLight,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
   },
   errorBannerText: {
-    color: '#B91C1C',
+    color: Colors.light.destructive,
     fontSize: 12,
   },
   buttonRow: {
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cancelText: {
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   archiveText: {
     color: '#B91C1C',

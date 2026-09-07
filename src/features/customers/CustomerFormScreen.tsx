@@ -126,7 +126,7 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
+    backgroundColor: Colors.light.background,
   },
   content: {
     padding: 24,

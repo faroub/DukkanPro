@@ -521,7 +521,7 @@ export function ProductFormScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F7F4",
+    backgroundColor: Colors.light.background,
   },
   scroll: {
     flexGrow: 1,
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   adjustmentButtonText: {
-    color: "#1A1A1A",
+    color: Colors.light.textPrimary,
     fontWeight: 500,
   },
   buttonRow: {

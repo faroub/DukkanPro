@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: 24,
-    backgroundColor: "#F8F7F4",
+    backgroundColor: Colors.light.background,
   },
   content: {
     width: "100%",
