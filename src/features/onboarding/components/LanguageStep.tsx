@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Spacing } from '@/constants/theme';
+import { Spacing, ComponentDimensions, Colors, BorderRadius } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
@@ -26,13 +26,6 @@ export function LanguageStep({
     onContinue?.({ locale });
   };
 
-  // Language options with display names
-  const locales = [
-    { value: 'ar', label: 'ar' },
-    { value: 'fr', label: 'fr' },
-    { value: 'en', label: 'en' },
-  ];
-
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.contentPadding}>
@@ -52,21 +45,17 @@ export function LanguageStep({
         </ThemedText>
 
         <View style={styles.localeContainer}>
-          {locales.map((localeOpt) => (
+          {['ar', 'fr', 'en'].map((lang) => (
             <TouchableWithoutFeedback
-              key={localeOpt.value}
+              key={lang}
               style={[
                 styles.localeOption,
-                locale === localeOpt.value ? styles.localeOptionSelected : undefined,
+                locale === lang ? styles.localeOptionSelected : undefined,
               ]}
-              onPress={() => setLocale(localeOpt.value)}
+              onPress={() => setLocale(lang)}
             >
-              <ThemedText style={styles.localeText}>
-                {localeOpt.label === 'ar' ? (
-                  <ThemedText type="small">{t(`languageStep.${localeOpt.value}`)}</ThemedText>
-                ) : (
-                  <ThemedText>{t(`languageStep.${localeOpt.value}`)}</ThemedText>
-                )}
+              <ThemedText style={[styles.localeText, locale === 'ar' && styles.textAlignRight]}>
+                {t(`languageStep.${lang}`)}
               </ThemedText>
             </TouchableWithoutFeedback>
           ))}
@@ -97,22 +86,22 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: 600,
+    fontWeight: '600' as const,
     marginBottom: Spacing.sm,
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   sectionSubtitle: {
     fontSize: 14,
     color: '#6B7280',
     marginBottom: Spacing.md,
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   languageNote: {
     fontSize: 12,
     color: '#9CA3AF',
     marginBottom: Spacing.lg,
-    textAlign: 'center',
-    fontStyle: 'italic',
+    textAlign: 'center' as const,
+    fontStyle: 'italic' as const,
   },
   localeContainer: {
     width: '100%',
@@ -121,24 +110,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   localeOption: {
-    width: '50%',
+    width: '32%',
     padding: Spacing.md,
     borderColor: '#E5E5E5',
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   localeOptionSelected: {
-    width: '50%',
+    width: '32%',
     padding: Spacing.md,
     borderColor: '#1B6B3A',
     borderWidth: 2,
-    borderRadius: 8,
-    backgroundColor: '#F0FDF4',
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.surface,
   },
   localeText: {
-    fontSize: 18,
-    textAlign: 'center',
+    fontSize: 16,
+  },
+  textAlignRight: {
+    textAlign: 'right' as const,
   },
 });
