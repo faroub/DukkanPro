@@ -39,9 +39,9 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 48,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.light.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 14,
@@ -55,6 +55,6 @@ const styles = StyleSheet.create({
   },
   clearText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
 });

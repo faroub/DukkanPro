@@ -54,15 +54,11 @@ export function CustomerCard({ customer, onPress }: CustomerCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    ...Shadows.sm,
   },
   content: {
     flexDirection: 'row',
@@ -80,7 +76,7 @@ const styles = StyleSheet.create({
   },
   phone: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   bottomRow: {
@@ -96,7 +92,7 @@ const styles = StyleSheet.create({
   },
   debtTag: {
     fontSize: 10,
-    color: '#EF4444',
+    color: Colors.light.destructive,
     marginLeft: 4,
     paddingHorizontal: 4,
     paddingVertical: 2,
