@@ -2,7 +2,7 @@ import { View, ScrollView, StyleSheet, Text, Pressable, Modal, TextInput } from 
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRoute } from "expo-router";
-import { Typography } from "@/constants/theme";
+import { Typography, Colors } from "@/constants/theme";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import { useCustomers } from "@/hooks/useCustomers";
@@ -206,7 +206,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                 onChangeText={(text) => setNewPaymentAmount(text)}
                 placeholder={t("customers:amountPlaceholder")}
                 keyboardType="number-pad"
-                style={isAddingPayment ? { width: 180, height: 40, backgroundColor: '#f0f0f0', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 12, fontSize: 14 } : { width: 180, height: 40, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 12, fontSize: 14, marginRight: 8 }}
+                style={isAddingPayment ? styles.inputEditing : styles.input}
               />
               <Pressable style={styles.addPaymentButton} onPress={handleAddPayment} disabled={isAddingPayment}>
                 <ThemedText type="body" style={styles.addPaymentText}>
@@ -224,154 +224,154 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
+    backgroundColor: Colors.light.background,
   },
   content: {
-    padding: 24,
+    padding: Spacing.lg,
   },
   header: {
-    marginBottom: 24,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
+    marginBottom: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.light.border,
   },
   title: {
     fontSize: 24,
     fontWeight: 600,
-    marginBottom: 4,
+    marginBottom: Spacing.xs,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
   },
   sectionLabel: {
     fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
+    color: Colors.light.textSecondary,
+    marginBottom: Spacing.xs,
   },
   debtRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 8,
+    padding: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
   },
   debtAmount: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1B6B3A',
+    color: Colors.light.primary,
   },
   debtStatus: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   noHistory: {
-    padding: 20,
-    color: '#6B7280',
+    padding: Spacing.xl,
+    color: Colors.light.textSecondary,
     textAlign: 'center',
   },
   noHistoryText: {
     fontSize: 14,
   },
   paymentHistoryContainer: {
-    marginTop: 8,
+    marginTop: Spacing.md,
   },
   paymentHistoryItem: {
-    padding: 8,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
+    padding: Spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.light.border,
   },
   paymentHistoryAmount: {
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   paymentHistoryDate: {
     fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
+    color: Colors.light.textSecondary,
+    marginLeft: Spacing.xs,
   },
   saleHistoryContainer: {
-    marginTop: 8,
+    marginTop: Spacing.md,
   },
   saleHistoryItem: {
-    padding: 8,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
+    padding: Spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.light.border,
   },
   saleHistoryTotal: {
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   saleHistoryDate: {
     fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
+    color: Colors.light.textSecondary,
+    marginLeft: Spacing.xs,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: Spacing.lg,
   },
   loadingText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: Spacing.lg,
   },
   errorText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#B91C1C',
-    marginBottom: 8,
+    color: Colors.light.destructive,
+    marginBottom: Spacing.md,
     textAlign: 'center',
   },
   errorRetry: {
     ...Typography.body,
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
   },
   paymentForm: {
     flexDirection: 'row',
-    marginTop: 12,
+    marginTop: Spacing.md,
     alignItems: 'center',
   },
   input: {
     width: 180,
     height: 40,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderColor: Colors.light.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
     fontSize: 14,
-    marginRight: 8,
+    marginRight: Spacing.md,
   },
   addPaymentButton: {
-    padding: 8,
-    backgroundColor: '#1B6B3A',
-    borderRadius: 8,
+    padding: Spacing.md,
+    backgroundColor: Colors.light.primary,
+    borderRadius: BorderRadius.md,
   },
   addPaymentText: {
-    color: '#fff',
+    color: Colors.light.onPrimary,
     fontWeight: '600',
     fontSize: 14,
   },
   notesText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
 });
