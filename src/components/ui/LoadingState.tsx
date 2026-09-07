@@ -19,7 +19,7 @@ export function LoadingState({
   return (
     <ThemedView type="background" style={styles.container} {...rest}>
       <ThemedView style={styles.content}>
-        <ActivityIndicator size={size} animating color="#1B6B3A" />
+        <ActivityIndicator size={size} animating color={Colors.light.primary} />
         {message && (
           <ThemedText style={[styles.message, { marginTop: Spacing.xs }]}>
             {message}

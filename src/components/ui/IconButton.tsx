@@ -91,10 +91,10 @@ const styles = StyleSheet.create({
   button: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: BorderRadius.full,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
   },
   iconContainer: {
     width: 24,
