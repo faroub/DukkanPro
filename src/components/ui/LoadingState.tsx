@@ -2,7 +2,7 @@ import { ActivityIndicator, StyleSheet, type ViewProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import { Spacing, Colors } from "@/constants/theme";
 
 export interface LoadingStateProps extends ViewProps {
   message?: string;
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 14,
-    color: "#1A1A1A",
+    color: Colors.light.textPrimary,
     fontWeight: 500,
   },
 });

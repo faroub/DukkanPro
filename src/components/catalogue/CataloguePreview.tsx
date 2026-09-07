@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { formatCentimes } from '@/utils/money';
+import { Spacing, Colors, BorderRadius } from '@/constants/theme';
 
 interface CataloguePreviewProps {
   products: any[];
@@ -73,76 +74,76 @@ export function CataloguePreview({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: '#fafafa',
+    padding: Spacing.md,
+    backgroundColor: Colors.light.backgroundElement,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
     textAlign: 'center',
   },
   productRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 8,
-    marginBottom: 4,
-    backgroundColor: '#fff',
-    borderRadius: 6,
+    padding: Spacing.xs,
+    marginBottom: Spacing.xs,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.sm,
   },
   productName: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: Colors.light.textPrimary,
   },
   productPrice: {
-    color: '#1B6B3A',
+    color: Colors.light.primary,
     fontSize: 14,
-    marginLeft: 8,
+    marginLeft: Spacing.xs,
     fontWeight: '600',
   },
   productAvailability: {
-    color: '#6c757d',
+    color: Colors.light.textSecondary,
     fontSize: 12,
-    marginLeft: 8,
+    marginLeft: Spacing.xs,
   },
   selectedSummary: {
-    marginTop: 12,
-    padding: 8,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    marginTop: Spacing.lg,
+    padding: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.sm,
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#555',
-    marginRight: 8,
+    color: Colors.light.textSecondary,
+    marginRight: Spacing.md,
   },
   summaryValue: {
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
   },
   emptyState: {
     textAlign: 'center',
-    color: '#666',
-    marginTop: 20,
+    color: Colors.light.textMuted,
+    marginTop: Spacing.lg,
     fontSize: 14,
   },
   shareButton: {
-    padding: 12,
-    backgroundColor: '#1B6B3A',
-    borderRadius: 8,
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.primary,
+    borderRadius: BorderRadius.md,
     alignSelf: 'center',
-    marginTop: 8,
+    marginTop: Spacing.md,
   },
   shareButtonText: {
-    color: '#fff',
+    color: Colors.light.surface,
     fontSize: 14,
     textAlign: 'center',
   },
   note: {
-    marginTop: 12,
+    marginTop: Spacing.md,
     fontSize: 12,
-    color: '#666',
+    color: Colors.light.textMuted,
     textAlign: 'center',
   },
 });

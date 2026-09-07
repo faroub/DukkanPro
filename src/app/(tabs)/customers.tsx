@@ -2,6 +2,7 @@ import { CustomerListScreen } from "@/features/customers/CustomerListScreen";
 import { View, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
+import { Colors, Spacing } from '@/constants/theme';
 
 export default function CustomersScreen() {
   return (
@@ -29,8 +30,8 @@ export default function CustomersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
-    padding: 24,
+    backgroundColor: Colors.light.background,
+    padding: Spacing.xl,
   },
   content: {
     flex: 1,
@@ -40,18 +41,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 600,
-    marginBottom: 12,
+    marginBottom: Spacing.md,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 20,
+    color: Colors.light.textSecondary,
+    marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   description: {
     fontSize: 14,
-    color: '#1A1A1A',
+    color: Colors.light.textPrimary,
     textAlign: 'center',
   },
 });

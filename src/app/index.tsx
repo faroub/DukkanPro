@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useTranslation } from "react-i18next";
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F8F7F4",
+    backgroundColor: Colors.light.background,
   },
   content: {
     padding: Spacing.xl,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginBottom: Spacing.lg,
   },
 });

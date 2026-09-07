@@ -4,6 +4,7 @@ import { Spacing } from "@/constants/theme";
 import { ProductListScreen } from "@/features/products/ProductListScreen";
 import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
+import { Colors } from '@/constants/theme';
 
 export default function ProductsScreen() {
   const { t } = useTranslation();
@@ -35,7 +36,7 @@ export default function ProductsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F7F4",
+    backgroundColor: Colors.light.background,
     padding: Spacing.xxl,
   },
   content: {
@@ -51,13 +52,13 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginBottom: Spacing.lg,
     textAlign: "center",
   },
   description: {
     fontSize: 14,
-    color: "#1A1A1A",
+    color: Colors.light.textPrimary,
     textAlign: "center",
   },
 });
