@@ -5,6 +5,7 @@ import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { ExportButton } from "@/features/settings/components/ExportButton";
 import { LanguageSelector } from "@/features/settings/components/LanguageSelector";
 import { SettingsSection } from "@/features/settings/components/SettingsSection";
@@ -163,8 +164,9 @@ export function MoreScreen() {
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    padding: 24,
-    backgroundColor: "#F8F7F4",
+    flex: 1,
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.background,
   },
   content: {
     width: "100%",
@@ -172,51 +174,51 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "600",
-    marginLeft: 8,
+    marginLeft: Spacing.md,
   },
   backButton: {
-    padding: 8,
+    padding: Spacing.md,
   },
   backButtonText: {
     fontSize: 14,
-    color: "#1B6B3A",
+    color: Colors.light.primary,
   },
   settingsSection: {
-    padding: 24,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    marginBottom: 16,
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
   },
   settingsTitle: {
     fontSize: 16,
-    color: "#333333",
-    marginBottom: 16,
+    color: Colors.light.textPrimary,
+    marginBottom: Spacing.md,
   },
   settingRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
   settingLabel: {
     fontSize: 14,
-    color: "#1A1A1A",
+    color: Colors.light.textPrimary,
     flex: 1,
   },
   settingValue: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     fontWeight: "500",
   },
   emptyState: {
-    padding: 16,
+    padding: Spacing.md,
     alignItems: "center",
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
   emptyText: {
     fontSize: 14,

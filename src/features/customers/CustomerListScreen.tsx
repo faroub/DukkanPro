@@ -2,7 +2,7 @@ import { View, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "@/components/themed-text";
-import { Typography, Colors } from "@/constants/theme";
+import { Typography, Colors, Spacing } from "@/constants/theme";
 import { useCustomers } from "@/hooks/useCustomers";
 import { CustomerSearchBar } from "@/features/customers/components/CustomerSearchBar";
 import { CustomerFilterTabs } from "@/features/customers/components/CustomerFilterTabs";

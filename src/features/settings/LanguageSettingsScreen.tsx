@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 
 /**
  * LanguageSettingsScreen - Screen for managing application language settings.
@@ -108,8 +109,8 @@ export function LanguageSettingsScreen() {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    padding: 24,
-    backgroundColor: "#F8F7F4",
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.background,
   },
   content: {
     width: "100%",
@@ -117,44 +118,45 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "600",
-    marginLeft: 8,
+    marginLeft: Spacing.md,
   },
   backButton: {
-    padding: 8,
+    padding: Spacing.md,
   },
   backButtonText: {
     fontSize: 14,
-    color: "#1B6B3A",
+    color: Colors.light.primary,
   },
   settingsSection: {
-    padding: 24,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    marginBottom: 16,
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
   },
   settingsTitle: {
     fontSize: 16,
-    color: "#333333",
-    marginBottom: 16,
+    color: Colors.light.textPrimary,
+    marginBottom: Spacing.md,
   },
   languageOption: {
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    marginBottom: 8,
+    padding: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
   },
   languageOptionItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 12,
+    padding: Spacing.md,
   },
   languageOptionLabel: {
     fontSize: 15,
+    color: Colors.light.textPrimary,
   },
 });
