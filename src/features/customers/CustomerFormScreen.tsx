@@ -2,7 +2,7 @@ import { View, ScrollView, StyleSheet, TextInput, Pressable, Modal } from 'react
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRoute } from "expo-router";
-import { Typography } from "@/constants/theme";
+import { Typography, Colors } from "@/constants/theme";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import { useCustomers } from "@/hooks/useCustomers";

@@ -1,5 +1,6 @@
 import { ThemedText, ThemedView, showToast } from "@/components";
 import { useRouter } from "expo-router";
+import { Colors } from "@/constants/theme";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
