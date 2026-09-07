@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, type PressableProps } from "react-native";
 
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
-import { Colors } from "@/constants/theme";
+import { Colors, BorderRadius } from "@/constants/theme";
 
 export type IconButtonIcon =
   | "chevron-left"

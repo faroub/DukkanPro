@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Colors } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { exportCataloguePDF } from "@/services/catalogue/catalogueService";
 import { formatCentimes } from "@/utils/money";
 import * as Sharing from "expo-sharing";

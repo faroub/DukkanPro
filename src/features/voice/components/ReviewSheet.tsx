@@ -2,6 +2,7 @@ import type { AvailableProduct } from "@/services/voice/voiceSaleParser";
 import { parseSaleCommand } from "@/services/voice/voiceSaleParser";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Colors } from "@/constants/theme";
 import {
   Alert,
   FlatList,
