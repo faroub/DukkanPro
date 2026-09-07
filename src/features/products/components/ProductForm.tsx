@@ -7,6 +7,7 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { FormField } from '@/components/ui/FormField';
 import { executeWrite, executeRead } from '@/database/database';
 import { formatCentimes } from '@/utils/money';
+import { Colors } from '@/constants/theme';
 
 export interface ProductFormProps {
   onSave: (product: {

@@ -1,6 +1,7 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "@/components/themed-text";
+import { Colors } from "@/constants/theme";
 
 interface CustomerFilterTabsProps {
   activeFilter?: string;

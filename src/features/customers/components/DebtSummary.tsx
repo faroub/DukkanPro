@@ -7,7 +7,7 @@ import { ThemedText } from "@/components/themed-text";
 import { formatCentimes } from "@/utils/money";
 import { getCustomerDebt, getCustomerBalanceSummary } from "@/services/customers/customerBalanceService";
 import { useRoute } from "expo-router";
-import { Typography } from "@/constants/theme";
+import { Typography, Colors } from "@/constants/theme";
 
 interface DebtSummaryProps {
   customerId: number;

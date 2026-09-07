@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import { Colors, Spacing } from "@/constants/theme";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
+import { Colors } from '@/constants/theme';
 import { getInventoryHistory } from '@/database/repositories/productRepository';
 
 export interface InventoryHistoryListProps {

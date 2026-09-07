@@ -8,6 +8,7 @@ import { FormField } from '@/components/ui/FormField';
 import { executeWrite } from '@/database/database';
 import { adjustStock } from '@/database/repositories/productRepository';
 import { formatCentimes } from '@/utils/money';
+import { Colors } from '@/constants/theme';
 
 export interface StockAdjustmentFormProps {
   productId: number;
