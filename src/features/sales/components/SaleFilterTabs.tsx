@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Colors } from '@/constants/theme';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
@@ -76,7 +77,6 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     color: Colors.light.textSecondary,
-  },
     fontSize: 12,
   },
   tabLabelActive: {

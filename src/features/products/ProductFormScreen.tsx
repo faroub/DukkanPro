@@ -16,6 +16,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { Colors } from "@/constants/theme";
 
 export interface ProductFormScreenProps {
   route?: any;

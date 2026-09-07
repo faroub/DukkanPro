@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/themed-text';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { FormField } from '@/components/ui/FormField';
 import { executeWrite, executeRead } from '@/database/database';
+import { Colors } from '@/constants/theme';
 
 type ProductFormMode = 'create' | 'edit';
 
