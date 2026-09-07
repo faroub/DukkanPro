@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Colors } from "@/constants/theme";
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { FlatList, StyleSheet, View } from "react-native";
