@@ -2,7 +2,12 @@ import { Pressable, StyleSheet, type PressableProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import {
+    Colors,
+    ComponentDimensions,
+    Spacing,
+    Typography,
+} from "@/constants/theme";
 
 export interface SecondaryButtonProps extends PressableProps {
   title: string;
@@ -51,8 +56,9 @@ export function SecondaryButton({
 const styles = StyleSheet.create({
   button: {
     borderWidth: 1,
-    borderColor: "#E5E5E5",
-    paddingVertical: Spacing.lg,
+    borderColor: Colors.light.primary,
+    minHeight: ComponentDimensions.secondaryButtonHeight,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.xl,
     borderRadius: Spacing.md,
     justifyContent: "center",
@@ -75,8 +81,8 @@ const styles = StyleSheet.create({
     height: Spacing.xs,
   },
   buttonText: {
-    color: "#1A1A1A",
-    fontSize: 16,
+    color: Colors.light.primary,
+    ...Typography.body,
     fontWeight: 500,
   },
 });
