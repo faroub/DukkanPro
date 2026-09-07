@@ -46,7 +46,7 @@ function toArabicIndicNumerals(text: string): string {
  *
  * @param centimes - Amount in centimes (integer)
  * @param locale - Locale string (ar-DZ, fr-DZ, en-DZ)
- * @returns Formatted DZD string (e.g. "140 DZD", "١٤٠ دج")
+ * @returns Formatted DZD string (e.g. "140 DZD", "١٤٠ دj")
  */
 export function formatCentimes(
   centimes: number,
@@ -56,19 +56,25 @@ export function formatCentimes(
 
   switch (locale) {
     case "ar-DZ":
-      // Arabic locale: Arabic-Indic numerals, "دj" symbol for Algerian Dinar
-      return new Intl.NumberFormat("ar-DZ", {
+      // Arabic locale: Arabic-Indic numerals with "دj" suffix for Algerian Dinar
+      // e.g., "١٤٠ دj" (280 centimes = 2.80 DZD → "٢٨٠ دj" → wait, dinars first)
+      // Actually: 280 centimes = 2.80 DZD, but DESIGN.md shows "280 DZD" for display
+      // Let me re-read: DESIGN.md says "{amount} DZD" e.g. "280 DZD" - this seems to be in dinars
+      // But money is stored as centimes. Let me check: 28000 centimes = 280 DZD
+      // So the format shows the dinar amount with DZD suffix
+      const formatted = new Intl.NumberFormat("ar-DZ", {
         style: "currency",
         currency: "DZD",
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-      })
-        .format(dinars)
-        // Convert Western numerals to Arabic-Indic
-        .replace(/[0-9]/g, (digit) => ArabicIndicDigits[digit] || digit);
+      }).format(dinars);
+      // Convert Western numerals to Arabic-Indic, then replace .ج suffix with "دj"
+      return formatted
+        .replace(/[0-9]/g, (digit) => ArabicIndicDigits[digit] || digit)
+        .replace("د.ج", "دj");
 
     case "fr-DZ":
-      // French locale: Western numerals, "123,45 DZD" or "123 DZD"
+      // French locale: Western numerals, "123 DZD" (no decimals)
       return new Intl.NumberFormat("fr-DZ", {
         style: "currency",
         currency: "DZD",
@@ -77,7 +83,7 @@ export function formatCentimes(
       }).format(dinars);
 
     case "en-DZ":
-      // English locale: Western numerals with comma separator, "123.00 DZD"
+      // English locale: Western numerals with comma separator, "123 DZD"
       return new Intl.NumberFormat("en-DZ", {
         style: "currency",
         currency: "DZD",
