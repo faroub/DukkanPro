@@ -37,7 +37,7 @@ describe('formatCentimes', () => {
     // Should contain some digits (Western or Arabic-Indic)
     expect(result).toMatch(/[0-9٠-٩]/);
     // Should contain currency/language characters (Latin A-Z or Arabic)
-    expect(result).toMatch(/[A-Z|إ-ي]/);
+    expect(result).toMatch(/[A-Zإ-ي]/);
   });
 
   it('should format 500 centimes in French locale', () => {

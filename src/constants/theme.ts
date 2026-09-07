@@ -3,6 +3,7 @@
  *
  * Color palette, spacing, typography, border radius, and shadows.
  * Entire application remains visually LTR regardless of selected language.
+ * Values sourced from DESIGN.md (Google Stitch design system).
  */
 
 import { Platform } from "react-native";
@@ -34,6 +35,7 @@ export const Fonts = Platform.select({
 
 /**
  * Color palette — LTR-compatible, same layout in all languages.
+ * Values sourced from DESIGN.md (Google Stitch design system).
  */
 export const Colors = {
   light: {
@@ -43,29 +45,41 @@ export const Colors = {
     textSecondary: "#6B7280",
     textMuted: "#9CA3AF",
     primary: "#1B6B3A",
+    primaryDark: "#14552E",
+    primaryLight: "#E8F5EE",
     positive: "#1B6B3A",
     warning: "#D97706",
     destructive: "#B91C1C",
+    error: "#B91C1C",
+    errorLight: "#FEF2F2",
+    warningLight: "#FFFBEB",
+    disabledBackground: "#D1D5DB",
     surface: "#FFFFFF",
     border: "#E5E5E5",
-    borderLight: "#F3F4F6",
-    backgroundElement: "#F0F0F3",
+    borderLight: "#F0F0F0",
+    backgroundElement: "#F0EFEA",
     notification: "#FBBF24",
   } as const,
   dark: {
-    background: "#111827",
+    background: "#121212",
     text: "#F9FAFB",
     textPrimary: "#F9FAFB",
     textSecondary: "#6B7280",
     textMuted: "#9CA3AF",
-    primary: "#22C55E",
-    positive: "#22C55E",
-    warning: "#F59E0B",
-    destructive: "#F87171",
+    primary: "#1B6B3A",
+    primaryDark: "#14552E",
+    primaryLight: "#E8F5EE",
+    positive: "#1B6B3A",
+    warning: "#D97706",
+    destructive: "#B91C1C",
+    error: "#B91C1C",
+    errorLight: "#FEF2F2",
+    warningLight: "#FFFBEB",
+    disabledBackground: "#D1D5DB",
     surface: "#1F2937",
     border: "#374151",
-    borderLight: "#4B5563",
-    backgroundElement: "#212225",
+    borderLight: "#2C2C2C",
+    backgroundElement: "#1E293B",
     notification: "#FBBF24",
   } as const,
 } as const;
@@ -75,8 +89,9 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 /**
  * Typography scale — minimum 16px body, supporting Arabic/French/English.
- * Arabic text may use right alignment inside individual components, but
- * surrounding layout stays LTR. No global RTL mirroring.
+ * All values match DESIGN.md exactly. Arabic text may use right alignment
+ * inside individual components, but surrounding layout stays LTR. No global
+ * RTL mirroring.
  */
 export const Typography = {
   // Body minimum 16px as required
@@ -87,7 +102,7 @@ export const Typography = {
       default: "system-ui",
     }),
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 22,
     letterSpacing: 0.15,
   },
   // Headings
@@ -97,10 +112,10 @@ export const Typography = {
       android: "Roboto",
       default: "system-ui",
     }),
-    fontSize: 32,
-    lineHeight: 40,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: 700 as const,
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   },
   heading2: {
     fontFamily: Platform.select({
@@ -108,10 +123,10 @@ export const Typography = {
       android: "Roboto",
       default: "system-ui",
     }),
-    fontSize: 24,
-    lineHeight: 32,
-    fontWeight: 700 as const,
-    letterSpacing: -0.25,
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: 600 as const,
+    letterSpacing: 0,
   },
   heading3: {
     fontFamily: Platform.select({
@@ -119,8 +134,68 @@ export const Typography = {
       android: "Roboto",
       default: "system-ui",
     }),
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: 600 as const,
+    letterSpacing: 0,
+  },
+  // Body Large
+  bodyLarge: {
+    fontFamily: Platform.select({
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
+    }),
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: 400 as const,
+    letterSpacing: 0.15,
+  },
+  // Label
+  label: {
+    fontFamily: Platform.select({
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
+    }),
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: 600 as const,
+    letterSpacing: 0.1,
+  },
+  // Caption
+  caption: {
+    fontFamily: Platform.select({
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
+    }),
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: 400 as const,
+    letterSpacing: 0.1,
+  },
+  // Money Display
+  moneyDisplay: {
+    fontFamily: Platform.select({
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
+    }),
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: 700 as const,
+    letterSpacing: 0,
+  },
+  // Money Small
+  moneySmall: {
+    fontFamily: Platform.select({
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
+    }),
+    fontSize: 16,
+    lineHeight: 20,
     fontWeight: 600 as const,
     letterSpacing: 0,
   },
@@ -146,8 +221,26 @@ export const Spacing = {
   xxxxxx: 48,
 } as const;
 
-export const BottomTabInset = 64;
-export const MaxContentWidth = 640;
+export const BottomTabInset = 60;
+export const MaxContentWidth = 480;
+
+/** Stitch component dimensions. */
+export const ComponentDimensions = {
+  screenPadding: 16,
+  cardPadding: 16,
+  cardGap: 12,
+  formFieldGap: 16,
+  headerHeight: 56,
+  tabBarHeight: 60,
+  primaryButtonHeight: 48,
+  secondaryButtonHeight: 48,
+  destructiveButtonHeight: 48,
+  inputHeight: 48,
+  searchInputHeight: 44,
+  listRowMinHeight: 56,
+  iconSize: 24,
+  emptyStateIconSize: 48,
+} as const;
 
 export type SpacingValue = (typeof Spacing)[keyof typeof Spacing];
 
