@@ -90,7 +90,7 @@ export function QuickActions({
 
 const styles = StyleSheet.create({
   section: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: "#DDDDDD",
     borderRadius: 12,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontSize: 14,
     fontWeight: "600",
     textAlign: "center",

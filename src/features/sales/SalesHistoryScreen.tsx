@@ -147,7 +147,7 @@ export function SalesHistoryScreen() {
       />
 
       {/* Search bar */}
-      <View style={{ marginBottom: 16, backgroundColor: '#fff', borderRadius: 12, padding: 8 }}>
+      <View style={{ marginBottom: 16, backgroundColor: Colors.light.surface, borderRadius: 12, padding: 8 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', padding: 8, borderWidth: 1, borderColor: '#ddd', borderRadius: 8 }}>
           <ThemedText type="body" style={{ flex: 1, marginRight: 8 }}>
             {t('sales.search')}

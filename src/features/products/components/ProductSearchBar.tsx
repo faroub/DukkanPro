@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   inputContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.light.border,
     borderRadius: 8,

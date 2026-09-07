@@ -222,12 +222,12 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
         {sale.status === 'completed' && (
           <View style={{ marginTop: 24, flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity onPress={openCancelDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: '#dc3545', marginRight: 8 }}>
-              <ThemedText type="body" style={{ color: '#fff' }}>
+              <ThemedText type="body" style={{ color: Colors.light.textPrimary, }}>
                 {t('sales.cancel_sale')}
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity onPress={openReturnDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: Colors.light.primary, marginLeft: 8 }}>
-              <ThemedText type="body" style={{ color: '#fff' }}>
+              <ThemedText type="body" style={{ color: Colors.light.textPrimary, }}>
                 {t('sales.return_sale')}
               </ThemedText>
             </TouchableOpacity>
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     color: '#842029',
   },
   infoCard: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: '#eee',
     borderRadius: 8,
