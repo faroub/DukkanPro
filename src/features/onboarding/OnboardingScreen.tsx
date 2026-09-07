@@ -1,231 +1,137 @@
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { Spacing } from "@/constants/theme";
+import { useRouter, type Href } from "expo-router";
+import { useState } from "react";
+import { SafeAreaView, StyleSheet, View } from "react-native";
+
+import { Colors } from "@/constants/theme";
 import { BusinessNameStep } from "@/features/onboarding/components/BusinessNameStep";
 import { BusinessTypeStep } from "@/features/onboarding/components/BusinessTypeStep";
+import { ConfirmSettingsStep } from "@/features/onboarding/components/ConfirmSettingsStep";
 import { LanguageStep } from "@/features/onboarding/components/LanguageStep";
-import { OwnerNameStep } from "@/features/onboarding/components/OwnerNameStep";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { ScrollView, StyleSheet, View } from "react-native";
+import type { Locale } from "@/localization/types";
 
 /**
- * Onboarding Screen - multi-step onboarding flow for Dukkan OS
+ * Onboarding Screen - Multi-step Stitch onboarding flow for Dukkan OS
  *
  * Steps:
- * 1. Business Name
- * 2. Owner Name
- * 3. Business Type
- * 4. Language Selection
+ * 0. Welcome & Language Selection (Français / العربية / English)
+ * 1. Business Name & Owner Name
+ * 2. Business Type Selection (Grocery, Bakery, Instagram seller, etc.)
+ * 3. Settings Confirmation (Summary card & DZD currency)
  *
- * Behavior:
- * - French is the default language
- * - Arabic selection does NOT enable RTL
- * - All steps save data locally (SQLite for profile, AsyncStorage for locale/completion)
- * - Completing onboarding navigates to tabs
- * - Screen structure remains LTR in all languages
+ * Rules:
+ * - Layout is ALWAYS LTR
+ * - Arabic text within elements can be right-aligned
+ * - Local offline persistence to SQLite
  */
-export function OnboardingScreen({ navigation }: any) {
-  const { t } = useTranslation();
-  const [step, setStep] = useState(1);
-  const [profile, setProfile] = useState({
+export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
+  const router = useRouter();
+
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [profile, setProfile] = useState<{
+    businessName: string;
+    ownerName: string;
+    businessType: string;
+    locale: Locale;
+    currency: string;
+  }>({
     businessName: "",
     ownerName: "",
-    businessType: "",
+    businessType: "grocery",
     locale: "fr",
     currency: "DZD",
-  } as any);
+  });
 
-  const steps = ["businessName", "ownerName", "businessType", "language"];
+  const handleLanguageComplete = (data: { locale: Locale }) => {
+    setProfile((prev) => ({ ...prev, locale: data.locale }));
+    setCurrentStep(1);
+  };
 
-  const handleStepChange = async (stepData: any) => {
-    const nextProfile = {
-      ...profile,
-      ...stepData,
-    };
+  const handleBusinessDetailsComplete = (data: {
+    businessName: string;
+    ownerName: string;
+  }) => {
+    setProfile((prev) => ({
+      ...prev,
+      businessName: data.businessName,
+      ownerName: data.ownerName,
+    }));
+    setCurrentStep(2);
+  };
 
-    setProfile(nextProfile);
+  const handleBusinessTypeComplete = (data: { businessType: string }) => {
+    setProfile((prev) => ({ ...prev, businessType: data.businessType }));
+    setCurrentStep(3);
+  };
 
-    if (step === 4) {
-      await useOnboarding.completeOnboarding({
-        businessName: nextProfile.businessName,
-        ownerName: nextProfile.ownerName,
-        businessType: nextProfile.businessType,
-        locale: nextProfile.locale,
-        currency: "DZD",
-      });
-      return;
+  const handleFinalConfirm = async () => {
+    try {
+      await useOnboarding.completeOnboarding(profile);
+      if (onComplete) {
+        onComplete();
+      } else {
+        router.replace("/(tabs)" as Href);
+      }
+    } catch (error) {
+      console.error("Failed to complete onboarding:", error);
     }
-
-    setStep((prev: number) => prev + 1);
   };
-
-  const handleCompleteOnboarding = async () => {
-    // Finalize the profile with the selected locale
-    const finalProfile = {
-      businessName: profile.businessName,
-      ownerName: profile.ownerName,
-      businessType: profile.businessType,
-      locale: profile.locale,
-      currency: "DZD",
-    };
-
-    // Save profile to SQLite and mark onboarding as complete
-    await useOnboarding.completeOnboarding(finalProfile);
-  };
-
-  // Determine the current step content
-  const currentStepContent = steps[step - 1];
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <ThemedView style={styles.header}>
-        <ThemedText type="title" style={styles.headerTitle}>
-          {/* i18n: onboarding.screen */}
-          {t("onboarding.screen")}
-        </ThemedText>
-
-        <ThemedText type="small" style={styles.headerSubtitle}>
-          {/* i18n: onboarding.subtitle */}
-          {t("onboarding.subtitle")}
-        </ThemedText>
-      </ThemedView>
-
-      {/* Progress indicator */}
-      <View style={styles.progress}>
-        {steps.map((stepKey, index) => (
-          <View
-            key={stepKey}
-            style={[
-              styles.progressDot,
-              index < step
-                ? styles.progressDotActive
-                : styles.progressDotInactive,
-            ]}
-          >
-            <ThemedText type="small">{index + 1}</ThemedText>
-          </View>
-        ))}
-      </View>
-
-      {/* Step content */}
-      <ThemedView style={styles.stepContainer}>
-        {currentStepContent === "businessName" && (
-          <BusinessNameStep
-            onContinue={handleStepChange}
-            businessName={profile.businessName}
-          />
-        )}
-
-        {currentStepContent === "ownerName" && (
-          <OwnerNameStep
-            onContinue={handleStepChange}
-            ownerName={profile.ownerName}
-          />
-        )}
-
-        {currentStepContent === "businessType" && (
-          <BusinessTypeStep
-            onContinue={handleStepChange}
-            selectedType={profile.businessType}
-          />
-        )}
-
-        {currentStepContent === "language" && (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {currentStep === 0 && (
           <LanguageStep
-            onContinue={handleStepChange}
             selectedLocale={profile.locale}
+            onContinue={handleLanguageComplete}
           />
         )}
-      </ThemedView>
 
-      {/* Action buttons at the bottom */}
-      {step > 1 ? (
-        <ThemedView style={styles.actionBar}>
-          <PrimaryButton
-            title={t("onboarding.skip")}
-            onPress={() => setStep(4)}
+        {currentStep === 1 && (
+          <BusinessNameStep
+            initialBusinessName={profile.businessName}
+            initialOwnerName={profile.ownerName}
+            stepNumber={1}
+            totalSteps={3}
+            onContinue={handleBusinessDetailsComplete}
+            onBack={() => setCurrentStep(0)}
           />
-        </ThemedView>
-      ) : (
-        <ThemedView style={styles.actionBar}>
-          <PrimaryButton
-            title={
-              step < 4 ? t("common.primaryButton") : t("onboarding.getStarted")
-            }
-            onPress={
-              step === 4 ? handleCompleteOnboarding : () => handleStepChange({})
-            }
+        )}
+
+        {currentStep === 2 && (
+          <BusinessTypeStep
+            selectedType={profile.businessType}
+            stepNumber={2}
+            totalSteps={3}
+            onContinue={handleBusinessTypeComplete}
+            onBack={() => setCurrentStep(1)}
           />
-        </ThemedView>
-      )}
-    </ScrollView>
+        )}
+
+        {currentStep === 3 && (
+          <ConfirmSettingsStep
+            businessName={profile.businessName}
+            ownerName={profile.ownerName}
+            businessType={profile.businessType}
+            currency={profile.currency}
+            stepNumber={3}
+            totalSteps={3}
+            onConfirm={handleFinalConfirm}
+            onEditStep={(stepIdx) => setCurrentStep(stepIdx)}
+            onBack={() => setCurrentStep(2)}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#F8F7F4",
-  },
-  content: {
-    padding: Spacing.xl,
-    width: "100%",
-  },
-  header: {
-    width: "100%",
-    maxWidth: 400,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-    borderBottomWidth: 1,
-    borderColor: "#E5E5E5",
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: 600,
-    textAlign: "center",
-    marginBottom: Spacing.sm,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-  },
-  progress: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: Spacing.lg,
-  },
-  progressDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#E5E5E5",
-    marginHorizontal: 4,
-  },
-  progressDotActive: {
-    backgroundColor: "#1B6B3A",
-  },
-  progressDotInactive: {
-    backgroundColor: "#CCCCCC",
-  },
-  stepContainer: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  actionBar: {
-    width: "100%",
-    maxWidth: 400,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    flexDirection: "row",
-    justifyContent: "space-between",
   },
 });
