@@ -167,7 +167,7 @@ export function BusinessTypeStep({
                       web: "check" as any,
                     }}
                     size={14}
-                    tintColor="#FFFFFF"
+                    tintColor={Colors.light.primary}
                   />
                 )}
               </View>

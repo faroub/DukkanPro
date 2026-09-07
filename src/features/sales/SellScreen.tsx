@@ -457,7 +457,7 @@ export default function SellScreen() {
                     web: "chevron_right" as any,
                   }}
                   size={16}
-                  tintColor="#FFFFFF"
+                  tintColor={Colors.light.primary}
                 />
               </View>
             </Pressable>
@@ -876,7 +876,7 @@ const styles = StyleSheet.create({
   },
   cartBarActionText: {
     ...Typography.label,
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
   },
   modalOverlay: {
     flex: 1,

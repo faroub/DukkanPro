@@ -65,7 +65,7 @@ export function RecentSalesList({
 
 const styles = StyleSheet.create({
   section: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: "#DDDDDD",
     borderRadius: 12,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   saleItem: {
     padding: 12,
     minWidth: 120,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderRadius: 8,
     marginRight: 8,
     shadowColor: "#000000",

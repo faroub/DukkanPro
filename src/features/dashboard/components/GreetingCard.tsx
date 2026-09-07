@@ -30,7 +30,7 @@ export function GreetingCard({ greeting, todayDate, locale, textAlignment }: Gre
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: "#DDDDDD",
     borderRadius: 12,

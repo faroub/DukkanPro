@@ -79,7 +79,7 @@ export function ReturnSaleDialog({
               </ThemedText>
             </Pressable>
             <Pressable style={{ padding: 12, borderRadius: 8, backgroundColor: '#dc3545', marginLeft: 8 }} onPress={handleReturn} disabled={!reason.trim()}>
-              <ThemedText type="body" style={{ color: '#fff', fontWeight: '600' }}>
+              <ThemedText type="body" style={{ color: Colors.light.textPrimary, fontWeight: '600' }}>
                 {t('common.confirm')}
               </ThemedText>
             </Pressable>
