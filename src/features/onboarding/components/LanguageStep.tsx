@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Spacing } from '@/constants/theme';
+import { Spacing, ComponentDimensions, Colors, BorderRadius } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
@@ -26,13 +26,6 @@ export function LanguageStep({
     onContinue?.({ locale });
   };
 
-  // Language options with display names
-  const locales = [
-    { value: 'ar', label: 'ar' },
-    { value: 'fr', label: 'fr' },
-    { value: 'en', label: 'en' },
-  ];
-
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.contentPadding}>
@@ -52,21 +45,17 @@ export function LanguageStep({
         </ThemedText>
 
         <View style={styles.localeContainer}>
-          {locales.map((localeOpt) => (
+          {['ar', 'fr', 'en'].map((lang) => (
             <TouchableWithoutFeedback
-              key={localeOpt.value}
+              key={lang}
               style={[
                 styles.localeOption,
-                locale === localeOpt.value ? styles.localeOptionSelected : undefined,
+                locale === lang ? styles.localeOptionSelected : undefined,
               ]}
-              onPress={() => setLocale(localeOpt.value)}
+              onPress={() => setLocale(lang)}
             >
               <ThemedText style={styles.localeText}>
-                {localeOpt.label === 'ar' ? (
-                  <ThemedText type="small">{t(`languageStep.${localeOpt.value}`)}</ThemedText>
-                ) : (
-                  <ThemedText>{t(`languageStep.${localeOpt.value}`)}</ThemedText>
-                )}
+                {t(`languageStep.${lang}`)}
               </ThemedText>
             </TouchableWithoutFeedback>
           ))}
@@ -119,26 +108,31 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     gap: Spacing.md,
     alignItems: 'center',
+    // Arabic text alignment within LTR layout
+    ...(locale === 'ar' ? { textAlign: 'right' } : {}),
   },
   localeOption: {
-    width: '50%',
+    width: '32%',
     padding: Spacing.md,
     borderColor: '#E5E5E5',
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    // Arabic text right-aligned within option
+    ...(locale === 'ar' ? { textAlign: 'right' } : {}),
   },
   localeOptionSelected: {
-    width: '50%',
+    width: '32%',
     padding: Spacing.md,
     borderColor: '#1B6B3A',
     borderWidth: 2,
-    borderRadius: 8,
-    backgroundColor: '#F0FDF4',
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.surfaceAlt,
   },
   localeText: {
-    fontSize: 18,
-    textAlign: 'center',
+    fontSize: 16,
+    // Arabic text alignment
+    ...(locale === 'ar' ? { textAlign: 'right' } : {}),
   },
 });

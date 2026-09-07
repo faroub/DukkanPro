@@ -248,6 +248,65 @@
     "title": "Choisissez votre langue",
     "subtitle": "Vous pourrez la modifier plus tard",
     "note": "La structure de l'application reste de gauche à droite.",
+    "ar": "Arabic",
+    "fr": "Français",
+    "en": "English"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "more": "Plus",
+    "businessProfile": "Profil professionnel",
+    "language": "Langue",
+    "inventoryRules": "Règles d'inventaire",
+    "catalogue": "Catalogue",
+    "dataExport": "Exportation de données",
+    "dataReset": "Réinitialisation des données",
+    "about": "À propos",
+    "languageTitle": "Langue",
+    "languageDescription": "Choisissez la langue de l'application",
+    "arabic": "Arabic",
+    "french": "Français",
+    "english": "English",
+    "darijaNote": "Darija n'est pas disponible dans le MVP",
+    "businessName": "Nom de l'entreprise",
+    "ownerName": "Nom du propriétaire",
+    "businessType": "Type d'activité",
+    "currencyDZD": "DZD",
+    "currencyDisplayOnly": "Affichage seulement",
+    "saveChanges": "Enregistrer les modifications",
+    "resetDataConfirm": "Êtes-vous sûr de vouloir réinitialiser toutes vos données ? Cette action ne peut pas être annulée.",
+    "resetData": "Réinitialiser les données",
+    "aboutTitle": "À propos de Dukkan OS",
+    "aboutDescription": "Application pour micro-entrepreneurs algériens",
+    "version": "Version",
+    "copyright": "Copyright © 2026 Dukkan OS. Tous droits réservés."
+  }
+  "businessNameStep": {
+    "title": "Nom de votre entreprise",
+    "subtitle": "Commençons par le nom de votre activité",
+    "label": "Nom de l'entreprise",
+    "placeholder": "Entrez le nom de votre entreprise"
+  },
+  "ownerNameStep": {
+    "title": "Votre nom",
+    "subtitle": "Comment devons-nous vous appeler ?",
+    "label": "Nom du propriétaire",
+    "placeholder": "Entrez votre nom"
+  },
+  "businessTypeStep": {
+    "title": "Type d'activité",
+    "subtitle": "Choisissez le type qui correspond à votre activité",
+    "grocery": "Épicerie",
+    "bakery": "Boulangerie",
+    "instagram seller": "Vendeur Instagram",
+    "market vendor": "Vendeur de marché",
+    "service seller": "Prestataire de services",
+    "other": "Autre"
+  },
+  "languageStep": {
+    "title": "Choisissez votre langue",
+    "subtitle": "Vous pourrez la modifier plus tard",
+    "note": "La structure de l'application reste de gauche à droite.",
     "ar": "العربية",
     "fr": "Français",
     "en": "English"
