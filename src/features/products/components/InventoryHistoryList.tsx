@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   },
   inventoryQty: {
     fontSize: 12,
-    color: '#1A1A1A',
+    color: Colors.light.textPrimary,
     fontWeight: 500,
   },
   inventoryNote: {

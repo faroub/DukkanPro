@@ -84,7 +84,7 @@ export function PaymentHistory({ customerId, customerName }: PaymentHistoryProps
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F8F7F4',
+    backgroundColor: Colors.light.background,
     padding: 24,
   },
   scrollView: {

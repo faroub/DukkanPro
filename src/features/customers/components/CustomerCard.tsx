@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: Colors.light.textPrimary,
   },
   phone: {
     fontSize: 12,
