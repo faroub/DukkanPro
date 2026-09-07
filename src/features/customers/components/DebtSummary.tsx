@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     minWidth: 120,
   },
   paymentButtonText: {
-    color: '#fff',
+    color: Colors.light.textPrimary,
     fontWeight: '600',
     fontSize: 14,
   },

@@ -57,7 +57,7 @@ export function ProductSearchSheet({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onRequestClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: '#fff', padding: 16 }}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: Colors.light.surface, padding: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
             <ThemedText type="title">{t('sell.search_products')}</ThemedText>
             <MaterialCommunityIcons name="delete" size={20} color="gray" onPress={onRequestClose} />

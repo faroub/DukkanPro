@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 16,
     height: 16,
-    borderColor: "#10B981",
+    borderColor: Colors.light.primary,
   },
   tl: {
     top: 0,

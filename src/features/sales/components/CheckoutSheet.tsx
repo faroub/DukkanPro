@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   totalCardAmount: {
     ...Typography.moneyDisplay,
     fontSize: 26,
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontWeight: "700",
   },
   totalCardBadge: {
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   totalCardBadgeText: {
     ...Typography.caption,
     fontSize: 11,
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontWeight: "600",
   },
   customerCard: {

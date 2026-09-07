@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: Spacing.md,
     minHeight: 48,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,

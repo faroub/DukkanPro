@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.light.disabledBackground,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 16,
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorBannerText: {
-    color: '#B91C1C',
+    color: Colors.light.destructive,
     fontSize: 12,
   },
   cancelButton: {
