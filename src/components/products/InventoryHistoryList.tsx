@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { getInventoryHistory } from '@/database/repositories/productRepository';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 interface InventoryHistoryListProps {
   productId: number;
@@ -108,62 +109,62 @@ export function InventoryHistoryList({ productId, productName, locale = "fr" }: 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
+    backgroundColor: Colors.light.background,
   },
   scroll: {
     flexGrow: 1,
-    padding: 20,
+    padding: Spacing.lg,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
-    color: '#6B7280',
+    padding: Spacing.xxl,
+    color: Colors.light.textSecondary,
   },
   emptyText: {
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   header: {
-    marginBottom: 20,
-    paddingBottom: 12,
+    marginBottom: Spacing.lg,
+    paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: Colors.light.border,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 500,
-    color: '#374151',
+    color: Colors.light.textPrimary,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
+    padding: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
-    backgroundColor: 'white',
+    borderBottomColor: Colors.light.border,
+    backgroundColor: Colors.light.surface,
   },
   typeLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     flex: 1,
   },
   quantityLabel: {
     fontSize: 12,
-    color: '#1A1A1A',
+    color: Colors.light.textPrimary,
     fontWeight: 500,
     flex: 0,
   },
   noteLabel: {
     fontSize: 12,
-    color: '#6B7280',
-    marginHorizontal: 4,
+    color: Colors.light.textSecondary,
+    marginHorizontal: Spacing.xs,
     flex: 2,
   },
   dateLabel: {
     fontSize: 10,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     flex: 1,
   },
 });

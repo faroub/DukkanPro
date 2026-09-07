@@ -4,6 +4,7 @@ import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DatabaseProvider } from "./DatabaseProvider";
 import { LocaleProvider } from "./LocaleProvider";
+import { Colors } from "@/constants/theme";
 
 export interface AppProvidersProps {
   children: React.ReactNode;
@@ -24,6 +25,6 @@ export function AppProviders({ children }: AppProvidersProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F7F4",
+    backgroundColor: Colors.light.background,
   },
 });

@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, type ViewProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import { Spacing, Colors } from "@/constants/theme";
 
 export interface ErrorStateProps extends ViewProps {
   message: string;
@@ -62,13 +62,13 @@ const styles = StyleSheet.create({
   },
   errorMessage: {
     fontSize: 16,
-    color: "#B91C1C",
+    color: Colors.light.destructive,
     fontWeight: 500,
     textAlign: "center",
     maxWidth: "80%",
   },
   retryButton: {
-    backgroundColor: "#D97706",
+    backgroundColor: Colors.light.warning,
     minHeight: 48,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
