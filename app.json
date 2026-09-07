@@ -22,7 +22,7 @@
       "package": "com.oubfar.DukkanOS"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [

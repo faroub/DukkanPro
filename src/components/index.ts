@@ -29,7 +29,7 @@ export { SearchInput } from "./ui/SearchInput";
 export { SecondaryButton } from "./ui/SecondaryButton";
 export type { SecondaryButtonProps } from "./ui/SecondaryButton";
 export { StatusBadge } from "./ui/StatusBadge";
-export { useToast } from "./use-toast";
+export { showToast, useToast } from "./use-toast";
 export { WebBadge } from "./web-badge";
 
 export type { AppHeaderProps } from "./ui/AppHeader";

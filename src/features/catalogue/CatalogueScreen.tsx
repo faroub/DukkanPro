@@ -28,11 +28,6 @@ export function CatalogueScreen() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sharing, setSharing] = useState(false);
 
-  // Load products and settings on mount
-  useEffect(() => {
-    loadCatalogue();
-  }, []);
-
   const loadCatalogue = async () => {
     // In a full implementation, this would load from database/settings
     // For now, use default data
@@ -55,6 +50,11 @@ export function CatalogueScreen() {
     ];
     setProducts(defaultProducts);
   };
+
+  // Load products and settings on mount
+  useEffect(() => {
+    loadCatalogue();
+  }, []);
 
   const handleSettingChange = (key: string, value: any) => {
     setSettings({ ...settings, [key]: value });

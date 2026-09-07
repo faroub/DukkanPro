@@ -36,18 +36,6 @@ export default function SellScreen() {
     setPreserveCart,
   } = useCartStoreHook();
 
-  // Update voice available products when products change
-  useEffect(() => {
-    const availableProducts = products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      category: p.category ?? "",
-      price_centimes: p.sale_price_centimes,
-      stock: p.stock_quantity,
-    }));
-    setVoiceAvailableProducts(availableProducts);
-  }, [products]);
-
   const [cartVisible, setCartVisible] = useState(false);
   const [checkoutVisible, setCheckoutVisible] = useState(false);
   const [receiptVisible, setReceiptVisible] = useState(false);
@@ -67,6 +55,18 @@ export default function SellScreen() {
   const [voiceAvailableProducts, setVoiceAvailableProducts] = useState<
     AvailableProduct[]
   >([]);
+
+  // Update voice available products when products change
+  useEffect(() => {
+    const availableProducts = products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      category: p.category ?? "",
+      price_centimes: p.sale_price_centimes,
+      stock: p.stock_quantity,
+    }));
+    setVoiceAvailableProducts(availableProducts);
+  }, [products]);
 
   // Handle product add to cart from search sheet
   const handleAddToCart = useCallback(
