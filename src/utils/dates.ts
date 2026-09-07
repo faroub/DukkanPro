@@ -74,7 +74,7 @@ export function formatRelativeDate(
 ): string {
   const dateObj = date instanceof Date ? date : new Date(date);
   const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDay());
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const targetStart = new Date(
     dateObj.getFullYear(),
     dateObj.getMonth(),
