@@ -1,11 +1,13 @@
-import { StyleSheet, TextInput, type TextInputProps } from "react-native";
+import { SymbolView } from "expo-symbols";
+import { StyleSheet, TextInput, type TextInputProps, View } from "react-native";
 
 import { ThemedView } from "@/components/themed-view";
 import {
-    Colors,
-    ComponentDimensions,
-    Spacing,
-    Typography,
+  BorderRadius,
+  Colors,
+  ComponentDimensions,
+  Spacing,
+  Typography,
 } from "@/constants/theme";
 
 export interface SearchInputProps extends TextInputProps {
@@ -18,13 +20,26 @@ export function SearchInput({
   placeholder,
   onSearch,
   locale = "fr",
+  style,
   ...rest
 }: SearchInputProps) {
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, style]}>
+      <View style={styles.iconWrapper}>
+        <SymbolView
+          name={{
+            ios: "magnifyingglass",
+            android: "search",
+            web: "search",
+          }}
+          size={18}
+          tintColor={Colors.light.textSecondary}
+        />
+      </View>
       <TextInput
         style={styles.input}
         placeholder={placeholder}
+        placeholderTextColor={Colors.light.textMuted}
         onSubmitEditing={onSearch}
         {...rest}
       />
@@ -37,16 +52,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.light.surface,
-    minHeight: ComponentDimensions.searchInputHeight,
+    height: ComponentDimensions.searchInputHeight,
     borderWidth: 1,
     borderColor: Colors.light.border,
-    borderRadius: Spacing.md,
+    borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
-    height: 56,
+  },
+  iconWrapper: {
+    marginRight: Spacing.sm,
+    justifyContent: "center",
+    alignItems: "center",
   },
   input: {
     flex: 1,
     ...Typography.body,
-    color: "#1A1A1A",
+    fontSize: 15,
+    color: Colors.light.textPrimary,
+    paddingVertical: 0,
   },
 });

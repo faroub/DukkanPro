@@ -11,15 +11,18 @@
  - Refresh after sales, payments, edits, cancellations, and returns
  * (the calling screen or app state manager should trigger a re-fetch).
  */
+import { useRouter } from "expo-router";
+import { ScrollView, StyleSheet } from "react-native";
+
 import { ThemedView } from "@/components/themed-view";
 import { GreetingCard } from "@/features/dashboard/components/GreetingCard";
 import { LowStockList } from "@/features/dashboard/components/LowStockList";
 import { QuickActions } from "@/features/dashboard/components/QuickActions";
 import { RecentSalesList } from "@/features/dashboard/components/RecentSalesList";
+import { SalesChart } from "@/features/dashboard/components/SalesChart";
 import { SummaryCards } from "@/features/dashboard/components/SummaryCards";
 import { useDashboard } from "@/hooks/useDashboard";
 import { getTextAlignment } from "@/utils/text";
-import { ScrollView, StyleSheet } from "react-native";
 
 interface DashboardScreenProps {
   t: (key: string, ...args: any[]) => string;
@@ -30,6 +33,7 @@ export default function DashboardScreenDefault({
   t,
   locale,
 }: DashboardScreenProps) {
+  const router = useRouter();
   const {
     greeting,
     todayDate,
@@ -48,18 +52,25 @@ export default function DashboardScreenDefault({
 
   const alignment = getTextAlignment(locale);
 
-  // Quick action handlers (placeholders for now)
-  const handleNewSale = () => {};
-  const handleAddProduct = () => {};
-  const handleAddCustomer = () => {};
-  const handleRecordPayment = () => {};
+  // Quick action navigation handlers
+  const handleNewSale = () => {
+    router.push("/(tabs)/sell" as any);
+  };
+  const handleAddProduct = () => {
+    router.push("/products/new" as any);
+  };
+  const handleAddCustomer = () => {
+    router.push("/customers/new" as any);
+  };
+  const handleRecordPayment = () => {
+    router.push("/(tabs)/customers" as any);
+  };
 
   return (
-    <ThemedView type="background">
+    <ThemedView type="background" style={styles.container}>
       <ScrollView
-        contentContainerStyle={{
-          padding: 24,
-        }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
         {/* Greeting Card */}
         <GreetingCard
@@ -69,7 +80,7 @@ export default function DashboardScreenDefault({
           textAlignment={alignment}
         />
 
-        {/* Summary Cards */}
+        {/* 2x2 Bento Summary Cards matching Stitch */}
         <SummaryCards
           revenueKey={t("dashboard.summary.revenue")}
           revenueValue_centimes={todayRevenue_centimes}
@@ -77,8 +88,30 @@ export default function DashboardScreenDefault({
           profitValue_centimes={todayProfit_centimes}
           toCollectKey={t("dashboard.summary.toCollect")}
           toCollectValue_centimes={toCollect_centimes}
+          lowStockKey={t("dashboard.summary.lowStock") || t("dashboard.lowStock.title")}
+          lowStockCount={lowStockCount}
           locale={locale}
           textAlignment={alignment}
+        />
+
+        {/* 7-Day Sales Trend Bar Chart */}
+        <SalesChart
+          title={t("dashboard.charts.salesTrend") || "7-Day Sales Trend"}
+          locale={locale}
+        />
+
+        {/* Quick Actions (4 large action buttons matching Stitch) */}
+        <QuickActions
+          quickActionNewSale={quickActionNewSale}
+          quickActionAddProduct={quickActionAddProduct}
+          quickActionAddCustomer={quickActionAddCustomer}
+          quickActionRecordPayment={quickActionRecordPayment}
+          locale={locale}
+          textAlignment={alignment}
+          onNewSale={handleNewSale}
+          onAddProduct={handleAddProduct}
+          onAddCustomer={handleAddCustomer}
+          onRecordPayment={handleRecordPayment}
         />
 
         {/* Recent Sales List */}
@@ -100,20 +133,6 @@ export default function DashboardScreenDefault({
           lowStockNoLowStock={t("dashboard.lowStock.noLowStock")}
           lowStockNote={t("dashboard.lowStock.note", { count: lowStockCount })}
         />
-
-        {/* Quick Actions */}
-        <QuickActions
-          quickActionNewSale={quickActionNewSale}
-          quickActionAddProduct={quickActionAddProduct}
-          quickActionAddCustomer={quickActionAddCustomer}
-          quickActionRecordPayment={quickActionRecordPayment}
-          locale={locale}
-          textAlignment={alignment}
-          onNewSale={handleNewSale}
-          onAddProduct={handleAddProduct}
-          onAddCustomer={handleAddCustomer}
-          onRecordPayment={handleRecordPayment}
-        />
       </ScrollView>
     </ThemedView>
   );
@@ -123,5 +142,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F7F4",
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 80,
   },
 });
