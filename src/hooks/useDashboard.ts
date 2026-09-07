@@ -8,12 +8,10 @@
  - All user-facing strings wrapped in t('dashboard.*') i18n pattern
  - Remains LTR regardless of selected language
  */
-import { useEffect, useState } from "react";
 import { getDatabase } from "@/database/database";
+import { getAll } from "@/database/repositories/customerRepository";
 import { getByCustomerId } from "@/database/repositories/saleRepository";
-import { create, getAll } from "@/database/repositories/customerRepository";
-import { formatCentimes } from "@/utils/money";
-import { getTextAlignment } from "@/utils/text";
+import { useEffect, useState } from "react";
 
 export interface CustomerPayment {
   id: number;
@@ -68,8 +66,8 @@ export async function fetchDashboardData(
   // ---- Today's sales (completed + partially paid + credit, exclude cancelled/returned) ----
   const allSales: any[] = await getByCustomerId(0); // customerId=0 returns all sales
   const validSaleStatuses = ["completed", "partial", "credit"];
-  const validTodaySales = (allSales || []).filter(
-    (s: any) => validSaleStatuses.includes(s.status),
+  const validTodaySales = (allSales || []).filter((s: any) =>
+    validSaleStatuses.includes(s.status),
   );
 
   // Today's revenue = sum of total_centimes from valid sales
@@ -94,18 +92,20 @@ export async function fetchDashboardData(
     (s: any) => s.status === "completed",
   );
   const completedSaleBalances = (completedSales || []).reduce(
-    (sum: number, sale: any) => sum + Math.max(0, sale.remaining_balance_centimes || 0),
+    (sum: number, sale: any) =>
+      sum + Math.max(0, sale.remaining_balance_centimes || 0),
     0,
   );
   // Fetch all payments
-  const allPayments: any[] = getAll
-    ? await getAll()
-    : [];
+  const allPayments: any[] = getAll ? await getAll() : [];
   const totalPayments_centimes = (allPayments || []).reduce(
     (sum: number, p: any) => sum + (p.amount_centimes || 0),
     0,
   );
-  const toCollect_centimes = Math.max(0, completedSaleBalances - totalPayments_centimes);
+  const toCollect_centimes = Math.max(
+    0,
+    completedSaleBalances - totalPayments_centimes,
+  );
 
   // ---- Low-stock products (active, stock <= threshold) ----
   // Use the saleRepository or a product query. For now, we'll use a placeholder.
@@ -120,7 +120,8 @@ export async function fetchDashboardData(
     );
     const stockThreshold = 5;
     lowStockProducts = (products || []).filter(
-      (p: any) => (p.stock_quantity || 0) <= stockThreshold && p.stock_quantity > 0,
+      (p: any) =>
+        (p.stock_quantity || 0) <= stockThreshold && p.stock_quantity > 0,
     );
     lowStockCount = lowStockProducts.length;
   } catch (e) {
@@ -158,10 +159,10 @@ export async function fetchDashboardData(
     lowStockProducts,
 
     // Quick action keys - will be overridden by deps.t in the hook
-    quickActionNewSale: "dashboard:quick.newSale",
-    quickActionAddProduct: "dashboard:quick.addProduct",
-    quickActionAddCustomer: "dashboard:quick.addCustomer",
-    quickActionRecordPayment: "dashboard:quick.recordPayment",
+    quickActionNewSale: "dashboard.quick.newSale",
+    quickActionAddProduct: "dashboard.quick.addProduct",
+    quickActionAddCustomer: "dashboard.quick.addCustomer",
+    quickActionRecordPayment: "dashboard.quick.recordPayment",
   };
 }
 
@@ -184,7 +185,7 @@ export function useDashboard(deps: {
   const [data, setData] = useState<DashboardData>(() => {
     // Initial state - will be hydrated after fetch
     return {
-      greeting: deps.t("dashboard:greeting"),
+      greeting: deps.t("dashboard.greeting"),
       todayDate: new Date().toLocaleDateString(deps.locale, {
         weekday: "short",
         year: "numeric",
@@ -198,18 +199,27 @@ export function useDashboard(deps: {
       lowStockCount: 0,
       recentSales: [],
       lowStockProducts: [],
-      quickActionNewSale: deps.t("dashboard:quick.newSale"),
-      quickActionAddProduct: deps.t("dashboard:quick.addProduct"),
-      quickActionAddCustomer: deps.t("dashboard:quick.addCustomer"),
-      quickActionRecordPayment: deps.t("dashboard:quick.recordPayment"),
+      quickActionNewSale: deps.t("dashboard.quick.newSale"),
+      quickActionAddProduct: deps.t("dashboard.quick.addProduct"),
+      quickActionAddCustomer: deps.t("dashboard.quick.addCustomer"),
+      quickActionRecordPayment: deps.t("dashboard.quick.recordPayment"),
     };
   });
 
   useEffect(() => {
     // Fetch data async and hydrate state
-    ;(async () => {
+    (async () => {
       const dashboardData = await fetchDashboardData(deps.locale);
-      setData(dashboardData);
+      setData({
+        ...dashboardData,
+        greeting: deps.t("dashboard.greeting"),
+        quickActionNewSale: deps.t(dashboardData.quickActionNewSale),
+        quickActionAddProduct: deps.t(dashboardData.quickActionAddProduct),
+        quickActionAddCustomer: deps.t(dashboardData.quickActionAddCustomer),
+        quickActionRecordPayment: deps.t(
+          dashboardData.quickActionRecordPayment,
+        ),
+      });
     })();
   }, [deps]);
 

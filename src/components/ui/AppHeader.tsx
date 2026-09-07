@@ -40,6 +40,7 @@ export function AppHeader({
             style={styles.backButton}
             onPress={rightAction?.onPress}
             accessible
+            accessibilityRole="button"
             accessibilityLabel={locale === "ar" ? "Retour" : "Back"}
           >
             <SymbolView
@@ -97,6 +98,8 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
+    minWidth: 48,
+    minHeight: 48,
   },
   rightAction: {
     fontSize: 14,

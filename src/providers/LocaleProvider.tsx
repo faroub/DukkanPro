@@ -6,7 +6,7 @@ import {
     getCurrentDeviceLocale,
     isSupportedLocale,
     readStoredLocaleFromAsyncStorage,
-    storeLocaleInAsyncStorage
+    storeLocaleInAsyncStorage,
 } from "@/localization/localeConfig";
 import type { Locale } from "@/localization/types";
 
@@ -91,7 +91,7 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
       // The app layout remains LTR regardless of language
       if (isSupportedLocale(lng as Locale)) {
         // Locale is informational only; layout direction is always LTR
-        // We do NOT call I18nManager.forceRTL(true) or allowRTL(true)
+        // We do NOT enable global RTL layout
       }
     };
     i18n.on("languageChanged", handleLanguageChange);

@@ -1,7 +1,6 @@
-import { useState, useCallback } from "react";
 import { getAll, search } from "@/database/repositories/productRepository";
 import type { Product } from "@/types/entities";
-import { mockDatabase } from "@/utils/testing";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * Filters for product listing
@@ -57,9 +56,7 @@ export function useProducts(filters: ProductsFilters = {}) {
 
       setProducts(transformed);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load products",
-      );
+      setError(err instanceof Error ? err.message : "Failed to load products");
       setProducts([]);
     } finally {
       setLoading(false);
@@ -67,6 +64,10 @@ export function useProducts(filters: ProductsFilters = {}) {
   }, [searchQuery, is_active]);
 
   const reload = useCallback(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
@@ -78,4 +79,3 @@ export function useProducts(filters: ProductsFilters = {}) {
     refetch: reload,
   };
 }
-

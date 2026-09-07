@@ -34,7 +34,12 @@ export function ConfirmDialog({
         <ThemedText style={styles.message}>{message}</ThemedText>
 
         <ThemedView style={styles.buttons}>
-          <Pressable style={styles.cancelButton} onPress={() => onCancel()}>
+          <Pressable
+            style={styles.cancelButton}
+            onPress={onCancel}
+            accessibilityRole="button"
+            accessibilityLabel={cancelLabel}
+          >
             <ThemedText style={styles.buttonText}>{cancelLabel}</ThemedText>
           </Pressable>
 
@@ -43,7 +48,9 @@ export function ConfirmDialog({
               styles.confirmButton,
               destructive && styles.destructiveButton,
             ]}
-            onPress={() => onConfirm()}
+            onPress={onConfirm}
+            accessibilityRole="button"
+            accessibilityLabel={confirmLabel}
           >
             <ThemedText style={styles.buttonText}>{confirmLabel}</ThemedText>
           </Pressable>
@@ -86,6 +93,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
+    minHeight: 48,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Spacing.md,
@@ -95,6 +103,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: "#1B6B3A",
+    minHeight: 48,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Spacing.md,

@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 
-import type { Locale } from "@/localization/types";
 import i18n from "@/localization/i18n";
-import { getCurrentDeviceLocale, getFormattedLocale, isSupportedLocale, readStoredLocaleFromAsyncStorage, storeLocaleInAsyncStorage } from "@/localization/localeConfig";
+import {
+    getFormattedLocale,
+    isSupportedLocale,
+    readStoredLocaleFromAsyncStorage,
+    storeLocaleInAsyncStorage
+} from "@/localization/localeConfig";
+import type { Locale } from "@/localization/types";
 
 /**
  * Return type for the useLocale hook
@@ -27,7 +32,7 @@ export interface UseLocaleReturn {
  * - Returns current selected locale (persisted in AsyncStorage or device locale)
  * - Always returns isRTL as false - app remains LTR regardless of language
  * - changeLocale persists the selection and updates i18n
- * - Does NOT call I18nManager.forceRTL() or I18nManager.allowRTL()
+ * - Does NOT call global RTL APIs
  * - Language switching never triggers an RTL reload
  *
  * The entire application remains visually LTR regardless of selected language.
@@ -51,7 +56,7 @@ export function useLocale(): UseLocaleReturn {
    * Change the application locale
    * - Persists the selection in SQLite
    * - Updates i18n next language dynamically
-   * - Does NOT call I18nManager APIs (app stays LTR)
+   * - Does NOT call global direction APIs (app stays LTR)
    */
   const changeLocale = (newLocale: Locale): void => {
     // Validate the locale is supported

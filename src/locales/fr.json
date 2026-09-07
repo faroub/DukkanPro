@@ -1,10 +1,47 @@
 {
+  "app": {
+    "title": "Dukkan OS"
+  },
+  "tabs": {
+    "home": "Accueil",
+    "sell": "Vente",
+    "products": "Produits",
+    "customers": "Clients",
+    "more": "Plus"
+  },
+  "dashboard": {
+    "greeting": "Bonjour",
+    "summary": {
+      "revenue": "Chiffre d'affaires",
+      "profit": "Bénéfice estimé",
+      "toCollect": "À encaisser"
+    },
+    "recentSales": {
+      "title": "Ventes récentes",
+      "noSales": "Aucune vente récente"
+    },
+    "lowStock": {
+      "title": "Stock bas",
+      "noLowStock": "Aucun produit en stock bas",
+      "note": "{{count}} produit(s) à réapprovisionner"
+    },
+    "quick": {
+      "newSale": "Nouvelle vente",
+      "addProduct": "Ajouter un produit",
+      "addCustomer": "Ajouter un client",
+      "recordPayment": "Enregistrer un paiement"
+    }
+  },
+  "common": {
+    "primaryButton": "Continuer"
+  },
   "appText": "Texte de l'application",
   "screen": "Écran",
   "header": "En-tête",
   "back": "Retour",
   "action": "Action",
   "primaryButton": "Primaire",
+  "clear": "Effacer",
   "secondaryButton": "Secondaire",
   "iconButton": "Icône",
   "card": "Carreau",
@@ -44,12 +81,18 @@
     "formTitle": "Créer un produit",
     "formSubtitle": "Ajoutez un produit à votre inventaire",
     "name": "Nom",
+    "placeholder": "Rechercher un produit",
+    "filterAll": "Tous",
+    "filterLowStock": "Stock bas",
+    "filterOutOfStock": "Rupture",
+    "filterArchived": "Archivés",
     "sku": "SKU",
     "category": "Catégorie",
     "salePrice": "Prix de vente (DZD)",
     "salePriceCentimes": "Prix en centimes (entier, sans décimales)",
     "costPrice": "Prix d'achat (DZD)",
     "stock": "Stock actuel",
+    "stockCreateNote": "Le stock sera disponible après l'enregistrement",
     "minimumStock": "Seuil de stock minimum",
     "unit": "Unité",
     "unitPiece": "Pièce",
@@ -178,6 +221,36 @@
     "description": "Enregistrez les ventes, suivez les clients, gérez les stocks",
     "getStarted": "Commencer",
     "skip": "Sauter"
+  },
+  "businessNameStep": {
+    "title": "Nom de votre entreprise",
+    "subtitle": "Commençons par le nom de votre activité",
+    "label": "Nom de l'entreprise",
+    "placeholder": "Entrez le nom de votre entreprise"
+  },
+  "ownerNameStep": {
+    "title": "Votre nom",
+    "subtitle": "Comment devons-nous vous appeler ?",
+    "label": "Nom du propriétaire",
+    "placeholder": "Entrez votre nom"
+  },
+  "businessTypeStep": {
+    "title": "Type d'activité",
+    "subtitle": "Choisissez le type qui correspond à votre activité",
+    "grocery": "Épicerie",
+    "bakery": "Boulangerie",
+    "instagram seller": "Vendeur Instagram",
+    "market vendor": "Vendeur de marché",
+    "service seller": "Prestataire de services",
+    "other": "Autre"
+  },
+  "languageStep": {
+    "title": "Choisissez votre langue",
+    "subtitle": "Vous pourrez la modifier plus tard",
+    "note": "La structure de l'application reste de gauche à droite.",
+    "ar": "العربية",
+    "fr": "Français",
+    "en": "English"
   },
   "settings": {
     "title": "Paramètres",

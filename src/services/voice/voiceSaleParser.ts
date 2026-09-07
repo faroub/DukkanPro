@@ -63,7 +63,7 @@ export function parseSaleCommand(
   // Step 1: Normalize the text and detect language/quantity
   const { normalized, detectedQuantity, language } =
     normalizeSalesText(command);
-  const lang = language as Language;
+  const lang = /[\u0600-\u06ff]/.test(command) ? "ar" : (language as Language);
 
   // Step 2: Extract product name (remove number words)
   const normalizedName = normalizeProductName(normalized);
@@ -143,6 +143,10 @@ function detectPaymentMethod(
   language: Language,
 ): "cash" | "credit" {
   const lower = normalized.toLowerCase();
+
+  if (language !== "ar" && /[\u0600-\u06ff]/.test(normalized)) {
+    language = "ar";
+  }
 
   // Arabic keywords
   if (language === "ar") {
