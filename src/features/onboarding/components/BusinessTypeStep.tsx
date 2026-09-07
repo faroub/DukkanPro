@@ -1,304 +1,317 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableWithoutFeedback, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Spacing } from '@/constants/theme';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { SymbolView } from "expo-symbols";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-// Simple SVG icons for Material Symbols
-const SvgIcon = ({
-  name,
-  size,
-}: {
-  name: 'storefront' | 'check' | 'info' | 'arrow_forward';
-  size: number;
-}) => {
-  const svgData: Record<string, string> = {
-    storefront: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20V2h4v18l-4-3h-2l-4 3h-2zM3 9v6h18"/><path fill="none" d="M0 0h24v24H0z"/></svg>',
-    check: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M9 18l6-6-6-6M2 12l10 10-10 10z"/></svg>',
-    info: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.354 8.647-2.646 2.646-5.293-1.414L15 15.069l-2.647-5.303-1.414 2.646L9.75 9.75l-5.293 1.414 1.414 5.293L5 15.069l 5.293-1.414 2.647 5.303z"/></svg>',
-    arrow_forward: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18l6-6-6-6M2 12l10 10-10 10z"/></svg>',
-  };
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import {
+  BorderRadius,
+  Colors,
+  ComponentDimensions,
+  Shadows,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 
-  const path = svgData[name] || '';
-  return <svg dangerouslySetInnerHTML={{ __html: path.replace(/\{size\}/g, size.toString()) }} />;
-};
+interface BusinessTypeStepProps {
+  onContinue: (data: { businessType: string }) => void;
+  onBack?: () => void;
+  selectedType?: string;
+  stepNumber?: number;
+  totalSteps?: number;
+}
+
+const BUSINESS_CATEGORIES = [
+  {
+    id: "grocery",
+    name: "Grocery shop",
+    subtitle: "Alimentation générale / البقالة",
+    iconIos: "cart.fill",
+    iconAndroid: "storefront",
+  },
+  {
+    id: "bakery",
+    name: "Home bakery",
+    subtitle: "Gâteaux & Pâtisserie maison / حلويات منزلية",
+    iconIos: "birthday.cake.fill",
+    iconAndroid: "bakery_dining",
+  },
+  {
+    id: "instagram_seller",
+    name: "Instagram seller",
+    subtitle: "Vente en ligne & Réseaux / متجر إنستغرام",
+    iconIos: "camera.fill",
+    iconAndroid: "photo_camera",
+  },
+  {
+    id: "market_vendor",
+    name: "Market vendor",
+    subtitle: "Marché & Vendeur ambulant / بائع في السوق",
+    iconIos: "bag.fill",
+    iconAndroid: "store",
+  },
+  {
+    id: "service_seller",
+    name: "Service seller",
+    subtitle: "Prestation de services / خدمات",
+    iconIos: "wrench.and.screwdriver.fill",
+    iconAndroid: "handyman",
+  },
+  {
+    id: "other",
+    name: "Other",
+    subtitle: "Autre activité / نشاط آخر",
+    iconIos: "ellipsis.circle.fill",
+    iconAndroid: "more_horiz",
+  },
+];
 
 export function BusinessTypeStep({
   onContinue,
-  selectedType,
-}: any) {
+  onBack,
+  selectedType = "grocery",
+  stepNumber = 2,
+  totalSteps = 3,
+}: BusinessTypeStepProps) {
   const { t } = useTranslation();
-  const [selectedTypeLocal, setSelectedTypeLocal] = useState(selectedType || 'grocery');
-
-  // Business type options matching Stitch design
-  const businessTypes = [
-    {
-      value: 'grocery',
-      name: 'Grocery shop',
-      caption: 'Alimentation générale / البقالة',
-    },
-    {
-      value: 'bakery',
-      name: 'Home bakery',
-      caption: 'Gâteaux & Pâtisserie maison / حلويات منزلية',
-    },
-    {
-      value: 'instagram_seller',
-      name: 'Instagram seller',
-      caption: 'Vente en ligne & Réseaux / متجر إنستغرام',
-    },
-    {
-      value: 'market_vendor',
-      name: 'Market vendor',
-      caption: 'Marché & Vendeur ambulant / بائع في السوق',
-    },
-    {
-      value: 'service_seller',
-      name: 'Service seller',
-      caption: 'Prestation de services / خدمات',
-    },
-    {
-      value: 'other',
-      name: 'Other',
-      caption: 'Autre actividad / actividad diferente',
-    },
-  ];
+  const [currentType, setCurrentType] = useState(selectedType);
 
   const handleContinue = () => {
-    if (!selectedTypeLocal) {
-      return;
-    }
-    onContinue?.({ businessType: selectedTypeLocal });
+    onContinue({ businessType: currentType });
   };
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.contentPadding}>
-        {/* Step indicator & Progress */}
-        <View style={styles.progress}>
-          <View style={styles.progressDotActive as any} />
-          <View style={styles.progressDotInactive} />
-          <View style={styles.progressDotInactive} />
-        </View>
-
-        <View style={styles.stepIndicator}>
-          <View style={styles.stepDotActive} />
-          <Text style={styles.stepLabel}>Step 2 of 3</Text>
-        </View>
-
-        {/* Header Text */}
-        <View style={styles.header}>
-          <ThemedText type="heading" style={styles.title}>
-            {t('businessTypeStep.title')}
-          </ThemedText>
-          <ThemedText type="body" style={styles.subtitle}>
-            Choose the category that best matches your daily activity
+      {/* Step Progress Pill */}
+      <View style={styles.progressRow}>
+        <View style={styles.stepPill}>
+          <ThemedText style={styles.stepPillText}>
+            Step {stepNumber} of {totalSteps}
           </ThemedText>
         </View>
+        <View style={styles.progressBars}>
+          <View style={[styles.bar, styles.barActive]} />
+          <View style={[styles.bar, styles.barActive]} />
+          <View style={styles.bar} />
+        </View>
+      </View>
 
-        {/* Business Type Options */}
-        <View style={styles.optionsContainer} aria-label="Business Category Selection" role="radiogroup">
-          {businessTypes.map((type, index) => (
-            <TouchableWithoutFeedback
-              key={type.value}
-              style={styles.optionCard}
-              role="radio"
-              onPress={() => setSelectedTypeLocal(type.value)}
+      {/* Header */}
+      <View style={styles.header}>
+        <ThemedText style={styles.title}>What type of business?</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          Choose the category that best matches your daily activity
+        </ThemedText>
+      </View>
+
+      {/* Categories List */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+      >
+        {BUSINESS_CATEGORIES.map((cat) => {
+          const isSelected = currentType === cat.id;
+
+          return (
+            <Pressable
+              key={cat.id}
+              onPress={() => setCurrentType(cat.id)}
+              style={[
+                styles.categoryCard,
+                isSelected && styles.categoryCardSelected,
+              ]}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected }}
             >
-              <View style={styles.iconBubble}>
-                <SvgIcon name="storefront" size={24} />
-              </View>
-              <View style={styles.optionText}>
-                <span style={styles.optionName}>{type.name}</span>
-                <span style={styles.optionCaption} dir="auto">
-                  {type.caption}
-                </span>
-              </View>
-              <View style={styles.checkPill}>
-                <SvgIcon name="check" size={18} />
-              </View>
-            </TouchableWithoutFeedback>
-          ))}
-        </View>
+              <View style={styles.cardLeft}>
+                <View
+                  style={[
+                    styles.iconBubble,
+                    isSelected && styles.iconBubbleSelected,
+                  ]}
+                >
+                  <SymbolView
+                    name={{
+                      ios: cat.iconIos as any,
+                      android: cat.iconAndroid as any,
+                      web: cat.iconAndroid as any,
+                    }}
+                    size={22}
+                    tintColor={
+                      isSelected ? Colors.light.primary : Colors.light.textSecondary
+                    }
+                  />
+                </View>
 
-        {/* Micro-delight helper message */}
-        <View style={styles.microDelight}>
-          <SvgIcon name="info" size={18} />
-          <Text style={styles.microDelightText}>
-            You can change your category or add custom products anytime in Settings.
-          </Text>
-        </View>
+                <View style={styles.textContainer}>
+                  <ThemedText style={styles.catName}>{cat.name}</ThemedText>
+                  <ThemedText style={styles.catSubtitle}>
+                    {cat.subtitle}
+                  </ThemedText>
+                </View>
+              </View>
 
-        {/* Bottom Fixed-style Actions Slot */}
-        <View style={styles.ctaContainer}>
-          <PrimaryButton
-            style={styles.continueBtn}
-            onPress={handleContinue}
-            title="Continue">
-            <span>Continue</span>
-            <SvgIcon name="arrow_forward" size={20} />
-          </PrimaryButton>
-          <PrimaryButton
-            style={styles.backBtn}
-            onPress={() => {}}
-            title="Back">
-            Back
-          </PrimaryButton>
-        </View>
-      </ThemedView>
+              <View
+                style={[
+                  styles.checkCircle,
+                  isSelected && styles.checkCircleSelected,
+                ]}
+              >
+                {isSelected && (
+                  <SymbolView
+                    name={{
+                      ios: "checkmark" as any,
+                      android: "check" as any,
+                      web: "check" as any,
+                    }}
+                    size={14}
+                    tintColor="#FFFFFF"
+                  />
+                )}
+              </View>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {/* CTA Footer */}
+      <View style={styles.footer}>
+        <PrimaryButton title="Continue" onPress={handleContinue} />
+        {onBack && (
+          <Pressable onPress={onBack} style={styles.backButton}>
+            <ThemedText style={styles.backButtonText}>Back / Retour</ThemedText>
+          </Pressable>
+        )}
+      </View>
     </ThemedView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xxl,
-    backgroundColor: 'white',
+    backgroundColor: Colors.light.background,
+    paddingHorizontal: ComponentDimensions.screenPadding,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xl,
   },
-  contentPadding: {
-    width: '100%',
-    maxWidth: 400,
-    padding: Spacing.lg,
+  progressRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.md,
   },
-  progress: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
+  stepPill: {
+    backgroundColor: Colors.light.backgroundElement,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
   },
-  progressDotActive: {
-    width: 32,
-    height: 4,
-    backgroundColor: '#1B6B3A',
-    borderRadius: 2,
-    marginHorizontal: 4,
-  },
-  progressDotInactive: {
-    width: 32,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    marginHorizontal: 4,
-  },
-  stepIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: Spacing.lg,
-  },
-  stepDotActive: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#1B6B3A',
-  },
-  stepLabel: {
+  stepPillText: {
+    ...Typography.caption,
     fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    color: Colors.light.textSecondary,
+  },
+  progressBars: {
+    flexDirection: "row",
+    gap: 6,
+    alignItems: "center",
+  },
+  bar: {
+    width: 24,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.border,
+  },
+  barActive: {
+    backgroundColor: Colors.light.primary,
   },
   header: {
-    width: '100%',
     marginBottom: Spacing.md,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 4,
-    textAlign: 'center',
+    ...Typography.heading1,
+    color: Colors.light.textPrimary,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
+    ...Typography.body,
+    color: Colors.light.textSecondary,
+    marginTop: Spacing.xs,
   },
-  optionsContainer: {
-    width: '100%',
-    gap: Spacing.sm,
+  listContent: {
+    gap: ComponentDimensions.cardGap,
+    paddingBottom: Spacing.md,
   },
-  optionCard: {
-    width: '100%',
-    borderRadius: 16,
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    marginBottom: 12,
+  categoryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.light.surface,
+    padding: ComponentDimensions.cardPadding,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    ...Shadows.sm,
+  },
+  categoryCardSelected: {
+    backgroundColor: "#F4FAF6",
+    borderColor: Colors.light.primary,
+    borderWidth: 2,
+  },
+  cardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    flex: 1,
   },
   iconBubble: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F8F7F4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
+    backgroundColor: Colors.light.backgroundElement,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  optionText: {
-    flexDirection: 'column',
-    gap: 2,
+  iconBubbleSelected: {
+    backgroundColor: Colors.light.primaryLight,
   },
-  optionName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1A1A1A',
+  textContainer: {
+    flex: 1,
   },
-  optionCaption: {
-    fontSize: 12,
-    color: '#6B7280',
+  catName: {
+    ...Typography.label,
+    color: Colors.light.textPrimary,
   },
-  checkPill: {
+  catSubtitle: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
+  },
+  checkCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#F0EFEA',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: Colors.light.backgroundElement,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  microDelight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 24,
-    padding: 12,
-    backgroundColor: '#F8F7F4',
-    borderRadius: 12,
+  checkCircleSelected: {
+    backgroundColor: Colors.light.primary,
   },
-  microDelightText: {
-    fontSize: 12,
-    color: '#6B7280',
+  footer: {
+    marginTop: "auto",
+    gap: Spacing.sm,
   },
-  ctaContainer: {
-    width: '100%',
-    flexDirection: 'column',
-    gap: 12,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+  backButton: {
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  continueBtn: {
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#1B6B3A',
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  backBtn: {
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: 'transparent',
-    color: '#6B7280',
-    fontSize: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+  backButtonText: {
+    ...Typography.label,
+    color: Colors.light.textSecondary,
   },
 });

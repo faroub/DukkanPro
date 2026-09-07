@@ -1,111 +1,278 @@
-import React from 'react';
-import { View, Text, FlatList, Pressable, Modal } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { useTranslation } from 'react-i18next';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatCentimes } from '@/utils/money';
-import { CartItem } from './CartItem';
+import { SymbolView } from "expo-symbols";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+
+import { ThemedText } from "@/components/themed-text";
+import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import {
+  BorderRadius,
+  Colors,
+  ComponentDimensions,
+  Shadows,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
+import { formatCentimes } from "@/utils/money";
+import { useTranslation } from "react-i18next";
+import { CartItem } from "./CartItem";
 
 interface CartListProps {
   items: Array<{ product: any; quantity: number }>;
   onRemove: (productId: number) => void;
   onUpdateQuantity: (productId: number, quantity: number) => void;
-  onPreserveCartToggle: (value: boolean) => void;
-  preserveCart: boolean;
+  onPreserveCartToggle?: (value: boolean) => void;
+  preserveCart?: boolean;
   subtotal: number;
   discount: number;
   total: number;
   setDiscount: (value: number) => void;
+  onCheckout?: () => void;
+  onClose?: () => void;
 }
 
 export function CartList({
   items,
   onRemove,
   onUpdateQuantity,
-  onPreserveCartToggle,
-  preserveCart,
   subtotal,
   discount,
   total,
-  setDiscount,
+  onCheckout,
+  onClose,
 }: CartListProps) {
   const { t } = useTranslation();
 
-  if (items.length === 0) {
-    return null;
-  }
+  const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <View>
-      <ThemedView type="surface" style={{ margin: 16, borderRadius: 12, overflow: 'hidden' }}>
-        <ThemedView style={{ padding: 16, borderBottomWidth: 1, borderColor: '#eee' }}>
-          <ThemedText type="body" style={{ flex: 1, fontWeight: '600' }}>
-            {t('sell.cart')}
-          </ThemedText>
-        </ThemedView>
+    <View style={styles.container}>
+      {/* Grab Handle */}
+      <View style={styles.grabHandleRow}>
+        <View style={styles.grabHandle} />
+      </View>
 
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.product.id.toString()}
-          renderItem={({ item }) => (
-            <CartItem
-              product={item.product}
-              quantity={item.quantity}
-              onRemove={onRemove}
-              onUpdateQuantity={onUpdateQuantity}
+      {/* Header */}
+      <View style={styles.headerRow}>
+        <View style={styles.headerLeft}>
+          <ThemedText style={styles.headerTitle}>Panier actif</ThemedText>
+          <View style={styles.countBadge}>
+            <Text style={styles.countBadgeText}>
+              {totalCount} {totalCount === 1 ? "article" : "articles"}
+            </Text>
+          </View>
+        </View>
+
+        {onClose && (
+          <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={8}>
+            <SymbolView
+              name={{
+                ios: "xmark" as any,
+                android: "close" as any,
+                web: "close" as any,
+              }}
+              size={18}
+              tintColor={Colors.light.textSecondary}
             />
-          )}
-          ListFooterComponent={
-            <View style={{ padding: 16 }}>
-              <ThemedView type="surface" style={{ padding: 12, borderRadius: 8, marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <ThemedText type="body" style={{ fontWeight: '600' }}>
-                    {t('sell.subtotal')}</ThemedText>
-                  <ThemedText type="body" style={{ fontWeight: '600' }}>
-                    {formatCentimes(subtotal)}
-                  </ThemedText>
-                </View>
+          </Pressable>
+        )}
+      </View>
 
-                {discount > 0 && (
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-                    <ThemedText type="body">{t('sell.discount')}</ThemedText>
-                    <ThemedText type="body" style={{ color: '#D97706' }}>
-                      -{formatCentimes(discount)}
-                    </ThemedText>
-                  </View>
-                )}
-
-                <View style={{ height: 1, backgroundColor: '#eee', marginVertical: 8 }} />
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 8, borderTopWidth: 1, borderColor: '#eee', marginTop: 8, paddingBottom: 8 }}>
-                  <ThemedText type="title">{t('sell.total')}</ThemedText>
-                  <ThemedText type="title" style={{ fontWeight: '600', color: '#1B6B3A' }}>
-                    {formatCentimes(total)}
-                  </ThemedText>
-                </View>
-              </ThemedView>
-
-              {/* Clear cart with confirmation */}
-              <Pressable
-                onPress={() => {
-                  // Clear cart with confirmation if non-empty
-                  if (items.length > 0) {
-                    // In a real app, use a proper confirmation dialog
-                    onRemove(0); // Special ID to clear all
-                  }
-                }}
-                style={{ padding: 12, alignItems: 'center' }}
-              >
-                <MaterialCommunityIcons name="trash-can" size={20} color="#dc3545" />
-                <ThemedText type="body" style={{ color: '#dc3545', marginLeft: 8 }}>
-                  {t('sell.clear_cart')}
+      {/* Items List */}
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.product.id.toString()}
+        renderItem={({ item }) => (
+          <CartItem
+            product={item.product}
+            quantity={item.quantity}
+            onRemove={onRemove}
+            onUpdateQuantity={onUpdateQuantity}
+          />
+        )}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+        ListFooterComponent={
+          <View style={styles.footerSection}>
+            {/* Price Summary Card */}
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryRow}>
+                <ThemedText style={styles.summaryLabel}>Sous-total</ThemedText>
+                <ThemedText style={styles.summaryValue}>
+                  {formatCentimes(subtotal)}
                 </ThemedText>
+              </View>
+
+              {discount > 0 && (
+                <View style={styles.summaryRow}>
+                  <ThemedText style={styles.summaryLabel}>Remise</ThemedText>
+                  <ThemedText style={[styles.summaryValue, styles.discountText]}>
+                    -{formatCentimes(discount)}
+                  </ThemedText>
+                </View>
+              )}
+
+              <View style={styles.divider} />
+
+              <View style={[styles.summaryRow, styles.totalRow]}>
+                <ThemedText style={styles.totalLabel}>Total net à payer</ThemedText>
+                <ThemedText style={styles.totalValue}>
+                  {formatCentimes(total)}
+                </ThemedText>
+              </View>
+            </View>
+
+            {/* Actions */}
+            <View style={styles.actionButtons}>
+              {onCheckout && (
+                <PrimaryButton
+                  title={`Payer • ${formatCentimes(total)}`}
+                  onPress={onCheckout}
+                />
+              )}
+
+              <Pressable
+                onPress={() => onRemove(0)}
+                style={styles.clearBtn}
+                accessibilityLabel="Clear cart"
+              >
+                <SymbolView
+                  name={{
+                    ios: "trash" as any,
+                    android: "delete" as any,
+                    web: "delete" as any,
+                  }}
+                  size={16}
+                  tintColor={Colors.light.destructive}
+                />
+                <Text style={styles.clearBtnText}>Vider le panier</Text>
               </Pressable>
             </View>
-          }
-        />
-      </ThemedView>
+          </View>
+        }
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    maxHeight: "85%",
+    backgroundColor: Colors.light.surface,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    paddingHorizontal: ComponentDimensions.screenPadding,
+    paddingBottom: Spacing.xl,
+    ...Shadows.lg,
+  },
+  grabHandleRow: {
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+  },
+  grabHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.light.border,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.borderLight,
+    marginBottom: Spacing.md,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  headerTitle: {
+    ...Typography.heading3,
+    color: Colors.light.textPrimary,
+  },
+  countBadge: {
+    backgroundColor: Colors.light.primaryLight,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+  },
+  countBadgeText: {
+    ...Typography.caption,
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.light.primary,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.backgroundElement,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  listContent: {
+    paddingBottom: Spacing.md,
+  },
+  footerSection: {
+    marginTop: Spacing.sm,
+    gap: Spacing.md,
+  },
+  summaryCard: {
+    backgroundColor: Colors.light.backgroundElement,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  summaryLabel: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+  },
+  summaryValue: {
+    ...Typography.body,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+  },
+  discountText: {
+    color: Colors.light.warning,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.light.border,
+    marginVertical: 2,
+  },
+  totalRow: {
+    paddingTop: 4,
+  },
+  totalLabel: {
+    ...Typography.label,
+    fontSize: 16,
+    color: Colors.light.textPrimary,
+  },
+  totalValue: {
+    ...Typography.moneyDisplay,
+    fontSize: 22,
+    color: Colors.light.primary,
+    fontWeight: "700",
+  },
+  actionButtons: {
+    gap: Spacing.sm,
+  },
+  clearBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: Spacing.sm,
+  },
+  clearBtnText: {
+    ...Typography.caption,
+    fontWeight: "600",
+    color: Colors.light.destructive,
+  },
+});

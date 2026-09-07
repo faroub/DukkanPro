@@ -1,322 +1,395 @@
+import { SymbolView } from "expo-symbols";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { Spacing } from "@/constants/theme";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    View
-} from "react-native";
+  BorderRadius,
+  Colors,
+  ComponentDimensions,
+  Shadows,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
+import { useTranslation } from "react-i18next";
 
-/**
- * Business/shop name step of the onboarding flow.
- * Merchants enter their shop name which is required.
- */
-export function BusinessNameStep({ onContinue, businessName }: any) {
+interface BusinessNameStepProps {
+  onContinue: (data: { businessName: string; ownerName: string }) => void;
+  onBack?: () => void;
+  initialBusinessName?: string;
+  initialOwnerName?: string;
+  stepNumber?: number;
+  totalSteps?: number;
+}
+
+export function BusinessNameStep({
+  onContinue,
+  onBack,
+  initialBusinessName = "",
+  initialOwnerName = "",
+  stepNumber = 1,
+  totalSteps = 3,
+}: BusinessNameStepProps) {
   const { t } = useTranslation();
-  const [name, setName] = useState(businessName || "");
-  const [ownerName, setOwnerName] = useState("");
-  const shopPreview = name.trim() || "Your Business Name";
+  const [businessName, setBusinessName] = useState(initialBusinessName);
+  const [ownerName, setOwnerName] = useState(initialOwnerName);
+  const [error, setError] = useState<string | null>(null);
 
   const handleContinue = () => {
-    if (!name.trim()) {
+    if (!businessName.trim()) {
+      setError("Business name is required");
       return;
     }
-    onContinue?.({ businessName: name });
+    setError(null);
+    onContinue({
+      businessName: businessName.trim(),
+      ownerName: ownerName.trim() || businessName.trim(),
+    });
   };
 
-  // Arabic text right-aligned within LTR layout
-  const isArabic = t("languageStep.ar") === t("languageStep.title");
+  const previewName = businessName.trim() || "Supérette El-Amel";
+  const previewOwner = ownerName.trim()
+    ? `Managed by ${ownerName.trim()}`
+    : "Managed by owner";
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.contentPadding}>
-        {/* Progress indicator: Step 1 of 3 */}
-        <View style={styles.progress}>
-          <View style={styles.progressDotActive} />
-          <View style={styles.progressDotInactive} />
-          <View style={styles.progressDotInactive} />
+      {/* Step Progress Pill */}
+      <View style={styles.progressRow}>
+        <View style={styles.stepPill}>
+          <ThemedText style={styles.stepPillText}>
+            Step {stepNumber} of {totalSteps}
+          </ThemedText>
         </View>
+        <View style={styles.progressBars}>
+          <View style={[styles.bar, styles.barActive]} />
+          <View style={styles.bar} />
+          <View style={styles.bar} />
+        </View>
+      </View>
 
-        <ThemedText type="subtitle" style={styles.sectionTitle}>
-          {/* i18n: businessNameStep.title */}
-          {t("businessNameStep.title")}
+      {/* Title & Subtitle */}
+      <View style={styles.header}>
+        <ThemedText style={styles.title}>Tell us about your business</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          Enter your shop details to personalize your workspace
         </ThemedText>
+      </View>
 
-        <ThemedText type="small" style={styles.sectionSubtitle}>
-          {/* i18n: businessNameStep.subtitle */}
-          {t("businessNameStep.subtitle")}
-        </ThemedText>
-
-        {/* Engaging Visual Accent Tile */}
-        <View style={styles.accentTile}>
-          <View style={styles.accentIcon}>
-            <SvgIcon name="storefront" size={18} />
+      {/* Visual Accent Preview Card */}
+      <View style={styles.previewCard}>
+        <View style={styles.previewIconBox}>
+          <SymbolView
+            name={{
+              ios: "storefront.fill" as any,
+              android: "storefront" as any,
+              web: "storefront" as any,
+            }}
+            size={24}
+            tintColor={Colors.light.primary}
+          />
+        </View>
+        <View style={styles.previewContent}>
+          <ThemedText style={styles.previewTitle} numberOfLines={1}>
+            {previewName}
+          </ThemedText>
+          <ThemedText style={styles.previewSubtitle} numberOfLines={1}>
+            {previewOwner}
+          </ThemedText>
+          <View style={styles.previewBadge}>
+            <View style={styles.previewBadgeDot} />
+            <Text style={styles.previewBadgeText}>Personalized POS setup</Text>
           </View>
-          <View style={styles.accentText}>
-            <span
-              className="font-label font-label text-primary truncate"
-              id="shopNamePreview"
-              style={isArabic ? { textAlign: "right" } : undefined}
-            >
-              {shopPreview}
-            </span>
+        </View>
+      </View>
+
+      {/* Form Fields Card */}
+      <View style={styles.formCard}>
+        {/* Field 1: Business Name */}
+        <View style={styles.fieldGroup}>
+          <View style={styles.labelRow}>
+            <ThemedText style={styles.fieldLabel}>Business name</ThemedText>
+            <ThemedText style={styles.requiredBadge}>Required</ThemedText>
+          </View>
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputIcon}>
+              <SymbolView
+                name={{
+                  ios: "cart" as any,
+                  android: "shopping_bag" as any,
+                  web: "shopping_bag" as any,
+                }}
+                size={18}
+                tintColor={Colors.light.textSecondary}
+              />
+            </View>
+            <TextInput
+              style={styles.textInput}
+              placeholder="e.g., Supérette El-Amel, Pâtisserie Yasmine"
+              placeholderTextColor={Colors.light.textMuted}
+              value={businessName}
+              onChangeText={setBusinessName}
+              autoCapitalize="words"
+            />
           </View>
         </View>
 
-        {/* Main Card Container */}
-        <View style={styles.mainCard}>
-          <form style={styles.form} id="onboardingForm">
-            {/* Field 1: Business Name */}
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>
-                {t("businessNameStep.label")}
-                <Text style={styles.fieldLabelRequired}>Required</Text>
-              </Text>
-              <View style={styles.inputContainer}>
-                <SvgIcon name="store" size={20} />
-                <TextInput
-                  style={styles.input}
-                  placeholder={name || t("businessNameStep.placeholder")}
-                  value={name}
-                  onChangeText={setName}
-                  returnKeyType="next"
-                  autoCapitalize="words"
-                />
-              </View>
+        {/* Field 2: Owner Name */}
+        <View style={styles.fieldGroup}>
+          <View style={styles.labelRow}>
+            <ThemedText style={styles.fieldLabel}>Your name</ThemedText>
+            <ThemedText style={styles.optionalBadge}>Optional</ThemedText>
+          </View>
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputIcon}>
+              <SymbolView
+                name={{
+                  ios: "person" as any,
+                  android: "person" as any,
+                  web: "person" as any,
+                }}
+                size={18}
+                tintColor={Colors.light.textSecondary}
+              />
             </View>
-
-            {/* Field 2: Owner Name */}
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>
-                {t("common.ownerName")}
-                <Text style={styles.fieldLabelRequired}>Required</Text>
-              </Text>
-              <View style={styles.inputContainer}>
-                <SvgIcon name="badge" size={20} />
-                <TextInput
-                  style={styles.input}
-                  placeholder={ownerName || t("ownerNameStep.placeholder")}
-                  value={ownerName}
-                  onChangeText={setOwnerName}
-                  returnKeyType="done"
-                  autoCapitalize="words"
-                />
-              </View>
-            </View>
-          </form>
+            <TextInput
+              style={styles.textInput}
+              placeholder="e.g., Karim Benali"
+              placeholderTextColor={Colors.light.textMuted}
+              value={ownerName}
+              onChangeText={setOwnerName}
+              autoCapitalize="words"
+            />
+          </View>
         </View>
 
-        {/* Reassurance / Trust Card */}
-        <View style={styles.trustCard}>
-          <SvgIcon name="verified_user" size={18} />
-          <Text style={styles.trustText}>
-            Your ledger and customer contacts are kept fully encrypted,
-            offline-capable, and private to your device.
-          </Text>
-        </View>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+      </View>
 
-        {/* CTA Buttons Container */}
-        <View style={styles.ctaContainer}>
-          <PrimaryButton onPress={handleContinue} title="Continue">
-            <span>Continue</span>
-            <SvgIcon name="arrow_forward" size={20} />
-          </PrimaryButton>
-          <PrimaryButton onPress={() => {}} title="Back">
-            <span>Back</span>
-            <span className="text-secondary text-[12px] font-normal ml-0.5">
-              / Retour
-            </span>
-          </PrimaryButton>
-        </View>
-      </ThemedView>
+      {/* Reassurance Offline Banner */}
+      <View style={styles.trustBanner}>
+        <SymbolView
+          name={{
+            ios: "checkmark.shield.fill" as any,
+            android: "verified_user" as any,
+            web: "verified_user" as any,
+          }}
+          size={18}
+          tintColor={Colors.light.primary}
+        />
+        <Text style={styles.trustText}>
+          Your ledger and customer contacts are kept 100% offline, encrypted, and private to your device.
+        </Text>
+      </View>
+
+      {/* CTA Footer */}
+      <View style={styles.footer}>
+        <PrimaryButton
+          title="Continue"
+          disabled={!businessName.trim()}
+          onPress={handleContinue}
+        />
+        {onBack && (
+          <Pressable onPress={onBack} style={styles.backButton}>
+            <ThemedText style={styles.backButtonText}>Back / Retour</ThemedText>
+          </Pressable>
+        )}
+      </View>
     </ThemedView>
   );
 }
 
-// Simple SVG icons for Material Symbols
-const SvgIcon = ({
-  name,
-  size,
-}: {
-  name:
-    | "storefront"
-    | "store"
-    | "badge"
-    | "verified_user"
-    | "arrow_forward"
-    | "west";
-  size: number;
-}) => {
-  const svgData: Record<string, string> = {
-    storefront:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20V2h4v18l-4-3h-2l-4 3h-2zM3 9v6h18"/><path fill="none" d="M0 0h24v24H0z"/></svg>',
-    store:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M18 8h-1v5a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-5h-1M2 1h4v2H2V1M2 12h4v2H2v-2M2 21h4v2H2v-2M2 6h4v2H2V6M7 20h5v2h5"/><path fill="none" d="M0 0h24v24H0z"/></svg>',
-    badge:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2v4h4v14h-4v-2c0-2 1-2 3-2s3 1 3 2v2H12V2zm6-6a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm-6 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>',
-    verified_user:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.354 8.647-2.646 2.646-5.293-1.414L15 15.069l-2.647-5.303-1.414 2.646L9.75 9.75l-5.293 1.414 1.414 5.293L5 15.069l 5.293-1.414 2.647 5.303z"/></svg>',
-    arrow_forward:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18l6-6-6-6M2 12l10 10-10 10z"/></svg>',
-    west: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="3"/></svg>',
-  };
-
-  const path = svgData[name] || "";
-  return (
-    <svg
-      dangerouslySetInnerHTML={{
-        __html: path.replace(/\{size\}/g, size.toString()),
-      }}
-    />
-  );
-};
-
-// Progress indicator styles - flat style objects
-const progressStyles = {
-  progressDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#E5E5E5",
-    marginHorizontal: 4,
-  },
-  progressDotActive: {
-    backgroundColor: "#1B6B3A",
-  },
-  progressDotInactive: {
-    backgroundColor: "#CCCCCC",
-  },
-};
-
-// Create merged styles object that includes progressStyles and other styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: Colors.light.background,
+    paddingHorizontal: ComponentDimensions.screenPadding,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xl,
+  },
+  progressRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    padding: Spacing.xxl,
-    backgroundColor: "white",
-  },
-  contentPadding: {
-    width: "100%",
-    maxWidth: 400,
-    padding: Spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600' as const,
-    marginBottom: Spacing.sm,
-    textAlign: "center",
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
     marginBottom: Spacing.md,
-    textAlign: "center",
   },
-  accentTile: {
-    position: "relative",
-    width: "100%",
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
-    padding: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    marginBottom: 24,
+  stepPill: {
+    backgroundColor: Colors.light.backgroundElement,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  stepPillText: {
+    ...Typography.caption,
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.light.textSecondary,
+  },
+  progressBars: {
+    flexDirection: "row",
+    gap: 6,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
   },
-  accentIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: "#F0EFEA",
+  bar: {
+    width: 24,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.border,
+  },
+  barActive: {
+    backgroundColor: Colors.light.primary,
+  },
+  header: {
+    marginBottom: Spacing.md,
+  },
+  title: {
+    ...Typography.heading1,
+    color: Colors.light.textPrimary,
+  },
+  subtitle: {
+    ...Typography.body,
+    color: Colors.light.textSecondary,
+    marginTop: Spacing.xs,
+  },
+  previewCard: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: Colors.light.surface,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    marginBottom: Spacing.md,
+    gap: Spacing.md,
+    ...Shadows.sm,
   },
-  accentText: {
+  previewIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.primaryLight,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  previewContent: {
     flex: 1,
   },
-  mainCard: {
-    width: "100%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    overflow: "hidden",
-    marginBottom: 24,
+  previewTitle: {
+    ...Typography.label,
+    fontSize: 15,
+    color: Colors.light.textPrimary,
   },
-  form: {
-    width: "100%",
-    padding: 24,
+  previewSubtitle: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
   },
-  field: {
-    width: "100%",
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    marginBottom: 4,
-  },
-  inputContainer: {
-    position: "relative",
-    width: "100%",
-    marginBottom: 12,
-  },
-  input: {
-    height: 50,
-    width: "100%",
-    borderColor: "#E5E5E5",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 48,
-    fontSize: 16,
-    backgroundColor: "#F9FAFB",
-  },
-  trustCard: {
-    backgroundColor: "#F0EFEA",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
+  previewBadge: {
+    flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 4,
+    backgroundColor: Colors.light.primaryLight,
+    alignSelf: "flex-start",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginTop: 4,
   },
-  trustText: {
-    fontSize: 12,
-    color: "#6B7280",
+  previewBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.primary,
+  },
+  previewBadgeText: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: Colors.light.primary,
+  },
+  formCard: {
+    backgroundColor: Colors.light.surface,
+    padding: ComponentDimensions.cardPadding,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    marginBottom: Spacing.md,
+    gap: Spacing.md,
+    ...Shadows.sm,
+  },
+  fieldGroup: {
+    gap: 6,
+  },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   fieldLabel: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    marginBottom: 4,
+    ...Typography.label,
+    color: Colors.light.textPrimary,
   },
-  fieldLabelRequired: {
+  requiredBadge: {
+    ...Typography.caption,
     fontSize: 12,
-    color: "#6B7280",
-    marginLeft: 4,
+    color: Colors.light.textMuted,
   },
-  ctaContainer: {
-    width: "100%",
-    flexDirection: "column" as const,
-    gap: 12,
-    paddingHorizontal: Spacing.lg,
+  optionalBadge: {
+    ...Typography.caption,
+    fontSize: 12,
+    color: Colors.light.textMuted,
   },
-  // Add progress dot styles
-  progress: {
-    flexDirection: "row" as const,
-    justifyContent: "center",
+  inputWrapper: {
+    flexDirection: "row",
     alignItems: "center",
+    backgroundColor: Colors.light.surface,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    borderRadius: BorderRadius.md,
+    height: 48,
+    paddingHorizontal: Spacing.sm,
+  },
+  inputIcon: {
+    marginRight: Spacing.sm,
+  },
+  textInput: {
+    flex: 1,
+    ...Typography.body,
+    color: Colors.light.textPrimary,
+    paddingVertical: 0,
+  },
+  errorText: {
+    ...Typography.caption,
+    color: Colors.light.error,
+  },
+  trustBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    backgroundColor: Colors.light.backgroundElement,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
     marginBottom: Spacing.lg,
   },
-  progressDotActive: progressStyles.progressDotActive as any,
-  progressDotInactive: progressStyles.progressDotInactive as any,
+  trustText: {
+    flex: 1,
+    ...Typography.caption,
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+    lineHeight: 16,
+  },
+  footer: {
+    marginTop: "auto",
+    gap: Spacing.sm,
+  },
+  backButton: {
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backButtonText: {
+    ...Typography.label,
+    color: Colors.light.textSecondary,
+  },
 });
-
-

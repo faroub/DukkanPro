@@ -1,10 +1,16 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { IconButton } from '@/components/ui/IconButton';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatCentimes } from '@/utils/money';
+import { SymbolView } from "expo-symbols";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+
+import { ThemedText } from "@/components/themed-text";
+import {
+  BorderRadius,
+  Colors,
+  ComponentDimensions,
+  Shadows,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
+import { formatCentimes } from "@/utils/money";
 
 interface CartItemProps {
   product: any;
@@ -22,94 +28,188 @@ export function CartItem({
   const lineTotal = product.sale_price_centimes * quantity;
 
   return (
-    <ThemedView type="surface" style={{ margin: 8, borderRadius: 8, overflow: 'hidden' }}>
-      <View style={styles.container}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
-          {/* Product info */}
-          <View style={{ flex: 1, marginRight: 12 }}>
-            <ThemedText type="body" style={{ fontWeight: '600' }}>
-              {product.name}
-            </ThemedText>
-            <ThemedText type="caption" style={{ color: '#666', marginTop: 2 }}>
-              {product.unit}
-            </ThemedText>
-          </View>
+    <View style={styles.card}>
+      {/* Product Info Row */}
+      <View style={styles.topRow}>
+        <View style={styles.iconBox}>
+          <SymbolView
+            name={{
+              ios: "bag.fill" as any,
+              android: "shopping_bag" as any,
+              web: "shopping_bag" as any,
+            }}
+            size={20}
+            tintColor={Colors.light.primary}
+          />
+        </View>
 
-          {/* Quantity controls */}
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Pressable
-              onPress={() => {
-                const newQuantity = Math.max(1, quantity - 1);
-                onUpdateQuantity(product.id, newQuantity);
-              }}
-              style={styles.quantityButton}
-            >
-              <MaterialCommunityIcons name="minus" size={20} color="#666" />
-            </Pressable>
+        <View style={styles.infoCol}>
+          <ThemedText style={styles.productName} numberOfLines={1}>
+            {product.name}
+          </ThemedText>
+          <ThemedText style={styles.unitPrice}>
+            Unit: {formatCentimes(product.sale_price_centimes)}
+            {product.unit ? ` • ${product.unit}` : ""}
+          </ThemedText>
+        </View>
 
-            <View style={styles.quantityDisplay}>
-              <Text style={{ fontSize: 18, fontWeight: '600', width: 28, textAlign: 'center' }}>
-                {quantity}
-              </Text>
-            </View>
+        <Pressable
+          onPress={() => onRemove(product.id)}
+          style={styles.removeBtn}
+          accessibilityLabel="Remove item from cart"
+          hitSlop={8}
+        >
+          <SymbolView
+            name={{
+              ios: "xmark" as any,
+              android: "close" as any,
+              web: "close" as any,
+            }}
+            size={16}
+            tintColor={Colors.light.textMuted}
+          />
+        </Pressable>
+      </View>
 
-            <Pressable
-              onPress={() => {
-                const newQuantity = quantity + 1;
-                onUpdateQuantity(product.id, newQuantity);
-              }}
-              style={styles.quantityButton}
-            >
-              <MaterialCommunityIcons name="plus" size={20} color="#28a745" />
-            </Pressable>
-          </View>
-
-          {/* Remove button */}
+      {/* Stepper and Line Total Row */}
+      <View style={styles.bottomRow}>
+        <View style={styles.stepperContainer}>
           <Pressable
-            onPress={() => onRemove(product.id)}
-            style={styles.removeButton}
+            onPress={() => {
+              const newQty = Math.max(1, quantity - 1);
+              onUpdateQuantity(product.id, newQty);
+            }}
+            style={styles.stepBtn}
+            accessibilityLabel="Decrease quantity"
           >
-            <MaterialCommunityIcons name="trash-can" size={20} color="#dc3545" />
+            <SymbolView
+              name={{
+                ios: "minus" as any,
+                android: "remove" as any,
+                web: "remove" as any,
+              }}
+              size={18}
+              tintColor={Colors.light.textPrimary}
+            />
           </Pressable>
 
-          {/* Line total */}
-          <View style={{ marginLeft: 12 }}>
-            <ThemedText type="body" style={{ fontWeight: '600' }}>
-              {formatCentimes(lineTotal)}
-            </ThemedText>
+          <View style={styles.qtyBox}>
+            <Text style={styles.qtyText}>{quantity}</Text>
           </View>
+
+          <Pressable
+            onPress={() => onUpdateQuantity(product.id, quantity + 1)}
+            style={[styles.stepBtn, styles.stepBtnAdd]}
+            accessibilityLabel="Increase quantity"
+          >
+            <SymbolView
+              name={{
+                ios: "plus" as any,
+                android: "add" as any,
+                web: "add" as any,
+              }}
+              size={18}
+              tintColor={Colors.light.primary}
+            />
+          </Pressable>
+        </View>
+
+        <View style={styles.totalCol}>
+          <Text style={styles.lineTotal}>{formatCentimes(lineTotal)}</Text>
         </View>
       </View>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
+  card: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xl,
+    padding: ComponentDimensions.cardPadding,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    marginBottom: ComponentDimensions.cardGap,
+    ...Shadows.sm,
   },
-  quantityButton: {
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+  },
+  iconBox: {
     width: 36,
     height: 36,
-    borderRadius: 6,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 2,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.primaryLight,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  quantityDisplay: {
-    minWidth: 28,
-    alignItems: 'center',
+  infoCol: {
+    flex: 1,
   },
-  removeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 6,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 2,
+  productName: {
+    ...Typography.label,
+    fontSize: 15,
+    color: Colors.light.textPrimary,
+  },
+  unitPrice: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
+  },
+  removeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.light.backgroundElement,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: Spacing.md,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.borderLight,
+  },
+  stepperContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.light.backgroundElement,
+    borderRadius: BorderRadius.lg,
+    padding: 2,
+  },
+  stepBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.surface,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  stepBtnAdd: {
+    backgroundColor: Colors.light.primaryLight,
+  },
+  qtyBox: {
+    minWidth: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  qtyText: {
+    ...Typography.body,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+  },
+  totalCol: {
+    alignItems: "flex-end",
+  },
+  lineTotal: {
+    ...Typography.moneySmall,
+    color: Colors.light.primary,
+    fontWeight: "700",
   },
 });
