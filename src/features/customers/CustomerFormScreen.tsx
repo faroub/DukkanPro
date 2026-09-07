@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cancelText: {
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     fontSize: 14,
   },
   saveText: {

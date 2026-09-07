@@ -53,7 +53,7 @@ export function CancelSaleDialog({
               {t('sales.cancel_sale')}
             </ThemedText>
             <Pressable style={{ padding: 8 }} onPress={onRequestClose}>
-              <ThemedText type="body" style={{ color: '#6B7280' }}>×</ThemedText>
+              <ThemedText type="body" style={{ color: Colors.light.textSecondary }}>×</ThemedText>
             </Pressable>
           </View>
 
