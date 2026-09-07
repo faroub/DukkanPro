@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   input: {
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   methodInactiveText: {
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   noteSection: {
     marginTop: 12,

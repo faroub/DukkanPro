@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   clearButtonText: {
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     fontSize: 12,
   },
 });

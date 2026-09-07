@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginBottom: Spacing.md,
   },
   languageOptionContainer: {

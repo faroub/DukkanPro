@@ -53,7 +53,7 @@ export function ReturnSaleDialog({
               {t('sales.return_sale')}
             </ThemedText>
             <Pressable style={{ padding: 8 }} onPress={onRequestClose}>
-              <ThemedText type="body" style={{ color: '#6B7280' }}>×</ThemedText>
+              <ThemedText type="body" style={{ color: Colors.light.textSecondary }}>×</ThemedText>
             </Pressable>
           </View>
 
@@ -74,7 +74,7 @@ export function ReturnSaleDialog({
 
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 24 }}>
             <Pressable style={{ padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', marginRight: 8, backgroundColor: '#f8f9fa' }} onPress={onRequestClose}>
-              <ThemedText type="body" style={{ color: '#6B7280' }}>
+              <ThemedText type="body" style={{ color: Colors.light.textSecondary }}>
                 {t('common.cancel')}
               </ThemedText>
             </Pressable>

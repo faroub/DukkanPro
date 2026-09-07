@@ -50,6 +50,6 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
   },
 });

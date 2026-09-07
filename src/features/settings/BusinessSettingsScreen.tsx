@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   formValueDisplay: {
     fontSize: 16,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginLeft: 8,
     fontStyle: "italic",
   },
