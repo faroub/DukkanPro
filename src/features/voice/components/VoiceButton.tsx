@@ -1,36 +1,52 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Alert,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface VoiceButtonProps {
   onVoiceStart?: () => void;
-  onVoiceEnd?: () => void;
+  onVoiceEnd?: (finalText?: string) => void;
+  onTranscript?: (transcript: string) => void;
   disabled?: boolean;
 }
 
 export function VoiceButton({
   onVoiceStart,
   onVoiceEnd,
+  onTranscript,
   disabled = false,
 }: VoiceButtonProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [hasPermission, setHasPermission] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const transcriptRef = useRef<string>("");
 
   // Check if we're on a device (not web/mock)
-  const isDevice = Platform.OS !== "web";
+  const isWeb = Platform.OS === "web";
+
+  // Clean up recognition instance on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // ignore cleanup errors
+        }
+      }
+    };
+  }, []);
 
   const requestPermission = async (): Promise<boolean> => {
     try {
-      // On web, we can't request microphone permission the same way
-      if (!isDevice) {
+      if (isWeb) {
         setHasPermission(true);
         return true;
       }
@@ -44,21 +60,121 @@ export function VoiceButton({
     }
   };
 
+  /**
+   * Start web speech recognition using window.SpeechRecognition or window.webkitSpeechRecognition
+   */
+  const startWebSpeech = (): boolean => {
+    const windowObj = typeof window !== "undefined" ? (window as any) : null;
+    const SpeechRecognition =
+      windowObj?.SpeechRecognition || windowObj?.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      // Fallback: prompt for manual command text if browser lacks Web Speech API
+      const input = windowObj?.prompt?.(
+        t("voice.title", "Voice Command") + ": " + t("voice.sayProductName", "Speak or type sale command"),
+        ""
+      );
+      if (input && input.trim()) {
+        onTranscript?.(input.trim());
+        onVoiceEnd?.(input.trim());
+      }
+      return false;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      transcriptRef.current = "";
+
+      // Select locale for speech recognition based on current i18n language
+      const currentLang = i18n.language || "fr";
+      if (currentLang.startsWith("ar")) {
+        recognition.lang = "ar-DZ";
+      } else if (currentLang.startsWith("fr")) {
+        recognition.lang = "fr-DZ";
+      } else {
+        recognition.lang = "en-US";
+      }
+
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        onVoiceStart?.();
+      };
+
+      recognition.onresult = (event: any) => {
+        let currentTranscript = "";
+        for (let i = 0; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0]?.transcript || "";
+        }
+        transcriptRef.current = currentTranscript;
+        onTranscript?.(currentTranscript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn("Speech recognition error:", event?.error);
+        setIsListening(false);
+        if (event?.error === "not-allowed" || event?.error === "permission-denied") {
+          Alert.alert(
+            t("permissions.microphone", "Microphone access"),
+            t("permissions.microphoneDescription", "Microphone permission is required for voice commands.")
+          );
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        onVoiceEnd?.(transcriptRef.current);
+      };
+
+      recognition.start();
+      return true;
+    } catch (err) {
+      console.error("Failed to start Web Speech Recognition:", err);
+      setIsListening(false);
+      return false;
+    }
+  };
+
+  const stopWebSpeech = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // ignore
+      }
+    }
+    setIsListening(false);
+    onVoiceEnd?.(transcriptRef.current);
+  };
+
   const handlePress = async () => {
     if (disabled) return;
 
     if (isListening) {
-      handleEnd();
+      if (isWeb) {
+        stopWebSpeech();
+      } else {
+        handleEnd();
+      }
       return;
     }
 
-    // Request permission if not granted
+    if (isWeb) {
+      startWebSpeech();
+      return;
+    }
+
+    // Native flow
     if (!hasPermission) {
       const permissionGranted = await requestPermission();
       if (!permissionGranted) {
         Alert.alert(
-          t("voice.microphonePermissionRequired"),
-          t("voice.microphonePermissionDenied"),
+          t("permissions.microphone", "Microphone"),
+          t("permissions.microphoneDescription", "Microphone permission required")
         );
         return;
       }
@@ -70,35 +186,29 @@ export function VoiceButton({
 
   const handleEnd = () => {
     setIsListening(false);
-    onVoiceEnd?.();
+    onVoiceEnd?.(transcriptRef.current);
   };
 
   // Styles - LTR layout, keeps app architecture LTR in all languages
   const styles = StyleSheet.create({
     container: {
       padding: 12,
-      backgroundColor: "#f0f9f0",
-      borderWidth: 1,
-      borderColor: "#1B6B3A",
+      backgroundColor: isListening ? "#E8F5E9" : "#f0f9f0",
+      borderWidth: isListening ? 2 : 1,
+      borderColor: isListening ? "#2E7D32" : "#1B6B3A",
       borderRadius: 20,
       alignItems: "center",
       marginVertical: 8,
-      // LTR: keep icon on left, text on right regardless of language
       flexDirection: "row",
       justifyContent: "center",
     },
     iconContainer: {
       marginRight: 8,
     },
-    textContainer: {
-      // Arabic text may be right-aligned inside, but layout stays LTR
-    },
     buttonText: {
       color: "#1B6B3A",
       fontSize: 14,
-    },
-    disabledOpacity: {
-      opacity: 0.5,
+      fontWeight: isListening ? "700" : "500",
     },
   });
 
@@ -107,31 +217,16 @@ export function VoiceButton({
       onPress={handlePress}
       disabled={disabled}
       style={styles.container}
-      accessibilityState={
-        hasPermission ? { disabled: false } : { disabled: true }
-      }
+      accessibilityRole="button"
+      accessibilityLabel={isListening ? t("voice.listening", "Listening...") : t("voice.title", "Voice Command")}
     >
       <View style={styles.iconContainer}>
-        {/* Microphone icon - using expo-symbols for Expo SDK 57 compatibility */}
-        {hasPermission && !isListening && (
-          <Text
-            accessibilityRole="button"
-            accessibilityLabel={t("voice.microphone")}
-          >
-            🎤
-          </Text>
-        )}
-        {!hasPermission && (
-          <Text
-            accessibilityRole="button"
-            accessibilityLabel={t("voice.microphone")}
-          >
-            🎤
-          </Text>
-        )}
+        <Text>
+          {isListening ? "🔴" : "🎤"}
+        </Text>
       </View>
       <Text style={styles.buttonText}>
-        {isListening ? t("voice.listening") : t("voice.microphone")}
+        {isListening ? t("voice.listening", "Listening...") : t("voice.title", "Voice Command")}
       </Text>
     </TouchableOpacity>
   );

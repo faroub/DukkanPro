@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Product } from '@/types/entities';
 
 export interface CartItem {
@@ -130,7 +131,7 @@ export const useCartStore = create<CartState>()(
       total: () => {
         const state = get();
         const subtotal = state.subtotal();
-        return Math.max(0, subtotal - Number(state.discountAmount));
+        return Math.max(0, subtotal - Number(state.discount || 0));
       },
 
       itemCount: () => {
@@ -139,12 +140,13 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'cart-storage',
-      storage: {
-        getItem: () => Promise.resolve(null),
-        setItem: () => Promise.resolve(),
-        removeItem: () => Promise.resolve(),
-      } as const,
+      name: 'dukkanos-cart-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        items: state.items,
+        preserveCart: state.preserveCart,
+        discount: state.discount,
+      }),
     }
   )
 );
