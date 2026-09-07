@@ -2,7 +2,7 @@ import { View, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "@/components/themed-text";
-import { Typography } from "@/constants/theme";
+import { Typography, Colors } from "@/constants/theme";
 import { useCustomers } from "@/hooks/useCustomers";
 import { CustomerSearchBar } from "@/features/customers/components/CustomerSearchBar";
 import { CustomerFilterTabs } from "@/features/customers/components/CustomerFilterTabs";
@@ -154,55 +154,55 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerSection: {
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: Spacing.xxl,
   },
   emptyTitle: {
     ...Typography.body,
     fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 8,
+    color: Colors.light.textSecondary,
+    marginBottom: Spacing.xs,
     textAlign: 'center',
   },
   emptyDescription: {
     ...Typography.body,
     fontSize: 14,
-    color: '#9CA3AF',
+    color: Colors.light.textMuted,
     textAlign: 'center',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: Spacing.lg,
   },
   loadingText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: Spacing.lg,
   },
   errorText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#B91C1C',
-    marginBottom: 8,
+    color: Colors.light.destructive,
+    marginBottom: Spacing.md,
     textAlign: 'center',
   },
   errorRetry: {
     ...Typography.body,
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
   },
   listContainer: {
     paddingBottom: 100,

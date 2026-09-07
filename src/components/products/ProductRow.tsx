@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 interface ProductRowProps {
   product: {
@@ -71,10 +72,10 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
-    backgroundColor: 'white',
+    borderBottomColor: Colors.light.border,
+    backgroundColor: Colors.light.surface,
   },
   leftCell: {
     flex: 1,
@@ -96,20 +97,20 @@ const styles = StyleSheet.create({
   },
   caption: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   badge: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
+    backgroundColor: Colors.light.backgroundElement,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
     fontSize: 10,
-    marginLeft: 4,
+    marginLeft: Spacing.xs,
   },
   outOfStockBadge: {
-    backgroundColor: '#EF4444',
+    backgroundColor: Colors.light.destructive,
   },
   lowStockBadge: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: Colors.light.warning,
   },
 });
