@@ -134,7 +134,7 @@ export function SalesHistoryScreen() {
           <ThemedText type="heading" style={{ flex: 1 }}>
             {t('sales.history')}
           </ThemedText>
-          <ThemedText type="caption" style={{ color: '#666' }}>
+          <ThemedText type="caption" style={{ color: Colors.light.textSecondary }}>
             {totalSold} {t('sales.sales_found')}
           </ThemedText>
         </View>

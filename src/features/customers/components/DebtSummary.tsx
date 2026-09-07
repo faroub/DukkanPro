@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   paymentButton: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#1B6B3A',
+    backgroundColor: Colors.light.primary,
     minWidth: 120,
   },
   paymentButtonText: {

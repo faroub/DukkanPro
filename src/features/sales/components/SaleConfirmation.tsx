@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   paymentMethodText: {
     marginLeft: 8,
     fontSize: 14,
-    color: "#666",
+    color: Colors.light.textSecondary,
   },
   selectCustomer: {
     marginBottom: 12,

@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   balance: {
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   debtTag: {

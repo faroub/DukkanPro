@@ -87,7 +87,7 @@ export function Receipt({
                       <ThemedText type="body" style={{ flex: 1 }}>
                         {item.productName}
                       </ThemedText>
-                      <ThemedText type="caption" style={{ color: "#666", marginTop: 2 }}>
+                      <ThemedText type="caption" style={{ color: Colors.light.textSecondary, marginTop: 2 }}>
                         {item.quantity}×
                       </ThemedText>
                     </View>
@@ -95,7 +95,7 @@ export function Receipt({
                       <ThemedText type="caption" style={{ color: "#1B6B3A", fontWeight: "600" }}>
                         {item.total}
                       </ThemedText>
-                      <ThemedText type="caption" style={{ color: "#666", marginLeft: 8 }}>
+                      <ThemedText type="caption" style={{ color: Colors.light.textSecondary, marginLeft: 8 }}>
                         {item.unitPrice} {t("money")}
                       </ThemedText>
                     </View>
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     color: "#1B6B3A",
   },
   itemUnitPrice: {
-    color: "#666",
+    color: Colors.light.textSecondary,
     marginLeft: 8,
   },
   totalsSection: {

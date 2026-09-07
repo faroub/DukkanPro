@@ -19,11 +19,11 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
 
   // Compute tab styles based on activeFilter
   const tabBackgroundColor = activeFilter === undefined ? '#fff' : '#F3F4F6';
-  const tabTextColor = activeFilter === undefined ? '#333' : '#fff';
+  const tabTextColor = activeFilter === undefined ? Colors.light.textPrimary : Colors.light.textOnSurface,
   const tabFontWeight = activeFilter === undefined ? '500' : '600';
 
   const activeTabStyle = {
-    backgroundColor: '#1B6B3A',
+    backgroundColor: Colors.light.primary,
   };
 
   return (
