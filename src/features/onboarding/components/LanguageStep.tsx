@@ -54,7 +54,7 @@ export function LanguageStep({
               ]}
               onPress={() => setLocale(lang)}
             >
-              <ThemedText style={styles.localeText}>
+              <ThemedText style={[styles.localeText, locale === 'ar' && styles.textAlignRight]}>
                 {t(`languageStep.${lang}`)}
               </ThemedText>
             </TouchableWithoutFeedback>
@@ -86,30 +86,28 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: 600,
+    fontWeight: '600' as const,
     marginBottom: Spacing.sm,
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   sectionSubtitle: {
     fontSize: 14,
     color: '#6B7280',
     marginBottom: Spacing.md,
-    textAlign: 'center',
+    textAlign: 'center' as const,
   },
   languageNote: {
     fontSize: 12,
     color: '#9CA3AF',
     marginBottom: Spacing.lg,
-    textAlign: 'center',
-    fontStyle: 'italic',
+    textAlign: 'center' as const,
+    fontStyle: 'italic' as const,
   },
   localeContainer: {
     width: '100%',
     marginBottom: Spacing.lg,
     gap: Spacing.md,
     alignItems: 'center',
-    // Arabic text alignment within LTR layout
-    ...(locale === 'ar' ? { textAlign: 'right' } : {}),
   },
   localeOption: {
     width: '32%',
@@ -119,8 +117,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    // Arabic text right-aligned within option
-    ...(locale === 'ar' ? { textAlign: 'right' } : {}),
   },
   localeOptionSelected: {
     width: '32%',
@@ -128,11 +124,12 @@ const styles = StyleSheet.create({
     borderColor: '#1B6B3A',
     borderWidth: 2,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
+    backgroundColor: Colors.light.surface,
   },
   localeText: {
     fontSize: 16,
-    // Arabic text alignment
-    ...(locale === 'ar' ? { textAlign: 'right' } : {}),
+  },
+  textAlignRight: {
+    textAlign: 'right' as const,
   },
 });

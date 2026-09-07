@@ -192,6 +192,7 @@ const progressStyles = {
   },
 };
 
+// Create merged styles object that includes progressStyles and other styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: 600,
+    fontWeight: '600' as const,
     marginBottom: Spacing.sm,
     textAlign: "center",
   },
@@ -229,7 +230,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     marginBottom: 24,
-    display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
@@ -239,7 +239,6 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 8,
     backgroundColor: "#F0EFEA",
-    display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -263,7 +262,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: 600,
+    fontWeight: '600' as const,
     marginBottom: 4,
   },
   inputContainer: {
@@ -286,7 +285,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
-    display: "flex",
     alignItems: "center",
     gap: 12,
   },
@@ -296,7 +294,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 14,
-    fontWeight: 600,
+    fontWeight: '600' as const,
     marginBottom: 4,
   },
   fieldLabelRequired: {
@@ -306,9 +304,19 @@ const styles = StyleSheet.create({
   },
   ctaContainer: {
     width: "100%",
-    display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as const,
     gap: 12,
     paddingHorizontal: Spacing.lg,
   },
+  // Add progress dot styles
+  progress: {
+    flexDirection: "row" as const,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: Spacing.lg,
+  },
+  progressDotActive: progressStyles.progressDotActive as any,
+  progressDotInactive: progressStyles.progressDotInactive as any,
 });
+
+
