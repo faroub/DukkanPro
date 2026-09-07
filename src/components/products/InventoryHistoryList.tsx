@@ -71,7 +71,7 @@ export function InventoryHistoryList({ productId, productName, locale = "fr" }: 
               };
               loadHistory();
             }}
-            tintColor="#6B7280"
+            tintColor={Colors.light.textSecondary}
           />
         }
         style={styles.scroll}

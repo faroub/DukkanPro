@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   infoValue: {
-    color: '#333',
+    color: Colors.light.textPrimary,
     fontSize: 14,
   },
 });

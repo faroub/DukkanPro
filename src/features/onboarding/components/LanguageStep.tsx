@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     color: Colors.light.textPrimary,
   },
   langBadgeTextSelected: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
   },
   nameContainer: {
     justifyContent: "center",

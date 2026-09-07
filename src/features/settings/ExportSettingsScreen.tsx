@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontSize: 14,
-    color: "#333333",
+    color: Colors.light.textPrimary,
     marginBottom: 8,
   },
   exportOptionItem: {

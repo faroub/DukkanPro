@@ -402,7 +402,7 @@ export default function SellScreen() {
                           }}
                           size={16}
                           tintColor={
-                            cartQty > 0 ? "#FFFFFF" : Colors.light.primary
+                            cartQty > 0 ? Colors.light.surface : Colors.light.primary
                           }
                         />
                         {cartQty > 0 && (
@@ -434,7 +434,7 @@ export default function SellScreen() {
                       web: "shopping_bag" as any,
                     }}
                     size={22}
-                    tintColor="#FFFFFF"
+                    tintColor={Colors.light.primary}
                   />
                   <View style={styles.cartCountBadge}>
                     <Text style={styles.cartCountBadgeText}>{itemCount}</Text>
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   frequentQtyBadgeText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontSize: 10,
     fontWeight: "700",
   },
@@ -812,7 +812,7 @@ const styles = StyleSheet.create({
   addBtnCount: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
   },
   floatingCartBar: {
     position: "absolute",
@@ -854,19 +854,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cartCountBadgeText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontSize: 10,
     fontWeight: "700",
   },
   cartBarLabel: {
     ...Typography.caption,
     fontSize: 10,
-    color: "#A5F4B6",
+    color: Colors.light.primary,
     textTransform: "uppercase",
   },
   cartBarTotal: {
     ...Typography.moneySmall,
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontWeight: "700",
   },
   cartBarRight: {

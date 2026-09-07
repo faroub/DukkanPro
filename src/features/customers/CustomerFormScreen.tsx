@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   saveText: {
-    color: '#fff',
+    color: Colors.light.textPrimary,
     fontWeight: '600',
     fontSize: 16,
   },

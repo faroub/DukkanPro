@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   categoryCardSelected: {
-    backgroundColor: "#F4FAF6",
+    backgroundColor: Colors.light.surface,
     borderColor: Colors.light.primary,
     borderWidth: 2,
   },
