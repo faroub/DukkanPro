@@ -6,10 +6,6 @@ import { Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
-// MaterialSymbolsOutlined is available via expo-google-fonts
-// Import from the component path that's configured in the project
-import MaterialSymbolsOutlined from '@/components/MaterialSymbolsOutlined';
-
 /**
  * Business/shop name step of the onboarding flow.
  * Merchants enter their shop name which is required.
@@ -29,6 +25,9 @@ export function BusinessNameStep({
     }
     onContinue?.({ businessName: name });
   };
+
+  // Arabic text right-aligned within LTR layout
+  const isArabic = t('languageStep.ar') === t('languageStep.title');
 
   return (
     <ThemedView style={styles.container}>
@@ -53,10 +52,12 @@ export function BusinessNameStep({
         {/* Engaging Visual Accent Tile */}
         <View style={styles.accentTile}>
           <View style={styles.accentIcon}>
-            <MaterialSymbolsOutlined name="storefront" size={18} className="primary-icon" />
+            <SvgIcon name="storefront" size={18} />
           </View>
           <View style={styles.accentText}>
-            <span className="font-label font-label text-primary truncate" id="shopNamePreview">{shopPreview}</span>
+            <span className="font-label font-label text-primary truncate" id="shopNamePreview" style={isArabic ? { textAlign: 'right' } : undefined}>
+              {shopPreview}
+            </span>
           </View>
         </View>
 
@@ -65,12 +66,12 @@ export function BusinessNameStep({
           <form style={styles.form} id="onboardingForm">
             {/* Field 1: Business Name */}
             <View style={styles.field}>
-              <Label htmlFor="businessName">
-                <span>{t('businessNameStep.label')}</span>
-                <span className="font-caption font-caption text-secondary">Required</span>
-              </Label>
+              <Text style={styles.fieldLabel}>
+                {t('businessNameStep.label')}
+                <Text style={styles.fieldLabelRequired}>Required</Text>
+              </Text>
               <View style={styles.inputContainer}>
-                <MaterialSymbolsOutlined name="store" size={20} className="absolute left-3 secondary-icon" />
+                <SvgIcon name="store" size={20} />
                 <TextInput
                   style={styles.input}
                   placeholder={name || t('businessNameStep.placeholder')}
@@ -84,12 +85,12 @@ export function BusinessNameStep({
 
             {/* Field 2: Owner Name */}
             <View style={styles.field}>
-              <Label htmlFor="ownerName">
-                <span>{t('common.ownerName')}</span>
-                <span className="font-caption font-caption text-secondary">Required</span>
-              </Label>
+              <Text style={styles.fieldLabel}>
+                {t('common.ownerName')}
+                <Text style={styles.fieldLabelRequired}>Required</Text>
+              </Text>
               <View style={styles.inputContainer}>
-                <MaterialSymbolsOutlined name="badge" size={20} className="absolute left-3 secondary-icon" />
+                <SvgIcon name="badge" size={20} />
                 <TextInput
                   style={styles.input}
                   placeholder={ownerName || t('ownerNameStep.placeholder')}
@@ -105,7 +106,7 @@ export function BusinessNameStep({
 
         {/* Reassurance / Trust Card */}
         <View style={styles.trustCard}>
-          <MaterialSymbolsOutlined name="verified_user" size={18} className="primary-icon" />
+          <SvgIcon name="verified_user" size={18} />
           <Text style={styles.trustText}>
             Your ledger and customer contacts are kept fully encrypted, offline-capable, and private to your device.
           </Text>
@@ -115,16 +116,13 @@ export function BusinessNameStep({
         <View style={styles.ctaContainer}>
           <PrimaryButton
             onPress={handleContinue}
-            title="Continue"
-            startIcon={<MaterialSymbolsOutlined name="arrow_forward" size={20} className="primary-icon" />}
-            type="button">
+            title="Continue">
             <span>Continue</span>
+            <SvgIcon name="arrow_forward" size={20} />
           </PrimaryButton>
           <PrimaryButton
             onPress={() => {}}
-            title="Back"
-            startIcon={<MaterialSymbolsOutlined name="west" size={18} className="secondary-icon" />}
-            type="button">
+            title="Back">
             <span>Back</span>
             <span className="text-secondary text-[12px] font-normal ml-0.5">/ Retour</span>
           </PrimaryButton>
@@ -134,18 +132,26 @@ export function BusinessNameStep({
   );
 }
 
-// Helper Label component - accepts htmlFor and children only
-const Label = ({
-  children,
-  htmlFor,
+// Simple SVG icons for Material Symbols
+const SvgIcon = ({
+  name,
+  size,
 }: {
-  children: React.ReactNode;
-  htmlFor: string;
-}) => (
-  <span htmlFor={htmlFor}>
-    {children}
-  </span>
-);
+  name: 'storefront' | 'store' | 'badge' | 'verified_user' | 'arrow_forward' | 'west';
+  size: number;
+}) => {
+  const svgData: Record<string, string> = {
+    storefront: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20V2h4v18l-4-3h-2l-4 3h-2zM3 9v6h18"/><path fill="none" d="M0 0h24v24H0z"/></svg>',
+    store: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M18 8h-1v5a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-5h-1M2 1h4v2H2V1M2 12h4v2H2v-2M2 21h4v2H2v-2M2 6h4v2H2V6M7 20h5v2h5"/><path fill="none" d="M0 0h24v24H0z"/></svg>',
+    badge: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2v4h4v14h-4v-2c0-2 1-2 3-2s3 1 3 2v2H12V2zm6-6a4 4 0 1 1-8 0 4 4 0 0 1 8 0zm-6 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>',
+    verified_user: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.354 8.647-2.646 2.646-5.293-1.414L15 15.069l-2.647-5.303-1.414 2.646L9.75 9.75l-5.293 1.414 1.414 5.293L5 15.069l 5.293-1.414 2.647 5.303z"/></svg>',
+    arrow_forward: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18l6-6-6-6M2 12l10 10-10 10z"/></svg>',
+    west: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="3"/></svg>',
+  };
+
+  const path = svgData[name] || '';
+  return <svg dangerouslySetInnerHTML={{ __html: path.replace(/\{size\}/g, size.toString()) }} />;
+};
 
 // Progress indicator styles - flat style objects
 const progressStyles = {
@@ -165,6 +171,7 @@ const progressStyles = {
 };
 
 const styles = StyleSheet.create({
+  container: {
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -266,11 +273,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
   },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: 600,
+    marginBottom: 4,
+  },
+  fieldLabelRequired: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginLeft: 4,
+  },
   ctaContainer: {
     width: '100%',
     display: 'flex',
     flexDirection: 'column',
     gap: 12,
-    paddingHorizontal: Spacing.lg,
-  },
+    paddingHorizontal: Spacing.lg
+  }
 });

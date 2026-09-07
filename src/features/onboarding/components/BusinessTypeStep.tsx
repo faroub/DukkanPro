@@ -1,15 +1,30 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableWithoutFeedback, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Spacing, Colors, BorderRadius } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
-/**
- * Business type selection step of the onboarding flow.
- * Merchant selects their business type from predefined options.
- */
+// Simple SVG icons for Material Symbols
+const SvgIcon = ({
+  name,
+  size,
+}: {
+  name: 'storefront' | 'check' | 'info' | 'arrow_forward';
+  size: number;
+}) => {
+  const svgData: Record<string, string> = {
+    storefront: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20V2h4v18l-4-3h-2l-4 3h-2zM3 9v6h18"/><path fill="none" d="M0 0h24v24H0z"/></svg>',
+    check: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M9 18l6-6-6-6M2 12l10 10-10 10z"/></svg>',
+    info: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.354 8.647-2.646 2.646-5.293-1.414L15 15.069l-2.647-5.303-1.414 2.646L9.75 9.75l-5.293 1.414 1.414 5.293L5 15.069l 5.293-1.414 2.647 5.303z"/></svg>',
+    arrow_forward: '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24"><path fill="currentColor" d="M10 18l6-6-6-6M2 12l10 10-10 10z"/></svg>',
+  };
+
+  const path = svgData[name] || '';
+  return <svg dangerouslySetInnerHTML={{ __html: path.replace(/\{size\}/g, size.toString()) }} />;
+};
+
 export function BusinessTypeStep({
   onContinue,
   selectedType,
@@ -47,7 +62,7 @@ export function BusinessTypeStep({
     {
       value: 'other',
       name: 'Other',
-      caption: 'Autre activité / actividad diferente',
+      caption: 'Autre actividad / actividad diferente',
     },
   ];
 
@@ -93,10 +108,7 @@ export function BusinessTypeStep({
               onPress={() => setSelectedTypeLocal(type.value)}
             >
               <View style={styles.iconBubble}>
-                <MaterialSymbolsOutlined
-                  name="storefront"
-                  size={24}
-                />
+                <SvgIcon name="storefront" size={24} />
               </View>
               <View style={styles.optionText}>
                 <span style={styles.optionName}>{type.name}</span>
@@ -105,10 +117,7 @@ export function BusinessTypeStep({
                 </span>
               </View>
               <View style={styles.checkPill}>
-                <MaterialSymbolsOutlined
-                  name="check"
-                  size={18}
-                />
+                <SvgIcon name="check" size={18} />
               </View>
             </View>
           ))}
@@ -116,10 +125,7 @@ export function BusinessTypeStep({
 
         {/* Micro-delight helper message */}
         <View style={styles.microDelight}>
-          <MaterialSymbolsOutlined
-            name="info"
-            size={18}
-          />
+          <SvgIcon name="info" size={18} />
           <Text style={styles.microDelightText}>
             You can change your category or add custom products anytime in Settings.
           </Text>
@@ -130,23 +136,22 @@ export function BusinessTypeStep({
           <PrimaryButton
             style={styles.continueBtn}
             onPress={handleContinue}
-            type="button">
+            title="Continue">
             <span>Continue</span>
-            <MaterialSymbolsOutlined name="arrow_forward" size={20} className="primary-icon" />
+            <SvgIcon name="arrow_forward" size={20} />
           </PrimaryButton>
           <PrimaryButton
             style={styles.backBtn}
             onPress={() => {}}
-            type="button">
+            title="Back">
             Back
           </PrimaryButton>
         </View>
       </ThemedView>
     </ThemedView>
   );
-}
+};
 
-// Simple style objects without function type annotations
 const progressDotActiveStyle = {
   width: 24,
   height: 24,
@@ -238,8 +243,8 @@ const ctaContainerStyle = {
   display: 'flex',
   flexDirection: 'column',
   gap: 12,
-  paddingHorizontal: 32,
-  paddingBottom: 48,
+  paddingHorizontal: Spacing.lg,
+  paddingBottom: Spacing.xxl,
 };
 
 const continueBtnStyle = {
