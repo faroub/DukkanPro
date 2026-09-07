@@ -4,6 +4,7 @@ import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation } from "react-i18next";
 import { formatCentimes } from "@/utils/money";
+import { Colors } from "@/constants/theme";
 import { Sale } from "@/types/entities";
 import { calculateProfit, calculateChange } from "@/services/sales/saleCalculator";
 

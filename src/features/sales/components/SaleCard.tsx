@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { formatCentimes } from '@/utils/money';
+import { Colors, BorderRadius, Spacing, Shadows } from '@/constants/theme';
 import { useTranslation } from 'react-i18next';
 
 interface SaleCardProps {

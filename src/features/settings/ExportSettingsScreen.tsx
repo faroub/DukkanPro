@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   infoBox: {
-    backgroundColor: Colors.light.success,
+    backgroundColor: Colors.light.positive,
     borderColor: Colors.light.primary,
     borderWidth: 1,
     borderRadius: 6,
