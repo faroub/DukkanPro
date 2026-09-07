@@ -5,15 +5,16 @@ import type { Product } from '@/types/entities';
 const mockProduct: Product = {
   id: 1,
   name: 'Test Milk',
+  sku: 'MILK-001',
   category: 'Dairy',
   cost_price_centimes: 10000,
   sale_price_centimes: 12000,
   stock_quantity: 50,
-  min_stock_alert: 5,
+  minimum_stock_quantity: 5,
   unit: 'piece',
   created_at: '2026-01-01',
   updated_at: '2026-01-01',
-  is_active: 1,
+  is_active: true,
 };
 
 describe('cartStore with AsyncStorage persistence', () => {

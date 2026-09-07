@@ -1,8 +1,12 @@
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
 
-// Use the project root directory
-const PROJECT_ROOT = "/home/faroub/Documents/Projects/DukkanOS/DukkanOS";
+// Use dynamic project root directory
+const PROJECT_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const SRC_APP_DIR = path.resolve(PROJECT_ROOT, "src/app");
 const FORBIDDEN_DIRS = [
   "components",
