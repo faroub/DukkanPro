@@ -3,6 +3,7 @@
  *
  * Color palette, spacing, typography, border radius, and shadows.
  * Entire application remains visually LTR regardless of selected language.
+ * Values sourced from DESIGN.md (Google Stitch design system).
  */
 
 import { Platform } from "react-native";
@@ -65,6 +66,7 @@ export const Colors = {
     destructive: "#B91C1C",
     surface: "#1F2937",
     border: "#374151",
+    borderLight: "#2C2C2C",
     backgroundElement: "#1E293B",
     notification: "#FBBF24",
   } as const,
