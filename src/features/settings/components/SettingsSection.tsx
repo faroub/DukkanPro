@@ -1,7 +1,7 @@
 import React from "react";
 import { ThemedView, ThemedText } from "@/components";
 import { StyleSheet } from "react-native";
-import { Spacing } from "@/constants/theme";
+import { Spacing, Colors } from "@/constants/theme";
 
 /**
  * SettingsSection - A reusable settings section with a title and optional description.

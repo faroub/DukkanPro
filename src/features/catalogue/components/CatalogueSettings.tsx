@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useTranslation } from "react-i18next";
+import { Colors } from "@/constants/theme";
 import { StyleSheet, Switch, TouchableOpacity, View } from "react-native";
 
 interface CatalogueSettingsProps {

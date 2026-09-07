@@ -1,5 +1,5 @@
 import { ThemedText, ThemedView } from "@/components";
-import { BorderRadius, Spacing } from "@/constants/theme";
+import { BorderRadius, Spacing, Colors } from "@/constants/theme";
 import i18n from "@/localization/i18n";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
