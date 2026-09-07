@@ -221,7 +221,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
         {/* Action buttons - only for completed sales */}
         {sale.status === 'completed' && (
           <View style={{ marginTop: 24, flexDirection: 'row', justifyContent: 'flex-end' }}>
-            <TouchableOpacity onPress={openCancelDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: Colors.light.destructive,, marginRight: 8 }}>
+            <TouchableOpacity onPress={openCancelDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: Colors.light.destructive, marginRight: 8 }}>
               <ThemedText type="body" style={{ color: Colors.light.textPrimary, }}>
                 {t('sales.cancel_sale')}
               </ThemedText>
@@ -236,7 +236,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
 
         {/* Cancelled/Returned status info */}
         {sale.status === 'cancelled' && (
-          <View style={{ marginTop: 24, padding: 16, backgroundColor: Colors.light.surface,, borderRadius: 8 }}>
+          <View style={{ marginTop: 24, padding: 16, backgroundColor: Colors.light.surface, borderRadius: 8 }}>
             <ThemedText type="body" style={{ marginBottom: 8, color: Colors.light.textSecondary, }}>
               {t('sales.cancelled_note')}
             </ThemedText>
@@ -249,7 +249,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
         )}
 
         {sale.status === 'returned' && (
-          <View style={{ marginTop: 24, padding: 16, backgroundColor: Colors.light.surface,, borderRadius: 8 }}>
+          <View style={{ marginTop: 24, padding: 16, backgroundColor: Colors.light.surface, borderRadius: 8 }}>
             <ThemedText type="body" style={{ marginBottom: 8, color: Colors.light.textSecondary, }}>
               {t('sales.returned_note')}
             </ThemedText>
