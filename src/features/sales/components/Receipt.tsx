@@ -124,7 +124,7 @@ export function Receipt({
                 <ThemedText type="body" style={{ width: "60%" }}>
                   {t("receipt.discount")}
                 </ThemedText>
-                <ThemedText type="body" style={{ textAlign: "right", color: Colors.light.warning,, width: "40%" }}>
+                <ThemedText type="body" style={{ textAlign: "right", color: Colors.light.warning, width: "40%" }}>
                   -{formatCentimes(discount)}
                 </ThemedText>
               </View>
