@@ -2,7 +2,7 @@ import { View, ScrollView, StyleSheet, Text, Pressable, Modal, TextInput } from 
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRoute } from "expo-router";
-import { Typography, Colors } from "@/constants/theme";
+import { Typography, Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import { useCustomers } from "@/hooks/useCustomers";
@@ -206,7 +206,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                 onChangeText={(text) => setNewPaymentAmount(text)}
                 placeholder={t("customers:amountPlaceholder")}
                 keyboardType="number-pad"
-                style={isAddingPayment ? styles.inputEditing : styles.input}
+                style={styles.input}
               />
               <Pressable style={styles.addPaymentButton} onPress={handleAddPayment} disabled={isAddingPayment}>
                 <ThemedText type="body" style={styles.addPaymentText}>
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
   },
   addPaymentText: {
-    color: Colors.light.onPrimary,
+    color: "#FFFFFF",
     fontWeight: '600',
     fontSize: 14,
   },
