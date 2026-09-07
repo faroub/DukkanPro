@@ -24,11 +24,6 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
   const [isLoading, setIsLoading] = useState(true);
   const saleId = parseInt(route.params.id, 10);
 
-  // Load sale by ID
-  useEffect(() => {
-    loadSale();
-  }, [saleId]);
-
   const loadSale = async () => {
     setIsLoading(true);
     try {
@@ -40,6 +35,11 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
       setIsLoading(false);
     }
   };
+
+  // Load sale by ID
+  useEffect(() => {
+    loadSale();
+  }, [saleId]);
 
   // Handle cancellation
   const [cancelReason, setCancelReason] = useState<string>('');

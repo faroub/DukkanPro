@@ -1,4 +1,4 @@
-import { ThemedText, ThemedView, useToast } from "@/components";
+import { ThemedText, ThemedView, showToast } from "@/components";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -39,7 +39,7 @@ export function InventorySettingsScreen() {
 
   const handleSave = useCallback(async () => {
     // TODO: Persist inventory settings to app_settings or backend
-    useToast(t("settings.saveChanges"));
+    showToast(t("settings.saveChanges"));
   }, [t]);
 
   // Show confirmation if negative stock is enabled

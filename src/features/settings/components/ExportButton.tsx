@@ -1,4 +1,4 @@
-import { ThemedText, useToast } from "@/components";
+import { ThemedText, showToast } from "@/components";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, TouchableOpacity } from "react-native";
@@ -51,7 +51,7 @@ export function ExportButton({
   const handlePerformExport = useCallback(async () => {
     // Read data from database and export
     // TODO: Integrate with actual database repositories
-    useToast(t("exportSettings.exportInProgress"));
+    showToast(t("exportSettings.exportInProgress"));
     setShowConfirmation(false);
   }, [t]);
 

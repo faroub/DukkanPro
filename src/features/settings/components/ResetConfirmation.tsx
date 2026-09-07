@@ -22,11 +22,10 @@ export function ResetConfirmation({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  if (!isVisible) {
-    return null;
-  }
-
   React.useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
     Alert.alert(t("dataReset.confirmTitle"), t("dataReset.confirmMessage"), [
       { text: t("common:cancel"), style: "cancel", onPress: onCancel },
       {
@@ -35,7 +34,11 @@ export function ResetConfirmation({
         onPress: onConfirm,
       },
     ]);
-  }, [onCancel, onConfirm, t]);
+  }, [isVisible, onCancel, onConfirm, t]);
+
+  if (!isVisible) {
+    return null;
+  }
 
   return null;
 }

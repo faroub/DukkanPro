@@ -1,4 +1,4 @@
-import { ThemedText, ThemedView, useToast } from "@/components";
+import { ThemedText, ThemedView, showToast } from "@/components";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -58,7 +58,7 @@ export function ExportSettingsScreen() {
   const handlePerformExport = useCallback(async () => {
     // TODO: Implement actual export using csvExportService
     // For now, show a toast with the selected option
-    useToast(
+    showToast(
       t(
         `exportSettings.exported${selectedExport.charAt(0).toUpperCase() + selectedExport.slice(1)}`,
       ),

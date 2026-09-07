@@ -1,4 +1,4 @@
-import { ThemedText, ThemedView, useToast } from "@/components";
+import { ThemedText, ThemedView, showToast } from "@/components";
 import { useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -26,7 +26,7 @@ export function BusinessSettingsScreen() {
 
   const handleSave = React.useCallback(() => {
     // TODO: Implement business profile save logic
-    useToast(t("settings.saveChanges"));
+    showToast(t("settings.saveChanges"));
   }, [t]);
 
   return (

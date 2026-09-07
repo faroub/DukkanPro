@@ -36,23 +36,6 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
     loadCustomer();
   }, [customerId]);
 
-  // Load customer with hook
-  useEffect(() => {
-    async function loadData() {
-      if (!customerId) {
-        setLoading(false);
-        return;
-      }
-
-      const { refetch } = useCustomers({});
-
-      // Load customer data
-      setLoading(false);
-    }
-
-    loadData();
-  }, [customerId]);
-
   const handleAddPayment = useCallback(async () => {
     const amount = parseFloat(newPaymentAmount);
     if (isNaN(amount) || amount <= 0) {

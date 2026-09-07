@@ -29,9 +29,10 @@ export function ProductFormScreen({
   navigation,
 }: ProductFormScreenProps) {
   const { t } = useTranslation();
+  const defaultNavigation = useNavigation();
   const routerRoute = useRoute() as { params?: { id?: string } };
   const params = route?.params ?? routerRoute.params ?? {};
-  const currentNavigation = navigation ?? useNavigation();
+  const currentNavigation = navigation ?? defaultNavigation;
   const productId = params?.id;
   const isEditMode = !!productId;
   const isCreateMode = !isEditMode;

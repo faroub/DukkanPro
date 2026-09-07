@@ -22,11 +22,6 @@ export function SalesHistoryScreen() {
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Load sales on mount
-  useEffect(() => {
-    loadSales();
-  }, []);
-
   const loadSales = async () => {
     let salesData: any[];
 
@@ -98,6 +93,11 @@ export function SalesHistoryScreen() {
       setSales(salesData);
     }
   };
+
+  // Load sales on mount
+  useEffect(() => {
+    loadSales();
+  }, []);
 
   const handleFilterChange = (newFilter: string) => {
     setFilter(newFilter);

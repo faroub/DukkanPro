@@ -1,4 +1,4 @@
-import { ThemedText, ThemedView, useToast } from "@/components";
+import { ThemedText, ThemedView, showToast } from "@/components";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -39,7 +39,7 @@ export function DataResetScreen() {
 
     // Check if the entered business name matches exactly
     if (businessNameInput.trim() !== expectedBusinessName) {
-      useToast(t("dataReset.wrongBusinessName"));
+      showToast(t("dataReset.wrongBusinessName"));
       setBusinessNameInput("");
       return;
     }
@@ -67,13 +67,13 @@ export function DataResetScreen() {
               // - Clear app preferences
               // - Reset locale to French
               // - Navigate to onboarding
-              useToast(t("dataReset.success"));
+              showToast(t("dataReset.success"));
               setIsLoading(false);
               // Navigate back to onboarding
               router.replace("/onboarding");
             } catch (error) {
               console.error("Data reset error:", error);
-              useToast(t("dataReset.error"));
+              showToast(t("dataReset.error"));
               setIsLoading(false);
             }
           },
