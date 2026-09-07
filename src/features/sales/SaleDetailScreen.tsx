@@ -200,7 +200,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
                 {t('sales.subtotal')}: {formatCentimes(sale.subtotal_centimes)}
               </ThemedText>
               {sale.discount_centimes > 0 && (
-                <ThemedText type="body" style={{ color: '#6c757d' }}>
+                <ThemedText type="body" style={{ color: Colors.light.textSecondary, }}>
                   -{formatCentimes(sale.discount_centimes)}
                 </ThemedText>
               )}
@@ -210,7 +210,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
                 {t('sales.total')}: {formatCentimes(sale.total_centimes)}
               </ThemedText>
               {sale.remaining_balance_centimes > 0 && (
-                <ThemedText type="body" style={{ color: '#dc3545' }}>
+                <ThemedText type="body" style={{ color: Colors.light.destructive, }}>
                   ({t('sales.balance')}: {formatCentimes(sale.remaining_balance_centimes)})
                 </ThemedText>
               )}
@@ -221,7 +221,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
         {/* Action buttons - only for completed sales */}
         {sale.status === 'completed' && (
           <View style={{ marginTop: 24, flexDirection: 'row', justifyContent: 'flex-end' }}>
-            <TouchableOpacity onPress={openCancelDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: '#dc3545', marginRight: 8 }}>
+            <TouchableOpacity onPress={openCancelDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: Colors.light.destructive,, marginRight: 8 }}>
               <ThemedText type="body" style={{ color: Colors.light.textPrimary, }}>
                 {t('sales.cancel_sale')}
               </ThemedText>
@@ -236,12 +236,12 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
 
         {/* Cancelled/Returned status info */}
         {sale.status === 'cancelled' && (
-          <View style={{ marginTop: 24, padding: 16, backgroundColor: '#f8f9fa', borderRadius: 8 }}>
-            <ThemedText type="body" style={{ marginBottom: 8, color: '#6c757d' }}>
+          <View style={{ marginTop: 24, padding: 16, backgroundColor: Colors.light.surface,, borderRadius: 8 }}>
+            <ThemedText type="body" style={{ marginBottom: 8, color: Colors.light.textSecondary, }}>
               {t('sales.cancelled_note')}
             </ThemedText>
             {sale.note && (
-              <ThemedText type="body" style={{ color: '#6c757d' }}>
+              <ThemedText type="body" style={{ color: Colors.light.textSecondary, }}>
                 {t('sales.cancel_reason', { reason: sale.note })}
               </ThemedText>
             )}
@@ -249,12 +249,12 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
         )}
 
         {sale.status === 'returned' && (
-          <View style={{ marginTop: 24, padding: 16, backgroundColor: '#f8f9fa', borderRadius: 8 }}>
-            <ThemedText type="body" style={{ marginBottom: 8, color: '#6c757d' }}>
+          <View style={{ marginTop: 24, padding: 16, backgroundColor: Colors.light.surface,, borderRadius: 8 }}>
+            <ThemedText type="body" style={{ marginBottom: 8, color: Colors.light.textSecondary, }}>
               {t('sales.returned_note')}
             </ThemedText>
             {sale.note && (
-              <ThemedText type="body" style={{ color: '#6c757d' }}>
+              <ThemedText type="body" style={{ color: Colors.light.textSecondary, }}>
                 {t('sales.return_reason', { reason: sale.note })}
               </ThemedText>
             )}
@@ -273,21 +273,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   statusBadgeCompleted: {
-    backgroundColor: '#d4edda',
-    color: '#155724',
+    backgroundColor: Colors.light.success,
+    color: Colors.light.destructive,
   },
   statusBadgeCancelled: {
-    backgroundColor: '#e2e3e5',
-    color: '#383d44',
+    backgroundColor: Colors.light.surface,
+    color: Colors.light.textSecondary,
   },
   statusBadgeReturned: {
-    backgroundColor: '#f8d7da',
-    color: '#842029',
+    backgroundColor: Colors.light.errorLight,
+    color: Colors.light.destructive,
   },
   infoCard: {
     backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: Colors.light.border,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,

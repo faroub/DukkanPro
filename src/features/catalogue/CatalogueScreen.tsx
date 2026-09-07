@@ -97,7 +97,7 @@ export function CatalogueScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={{ padding: 16, backgroundColor: "#fafafa" }}
+      contentContainerStyle={{ padding: Spacing.lg, backgroundColor: Colors.light.background }}
     >
       <ThemedView type="background" style={{ marginBottom: 16 }}>
         <View
@@ -135,7 +135,7 @@ export function CatalogueScreen() {
           >
             <ThemedText
               type="body"
-              style={{ color: settings.showPrices ? "#1B6B3A" : "#666" }}
+              style={{ color: settings.showPrices ? Colors.light.primary : Colors.light.textSecondary }}
             >
               {t(settings.showPrices ? "yes" : "no")}
             </ThemedText>
@@ -158,7 +158,7 @@ export function CatalogueScreen() {
           >
             <ThemedText
               type="body"
-              style={{ color: settings.hideOutOfStock ? "#1B6B3A" : "#666" }}
+              style={{ color: settings.hideOutOfStock ? Colors.light.primary : Colors.light.textSecondary }}
             >
               {t(settings.hideOutOfStock ? "yes" : "no")}
             </ThemedText>
@@ -177,7 +177,7 @@ export function CatalogueScreen() {
             style={styles.input}
           />
           {settings.contact && (
-            <ThemedText type="caption" style={{ color: "#666" }}>
+            <ThemedText type="caption" style={{ color: Colors.light.textSecondary }}>
               {settings.contact}
             </ThemedText>
           )}
@@ -195,7 +195,7 @@ export function CatalogueScreen() {
             style={styles.input}
           />
           {settings.address && (
-            <ThemedText type="caption" style={{ color: "#666" }}>
+            <ThemedText type="caption" style={{ color: Colors.light.textSecondary }}>
               {settings.address}
             </ThemedText>
           )}
@@ -227,7 +227,7 @@ export function CatalogueScreen() {
                 justifyContent: "space-between",
                 padding: 8,
                 marginBottom: 4,
-                backgroundColor: "#fff",
+                backgroundColor: Colors.light.surface,,
                 borderRadius: 8,
               }}
             >
@@ -276,7 +276,7 @@ export function CatalogueScreen() {
             <View
               style={{
                 margin: 20,
-                backgroundColor: "#fff",
+                backgroundColor: Colors.light.surface,,
                 borderRadius: 12,
                 padding: 20,
               }}
@@ -312,16 +312,16 @@ const styles = StyleSheet.create({
     padding: 6,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Colors.light.border,
     borderRadius: 20,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.surface,,
   },
   toggleButtonActive: {
-    borderColor: "#1B6B3A",
+    borderColor: Colors.light.primary,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Colors.light.border,
     borderRadius: 8,
     padding: 8,
     marginBottom: 8,

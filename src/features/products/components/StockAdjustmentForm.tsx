@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderColor: '#D1D5DB',
+    borderColor: Colors.light.disabledBackground,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 16,

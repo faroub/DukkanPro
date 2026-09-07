@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     height: 52,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 12,
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   methodActiveText: {
-    color: '#fff',
+    color: Colors.light.textPrimary,
   },
   methodInactiveText: {
     color: Colors.light.textSecondary,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.light.textPrimary,
     fontWeight: '600',
     fontSize: 18,
   },

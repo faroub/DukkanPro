@@ -132,11 +132,11 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 14,
-    color: "#1B6B3A",
+    color: Colors.light.primary,
   },
   formSection: {
     padding: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderRadius: 8,
     marginBottom: 16,
   },
@@ -165,18 +165,18 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     padding: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.light.border,
   },
   saveButton: {
-    backgroundColor: "#1B6B3A",
+    backgroundColor: Colors.light.primary,
     padding: 16,
     borderRadius: 6,
     alignItems: "center",
   },
   saveButtonText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontSize: 16,
     fontWeight: "600",
   },

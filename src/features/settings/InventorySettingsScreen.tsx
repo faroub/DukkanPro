@@ -80,7 +80,7 @@ export function InventorySettingsScreen() {
               value={allowNegativeStock}
               onValueChange={handleToggleChange}
               trackColor={{ false: "#e0e0e0", true: "#1B6B3A" }}
-              thumbColor="#FFFFFF"
+              thumbColor={Colors.light.primary}
             />
           </View>
 
@@ -140,11 +140,11 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 14,
-    color: "#1B6B3A",
+    color: Colors.light.primary,
   },
   formSection: {
     padding: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderRadius: 8,
     marginBottom: 16,
   },
@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.surface,
   },
   warningBox: {
-    backgroundColor: "#FFF3E0",
-    borderColor: "#FF8F00",
+    backgroundColor: Colors.light.warningLight,
+    borderColor: Colors.light.warning,
     borderWidth: 1,
     borderRadius: 6,
     padding: 16,
@@ -175,24 +175,24 @@ const styles = StyleSheet.create({
   },
   warningText: {
     fontSize: 12,
-    color: "#FF8F00",
+    color: Colors.light.warning,
     marginBottom: 0,
   },
   actionButtons: {
     padding: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.light.border,
   },
   saveButton: {
-    backgroundColor: "#1B6B3A",
+    backgroundColor: Colors.light.primary,
     padding: 16,
     borderRadius: 6,
     alignItems: "center",
     width: "100%",
   },
   saveButtonText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",

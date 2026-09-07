@@ -156,7 +156,7 @@ export function SaleConfirmation({
               </ThemedText>
             </Pressable>
             <Pressable style={[styles.confirmButton, !preserveCart && styles.disabledButton]} onPress={handleConfirm} disabled={itemCount === 0}>
-              <ThemedText type="body" style={{ color: "#fff", fontWeight: "600" }}>
+              <ThemedText type="body" style={{ color: Colors.light.textPrimary, fontWeight: "600" }}>
                 {t('sell.confirmPayment')}
               </ThemedText>
             </Pressable>
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.surface,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 24,

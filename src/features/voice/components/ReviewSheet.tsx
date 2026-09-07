@@ -88,7 +88,7 @@ export function ReviewSheet({
     modalContainer: {
       margin: 0,
       marginTop: 20,
-      backgroundColor: "#fff",
+      backgroundColor: Colors.light.surface,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       maxHeight: "80%",
@@ -134,7 +134,7 @@ export function ReviewSheet({
       alignItems: "center",
     },
     confirmButtonText: {
-      color: "#fff",
+      color: Colors.light.textPrimary,
       fontSize: 16,
     },
     ambiguityList: {

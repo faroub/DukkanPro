@@ -184,11 +184,11 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 14,
-    color: "#1B6B3A",
+    color: Colors.light.primary,
   },
   formSection: {
     padding: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderRadius: 8,
     marginBottom: 16,
   },
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
@@ -214,11 +214,11 @@ const styles = StyleSheet.create({
   },
   exportOptionCheck: {
     fontSize: 18,
-    color: "#1B6B3A",
+    color: Colors.light.primary,
     marginLeft: 8,
   },
   exportButton: {
-    backgroundColor: "#1B6B3A",
+    backgroundColor: Colors.light.primary,
     padding: 16,
     borderRadius: 6,
     alignItems: "center",
@@ -227,14 +227,14 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   exportButtonText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
   },
   infoBox: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#1B6B3A",
+    backgroundColor: Colors.light.success,
+    borderColor: Colors.light.primary,
     borderWidth: 1,
     borderRadius: 6,
     padding: 12,
@@ -242,6 +242,6 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 13,
-    color: "#1B6B3A",
+    color: Colors.light.primary,
   },
 });

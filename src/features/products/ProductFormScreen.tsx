@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderColor: "#D1D5DB",
+    borderColor: Colors.light.disabledBackground,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 16,
@@ -586,11 +586,11 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     marginTop: 20,
     marginBottom: 12,
-    color: "#374151",
+    color: Colors.light.textSecondary,
   },
   adjustmentButton: {
     padding: 12,
-    backgroundColor: "#D1D5DB",
+    backgroundColor: Colors.light.disabledBackground,
     borderRadius: 8,
     marginBottom: 8,
     alignItems: "center",
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
   },
   archiveText: {
-    color: "#B91C1C",
+    color: Colors.light.destructive,
   },
   archiveButton: {
     padding: 8,
