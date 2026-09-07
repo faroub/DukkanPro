@@ -1,17 +1,18 @@
-import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
 import { ThemedView } from "@/components/themed-view";
-import { ThemedText } from "@/components/themed-text";
+import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native";
 
 import DashboardScreen from "@/features/dashboard/DashboardScreen";
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
+
   return (
     <ThemedView type="background" style={styles.container}>
       <ThemedView style={styles.content}>
         <DashboardScreen
-          t={(key: string) => key} // placeholder - actual t comes from i18next context
-          locale="fr" // default locale, will be overridden by i18next provider
+          t={(key: string, ...args: any[]) => String(t(key, args[0]))}
+          locale="fr"
         />
       </ThemedView>
     </ThemedView>

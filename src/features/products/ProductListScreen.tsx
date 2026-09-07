@@ -1,19 +1,22 @@
-import { View, ScrollView, RefreshControl, StyleSheet } from 'react-native';
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { useTranslation } from "react-i18next";
+import { ProductRow } from "@/components/products/ProductRow";
 import { ThemedText } from "@/components/themed-text";
 import { Typography } from "@/constants/theme";
-import { useProducts } from "@/hooks/useProducts";
-import { ProductSearchBar } from "@/features/products/components/ProductSearchBar";
 import { ProductFilterTabs } from "@/features/products/components/ProductFilterTabs";
-import { ProductRow } from "@/components/products/ProductRow";
+import { ProductSearchBar } from "@/features/products/components/ProductSearchBar";
+import { useProducts } from "@/hooks/useProducts";
+import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 interface ProductListScreenProps {
   route?: any;
   navigation?: any;
 }
 
-export function ProductListScreen({ route, navigation }: ProductListScreenProps) {
+export function ProductListScreen({
+  route,
+  navigation,
+}: ProductListScreenProps) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<string>("all");
   const [refreshing, setRefreshing] = useState(false);
@@ -57,7 +60,7 @@ export function ProductListScreen({ route, navigation }: ProductListScreenProps)
     return (
       <View style={styles.loadingContainer}>
         <ThemedText type="small" style={styles.loadingText}>
-          {t("common:loading")}
+          {t("loading")}
         </ThemedText>
       </View>
     );
@@ -67,10 +70,10 @@ export function ProductListScreen({ route, navigation }: ProductListScreenProps)
     return (
       <View style={styles.errorContainer}>
         <ThemedText type="small" style={styles.errorText}>
-          {t("common:error")}
+          {t("error")}
         </ThemedText>
         <ThemedText type="small" style={styles.errorRetry}>
-          {t("common:retry")}
+          {t("retry")}
         </ThemedText>
       </View>
     );
@@ -107,10 +110,10 @@ export function ProductListScreen({ route, navigation }: ProductListScreenProps)
       {products.length === 0 && !loading && !error && (
         <View style={styles.emptyState}>
           <ThemedText type="subtitle" style={styles.emptyTitle}>
-            {t("products:noProducts")}
+            {t("products.noProducts")}
           </ThemedText>
           <ThemedText type="small" style={styles.emptyDescription}>
-            {t("products:searchNoResults")}
+            {t("products.searchNoResults")}
           </ThemedText>
         </View>
       )}
@@ -147,51 +150,51 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 40,
   },
   emptyTitle: {
     ...Typography.body,
     fontSize: 16,
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyDescription: {
     ...Typography.body,
     fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
+    color: "#9CA3AF",
+    textAlign: "center",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   loadingText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   errorText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#B91C1C',
+    color: "#B91C1C",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   errorRetry: {
     ...Typography.body,
     fontSize: 14,
-    color: '#1B6B3A',
+    color: "#1B6B3A",
   },
   listContainer: {
     paddingBottom: 100,

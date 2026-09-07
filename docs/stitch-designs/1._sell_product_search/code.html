@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100%;background-color:#F8F7F4;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "tertiary-fixed": "#ffdad6", "divider": "#F0F0F0", "border": "#E5E5E5", "surface-container-high": "#e2e8f8", "surface-bright": "#f9f9ff", "secondary-container": "#fe932c", "error": "#ba1a1a", "text-secondary": "#6B7280", "on-background": "#151c27", "disabled-bg": "#D1D5DB", "inverse-primary": "#8ad89c", "primary": "#005127", "secondary": "#904d00", "primary-fixed-dim": "#8ad89c", "on-primary-container": "#9ae9ab", "text-muted": "#9CA3AF", "outline-variant": "#bfc9bd", "on-surface-variant": "#404940", "on-tertiary-fixed-variant": "#93000b", "on-error": "#ffffff", "surface-tint": "#1c6c3b", "primary-fixed": "#a5f4b6", "surface-container": "#e7eefe", "on-secondary": "#ffffff", "badge-neutral-bg": "#F3F4F6", "primary-container": "#1b6b3a", "outline": "#707a6f", "on-secondary-fixed-variant": "#6e3900", "surface": "#FFFFFF", "surface-container-lowest": "#ffffff", "tertiary": "#92000a", "on-tertiary": "#ffffff", "on-tertiary-container": "#ffcbc5", "surface-container-low": "#f0f3ff", "surface-container-highest": "#dce2f3", "surface-variant": "#dce2f3", "on-error-container": "#93000a", "primary-light": "#E8F5EE", "surface-alt": "#F0EFEA", "on-secondary-fixed": "#2f1500", "text-primary": "#1A1A1A", "on-secondary-container": "#663500", "on-primary-fixed": "#00210c", "tertiary-fixed-dim": "#ffb4ab", "warning-light": "#FFFBEB", "error-light": "#FEF2F2", "surface-dim": "#d3daea", "inverse-on-surface": "#ebf1ff", "on-tertiary-fixed": "#410002", "primary-dark": "#14552E", "on-surface": "#151c27", "on-primary": "#ffffff", "secondary-fixed": "#ffdcc3", "secondary-fixed-dim": "#ffb77d", "on-primary-fixed-variant": "#005227", "background": "#F8F7F4", "inverse-surface": "#2a313d", "tertiary-container": "#b81b1b", "error-container": "#ffdad6" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "max-content-width": "480px", "base": "16px", "card-gap": "12px", "xl": "24px", "xs": "4px", "tab-bar-height": "60px", "lg": "20px", "sm": "8px", "card-padding": "16px", "screen-padding": "16px", "header-height": "56px", "4xl": "48px", "2xl": "32px", "md": "12px", "form-gap": "16px", "3xl": "40px" }, fontFamily: { "tab-label": ["Roboto Flex"], "headline-3": ["Roboto Flex"], "money-sm": ["Roboto Flex"], "body": ["Roboto Flex"], "label": ["Roboto Flex"], "money-display": ["Roboto Flex"], "headline-2": ["Roboto Flex"], "badge-label": ["Roboto Flex"], "body-lg": ["Roboto Flex"], "caption": ["Roboto Flex"], "headline-1": ["Roboto Flex"] }, fontSize: { "tab-label": ["12px", { "lineHeight": "16px", "fontWeight": "500" }], "headline-3": ["18px", { "lineHeight": "24px", "fontWeight": "600" }], "money-sm": ["16px", { "lineHeight": "20px", "fontWeight": "600" }], "body": ["16px", { "lineHeight": "22px", "fontWeight": "400" }], "label": ["14px", { "lineHeight": "18px", "fontWeight": "600" }], "money-display": ["24px", { "lineHeight": "30px", "fontWeight": "700" }], "headline-2": ["22px", { "lineHeight": "28px", "fontWeight": "600" }], "badge-label": ["12px", { "lineHeight": "16px", "fontWeight": "600" }], "body-lg": ["18px", { "lineHeight": "24px", "fontWeight": "400" }], "caption": ["14px", { "lineHeight": "18px", "fontWeight": "400" }], "headline-1": ["28px", { "lineHeight": "34px", "fontWeight": "700" }] } } } };</script></head><body class="bg-background font-body text-text-primary antialiased min-h-screen flex flex-col items-center selection:bg-primary-light selection:text-primary"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="w-full max-w-[480px] mx-auto h-14 px-screen-padding flex items-center justify-between"><div class="flex items-center gap-2.5 min-w-0"><img alt="Clean geometric green and gold modern shopfront/canopy outline logo icon for Dukkan OS, minimalist vector style. Brand logo. - Primary color: #1b6b3a
+- Font: robotoFlex
+- Mode: light
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1WF8DPmvAEVq9b5i3K0TYyqnbvjiTJxnwoMTUuZ_Zo1Xq3rvEXlcuttJR2VzYcQQ1KgPxoC0pMzNPQYZbCIhCWQoXF9hvWeQt6uFCmVe_QxnGyB_WQhOLLWryx7YlKayj_sd9m6YbK-3TwmQ0HPr9Tj2wm3jnb3z-0XaRX15Ht8_qvPH3Meh_k6kMSFVFgsQJ2tt8I42_dikro2Lv8eBT9fW8EzofnJIpdAYzMhCD5YHUhjE2bot-8Si6Q"/><div class="flex flex-col min-w-0"><span class="text-[11px] font-medium leading-none text-text-secondary uppercase tracking-wider">Dukkan OS</span><h1 class="font-headline-3 text-headline-3 text-text-primary truncate">Sell</h1></div></div><div class="flex items-center gap-1.5 flex-shrink-0"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full max-w-[480px] flex-1 flex flex-col pt-14 pb-[calc(60px+env(safe-area-inset-bottom,0px))] bg-background px-screen-padding"><div class="flex flex-col w-full pb-24">
+<!-- Search & Barcode Action Area -->
+<div class="pt-2 pb-3">
+<div class="flex items-center gap-2">
+<div class="relative flex-1 flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-text-muted text-[22px] pointer-events-none select-none">search</span>
+<input class="w-full h-12 pl-10 pr-9 bg-surface rounded-lg font-body text-body text-text-primary placeholder:text-text-muted shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" id="productSearchInput" placeholder="Search products by name or SKU" type="text"/>
+<button class="hidden absolute right-2.5 w-6 h-6 rounded-full bg-badge-neutral-bg items-center justify-center text-text-secondary active:scale-90 transition-transform" id="clearSearchBtn" type="button">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<button aria-label="Scan barcode" class="w-12 h-12 rounded-lg bg-surface shadow-sm flex items-center justify-center text-primary active:bg-primary-light active:scale-95 transition-all flex-shrink-0 relative overflow-hidden group" id="barcodeScannerBtn" type="button">
+<span class="material-symbols-outlined text-[24px]">barcode_scanner</span>
+<span class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+</button>
+</div>
+</div>
+<!-- Quick Recents Horizon -->
+<div class="py-1">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<h2 class="font-label text-label text-text-primary uppercase tracking-wide">Frequent Items</h2>
+</div>
+<span class="font-caption text-caption text-text-muted">Tap to add</span>
+</div>
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 scroll-smooth">
+<button class="quick-chip flex items-center gap-2 px-3 py-2 bg-surface rounded-xl shadow-sm active:scale-95 active:bg-primary-light transition-all flex-shrink-0 group" data-price="135" data-product="Lait Candia 1L" type="button">
+<span class="w-6 h-6 rounded-lg bg-primary-light flex items-center justify-center text-primary text-[14px]">🥛</span>
+<span class="font-label text-label text-text-primary group-hover:text-primary transition-colors whitespace-nowrap">Lait Candia 1L</span>
+<span class="font-caption text-caption font-semibold text-primary">135 DZD</span>
+</button>
+<button class="quick-chip flex items-center gap-2 px-3 py-2 bg-surface rounded-xl shadow-sm active:scale-95 active:bg-primary-light transition-all flex-shrink-0 group" data-price="320" data-product="Café Moulu 250g" type="button">
+<span class="w-6 h-6 rounded-lg bg-primary-light flex items-center justify-center text-primary text-[14px]">☕</span>
+<span class="font-label text-label text-text-primary group-hover:text-primary transition-colors whitespace-nowrap">Café Moulu 250g</span>
+<span class="font-caption text-caption font-semibold text-primary">320 DZD</span>
+</button>
+<button class="quick-chip flex items-center gap-2 px-3 py-2 bg-surface rounded-xl shadow-sm active:scale-95 active:bg-primary-light transition-all flex-shrink-0 group" data-price="360" data-product="Huile Elio 2L" type="button">
+<span class="w-6 h-6 rounded-lg bg-primary-light flex items-center justify-center text-primary text-[14px]">🌻</span>
+<span class="font-label text-label text-text-primary group-hover:text-primary transition-colors whitespace-nowrap">Huile Elio 2L</span>
+<span class="font-caption text-caption font-semibold text-primary">360 DZD</span>
+</button>
+<button class="quick-chip flex items-center gap-2 px-3 py-2 bg-surface rounded-xl shadow-sm active:scale-95 active:bg-primary-light transition-all flex-shrink-0 group" data-price="15" data-product="Pain baguette" type="button">
+<span class="w-6 h-6 rounded-lg bg-primary-light flex items-center justify-center text-primary text-[14px]">🥖</span>
+<span class="font-label text-label text-text-primary group-hover:text-primary transition-colors whitespace-nowrap">Pain baguette</span>
+<span class="font-caption text-caption font-semibold text-primary">15 DZD</span>
+</button>
+<button class="quick-chip flex items-center gap-2 px-3 py-2 bg-surface rounded-xl shadow-sm active:scale-95 active:bg-primary-light transition-all flex-shrink-0 group" data-price="140" data-product="Couscous Dari" type="button">
+<span class="w-6 h-6 rounded-lg bg-primary-light flex items-center justify-center text-primary text-[14px]">🌾</span>
+<span class="font-label text-label text-text-primary group-hover:text-primary transition-colors whitespace-nowrap">Couscous Dari</span>
+<span class="font-caption text-caption font-semibold text-primary">140 DZD</span>
+</button>
+<button class="quick-chip flex items-center gap-2 px-3 py-2 bg-surface rounded-xl shadow-sm active:scale-95 active:bg-primary-light transition-all flex-shrink-0 group" data-price="45" data-product="Eau Ifri 1.5L" type="button">
+<span class="w-6 h-6 rounded-lg bg-primary-light flex items-center justify-center text-primary text-[14px]">💧</span>
+<span class="font-label text-label text-text-primary group-hover:text-primary transition-colors whitespace-nowrap">Eau Minérale 1.5L</span>
+<span class="font-caption text-caption font-semibold text-primary">45 DZD</span>
+</button>
+</div>
+</div>
+<!-- Live Counter Status Strip -->
+<div class="flex items-center justify-between pt-4 pb-2 px-1">
+<div class="flex items-center gap-2">
+<span class="font-label text-label text-text-secondary">Inventory Catalog</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="font-caption text-caption text-text-muted" id="catalogCount">6 Items Available</span>
+</div>
+<span class="font-caption text-caption text-primary flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+      In Sync
+    </span>
+</div>
+<!-- Product Inventory List -->
+<div class="flex flex-col gap-card-gap" id="productList">
+<!-- Item 1: Couscous Dari 1kg -->
+<div class="product-row bg-surface rounded-xl p-card-padding shadow-sm flex items-center justify-between gap-3 transition-transform active:scale-[0.99]" data-name="Couscous Dari 1kg" data-price="140" data-sku="SKU-84920">
+<div class="flex items-center gap-3 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-alt flex-shrink-0 overflow-hidden relative flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Traditional packaged Moroccan style Dari semolina couscous yellow paper pouch on warm clean supermarket retail shelf, professional product lighting, soft shadow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT4dPzt5av8cgPhtV14_cF4m5zS-58S8iM0uR1DYXhUladDy5KzYuor_TjKYu-kdgteP7i4llbsZ2lVj-BXaDySTBVZ8s3ZMGSz_1Evtqo91GNwnXYl__WS6pTlwvid1Nao5IgCV-5QgL_cdxRISzzOw1mtd_ytitfU4bKP_zF9eEkOlT0kitxnv6z8NsmLv1mXQo0HDfN3D-Ehe0RGshVArwweQnsio8aPizxpnW41YMlk4FYkERk"/>
+</div>
+<div class="flex flex-col min-w-0">
+<h3 class="font-label text-label text-text-primary truncate">Couscous Dari 1kg</h3>
+<div class="flex items-center gap-2 mt-0.5 mb-1.5 flex-wrap">
+<span class="font-caption text-caption text-text-secondary truncate">Pantry • SKU-84920</span>
+<span class="px-2 py-0.5 rounded bg-primary-light text-primary font-badge-label text-badge-label">
+              24 in stock
+            </span>
+</div>
+<span class="font-money-display text-money-display text-text-primary leading-tight">
+            140 <span class="text-sm font-semibold text-text-secondary">DZD</span>
+</span>
+</div>
+</div>
+<button aria-label="Add Couscous Dari to sale" class="add-to-cart-btn w-12 h-12 min-w-[48px] rounded-lg bg-primary text-on-primary flex items-center justify-center shadow-md active:bg-primary-dark active:scale-90 transition-all flex-shrink-0 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</button>
+</div>
+<!-- Item 2: Café Moulu 250g -->
+<div class="product-row bg-surface rounded-xl p-card-padding shadow-sm flex items-center justify-between gap-3 transition-transform active:scale-[0.99]" data-name="Café Moulu Familico 250g" data-price="320" data-sku="SKU-52194">
+<div class="flex items-center gap-3 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-alt flex-shrink-0 overflow-hidden relative flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Rich golden foil bag of dark roasted ground Algerian breakfast espresso coffee 250g on a bright studio grocery background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw9RVwkxJ06mrXX7n_hvO43yObTHkesVkwzgc_AX5uaTs0P6P3hnkvb_pk0qz_WtnJy7lJG-wlULj1kLXOzj77-3sxZbYkeGBDmUkXOMGHlHlIlaELwWER6VGiA988JJrCy6f5t2yQsFqmC-E5JrsdIOXA3kYP6G0RW2M53B_zfA6bl3GFY1QaIlKngRwBaVXZBX189mkcMLLhIDu_zeU_o5Geskh1B7A_71f9Vx56Vp7uD4e5_KKe"/>
+</div>
+<div class="flex flex-col min-w-0">
+<h3 class="font-label text-label text-text-primary truncate">Café Moulu Familico 250g</h3>
+<div class="flex items-center gap-2 mt-0.5 mb-1.5 flex-wrap">
+<span class="font-caption text-caption text-text-secondary truncate">Beverages • SKU-52194</span>
+<span class="px-2 py-0.5 rounded bg-primary-light text-primary font-badge-label text-badge-label">
+              12 in stock
+            </span>
+</div>
+<span class="font-money-display text-money-display text-text-primary leading-tight">
+            320 <span class="text-sm font-semibold text-text-secondary">DZD</span>
+</span>
+</div>
+</div>
+<button aria-label="Add Café Moulu to sale" class="add-to-cart-btn w-12 h-12 min-w-[48px] rounded-lg bg-primary text-on-primary flex items-center justify-center shadow-md active:bg-primary-dark active:scale-90 transition-all flex-shrink-0 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</button>
+</div>
+<!-- Item 3: Lait Candia Silhouette 1L -->
+<div class="product-row bg-surface rounded-xl p-card-padding shadow-sm flex items-center justify-between gap-3 transition-transform active:scale-[0.99]" data-name="Lait Candia UHT 1L" data-price="135" data-sku="SKU-10938">
+<div class="flex items-center gap-3 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-alt flex-shrink-0 overflow-hidden relative flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Modern blue and white cardboard milk carton Candia full cream UHT one liter on clean grocery shelf with natural bright lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoJPkZetM-xRCJ3gviUahYhg_hTctp_hDOiUvwAV_1lLX_hqjRBGuGpnMNG_2-LuoGhkxn_Bm0YhMEKfqDK5jmJXM0foBamT5MCqzNVWSwK2-w7mabBhSBF0c8HFWbJrxQsI2mMpriH6jWGvBhPjxSudfOsl6E8HRwQNzVv3PJCRiiGgOqKjkeoyXM0OUXE0-MfqofE4cBnDisSPUls52cNE6fvzO11KvyogrS4QjHtt-wnzyZfbdG"/>
+</div>
+<div class="flex flex-col min-w-0">
+<h3 class="font-label text-label text-text-primary truncate">Lait Candia UHT 1L</h3>
+<div class="flex items-center gap-2 mt-0.5 mb-1.5 flex-wrap">
+<span class="font-caption text-caption text-text-secondary truncate">Dairy • SKU-10938</span>
+<span class="px-2 py-0.5 rounded bg-warning-light text-[#D97706] font-badge-label text-badge-label flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+              3 left
+            </span>
+</div>
+<span class="font-money-display text-money-display text-text-primary leading-tight">
+            135 <span class="text-sm font-semibold text-text-secondary">DZD</span>
+</span>
+</div>
+</div>
+<button aria-label="Add Lait Candia to sale" class="add-to-cart-btn w-12 h-12 min-w-[48px] rounded-lg bg-primary text-on-primary flex items-center justify-center shadow-md active:bg-primary-dark active:scale-90 transition-all flex-shrink-0 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</button>
+</div>
+<!-- Item 4: Huile Elio Végétale 2L -->
+<div class="product-row bg-surface rounded-xl p-card-padding shadow-sm flex items-center justify-between gap-3 transition-transform active:scale-[0.99]" data-name="Huile Elio 2L" data-price="360" data-sku="SKU-44021">
+<div class="flex items-center gap-3 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-alt flex-shrink-0 overflow-hidden relative flex items-center justify-center">
+<div class="w-full h-full bg-secondary-fixed/40 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[28px]">oil_barrel</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<h3 class="font-label text-label text-text-primary truncate">Huile Végétale Elio 2L</h3>
+<div class="flex items-center gap-2 mt-0.5 mb-1.5 flex-wrap">
+<span class="font-caption text-caption text-text-secondary truncate">Cooking Oil • SKU-44021</span>
+<span class="px-2 py-0.5 rounded bg-primary-light text-primary font-badge-label text-badge-label">
+              18 in stock
+            </span>
+</div>
+<span class="font-money-display text-money-display text-text-primary leading-tight">
+            360 <span class="text-sm font-semibold text-text-secondary">DZD</span>
+</span>
+</div>
+</div>
+<button aria-label="Add Huile Elio to sale" class="add-to-cart-btn w-12 h-12 min-w-[48px] rounded-lg bg-primary text-on-primary flex items-center justify-center shadow-md active:bg-primary-dark active:scale-90 transition-all flex-shrink-0 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</button>
+</div>
+<!-- Item 5: Eau Minérale Ifri 1.5L -->
+<div class="product-row bg-surface rounded-xl p-card-padding shadow-sm flex items-center justify-between gap-3 transition-transform active:scale-[0.99]" data-name="Eau Minérale Ifri 1.5L" data-price="45" data-sku="SKU-77291">
+<div class="flex items-center gap-3 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-alt flex-shrink-0 overflow-hidden relative flex items-center justify-center">
+<div class="w-full h-full bg-primary-light flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">water_bottle</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<h3 class="font-label text-label text-text-primary truncate">Eau Minérale Ifri 1.5L</h3>
+<div class="flex items-center gap-2 mt-0.5 mb-1.5 flex-wrap">
+<span class="font-caption text-caption text-text-secondary truncate">Beverages • SKU-77291</span>
+<span class="px-2 py-0.5 rounded bg-primary-light text-primary font-badge-label text-badge-label">
+              45 in stock
+            </span>
+</div>
+<span class="font-money-display text-money-display text-text-primary leading-tight">
+            45 <span class="text-sm font-semibold text-text-secondary">DZD</span>
+</span>
+</div>
+</div>
+<button aria-label="Add Ifri Water to sale" class="add-to-cart-btn w-12 h-12 min-w-[48px] rounded-lg bg-primary text-on-primary flex items-center justify-center shadow-md active:bg-primary-dark active:scale-90 transition-all flex-shrink-0 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</button>
+</div>
+<!-- Item 6: Pain Baguette Traditionnelle -->
+<div class="product-row bg-surface rounded-xl p-card-padding shadow-sm flex items-center justify-between gap-3 transition-transform active:scale-[0.99]" data-name="Pain Baguette Blanche" data-price="15" data-sku="SKU-99014">
+<div class="flex items-center gap-3 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-alt flex-shrink-0 overflow-hidden relative flex items-center justify-center">
+<div class="w-full h-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[28px]">bakery_dining</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<h3 class="font-label text-label text-text-primary truncate">Pain Baguette Blanche</h3>
+<div class="flex items-center gap-2 mt-0.5 mb-1.5 flex-wrap">
+<span class="font-caption text-caption text-text-secondary truncate">Bakery • SKU-99014</span>
+<span class="px-2 py-0.5 rounded bg-primary-light text-primary font-badge-label text-badge-label">
+              80 in stock
+            </span>
+</div>
+<span class="font-money-display text-money-display text-text-primary leading-tight">
+            15 <span class="text-sm font-semibold text-text-secondary">DZD</span>
+</span>
+</div>
+</div>
+<button aria-label="Add Baguette to sale" class="add-to-cart-btn w-12 h-12 min-w-[48px] rounded-lg bg-primary text-on-primary flex items-center justify-center shadow-md active:bg-primary-dark active:scale-90 transition-all flex-shrink-0 cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</button>
+</div>
+</div>
+<!-- Dynamic Empty State Container (Search Fallback) -->
+<div class="hidden flex-col items-center justify-center py-12 px-6 text-center" id="noResultsState">
+<div class="w-16 h-16 rounded-full bg-badge-neutral-bg flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-[32px] text-text-muted">search_off</span>
+</div>
+<h3 class="font-headline-3 text-headline-3 text-text-primary mb-1">No products found</h3>
+<p class="font-body text-body text-text-secondary max-w-xs mb-4">We couldn't find matches for your search. Try scanning the physical barcode.</p>
+<button class="px-4 py-2.5 rounded-lg bg-primary text-on-primary font-label text-label flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform" id="quickAddCustomBtn" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>Add Custom Item</span>
+</button>
+</div>
+<!-- Floating Checkout Action Trigger (Dynamic Cart Bar) -->
+<aside class="fixed bottom-[calc(68px+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[448px] z-40 transition-all duration-300 ease-out translate-y-0" id="floatingCartBar">
+<div class="bg-primary text-on-primary rounded-xl px-4 py-3 shadow-xl flex items-center justify-between gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="relative flex items-center justify-center w-10 h-10 rounded-lg bg-white/15 flex-shrink-0">
+<span class="material-symbols-outlined text-[22px] text-on-primary">shopping_basket</span>
+<span class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container font-tab-label text-[11px] font-bold flex items-center justify-center shadow-sm ring-2 ring-primary" id="cartBadgeCount">
+            3
+          </span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-caption text-caption text-on-primary/80 truncate" id="cartItemsSubtext">3 items added</span>
+<span class="font-money-display text-money-display leading-tight text-white tracking-wide" id="cartTotalSummary">
+            420 <span class="font-caption text-caption text-white/90 font-medium">DZD</span>
+</span>
+</div>
+</div>
+<button class="flex items-center gap-1.5 px-4 h-11 rounded-lg bg-white text-primary font-label text-label shadow-sm active:bg-surface-alt active:scale-95 transition-all flex-shrink-0" id="reviewOrderBtn" type="button">
+<span>Review</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</aside>
+<!-- Barcode Scanner Simulation Modal -->
+<dialog class="p-0 backdrop:bg-on-surface/50 rounded-2xl max-w-[420px] w-[90%] bg-surface shadow-2xl border-0 overflow-hidden m-auto" id="scannerModal">
+<div class="p-5 flex flex-col items-center">
+<div class="w-full flex items-center justify-between pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">qr_code_scanner</span>
+<h3 class="font-headline-3 text-headline-3 text-text-primary">Barcode Scanner</h3>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center text-text-secondary active:scale-90" id="closeScannerModal" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Viewfinder preview simulation -->
+<div class="w-full h-52 rounded-xl bg-text-primary relative overflow-hidden flex items-center justify-center my-2">
+<div class="absolute inset-0 opacity-40 bg-[radial-gradient(#1b6b3a_1px,transparent_1px)] [background-size:16px_16px]"></div>
+<!-- Laser animation line -->
+<div class="w-full h-0.5 bg-error shadow-[0_0_8px_#ba1a1a] animate-bounce"></div>
+<div class="w-40 h-28 border-2 border-dashed border-white/60 rounded-lg flex items-center justify-center pointer-events-none">
+<span class="font-caption text-caption text-white/70">Align code here</span>
+</div>
+</div>
+<p class="font-caption text-caption text-text-secondary text-center mb-4">Aim camera at SKU packaging for instant cart addition</p>
+<button class="w-full h-12 bg-primary text-on-primary rounded-lg font-label text-label shadow-sm active:scale-[0.98]" id="simulateSuccessScan" type="button">
+        Simulate Scan (Couscous Dari)
+      </button>
+</div>
+</dialog>
+</div>
+<script>
+  (function initPosSaleModule() {
+    // State management
+    let cart = [
+      { name: "Lait Candia UHT 1L", price: 135, qty: 1 },
+      { name: "Couscous Dari 1kg", price: 140, qty: 1 },
+      { name: "Pain Baguette Blanche", price: 15, qty: 1 },
+      { name: "Huile Végétale Elio 2L", price: 130, qty: 1 } // subtotal = 420 for mock
+    ];
+
+    // Correct recalculation helper
+    function getTotals() {
+      const count = cart.reduce((acc, item) => acc + item.qty, 0);
+      const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+      return { count, total };
+    }
+
+    const badgeCount = document.getElementById("cartBadgeCount");
+    const totalDisplay = document.getElementById("cartTotalSummary");
+    const subtextDisplay = document.getElementById("cartItemsSubtext");
+    const floatingBar = document.getElementById("floatingCartBar");
+
+    function renderCartView() {
+      const { count, total } = getTotals();
+      if (badgeCount) badgeCount.innerText = count;
+      if (totalDisplay) {
+        totalDisplay.innerHTML = `${total} <span class="font-caption text-caption text-white/90 font-medium">DZD</span>`;
+      }
+      if (subtextDisplay) {
+        subtextDisplay.innerText = `${count} ${count === 1 ? 'item' : 'items'} added`;
+      }
+
+      if (floatingBar) {
+        if (count === 0) {
+          floatingBar.classList.add("translate-y-28", "opacity-0", "pointer-events-none");
+        } else {
+          floatingBar.classList.remove("translate-y-28", "opacity-0", "pointer-events-none");
+        }
+      }
+    }
+
+    // Add item handler
+    function addItem(name, price) {
+      const existing = cart.find(i => i.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ name, price: Number(price), qty: 1 });
+      }
+      renderCartView();
+
+      // Tactile feedback on screen
+      if (floatingBar) {
+        floatingBar.classList.add("scale-105");
+        setTimeout(() => floatingBar.classList.remove("scale-105"), 150);
+      }
+    }
+
+    // Attach Add buttons on product rows
+    document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const row = btn.closest(".product-row");
+        if (!row) return;
+        const name = row.getAttribute("data-name");
+        const price = row.getAttribute("data-price");
+        addItem(name, price);
+
+        // Visual click wave
+        btn.classList.add("bg-primary-dark");
+        setTimeout(() => btn.classList.remove("bg-primary-dark"), 180);
+      });
+    });
+
+    // Attach Quick Chip listeners
+    document.querySelectorAll(".quick-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const name = chip.getAttribute("data-product");
+        const price = chip.getAttribute("data-price");
+        addItem(name, price);
+      });
+    });
+
+    // Search bar functionality
+    const searchInput = document.getElementById("productSearchInput");
+    const clearBtn = document.getElementById("clearSearchBtn");
+    const rows = document.querySelectorAll(".product-row");
+    const noResults = document.getElementById("noResultsState");
+    const catalogCount = document.getElementById("catalogCount");
+
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        let visibleCount = 0;
+
+        if (clearBtn) {
+          clearBtn.classList.toggle("hidden", query.length === 0);
+          clearBtn.classList.toggle("flex", query.length > 0);
+        }
+
+        rows.forEach(row => {
+          const name = (row.getAttribute("data-name") || "").toLowerCase();
+          const sku = (row.getAttribute("data-sku") || "").toLowerCase();
+          const matches = name.includes(query) || sku.includes(query);
+          row.style.display = matches ? "flex" : "none";
+          if (matches) visibleCount++;
+        });
+
+        if (catalogCount) {
+          catalogCount.innerText = `${visibleCount} Item${visibleCount === 1 ? '' : 's'} Available`;
+        }
+
+        if (noResults) {
+          if (visibleCount === 0) {
+            noResults.classList.remove("hidden");
+            noResults.classList.add("flex");
+          } else {
+            noResults.classList.add("hidden");
+            noResults.classList.remove("flex");
+          }
+        }
+      });
+    }
+
+    if (clearBtn && searchInput) {
+      clearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        searchInput.dispatchEvent(new Event("input"));
+        searchInput.focus();
+      });
+    }
+
+    // Modal barcode scanner logic
+    const scannerBtn = document.getElementById("barcodeScannerBtn");
+    const scannerModal = document.getElementById("scannerModal");
+    const closeScannerModal = document.getElementById("closeScannerModal");
+    const simulateSuccessScan = document.getElementById("simulateSuccessScan");
+
+    if (scannerBtn && scannerModal) {
+      scannerBtn.addEventListener("click", () => {
+        scannerModal.showModal();
+      });
+    }
+
+    if (closeScannerModal && scannerModal) {
+      closeScannerModal.addEventListener("click", () => {
+        scannerModal.close();
+      });
+    }
+
+    if (simulateSuccessScan && scannerModal) {
+      simulateSuccessScan.addEventListener("click", () => {
+        addItem("Couscous Dari 1kg", 140);
+        scannerModal.close();
+      });
+    }
+
+    // Set Sell tab active in app shell nav if present
+    const sellTab = document.querySelector('nav a[data-path="sell"]');
+    if (sellTab) {
+      document.querySelectorAll('nav a').forEach(el => {
+        el.classList.remove("text-primary-container", "font-semibold");
+        el.classList.add("text-text-secondary");
+      });
+      sellTab.classList.remove("text-text-secondary");
+      sellTab.classList.add("text-primary-container", "font-semibold");
+    }
+
+    // Initial render
+    renderCartView();
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-1px_8px_rgba(0,0,0,0.04)]" data-active-classes="text-primary-container font-semibold"><div class="w-full max-w-[480px] mx-auto h-[60px] flex items-stretch justify-around px-1"><a class="flex-1 flex flex-col items-center justify-center gap-0.5 text-text-secondary hover:text-text-primary transition-colors" data-path="home" href="#"><span class="material-symbols-outlined text-[22px]">storefront</span><span class="font-tab-label text-tab-label">Home</span></a><a aria-current="page" class="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors text-primary-container font-semibold" data-path="sell" href="#"><span class="material-symbols-outlined text-[22px]">point_of_sale</span><span class="font-tab-label text-tab-label">Sell</span></a><a class="flex-1 flex flex-col items-center justify-center gap-0.5 text-text-secondary hover:text-text-primary transition-colors" data-path="products" href="#"><span class="material-symbols-outlined text-[22px]">inventory_2</span><span class="font-tab-label text-tab-label">Products</span></a><a class="flex-1 flex flex-col items-center justify-center gap-0.5 text-text-secondary hover:text-text-primary transition-colors" data-path="customers" href="#"><span class="material-symbols-outlined text-[22px]">groups</span><span class="font-tab-label text-tab-label">Customers</span></a><a class="flex-1 flex flex-col items-center justify-center gap-0.5 text-text-secondary hover:text-text-primary transition-colors" data-path="more" href="#"><span class="material-symbols-outlined text-[22px]">more_horiz</span><span class="font-tab-label text-tab-label">More</span></a></div></nav></body></html>
