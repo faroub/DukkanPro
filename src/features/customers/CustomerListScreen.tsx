@@ -89,7 +89,7 @@ export function CustomerListScreen({ route, navigation }: CustomerListScreenProp
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor="#6B7280"
+          tintColor={Colors.light.textSecondary}
         />
       }
       contentContainerStyle={styles.contentContainer}
