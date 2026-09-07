@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Spacing, ComponentDimensions, Colors, BorderRadius } from '@/constants/theme';
+import { Spacing, Colors, BorderRadius } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
@@ -15,63 +15,39 @@ export function BusinessTypeStep({
   selectedType,
 }: any) {
   const { t } = useTranslation();
-  const [selectedTypeLocal, setSelectedTypeLocal] = useState(selectedType);
+  const [selectedTypeLocal, setSelectedTypeLocal] = useState(selectedType || 'grocery');
 
   // Business type options matching Stitch design
   const businessTypes = [
     {
       value: 'grocery',
-      label: 'grocery',
       name: 'Grocery shop',
       caption: 'Alimentation générale / البقالة',
-      bg: Colors.light.primaryLight,
-      bgSelected: Colors.light.primary,
-      icon: 'storefront',
     },
     {
       value: 'bakery',
-      label: 'bakery',
       name: 'Home bakery',
       caption: 'Gâteaux & Pâtisserie maison / حلويات منزلية',
-      bg: Colors.light.surface,
-      bgSelected: Colors.light.surfaceAlt,
-      icon: 'bakery_dining',
     },
     {
       value: 'instagram_seller',
-      label: 'instagram seller',
       name: 'Instagram seller',
       caption: 'Vente en ligne & Réseaux / متجر إنستغرام',
-      bg: Colors.light.surface,
-      bgSelected: Colors.light.surfaceAlt,
-      icon: 'photo_camera',
     },
     {
       value: 'market_vendor',
-      label: 'market vendor',
       name: 'Market vendor',
       caption: 'Marché & Vendeur ambulant / بائع في السوق',
-      bg: Colors.light.surface,
-      bgSelected: Colors.light.surfaceAlt,
-      icon: 'store',
     },
     {
       value: 'service_seller',
-      label: 'service seller',
       name: 'Service seller',
       caption: 'Prestation de services / خدمات',
-      bg: Colors.light.surface,
-      bgSelected: Colors.light.surfaceAlt,
-      icon: 'construction',
     },
     {
       value: 'other',
-      label: 'other',
       name: 'Other',
-      caption: 'Autre activité / نشاط آخر',
-      bg: Colors.light.surface,
-      bgSelected: Colors.light.surfaceAlt,
-      icon: 'auto_awesome',
+      caption: 'Autre activité / actividad diferente',
     },
   ];
 
@@ -86,74 +62,210 @@ export function BusinessTypeStep({
     <ThemedView style={styles.container}>
       <ThemedView style={styles.contentPadding}>
         {/* Step indicator & Progress */}
-        <div className="flex items-center justify-between mb-4 mt-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-alt">
-            <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
-            <span className="font-badge-label font-badge-label text-secondary tracking-wide uppercase">Step 2 of 3</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-1.5 rounded-full bg-primary-container"></div>
-            <div className="w-6 h-1.5 rounded-full bg-primary-container"></div>
-            <div className="w-6 h-1.5 rounded-full bg-surface-alt"></div>
-          </div>
-        </div>
+        <View style={styles.progress}>
+          <View style={styles.progressDotActive} />
+          <View style={styles.progressDotInactive} />
+          <View style={styles.progressDotInactive} />
+        </View>
+
+        <View style={styles.stepIndicator}>
+          <View style={styles.stepDotActive} />
+          <Text style={styles.stepLabel}>Step 2 of 3</Text>
+        </View>
 
         {/* Header Text */}
-        <div className="flex flex-col gap-1 mb-6">
-          <h1 className="font-headline-1 font-headline-1 text-primary tracking-tight">
+        <View style={styles.header}>
+          <ThemedText type="headline-1" style={styles.title}>
             {t('businessTypeStep.title')}
-          </h1>
-          <p className="font-body font-body text-secondary">Choose the category that best matches your daily activity</p>
-        </div>
+          </ThemedText>
+          <ThemedText type="body" style={styles.subtitle}>
+            Choose the category that best matches your daily activity
+          </ThemedText>
+        </View>
 
         {/* Business Type Options */}
-        <div ariaLabel="Business Category Selection" className="flex flex-col gap-card-gap" id="category-selector" role="radiogroup">
-          {businessTypes.map((type) => (
-            <button
-              ariaChecked={selectedTypeLocal === type.value}
-              className={`business-card group relative w-full text-left p-card-padding rounded-xl transition-all duration-200 shadow-sm flex items-center justify-between bg-${type.bg} shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-surface-bright`}
+        <View style={styles.optionsContainer} ariaLabel="Business Category Selection" role="radiogroup">
+          {businessTypes.map((type, index) => (
+            <View
+              key={type.value}
+              style={styles.optionCard}
               role="radio"
-              type="button"
               onPress={() => setSelectedTypeLocal(type.value)}
             >
-              <div className="flex items-center gap-3.5 min-w-0 pr-2">
-                <div className="icon-bubble w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-colors bg-${type.bgSelected === Colors.light.primary ? 'primary-light' : 'secondary-fixed/50'} text-${type.bgSelected === Colors.light.primary ? 'primary-container' : 'secondary'}">
-                  <span className="material-symbols-outlined text-[24px]">{type.icon}</span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="font-label font-label text-primary truncate">{type.name}</span>
-                  <span className="font-caption font-caption text-secondary truncate mt-0.5" dir="auto">{type.caption}</span>
-                </div>
-              </div>
-              <div className="check-pill shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all bg-${selectedTypeLocal === type.value ? 'primary-container' : 'surface-alt'} text-${selectedTypeLocal === type.value ? 'surface' : 'transparent'}">
-                <span className="material-symbols-outlined text-[18px] font-bold">check</span>
-              </div>
-            </button>
+              <View style={styles.iconBubble}>
+                <MaterialSymbolsOutlined
+                  name="storefront"
+                  size={24}
+                />
+              </View>
+              <View style={styles.optionText}>
+                <span style={styles.optionName}>{type.name}</span>
+                <span style={styles.optionCaption} dir="auto">
+                  {type.caption}
+                </span>
+              </View>
+              <View style={styles.checkPill}>
+                <MaterialSymbolsOutlined
+                  name="check"
+                  size={18}
+                />
+              </View>
+            </View>
           ))}
-        </div>
+        </View>
 
         {/* Micro-delight helper message */}
-        <div className="mt-4 px-3 py-2.5 rounded-lg bg-surface-container-low flex items-center gap-2 text-on-surface-variant">
-          <span className="material-symbols-outlined text-[18px] text-primary-container shrink-0">info</span>
-          <p className="font-caption font-caption text-secondary">
+        <View style={styles.microDelight}>
+          <MaterialSymbolsOutlined
+            name="info"
+            size={18}
+          />
+          <Text style={styles.microDelightText}>
             You can change your category or add custom products anytime in Settings.
-          </p>
-        </div>
+          </Text>
+        </View>
 
         {/* Bottom Fixed-style Actions Slot */}
-        <div className="flex flex-col gap-3 mt-6 pt-2">
-          <button className="w-full h-12 rounded-[10px] bg-primary-container text-on-primary font-label font-label flex items-center justify-center gap-2 shadow-md hover:bg-primary-dark active:scale-[0.99] transition-all cursor-pointer" id="btn-continue" type="button">
+        <View style={styles.ctaContainer}>
+          <PrimaryButton
+            style={styles.continueBtn}
+            onPress={handleContinue}
+            type="button">
             <span>Continue</span>
-            <span className="material-symbols-outlined text-[20px] arrow_forward">/span>
-          </button>
-          <button className="w-full h-10 flex items-center justify-center text-secondary font-label text-label hover:text-primary transition-colors cursor-pointer" onclick="history.back()" type="button">
+            <MaterialSymbolsOutlined name="arrow_forward" size={20} className="primary-icon" />
+          </PrimaryButton>
+          <PrimaryButton
+            style={styles.backBtn}
+            onPress={() => {}}
+            type="button">
             Back
-          </button>
-        </div>
+          </PrimaryButton>
+        </View>
       </ThemedView>
     </ThemedView>
   );
 }
+
+// Simple style objects without function type annotations
+const progressDotActiveStyle = {
+  width: 24,
+  height: 24,
+  borderRadius: 12,
+  backgroundColor: '#1B6B3A',
+};
+
+const progressDotInactiveStyle = {
+  width: 24,
+  height: 24,
+  borderRadius: 12,
+  backgroundColor: '#CCCCCC',
+};
+
+const stepDotActiveStyle = {
+  width: 12,
+  height: 12,
+  borderRadius: 6,
+  backgroundColor: '#1B6B3A',
+};
+
+const stepLabelStyle = {
+  fontSize: 12,
+  fontWeight: 600,
+  color: '#6B7280',
+  textTransform: 'uppercase',
+};
+
+const titleStyle = {
+  fontSize: 22,
+  fontWeight: 600,
+  color: '#1A1A1A',
+  marginBottom: 4,
+  textAlign: 'center',
+};
+
+const subtitleStyle = {
+  fontSize: 14,
+  color: '#6B7280',
+  textAlign: 'center',
+};
+
+const optionCardStyle = {
+  width: '100%',
+  borderRadius: 16,
+  padding: 20,
+  backgroundColor: '#FFFFFF',
+  marginBottom: 12,
+};
+
+const iconBubbleStyle = {
+  width: 44,
+  height: 44,
+  borderRadius: 22,
+  backgroundColor: '#F8F7F4',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: 12,
+};
+
+const checkPillStyle = {
+  width: 24,
+  height: 24,
+  borderRadius: 12,
+  backgroundColor: '#F0EFEA',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const microDelightStyle = {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
+  marginBottom: 24,
+  padding: 12,
+  backgroundColor: '#F8F7F4',
+  borderRadius: 12,
+};
+
+const microDelightTextStyle = {
+  fontSize: 12,
+  color: '#6B7280',
+};
+
+const ctaContainerStyle = {
+  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  paddingHorizontal: 32,
+  paddingBottom: 48,
+};
+
+const continueBtnStyle = {
+  height: 48,
+  borderRadius: 12,
+  backgroundColor: '#1B6B3A',
+  color: '#FFFFFF',
+  fontSize: 16,
+  fontWeight: 600,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+};
+
+const backBtnStyle = {
+  height: 40,
+  borderRadius: 10,
+  backgroundColor: 'transparent',
+  color: '#6B7280',
+  fontSize: 14,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -168,39 +280,52 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     padding: Spacing.lg,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: 600,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
+  progress: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
   },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: Spacing.md,
-    textAlign: 'center',
-  },
-  typeContainer: {
+  progressDotActive: progressDotActiveStyle,
+  progressDotInactive: progressDotInactiveStyle,
+  stepIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     width: '100%',
     marginBottom: Spacing.lg,
+  },
+  stepDotActive: stepDotActiveStyle,
+  stepLabel: stepLabelStyle,
+  header: {
+    width: '100%',
+    marginBottom: Spacing.md,
+  },
+  title: titleStyle,
+  subtitle: subtitleStyle,
+  optionsContainer: {
+    width: '100%',
     gap: Spacing.sm,
   },
-  typeOption: {
-    padding: Spacing.md,
-    borderColor: '#E5E5E5',
-    borderWidth: 1,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+  optionCard: optionCardStyle,
+  iconBubble: iconBubbleStyle,
+  optionText: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
   },
-  typeText: {
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  typeTextSelected: {
-    fontSize: 16,
+  optionName: {
+    fontSize: 18,
     fontWeight: 600,
-    color: '#1B6B3A',
+    color: '#1A1A1A',
   },
+  optionCaption: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  checkPill: checkPillStyle,
+  microDelight: microDelightStyle,
+  microDelightText: microDelightTextStyle,
+  ctaContainer: ctaContainerStyle,
+  continueBtn: continueBtnStyle,
+  backBtn: backBtnStyle,
 });

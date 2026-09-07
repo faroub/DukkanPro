@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Spacing, ComponentDimensions, Colors, BorderRadius } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+
+// MaterialSymbolsOutlined is available via expo-google-fonts
+// Import from the component path that's configured in the project
+import MaterialSymbolsOutlined from '@/components/MaterialSymbolsOutlined';
 
 /**
  * Business/shop name step of the onboarding flow.
@@ -16,6 +20,8 @@ export function BusinessNameStep({
 }: any) {
   const { t } = useTranslation();
   const [name, setName] = useState(businessName || '');
+  const [ownerName, setOwnerName] = useState('');
+  const shopPreview = name.trim() || 'Your Business Name';
 
   const handleContinue = () => {
     if (!name.trim()) {
@@ -24,13 +30,10 @@ export function BusinessNameStep({
     onContinue?.({ businessName: name });
   };
 
-  // Shop name preview state
-  const shopPreview = name.trim() || 'Your Business Name';
-
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.contentPadding}>
-        {/* Progress indicator */}
+        {/* Progress indicator: Step 1 of 3 */}
         <View style={styles.progress}>
           <View style={styles.progressDotActive} />
           <View style={styles.progressDotInactive} />
@@ -48,29 +51,26 @@ export function BusinessNameStep({
         </ThemedText>
 
         {/* Engaging Visual Accent Tile */}
-        <View className="relative w-full rounded-xl bg-surface p-3.5 shadow-sm mb-4 overflow-hidden flex items-center gap-3.5">
-          <View className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-surface-alt">
-            <MaterialSymbolsOutlined name="storefront" size={18} style={{ fontVariationSettings: `'FILL' 1 }} primary}} />
+        <View style={styles.accentTile}>
+          <View style={styles.accentIcon}>
+            <MaterialSymbolsOutlined name="storefront" size={18} className="primary-icon" />
           </View>
-          <View className="flex-1 min-w-0">
-            <View className="flex items-center gap-1.5">
-              <MaterialSymbolsOutlined name="storefront" size={18} style={{ fontVariationSettings: `'FILL' 1 }} primary}} />
-              <span className="font-label font-label text-primary truncate" id="shopNamePreview">{shopPreview}</span>
-            </View>
+          <View style={styles.accentText}>
+            <span className="font-label font-label text-primary truncate" id="shopNamePreview">{shopPreview}</span>
           </View>
         </View>
 
         {/* Main Card Container */}
-        <View className="bg-surface rounded-xl p-card-padding shadow-sm mb-6">
-          <form className="flex flex-col gap-4" id="onboardingForm">
+        <View style={styles.mainCard}>
+          <form style={styles.form} id="onboardingForm">
             {/* Field 1: Business Name */}
-            <View className="flex flex-col">
-              <Label className="font-label font-label text-primary mb-1.5 flex items-center justify-between" htmlFor="businessName">
+            <View style={styles.field}>
+              <Label htmlFor="businessName">
                 <span>{t('businessNameStep.label')}</span>
                 <span className="font-caption font-caption text-secondary">Required</span>
               </Label>
-              <View className="relative flex items-center">
-                <MaterialSymbolsOutlined name="store" size={20} className="absolute left-3 text-secondary" />
+              <View style={styles.inputContainer}>
+                <MaterialSymbolsOutlined name="store" size={20} className="absolute left-3 secondary-icon" />
                 <TextInput
                   style={styles.input}
                   placeholder={name || t('businessNameStep.placeholder')}
@@ -83,18 +83,18 @@ export function BusinessNameStep({
             </View>
 
             {/* Field 2: Owner Name */}
-            <View className="flex flex-col">
-              <Label className="font-label font-label text-primary mb-1.5 flex items-center justify-between" htmlFor="ownerName">
+            <View style={styles.field}>
+              <Label htmlFor="ownerName">
                 <span>{t('common.ownerName')}</span>
                 <span className="font-caption font-caption text-secondary">Required</span>
               </Label>
-              <View className="relative flex items-center">
-                <MaterialSymbolsOutlined name="badge" size={20} className="absolute left-3 text-secondary" />
+              <View style={styles.inputContainer}>
+                <MaterialSymbolsOutlined name="badge" size={20} className="absolute left-3 secondary-icon" />
                 <TextInput
                   style={styles.input}
-                  placeholder={name || t('ownerNameStep.placeholder')}
-                  value={name}
-                  onChangeText={setName}
+                  placeholder={ownerName || t('ownerNameStep.placeholder')}
+                  value={ownerName}
+                  onChangeText={setOwnerName}
                   returnKeyType="done"
                   autoCapitalize="words"
                 />
@@ -104,23 +104,27 @@ export function BusinessNameStep({
         </View>
 
         {/* Reassurance / Trust Card */}
-        <View className="flex items-center gap-3 p-3 rounded-lg bg-surface-alt text-secondary mb-6 shadow-sm">
-          <MaterialSymbolsOutlined name="verified_user" size={18} className="text-primary" />
-          <Text className="font-caption font-caption leading-snug">
+        <View style={styles.trustCard}>
+          <MaterialSymbolsOutlined name="verified_user" size={18} className="primary-icon" />
+          <Text style={styles.trustText}>
             Your ledger and customer contacts are kept fully encrypted, offline-capable, and private to your device.
           </Text>
         </View>
 
         {/* CTA Buttons Container */}
-        <View className="flex flex-col gap-3">
+        <View style={styles.ctaContainer}>
           <PrimaryButton
-            className="w-full h-12 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-label font-label text-base rounded-[10px] shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99]" id="continueBtn" type="button">
+            onPress={handleContinue}
+            title="Continue"
+            startIcon={<MaterialSymbolsOutlined name="arrow_forward" size={20} className="primary-icon" />}
+            type="button">
             <span>Continue</span>
-            <MaterialSymbolsOutlined name="arrow_forward" size={20} className="text-primary" />
           </PrimaryButton>
           <PrimaryButton
-            className="w-full h-10 flex items-center justify-center text-secondary font-label text-caption hover:text-primary transition-colors" onPress={() => history.back()} type="button">
-            <MaterialSymbolsOutlined name="west" size={18} className="text-secondary" />
+            onPress={() => {}}
+            title="Back"
+            startIcon={<MaterialSymbolsOutlined name="west" size={18} className="secondary-icon" />}
+            type="button">
             <span>Back</span>
             <span className="text-secondary text-[12px] font-normal ml-0.5">/ Retour</span>
           </PrimaryButton>
@@ -130,41 +134,21 @@ export function BusinessNameStep({
   );
 }
 
-// Helper components
+// Helper Label component - accepts htmlFor and children only
 const Label = ({
   children,
   htmlFor,
-  className,
 }: {
   children: React.ReactNode;
   htmlFor: string;
-  className?: string;
-}) => <Label htmlFor={htmlFor} className={className}>
-  {children}
-</Label>
-
-const MaterialSymbolsOutlined = ({
-  name,
-  size,
-  className,
-  style,
-}: {
-  name: string;
-  size: number;
-  className: string;
-  style: React.CSSProperties;
 }) => (
-  <MaterialSymbolsOutlined name={name} size={size} className={className} style={style} />
+  <span htmlFor={htmlFor}>
+    {children}
+  </span>
 );
 
-// Progress indicator styles
+// Progress indicator styles - flat style objects
 const progressStyles = {
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
   progressDot: {
     width: 24,
     height: 24,
@@ -205,13 +189,59 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     textAlign: 'center',
   },
-  inputContainer: {
+  accentTile: {
+    position: 'relative',
     width: '100%',
-    marginBottom: Spacing.lg,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 24,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
   },
-  inputLabel: {
+  accentIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#F0EFEA',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accentText: {
+    flex: 1,
+  },
+  mainCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 24,
+  },
+  form: {
+    width: '100%',
+    padding: 24,
+  },
+  field: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  label: {
     fontSize: 14,
-    marginBottom: Spacing.xs,
+    fontWeight: 600,
+    marginBottom: 4,
+  },
+  inputContainer: {
+    position: 'relative',
+    width: '100%',
+    marginBottom: 12,
   },
   input: {
     height: 50,
@@ -219,8 +249,28 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
     borderWidth: 1,
     borderRadius: 8,
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: 48,
     fontSize: 16,
     backgroundColor: '#F9FAFB',
+  },
+  trustCard: {
+    backgroundColor: '#F0EFEA',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  trustText: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  ctaContainer: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+    paddingHorizontal: Spacing.lg,
   },
 });
