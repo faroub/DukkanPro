@@ -45,9 +45,15 @@ export const Colors = {
     textSecondary: "#6B7280",
     textMuted: "#9CA3AF",
     primary: "#1B6B3A",
+    primaryDark: "#14552E",
+    primaryLight: "#E8F5EE",
     positive: "#1B6B3A",
     warning: "#D97706",
     destructive: "#B91C1C",
+    error: "#B91C1C",
+    errorLight: "#FEF2F2",
+    warningLight: "#FFFBEB",
+    disabledBackground: "#D1D5DB",
     surface: "#FFFFFF",
     border: "#E5E5E5",
     borderLight: "#F0F0F0",
@@ -61,9 +67,15 @@ export const Colors = {
     textSecondary: "#6B7280",
     textMuted: "#9CA3AF",
     primary: "#1B6B3A",
+    primaryDark: "#14552E",
+    primaryLight: "#E8F5EE",
     positive: "#1B6B3A",
     warning: "#D97706",
     destructive: "#B91C1C",
+    error: "#B91C1C",
+    errorLight: "#FEF2F2",
+    warningLight: "#FFFBEB",
+    disabledBackground: "#D1D5DB",
     surface: "#1F2937",
     border: "#374151",
     borderLight: "#2C2C2C",
@@ -103,7 +115,7 @@ export const Typography = {
     fontSize: 28,
     lineHeight: 34,
     fontWeight: 700 as const,
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   },
   heading2: {
     fontFamily: Platform.select({
@@ -114,7 +126,7 @@ export const Typography = {
     fontSize: 22,
     lineHeight: 28,
     fontWeight: 600 as const,
-    letterSpacing: -0.25,
+    letterSpacing: 0,
   },
   heading3: {
     fontFamily: Platform.select({
@@ -211,6 +223,24 @@ export const Spacing = {
 
 export const BottomTabInset = 60;
 export const MaxContentWidth = 480;
+
+/** Stitch component dimensions. */
+export const ComponentDimensions = {
+  screenPadding: 16,
+  cardPadding: 16,
+  cardGap: 12,
+  formFieldGap: 16,
+  headerHeight: 56,
+  tabBarHeight: 60,
+  primaryButtonHeight: 48,
+  secondaryButtonHeight: 48,
+  destructiveButtonHeight: 48,
+  inputHeight: 48,
+  searchInputHeight: 44,
+  listRowMinHeight: 56,
+  iconSize: 24,
+  emptyStateIconSize: 48,
+} as const;
 
 export type SpacingValue = (typeof Spacing)[keyof typeof Spacing];
 

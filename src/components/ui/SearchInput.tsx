@@ -1,7 +1,12 @@
 import { StyleSheet, TextInput, type TextInputProps } from "react-native";
 
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import {
+    Colors,
+    ComponentDimensions,
+    Spacing,
+    Typography,
+} from "@/constants/theme";
 
 export interface SearchInputProps extends TextInputProps {
   placeholder: string;
@@ -31,16 +36,17 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
+    minHeight: ComponentDimensions.searchInputHeight,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: Colors.light.border,
     borderRadius: Spacing.md,
     paddingHorizontal: Spacing.md,
     height: 56,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    ...Typography.body,
     color: "#1A1A1A",
   },
 });

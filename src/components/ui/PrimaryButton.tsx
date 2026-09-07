@@ -2,7 +2,12 @@ import { Pressable, StyleSheet, type PressableProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import {
+    Colors,
+    ComponentDimensions,
+    Spacing,
+    Typography,
+} from "@/constants/theme";
 
 export interface PrimaryButtonProps extends PressableProps {
   title: string;
@@ -69,15 +74,16 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#1B6B3A", // deep green from theme Colors.positive
-    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.light.primary,
+    minHeight: ComponentDimensions.primaryButtonHeight,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.xl,
     borderRadius: Spacing.md,
     justifyContent: "center",
     alignItems: "center",
   },
   buttonDisabled: {
-    backgroundColor: "#A0AEC0",
+    backgroundColor: Colors.light.disabledBackground,
   },
   buttonLoading: {
     opacity: 0.7,
@@ -92,8 +98,8 @@ const styles = StyleSheet.create({
     height: Spacing.xs,
   },
   buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    color: Colors.light.surface,
+    ...Typography.body,
     fontWeight: 600,
   },
   buttonTextDisabled: {
