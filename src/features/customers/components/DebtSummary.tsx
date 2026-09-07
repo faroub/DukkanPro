@@ -118,34 +118,34 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   debtAmount: {
     fontSize: 32,
     fontWeight: '600',
-    color: '#1B6B3A',
+    color: Colors.light.primary,
     marginBottom: 4,
   },
   noDebt: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginTop: 4,
   },
   paymentHistorySection: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderColor: '#eee',
+    borderColor: Colors.light.border,
   },
   sectionLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   paymentInfo: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 4,
   },
   actions: {
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   loadingText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   errorText: {
     ...Typography.body,

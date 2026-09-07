@@ -74,8 +74,8 @@ export function CataloguePreview({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: "#fafafa",
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.background,
   },
   title: {
     fontSize: 18,
@@ -86,36 +86,36 @@ const styles = StyleSheet.create({
   productRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 8,
-    marginBottom: 4,
-    backgroundColor: "#fff",
-    borderRadius: 6,
+    padding: Spacing.sm,
+    marginBottom: Spacing.xs,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.md,
   },
   productName: {
     flex: 1,
     fontSize: 14,
-    color: "#333",
+    color: Colors.light.textPrimary,
   },
   productPrice: {
-    color: "#1B6B3A",
+    color: Colors.light.primary,
     fontSize: 14,
     marginLeft: 8,
     fontWeight: "600",
   },
   productAvailability: {
-    color: "#6c757d",
+    color: Colors.light.textSecondary,
     fontSize: 12,
     marginLeft: 8,
   },
   selectedSummary: {
-    marginTop: 12,
-    padding: 8,
-    backgroundColor: "#fff",
-    borderRadius: 8,
+    marginTop: Spacing.xl,
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.md,
   },
   summaryLabel: {
     fontSize: 14,
-    color: "#555",
+    color: Colors.light.textSecondary,
     marginRight: 8,
   },
   summaryValue: {
@@ -124,8 +124,8 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     textAlign: "center",
-    color: "#666",
-    marginTop: 20,
+    color: Colors.light.textSecondary,
+    marginTop: Spacing.xl,
     fontSize: 14,
   },
 });

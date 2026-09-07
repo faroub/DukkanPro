@@ -65,19 +65,15 @@ export function ProductCard({ product }: ProductCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
-    borderRadius: 12,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.lg,
     overflow: 'hidden',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: Spacing.xl,
+    ...Shadows.md,
   },
   imageArea: {
     height: 80,
-    backgroundColor: '#F0F0F3',
+    backgroundColor: Colors.light.backgroundElement,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -91,21 +87,21 @@ const styles = StyleSheet.create({
   },
   sku: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 4,
   },
   price: {
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
     fontWeight: 600,
     marginBottom: 2,
   },
   stock: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   badge: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.light.borderLight,
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
@@ -113,11 +109,11 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   outOfStockBadge: {
-    backgroundColor: '#EF4444',
+    backgroundColor: Colors.light.destructive,
     marginTop: 8,
   },
   lowStockBadge: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: Colors.light.warning,
     marginTop: 8,
   },
 });

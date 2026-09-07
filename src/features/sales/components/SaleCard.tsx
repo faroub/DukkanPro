@@ -74,17 +74,13 @@ export function SaleCard({ sale, onPress, showStatus = true }: SaleCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: Colors.light.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+    ...Shadows.md,
   },
   infoContainer: {
     flexDirection: 'row',
@@ -100,15 +96,15 @@ const styles = StyleSheet.create({
   total: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1B6B3A',
+    color: Colors.light.primary,
   },
   saleId: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.light.textSecondary,
   },
   date: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.light.textSecondary,
   },
   statusContainer: {
     marginTop: 8,

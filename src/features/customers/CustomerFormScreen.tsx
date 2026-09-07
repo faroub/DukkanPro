@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: Colors.light.border,
   },
   title: {
     fontSize: 24,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   cancelText: {
@@ -163,9 +163,9 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     height: 52,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.light.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 16,
@@ -180,14 +180,14 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#f8f9fa',
+    borderColor: Colors.light.border,
+    backgroundColor: Colors.light.surface,
     marginRight: 8,
   },
   saveButton: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#1B6B3A',
+    backgroundColor: Colors.light.primary,
     alignItems: 'center',
   },
 });
