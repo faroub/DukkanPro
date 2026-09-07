@@ -103,9 +103,9 @@ const styles = StyleSheet.create({
     fontWeight: 600,
   },
   buttonTextDisabled: {
-    color: "#FFF",
+    color: Colors.light.textMuted,
   },
   buttonTextLoading: {
-    color: "rgba(255, 255, 255, 0.7)",
+    color: Colors.light.textMuted,
   },
 });

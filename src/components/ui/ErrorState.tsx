@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   retryText: {
-    color: "#FFFFFF",
+    color: Colors.light.textPrimary,
     fontSize: 14,
     fontWeight: 600,
   },

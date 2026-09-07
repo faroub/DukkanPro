@@ -106,28 +106,28 @@ const styles = StyleSheet.create({
   },
   paymentAmount: {
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
     marginHorizontal: 8,
   },
   paymentDate: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
   },
   paymentNote: {
     fontSize: 12,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginHorizontal: 8,
   },
   loadingText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginVertical: 20,
   },
   noPayments: {
     fontSize: 14,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginVertical: 20,
   },
