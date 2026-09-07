@@ -5,6 +5,7 @@ import { Spacing } from "@/constants/theme";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
+import { Colors } from '@/constants/theme';
 
 export default function NotFound() {
   const { t } = useTranslation();
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing.xl,
-    backgroundColor: "#F8F7F4",
+    backgroundColor: Colors.light.background,
   },
   content: {
     alignItems: "center",
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 18,
-    color: "#3F3F3F",
+    color: Colors.light.textMuted,
     textAlign: "center",
   },
   button: {

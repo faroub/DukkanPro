@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, type ViewProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import { Spacing, Colors } from "@/constants/theme";
 
 export interface ConfirmDialogProps extends ViewProps {
   title: string;
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   dialog: {
     width: "80%",
     maxWidth: 350,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surface,
     borderRadius: Spacing.lg,
     padding: Spacing.lg,
   },
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 14,
-    color: "#1A1A1A",
+    color: Colors.light.textPrimary,
     textAlign: "center",
     marginBottom: Spacing.lg,
   },
@@ -98,11 +98,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: Spacing.md,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: Colors.light.border,
     alignItems: "center",
   },
   confirmButton: {
-    backgroundColor: "#1B6B3A",
+    backgroundColor: Colors.light.primary,
     minHeight: 48,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
@@ -110,10 +110,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   destructiveButton: {
-    backgroundColor: "#B91C1C",
+    backgroundColor: Colors.light.destructive,
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: Colors.light.onPrimary,
     fontSize: 14,
     fontWeight: 500,
   },

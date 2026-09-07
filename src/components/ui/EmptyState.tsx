@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import { Spacing, Colors } from "@/constants/theme";
 
 export interface EmptyStateProps {
   icon?: string | React.ReactNode;
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     textAlign: "center",
   },
 });

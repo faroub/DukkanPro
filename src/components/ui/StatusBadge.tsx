@@ -2,7 +2,7 @@ import { StyleSheet, type ViewProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BorderRadius, Spacing } from "@/constants/theme";
+import { BorderRadius, Colors, Spacing } from "@/constants/theme";
 
 export type Status =
   | "paid"
@@ -31,25 +31,20 @@ export function StatusBadge({
   style,
   ...rest
 }: StatusBadgeProps) {
-  let textColor = "#1B6B3A";
-  let bg = "#E8F5EE";
+  const statusMap: Record<Status, { textColor: string; bg: string }> = {
+    paid: { textColor: Colors.light.positive, bg: Colors.light.primaryLight },
+    partial: { textColor: Colors.light.warning, bg: Colors.light.warningLight },
+    cancelled: { textColor: Colors.light.destructive, bg: Colors.light.errorLight },
+    returned: { textColor: Colors.light.destructive, bg: Colors.light.errorLight },
+    destructive: { textColor: Colors.light.destructive, bg: Colors.light.errorLight },
+    positive: { textColor: Colors.light.positive, bg: Colors.light.primaryLight },
+    warning: { textColor: Colors.light.warning, bg: Colors.light.warningLight },
+    neutral: { textColor: Colors.light.textSecondary, bg: Colors.light.backgroundElement },
+  };
 
-  if (status === "paid" || status === "positive") {
-    textColor = "#1B6B3A";
-    bg = "#E8F5EE";
-  } else if (status === "partial" || status === "warning") {
-    textColor = "#D97706";
-    bg = "#FFFBEB";
-  } else if (status === "cancelled" || status === "returned" || status === "destructive") {
-    textColor = "#B91C1C";
-    bg = "#FEF2F2";
-  } else if (status === "neutral") {
-    textColor = "#6B7280";
-    bg = "#F3F4F6";
-  }
-
-  if (color) textColor = color;
-  if (backgroundColor) bg = backgroundColor;
+  const mapped = statusMap[status];
+  const textColor = color ?? mapped.textColor;
+  const bg = backgroundColor ?? mapped.bg;
 
   return (
     <ThemedView style={[styles.badge, { backgroundColor: bg }, style]} {...rest}>
@@ -62,8 +57,8 @@ export function StatusBadge({
 
 const styles = StyleSheet.create({
   badge: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
     alignSelf: "flex-start",
     alignItems: "center",

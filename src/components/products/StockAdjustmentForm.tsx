@@ -5,6 +5,7 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { FormField } from '@/components/ui/FormField';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { executeWrite, executeRead } from '@/database/database';
 import type { Product } from '@/types/entities';
 
@@ -178,66 +179,65 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F7F4',
-  },
+    backgroundColor: Colors.light.background,
+  } as Record<string, unknown>,
   scroll: {
     flexGrow: 1,
-    padding: 20,
-  },
+    padding: Spacing.lg,
+  } as Record<string, unknown>,
   content: {
     maxWidth: 400,
     width: '100%',
-  },
+  } as Record<string, unknown>,
   title: {
     fontSize: 24,
     fontWeight: 600,
-    marginBottom: 24,
+    marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   currentStock: {
     fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 20,
+    color: Colors.light.textSecondary,
+    marginBottom: Spacing.md,
   },
   input: {
     height: 50,
-    borderColor: '#D1D5DB',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
     fontSize: 14,
-    marginBottom: 16,
-    backgroundColor: 'white',
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.light.surface,
   },
   hint: {
     fontSize: 10,
-    color: '#6B7280',
-    marginTop: 4,
+    color: Colors.light.textSecondary,
+    marginTop: Spacing.xs,
   },
   errorBanner: {
-    backgroundColor: '#FEE2E2',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    backgroundColor: Colors.light.errorLight,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
   },
   errorBannerText: {
-    color: '#B91C1C',
+    color: Colors.light.destructive,
     fontSize: 12,
   },
   successBanner: {
-    backgroundColor: '#D1F2BD',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    backgroundColor: Colors.light.warningLight,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
   },
   successBannerText: {
-    color: '#166534',
+    color: Colors.light.warning,
     fontSize: 12,
   },
   form: {
     flex: 1,
     maxWidth: 400,
-    padding: 20,
-    backgroundColor: 'white',
-  },
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.surface,
+  } as Record<string, unknown>,
 });

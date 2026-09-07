@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "@/components/themed-text";
+import { Spacing, Colors, BorderRadius } from '@/constants/theme';
 
 interface CustomerRowProps {
   customer: {
@@ -48,11 +49,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 4,
-    shadowColor: '#000',
+    padding: Spacing.sm,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.xs,
+    shadowColor: Colors.light.border,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -64,28 +65,28 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: Colors.light.textPrimary,
   },
   phone: {
     fontSize: 11,
-    color: '#6B7280',
+    color: Colors.light.textSecondary,
     marginTop: 1,
   },
   rightSection: {
     flexDirection: 'column',
     alignItems: 'flex-end',
-    marginLeft: 12,
+    marginLeft: Spacing.md,
   },
   balance: {
     fontSize: 14,
-    color: '#1B6B3A',
+    color: Colors.light.primary,
     fontWeight: '600',
   },
   debtTag: {
     fontSize: 10,
-    color: '#EF4444',
+    color: Colors.light.destructive,
     marginTop: 1,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: Spacing.xs,
   },
 });

@@ -1,6 +1,7 @@
 import { ThemedView } from "@/components/themed-view";
 import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
+import { Colors, Spacing } from '@/constants/theme';
 
 import DashboardScreen from "@/features/dashboard/DashboardScreen";
 
@@ -22,9 +23,9 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F7F4",
+    backgroundColor: Colors.light.background,
   },
   content: {
-    padding: 24,
+    padding: Spacing.xl,
   },
 });
