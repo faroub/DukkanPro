@@ -71,11 +71,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   tabButtonActive: {
-    backgroundColor: '#1B6B3A',
-    borderColor: '#1B6B3A',
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
   },
   tabLabel: {
-    color: '#555',
+    color: Colors.light.textSecondary,
+  },
     fontSize: 12,
   },
   tabLabelActive: {

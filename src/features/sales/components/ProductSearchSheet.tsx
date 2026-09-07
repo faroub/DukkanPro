@@ -115,7 +115,7 @@ const styles = {
   } as const,
   sku: {
     fontSize: 12 as const,
-    color: '#666' as const,
+    color: Colors.light.textSecondary as const,
     marginTop: 4 as const,
   } as const,
   price: {

@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   },
   productCategory: {
     fontSize: 12,
-    color: "#666",
+    color: Colors.light.textSecondary,
   },
   productActions: {
     flexDirection: "row",

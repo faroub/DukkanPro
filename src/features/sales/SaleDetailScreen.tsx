@@ -226,7 +226,7 @@ export function SaleDetailScreen({ route }: { route: { params: { id: string } } 
                 {t('sales.cancel_sale')}
               </ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity onPress={openReturnDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: '#1B6B3A', marginLeft: 8 }}>
+            <TouchableOpacity onPress={openReturnDialog} style={{ padding: 12, borderRadius: 8, backgroundColor: Colors.light.primary, marginLeft: 8 }}>
               <ThemedText type="body" style={{ color: '#fff' }}>
                 {t('sales.return_sale')}
               </ThemedText>
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoLabel: {
-    color: '#666',
+    color: Colors.light.textSecondary,
     fontSize: 12,
     marginBottom: 4,
   },

@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   scanLaser: {
     width: "100%",
     height: 2,
-    backgroundColor: "#EF4444",
+    backgroundColor: Colors.light.destructive,
     opacity: 0.8,
   },
   scanHint: {
