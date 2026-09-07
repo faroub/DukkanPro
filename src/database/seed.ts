@@ -143,7 +143,7 @@ export async function seed(db: any): Promise<void> {
     // Grab product IDs and customer IDs we just seeded
     const productRows: any[] = await executeAll(
       db,
-      "SELECT id, sale_price_centimes, stock_quantity FROM products LIMIT 4",
+      "SELECT id, name, sale_price_centimes, cost_price_centimes, stock_quantity FROM products LIMIT 4",
     );
     const customerRows: any[] = await executeAll(
       db,
@@ -165,28 +165,30 @@ export async function seed(db: any): Promise<void> {
     const sale1Items = [
       {
         product_id: p1.id,
+        product_name: p1.name,
+        cost_price_centimes: p1.cost_price_centimes ?? 0,
         quantity: 3,
         unit_sale_price_centimes: p1.sale_price_centimes,
       },
       {
         product_id: p2.id,
+        product_name: p2.name,
+        cost_price_centimes: p2.cost_price_centimes ?? 0,
         quantity: 2,
         unit_sale_price_centimes: p2.sale_price_centimes,
       },
     ];
 
     let subtotal1 = 0;
-    const sale1ItemRows = sale1Items.map((item) => {
-      const lineTotal = item.quantity * item.unit_sale_price_centimes;
-      subtotal1 += lineTotal;
-      return { ...item, line_total_centimes: lineTotal };
-    });
+    for (const item of sale1Items) {
+      subtotal1 += item.quantity * item.unit_sale_price_centimes;
+    }
 
     const total1 = subtotal1; // no discount
     const amount_paid_1 = Math.floor(total1 * 0.8); // 80% paid
     const remaining1 = total1 - amount_paid_1;
 
-    await executeWrite(
+    const saleId = await executeWrite(
       db,
       `INSERT INTO sales
        (customer_id, status, subtotal_centimes, discount_centimes, total_centimes,
@@ -205,7 +207,7 @@ export async function seed(db: any): Promise<void> {
       ],
     );
 
-    // Insert sale items for sale 1
+    // Insert sale items for sale 1 using the real saleId
     for (const item of sale1Items) {
       await executeWrite(
         db,
@@ -213,15 +215,13 @@ export async function seed(db: any): Promise<void> {
          (sale_id, product_id, product_name_snapshot, quantity, unit_sale_price_centimes, unit_cost_price_centimes, line_total_centimes, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
         [
-          /* sale_id */ "last_id_placeholder", // will be replaced; we'll use a different approach
-          /* product_id */ item.product_id,
-          /* product_name_snapshot */ `${item.product_id}`, // we need the real name
-          /* quantity */ item.quantity,
-          /* unit_sale_price_centimes */ item.unit_sale_price_centimes,
-          /* unit_cost_price_centimes */ // we need cost price
-          /* line_total_centimes */ item.quantity *
-            item.unit_sale_price_centimes,
-          /* created_at */ new Date().toISOString(),
+          saleId,
+          item.product_id,
+          item.product_name,
+          item.quantity,
+          item.unit_sale_price_centimes,
+          item.cost_price_centimes,
+          item.quantity * item.unit_sale_price_centimes,
         ],
       );
     }

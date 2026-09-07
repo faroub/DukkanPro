@@ -1,15 +1,16 @@
 import type { AvailableProduct } from "@/services/voice/voiceSaleParser";
 import { parseSaleCommand } from "@/services/voice/voiceSaleParser";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Alert,
-    FlatList,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface ReviewSheetProps {
@@ -28,13 +29,19 @@ export function ReviewSheet({
   commandText,
 }: ReviewSheetProps) {
   const { t } = useTranslation();
+  const [editableText, setEditableText] = useState(commandText);
   const [parsed, setParsed] = useState<any | null>(null);
   const [showAmbiguityChoices, setShowAmbiguityChoices] = useState(false);
   const [ambiguousChoices, setAmbiguousChoices] = useState<any[]>([]);
 
+  useEffect(() => {
+    setEditableText(commandText);
+  }, [commandText]);
+
   // Parse the command when text changes or sheet opens
-  React.useEffect(() => {
-    const result = parseSaleCommand(commandText, availableProducts);
+  useEffect(() => {
+    const textToParse = editableText || commandText;
+    const result = parseSaleCommand(textToParse, availableProducts);
     if (result) {
       setParsed(result);
       // Check if ambiguous and show choices
@@ -48,7 +55,7 @@ export function ReviewSheet({
       setParsed(null);
       setShowAmbiguityChoices(false);
     }
-  }, [commandText, availableProducts]);
+  }, [editableText, commandText, availableProducts]);
 
   if (!isVisible || !parsed) {
     return null;
@@ -140,6 +147,25 @@ export function ReviewSheet({
       borderRadius: 6,
       marginBottom: 4,
     },
+    inputSection: {
+      paddingHorizontal: 12,
+      paddingTop: 12,
+      paddingBottom: 4,
+    },
+    inputLabel: {
+      fontSize: 12,
+      color: "#666",
+      marginBottom: 4,
+    },
+    commandInput: {
+      borderWidth: 1,
+      borderColor: "#ddd",
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 14,
+      backgroundColor: "#f9f9f9",
+      color: "#111",
+    },
   });
 
   return (
@@ -150,6 +176,18 @@ export function ReviewSheet({
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Text>{t("common.close")}</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Command text preview and edit */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>{t("voice.subtitle", "Command Text")}</Text>
+          <TextInput
+            style={styles.commandInput}
+            value={editableText}
+            onChangeText={setEditableText}
+            placeholder={t("voice.sayProductName", "Voice command...")}
+            placeholderTextColor="#999"
+          />
         </View>
 
         {/* Parsed items summary */}

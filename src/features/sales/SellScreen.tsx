@@ -133,15 +133,15 @@ export default function SellScreen() {
   }, [preserveCart]);
 
   // Voice command handling
-  const handleVoiceStart = async () => {
-    setVoiceVisible(true);
+  const handleVoiceStart = useCallback(async () => {
     setVoiceCommand("");
     setParsedVoice(null);
-  };
+  }, []);
 
-  const handleVoiceEnd = () => {
-    // Parse the voice command if we have text
-    if (voiceCommand.trim()) {
+  const handleVoiceEnd = useCallback((finalTranscript?: string) => {
+    const textToParse = (finalTranscript || voiceCommand).trim();
+    if (textToParse) {
+      setVoiceCommand(textToParse);
       const availableProducts = products.map((p) => ({
         id: p.id,
         name: p.name,
@@ -149,11 +149,18 @@ export default function SellScreen() {
         price_centimes: p.sale_price_centimes,
         stock: p.stock_quantity,
       }));
-      const parsed = parseSaleCommand(voiceCommand, availableProducts);
-      setParsedVoice(parsed);
-      setVoiceVisible(Boolean(parsed));
+      const parsed = parseSaleCommand(textToParse, availableProducts);
+      if (parsed) {
+        setParsedVoice(parsed);
+        setVoiceVisible(true);
+      } else {
+        Alert.alert(
+          t("voice.commandNotRecognized", "Commande non reconnue"),
+          `"${textToParse}"`
+        );
+      }
     }
-  };
+  }, [products, voiceCommand, t]);
 
   return (
     <ThemedView type="background" style={{ flex: 1 }}>
@@ -290,6 +297,7 @@ export default function SellScreen() {
       <VoiceButton
         onVoiceStart={handleVoiceStart}
         onVoiceEnd={handleVoiceEnd}
+        onTranscript={(text) => setVoiceCommand(text)}
         disabled={isSaving}
       />
 
