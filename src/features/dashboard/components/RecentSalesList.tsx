@@ -78,12 +78,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginBottom: 4,
   },
   emptyState: {
     fontSize: 14,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     textAlign: "center",
     margin: 20,
   },

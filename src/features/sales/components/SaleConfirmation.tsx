@@ -151,7 +151,7 @@ export function SaleConfirmation({
 
           <View style={styles.actions}>
             <Pressable style={[styles.cancelButton, !preserveCart && styles.disabledButton]} onPress={onRequestClose}>
-              <ThemedText type="body" style={{ color: "#6B7280" }}>
+              <ThemedText type="body" style={{ color: Colors.light.textSecondary }}>
                 {t('sell.cancel')}
               </ThemedText>
             </Pressable>

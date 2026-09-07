@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 12,
-    color: "#6B7280",
+    color: Colors.light.textSecondary,
     marginBottom: Spacing.md,
   },
 });

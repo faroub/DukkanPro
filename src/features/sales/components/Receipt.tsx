@@ -63,10 +63,10 @@ export function Receipt({
             <ThemedText type="title" style={{ textAlign: "center", marginBottom: 4 }}>
               {t("business.name")}
             </ThemedText>
-            <ThemedText type="caption" style={{ textAlign: "center", color: "#6B7280", marginBottom: 8 }}>
+            <ThemedText type="caption" style={{ textAlign: "center", color: Colors.light.textSecondary, marginBottom: 8 }}>
               {t("business.type")}
             </ThemedText>
-            <ThemedText type="caption" style={{ textAlign: "center", color: "#6B7280" }}>
+            <ThemedText type="caption" style={{ textAlign: "center", color: Colors.light.textSecondary }}>
               {formattedDate}
             </ThemedText>
           </View>
