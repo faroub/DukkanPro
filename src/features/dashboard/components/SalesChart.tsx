@@ -16,17 +16,17 @@ export function SalesChart({
   title = "7-Day Sales Trend",
   locale = "fr",
 }: SalesChartProps) {
-  // Default placeholder days if data is empty
+  // Default placeholder days matching Stitch design data
   const chartData = data.length > 0
     ? data
     : [
-        { date: "Lun", total: 18000 },
-        { date: "Mar", total: 24000 },
-        { date: "Mer", total: 12000 },
-        { date: "Jeu", total: 28000 },
-        { date: "Ven", total: 35000 },
-        { date: "Sam", total: 42000 },
-        { date: "Dim", total: 28000 },
+        { date: "Fri", total: 19000 },
+        { date: "Sat", total: 31000 },
+        { date: "Sun", total: 24000 },
+        { date: "Mon", total: 18000 },
+        { date: "Tue", total: 26000 },
+        { date: "Wed", total: 22500 },
+        { date: "Today", total: 28000 },
       ];
 
   const maxVal = Math.max(...chartData.map((d) => d.total), 10000);
@@ -44,7 +44,7 @@ export function SalesChart({
         {chartData.map((item, index) => {
           const heightPercent = Math.max(10, Math.round((item.total / maxVal) * 100));
           const isHighest = item.total === maxVal;
-          const dayLabel = item.date.length > 5 ? item.date.slice(-2) : item.date;
+          const dayLabel = item.date;
 
           return (
             <View key={index} style={styles.barColumn}>
@@ -79,15 +79,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.border,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
+    padding: 16,
+    marginBottom: 24,
     ...Shadows.sm,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Spacing.md,
+    marginBottom: 12,
   },
   title: {
     ...Typography.label,
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
-    height: 120,
-    paddingTop: Spacing.sm,
+    height: 130,
+    paddingTop: 8,
   },
   barColumn: {
     flex: 1,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   barLabel: {
     ...Typography.caption,
     fontSize: 11,
-    marginTop: Spacing.xs,
+    marginTop: 2,
     color: Colors.light.textSecondary,
     textAlign: "center",
   },
