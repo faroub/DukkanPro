@@ -97,8 +97,6 @@ export function BusinessTypeStep({
           <View style={styles.bar} />
         </View>
       </View>
-      </View>
-
       {/* Header */}
       <View style={styles.header}>
         <ThemedText style={styles.title}>
