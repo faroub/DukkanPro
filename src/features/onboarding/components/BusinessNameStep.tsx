@@ -69,8 +69,6 @@ export function BusinessNameStep({
           <View style={styles.bar} />
         </View>
       </View>
-      </View>
-
       {/* Title & Subtitle */}
       <View style={styles.header}>
         <ThemedText style={styles.title}>
@@ -103,9 +101,9 @@ export function BusinessNameStep({
           </ThemedText>
           <View style={styles.previewBadge}>
             <View style={styles.previewBadgeDot} />
-            <Text style={styles.previewBadgeText}>
+            <ThemedText style={styles.previewBadgeText}>
               {t("onboarding:businessNameStep.previewBadgeText")}
-            </Text>
+            </ThemedText>
           </View>
         </View>
       </View>
@@ -172,7 +170,7 @@ export function BusinessNameStep({
           </View>
         </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
       </View>
 
       {/* Reassurance Offline Banner */}
@@ -186,9 +184,9 @@ export function BusinessNameStep({
           size={18}
           tintColor={Colors.light.primary}
         />
-        <Text style={styles.trustText}>
+        <ThemedText style={styles.trustText}>
           {t("onboarding:businessNameStep.trustText")}
-        </Text>
+        </ThemedText>
       </View>
 
       {/* CTA Footer */}

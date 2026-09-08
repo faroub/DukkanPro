@@ -61,8 +61,8 @@ export function ConfirmSettingsStep({
           <View style={[styles.bar, styles.barActive]} />
           <View style={[styles.bar, styles.barActive]} />
           <View style={[styles.bar, styles.barActive]} />
-        </V>
-      </V>
+        </View>
+      </View>
 
       {/* Header */}
       <View style={styles.header}>
@@ -239,8 +239,8 @@ export function ConfirmSettingsStep({
               tintColor={Colors.light.textMuted}
             />
           </View>
-        </V>
-      </V>
+        </View>
+      </View>
 
       {/* Info Reassurance Note */}
       <View style={styles.infoBox}>
@@ -256,7 +256,7 @@ export function ConfirmSettingsStep({
         <ThemedText style={styles.infoText}>
           {t("onboarding:confirmSettingsStep.infoText")}
         </ThemedText>
-      </V>
+      </View>
 
       {/* Footer CTA */}
       <View style={styles.footer}>
@@ -268,7 +268,7 @@ export function ConfirmSettingsStep({
             </ThemedText>
           </Pressable>
         )}
-      </V>
+      </View>
     </ThemedView>
   );
 }
