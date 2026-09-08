@@ -66,6 +66,21 @@ export function ConfirmSettingsStep({
 
       {/* Header */}
       <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={onBack}
+          accessibilityLabel={t("common:back")}
+        >
+          <SymbolView
+            name={{
+              ios: "arrow_back" as any,
+              android: "arrow_back" as any,
+              web: "arrow_back" as any,
+            }}
+            size={24}
+            tintColor={Colors.light.textSecondary}
+          />
+        </Pressable>
         <ThemedText style={styles.title}>
           {t("onboarding:confirmSettingsStep.title")}
         </ThemedText>
@@ -242,11 +257,11 @@ export function ConfirmSettingsStep({
         </View>
       </View>
 
-      {/* Info Reassurance Note */}
+      {/* Soft Informational Note Box */}
       <View style={styles.infoBox}>
         <SymbolView
           name={{
-            ios: "info.circle" as any,
+            ios: "info-circle" as any,
             android: "info" as any,
             web: "info" as any,
           }}
@@ -258,16 +273,54 @@ export function ConfirmSettingsStep({
         </ThemedText>
       </View>
 
-      {/* Footer CTA */}
-      <View style={styles.footer}>
-        <PrimaryButton title={t("onboarding:confirmSettingsStep.startButton")} onPress={onConfirm} />
-        {onBack && (
-          <Pressable onPress={onBack} style={styles.backButton}>
-            <ThemedText style={styles.backButtonText}>
-              {t("common:back")}
-            </ThemedText>
-          </Pressable>
-        )}
+      {/* Store Preview Vignette */}
+      <View style={styles.storePreview}>
+        <View style={styles.logoPlaceholder}>
+          <SymbolView
+            name={{
+              ios: "storefront" as any,
+              android: "storefront" as any,
+              web: "storefront" as any,
+            }}
+            size={32}
+            tintColor={Colors.light.primary}
+          />
+        </View>
+        <View style={{ flexDirection: "column", minHeight: 0, marginTop: Spacing.xs }}>
+          <ThemedText style={{ ...Typography.caption, color: Colors.light.textPrimary, fontWeight: "600", marginTop: Spacing.xs }}>Ready to launch</ThemedText>
+          <ThemedText style={{ ...Typography.body, color: Colors.light.textPrimary, marginTop: Spacing.xs }}>Your digital ledger is prepared</ThemedText>
+          <ThemedText style={{ ...Typography.caption, color: Colors.light.textSecondary, marginTop: Spacing.xs }}>Point of Sale, debts & inventory</ThemedText>
+        </View>
+      </View>
+
+      {/* Action Section */}
+      <View style={styles.actionSection}>
+        <Pressable
+          style={styles.startButton}
+          onPress={() => onConfirm()}
+          accessible
+          accessibilityLabel={t("onboarding:confirmSettingsStep.startButton")}
+        >
+          <ThemedText style={{ ...Typography.body, color: Colors.light.surface }}>Start using Dukkan OS</ThemedText>
+          <SymbolView
+            name={{ ios: "arrow_forward" as any, android: "arrow_forward" as any, web: "arrow_forward" as any }}
+            size={20}
+            tintColor={Colors.light.surface}
+          />
+        </Pressable>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => { /* handle back */ }}
+          accessible
+          accessibilityLabel={t("common:back")}
+        >
+          <SymbolView
+            name={{ ios: "arrow_back" as any, android: "arrow_back" as any, web: "arrow_back" as any }}
+            size={18}
+            tintColor={Colors.light.textSecondary}
+          />
+          <ThemedText style={{ ...Typography.label, color: Colors.light.textSecondary }}>Back to step 2</ThemedText>
+        </Pressable>
       </View>
     </ThemedView>
   );
@@ -327,12 +380,21 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     backgroundColor: Colors.light.surface,
-    padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     borderColor: Colors.light.border,
     marginBottom: Spacing.md,
     ...Shadows.sm,
+    overflow: "hidden",
+  },
+  logoPlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.backgroundElement,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: Spacing.md,
   },
   summaryRow: {
     flexDirection: "row",
@@ -402,14 +464,29 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.light.textSecondary,
   },
-  footer: {
-    marginTop: "auto",
-    gap: Spacing.sm,
+  storePreview: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.lg,
+    overflow: "hidden",
+    marginBottom: Spacing.lg,
+  },
+  actionSection: {
+    marginTop: Spacing.lg,
   },
   backButton: {
     height: 44,
     justifyContent: "center",
     alignItems: "center",
+  },
+  startButton: {
+    width: "100%",
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.light.primary,
+    color: Colors.light.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: Spacing.md,
   },
   backButtonText: {
     ...Typography.label,
