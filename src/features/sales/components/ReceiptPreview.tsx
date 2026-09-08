@@ -114,7 +114,6 @@ export function ReceiptPreview({
                   </View>
                 </View>
               )}
-              scrolls={false}
               contentContainerStyle={styles.itemList}
             />
           </View>
