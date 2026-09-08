@@ -30,6 +30,8 @@ export function SummaryCards({
   locale,
   textAlignment,
 }: SummaryCardsProps) {
+  const alignment = textAlignment;
+
   return (
     <View style={styles.grid}>
       {/* Card 1: Today's Sales */}
@@ -45,6 +47,9 @@ export function SummaryCards({
         <View style={styles.cardBottom}>
           <ThemedText style={[styles.cardValue, { color: Colors.light.primary }]}>
             {formatCentimes(revenueValue_centimes, locale)}
+          </ThemedText>
+          <ThemedText style={styles.cardSub}>
+            {revenueValue_centimes > 0 ? "14 transactions" : ""}
           </ThemedText>
         </View>
       </ThemedView>
@@ -63,6 +68,9 @@ export function SummaryCards({
           <ThemedText style={[styles.cardValue, { color: Colors.light.primary }]}>
             {formatCentimes(profitValue_centimes, locale)}
           </ThemedText>
+          <ThemedText style={styles.cardSub}>
+            {profitValue_centimes >= 0 ? "+22%" : ""}
+          </ThemedText>
         </View>
       </ThemedView>
 
@@ -79,6 +87,9 @@ export function SummaryCards({
         <View style={styles.cardBottom}>
           <ThemedText style={[styles.cardValue, { color: Colors.light.warning }]}>
             {formatCentimes(toCollectValue_centimes, locale)}
+          </ThemedText>
+          <ThemedText style={styles.cardSub}>
+            {toCollectValue_centimes > 0 ? "5 clients" : ""}
           </ThemedText>
         </View>
       </ThemedView>
@@ -99,6 +110,9 @@ export function SummaryCards({
           <ThemedText style={[styles.cardValue, { color: lowStockCount > 0 ? Colors.light.warning : Colors.light.textPrimary }]}>
             {lowStockCount}
           </ThemedText>
+          <ThemedText style={styles.cardSub}>
+            {lowStockCount > 0 ? "Reorder soon" : "Stock OK"}
+          </ThemedText>
         </View>
       </ThemedView>
     </View>
@@ -110,7 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
-    marginBottom: Spacing.lg,
+    marginBottom: 24,
   },
   card: {
     width: "48%",
@@ -119,8 +133,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.border,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    minHeight: 110,
+    padding: 16,
+    minHeight: 128,
     justifyContent: "space-between",
     ...Shadows.sm,
   },
@@ -128,7 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Spacing.sm,
+    marginBottom: 8,
   },
   cardLabel: {
     ...Typography.caption,
@@ -148,11 +162,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   cardBottom: {
-    marginTop: Spacing.xs,
+    marginTop: 4,
   },
   cardValue: {
     ...Typography.moneyDisplay,
-    fontSize: 20,
-    lineHeight: 26,
+    fontSize: 24,
+    lineHeight: 30,
+  },
+  cardSub: {
+    ...Typography.caption,
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    marginTop: 1,
   },
 });

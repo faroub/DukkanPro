@@ -40,49 +40,77 @@ export function QuickActions({
         {quickActionNewSale}
       </ThemedText>
 
-      <View style={styles.actionRow}>
+      <View style={styles.actionSheet}>
+        {/* Action 1: New Sale */}
         <TouchableOpacity
           style={styles.actionButton}
           onPress={onNewSale}
           accessible={true}
           accessibilityLabel={quickActionNewSale}
         >
-          <ThemedText type="body" style={styles.actionText}>
-            {quickActionNewSale}
-          </ThemedText>
+          <ThemedView style={styles.iconContainer}>
+            <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.primary }}>
+              point_of_sale
+            </span>
+          </ThemedView>
+          <View style={styles.buttonContent}>
+            <ThemedText style={styles.actionText}>{quickActionNewSale}</ThemedText>
+            <ThemedText style={styles.captionText}>Quick checkout & receipt</ThemedText>
+          </View>
         </TouchableOpacity>
 
+        {/* Action 2: Add Product */}
         <TouchableOpacity
           style={styles.actionButton}
           onPress={onAddProduct}
           accessible={true}
           accessibilityLabel={quickActionAddProduct}
         >
-          <ThemedText type="body" style={styles.actionText}>
-            {quickActionAddProduct}
-          </ThemedText>
+          <ThemedView style={styles.iconContainer}>
+            <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.primary }}>
+              barcode_scanner
+            </span>
+          </ThemedView>
+          <View style={styles.buttonContent}>
+            <ThemedText style={styles.actionText}>{quickActionAddProduct}</ThemedText>
+            <ThemedText style={styles.captionText}>Scan barcode or enter manually</ThemedText>
+          </View>
         </TouchableOpacity>
 
+        {/* Action 3: Add Customer */}
         <TouchableOpacity
           style={styles.actionButton}
           onPress={onAddCustomer}
           accessible={true}
           accessibilityLabel={quickActionAddCustomer}
         >
-          <ThemedText type="body" style={styles.actionText}>
-            {quickActionAddCustomer}
-          </ThemedText>
+          <ThemedView style={styles.iconContainer}>
+            <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.primary }}>
+              person_add
+            </span>
+          </ThemedView>
+          <View style={styles.buttonContent}>
+            <ThemedText style={styles.actionText}>{quickActionAddCustomer}</ThemedText>
+            <ThemedText style={styles.captionText}>Create account or credit ledger</ThemedText>
+          </View>
         </TouchableOpacity>
 
+        {/* Action 4: Record Payment */}
         <TouchableOpacity
           style={styles.actionButton}
           onPress={onRecordPayment}
           accessible={true}
           accessibilityLabel={quickActionRecordPayment}
         >
-          <ThemedText type="body" style={styles.actionText}>
-            {quickActionRecordPayment}
-          </ThemedText>
+          <ThemedView style={styles.iconContainer}>
+            <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.primary }}>
+              payments
+            </span>
+          </ThemedView>
+          <View style={styles.buttonContent}>
+            <ThemedText style={styles.actionText}>{quickActionRecordPayment}</ThemedText>
+            <ThemedText style={styles.captionText}>Settle credit or partial payment</ThemedText>
+          </View>
         </TouchableOpacity>
       </View>
     </ThemedView>
@@ -93,7 +121,7 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: "#DDDDDD",
+    borderColor: Colors.light.border,
     borderRadius: 12,
     padding: 20,
     marginBottom: 24,
@@ -109,22 +137,44 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
   },
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
+  actionSheet: {
+    backgroundColor: Colors.light.surface,
   },
   actionButton: {
-    backgroundColor: "#1B6B3A",
-    padding: 12,
-    borderRadius: 8,
-    minWidth: 120,
+    backgroundColor: Colors.light.surface,
+    padding: 16,
+    borderRadius: 16,
+    minHeight: 58,
     alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    marginBottom: 12,
+    ...Colors.light.shadowSm,
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.light.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    flexShrink: 0,
+  },
+  buttonContent: {
+    alignItems: "center",
+    gap: 6,
   },
   actionText: {
     color: Colors.light.textPrimary,
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: 600,
     textAlign: "center",
+  },
+  captionText: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 12,
   },
 });
