@@ -1,6 +1,6 @@
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -69,12 +69,15 @@ export function BusinessNameStep({
           <View style={styles.bar} />
         </View>
       </View>
+      </View>
 
       {/* Title & Subtitle */}
       <View style={styles.header}>
-        <ThemedText style={styles.title}>Tell us about your business</ThemedText>
+        <ThemedText style={styles.title}>
+          {t("onboarding:businessNameStep.title")}
+        </ThemedText>
         <ThemedText style={styles.subtitle}>
-          Enter your shop details to personalize your workspace
+          {t("onboarding:businessNameStep.subtitle")}
         </ThemedText>
       </View>
 
@@ -100,7 +103,9 @@ export function BusinessNameStep({
           </ThemedText>
           <View style={styles.previewBadge}>
             <View style={styles.previewBadgeDot} />
-            <Text style={styles.previewBadgeText}>Personalized POS setup</Text>
+            <Text style={styles.previewBadgeText}>
+              {t("onboarding:businessNameStep.previewBadgeText")}
+            </Text>
           </View>
         </View>
       </View>
@@ -110,7 +115,9 @@ export function BusinessNameStep({
         {/* Field 1: Business Name */}
         <View style={styles.fieldGroup}>
           <View style={styles.labelRow}>
-            <ThemedText style={styles.fieldLabel}>Business name</ThemedText>
+            <ThemedText style={styles.fieldLabel}>
+              {t("onboarding:businessNameStep.label")}
+            </ThemedText>
             <ThemedText style={styles.requiredBadge}>Required</ThemedText>
           </View>
           <View style={styles.inputWrapper}>
@@ -127,7 +134,7 @@ export function BusinessNameStep({
             </View>
             <TextInput
               style={styles.textInput}
-              placeholder="e.g., Supérette El-Amel, Pâtisserie Yasmine"
+              placeholder={t("onboarding:businessNameStep.placeholder")}
               placeholderTextColor={Colors.light.textMuted}
               value={businessName}
               onChangeText={setBusinessName}
@@ -156,7 +163,7 @@ export function BusinessNameStep({
             </View>
             <TextInput
               style={styles.textInput}
-              placeholder="e.g., Karim Benali"
+              placeholder={t("onboarding:businessNameStep.ownerPlaceholder")}
               placeholderTextColor={Colors.light.textMuted}
               value={ownerName}
               onChangeText={setOwnerName}
@@ -180,20 +187,22 @@ export function BusinessNameStep({
           tintColor={Colors.light.primary}
         />
         <Text style={styles.trustText}>
-          Your ledger and customer contacts are kept 100% offline, encrypted, and private to your device.
+          {t("onboarding:businessNameStep.trustText")}
         </Text>
       </View>
 
       {/* CTA Footer */}
       <View style={styles.footer}>
         <PrimaryButton
-          title="Continue"
+          title={t("common:primaryButton")}
           disabled={!businessName.trim()}
           onPress={handleContinue}
         />
         {onBack && (
           <Pressable onPress={onBack} style={styles.backButton}>
-            <ThemedText style={styles.backButtonText}>Back / Retour</ThemedText>
+            <ThemedText style={styles.backButtonText}>
+              {t("common:back")}
+            </ThemedText>
           </Pressable>
         )}
       </View>

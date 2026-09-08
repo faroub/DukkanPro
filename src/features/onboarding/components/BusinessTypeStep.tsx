@@ -97,12 +97,15 @@ export function BusinessTypeStep({
           <View style={styles.bar} />
         </View>
       </View>
+      </View>
 
       {/* Header */}
       <View style={styles.header}>
-        <ThemedText style={styles.title}>What type of business?</ThemedText>
+        <ThemedText style={styles.title}>
+          {t("onboarding:businessTypeStep.title")}
+        </ThemedText>
         <ThemedText style={styles.subtitle}>
-          Choose the category that best matches your daily activity
+          {t("onboarding:businessTypeStep.subtitle")}
         </ThemedText>
       </View>
 
@@ -178,10 +181,12 @@ export function BusinessTypeStep({
 
       {/* CTA Footer */}
       <View style={styles.footer}>
-        <PrimaryButton title="Continue" onPress={handleContinue} />
+        <PrimaryButton title={t("common:primaryButton")} onPress={handleContinue} />
         {onBack && (
           <Pressable onPress={onBack} style={styles.backButton}>
-            <ThemedText style={styles.backButtonText}>Back / Retour</ThemedText>
+            <ThemedText style={styles.backButtonText}>
+              {t("common:back")}
+            </ThemedText>
           </Pressable>
         )}
       </View>

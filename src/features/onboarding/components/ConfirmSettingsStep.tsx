@@ -61,14 +61,16 @@ export function ConfirmSettingsStep({
           <View style={[styles.bar, styles.barActive]} />
           <View style={[styles.bar, styles.barActive]} />
           <View style={[styles.bar, styles.barActive]} />
-        </View>
-      </View>
+        </V>
+      </V>
 
       {/* Header */}
       <View style={styles.header}>
-        <ThemedText style={styles.title}>Confirm your settings</ThemedText>
+        <ThemedText style={styles.title}>
+          {t("onboarding:confirmSettingsStep.title")}
+        </ThemedText>
         <ThemedText style={styles.subtitle}>
-          Review your shop details before entering your workspace
+          {t("onboarding:confirmSettingsStep.subtitle")}
         </ThemedText>
       </View>
 
@@ -89,7 +91,9 @@ export function ConfirmSettingsStep({
               />
             </View>
             <View style={styles.rowText}>
-              <ThemedText style={styles.rowLabel}>Business name</ThemedText>
+              <ThemedText style={styles.rowLabel}>
+                {t("onboarding:confirmSettingsStep.businessNameLabel")}
+              </ThemedText>
               <ThemedText style={styles.rowValue} numberOfLines={1}>
                 {businessName || "My Store"}
               </ThemedText>
@@ -98,7 +102,7 @@ export function ConfirmSettingsStep({
           <Pressable
             onPress={() => onEditStep(1)}
             style={styles.editButton}
-            accessibilityLabel="Edit business name"
+            accessibilityLabel={t("onboarding:confirmSettingsStep.editBusinessName")}
           >
             <SymbolView
               name={{
@@ -129,7 +133,9 @@ export function ConfirmSettingsStep({
               />
             </View>
             <View style={styles.rowText}>
-              <ThemedText style={styles.rowLabel}>Your name</ThemedText>
+              <ThemedText style={styles.rowLabel}>
+                {t("onboarding:confirmSettingsStep.ownerNameLabel")}
+              </ThemedText>
               <ThemedText style={styles.rowValue} numberOfLines={1}>
                 {ownerName || businessName}
               </ThemedText>
@@ -138,7 +144,7 @@ export function ConfirmSettingsStep({
           <Pressable
             onPress={() => onEditStep(1)}
             style={styles.editButton}
-            accessibilityLabel="Edit owner name"
+            accessibilityLabel={t("onboarding:confirmSettingsStep.editOwnerName")}
           >
             <SymbolView
               name={{
@@ -169,7 +175,9 @@ export function ConfirmSettingsStep({
               />
             </View>
             <View style={styles.rowText}>
-              <ThemedText style={styles.rowLabel}>Business type</ThemedText>
+              <ThemedText style={styles.rowLabel}>
+                {t("onboarding:confirmSettingsStep.businessTypeLabel")}
+              </ThemedText>
               <ThemedText style={styles.rowValue} numberOfLines={1}>
                 {CATEGORY_NAMES[businessType] || businessType}
               </ThemedText>
@@ -178,7 +186,7 @@ export function ConfirmSettingsStep({
           <Pressable
             onPress={() => onEditStep(2)}
             style={styles.editButton}
-            accessibilityLabel="Edit business type"
+            accessibilityLabel={t("onboarding:confirmSettingsStep.editBusinessType")}
           >
             <SymbolView
               name={{
@@ -209,11 +217,15 @@ export function ConfirmSettingsStep({
               />
             </View>
             <View style={styles.rowText}>
-              <ThemedText style={styles.rowLabel}>Currency</ThemedText>
+              <ThemedText style={styles.rowLabel}>
+                {t("onboarding:confirmSettingsStep.currencyLabel")}
+              </ThemedText>
               <ThemedText style={styles.rowValue}>
                 {currency} (Algerian Dinar)
               </ThemedText>
-              <Text style={styles.currencyNote}>Fixed default for Algeria</Text>
+              <Text style={styles.currencyNote}>
+                {t("onboarding:confirmSettingsStep.currencyNote")}
+              </Text>
             </View>
           </View>
           <View style={styles.lockedBadge}>
@@ -227,8 +239,8 @@ export function ConfirmSettingsStep({
               tintColor={Colors.light.textMuted}
             />
           </View>
-        </View>
-      </View>
+        </V>
+      </V>
 
       {/* Info Reassurance Note */}
       <View style={styles.infoBox}>
@@ -242,19 +254,21 @@ export function ConfirmSettingsStep({
           tintColor={Colors.light.textSecondary}
         />
         <ThemedText style={styles.infoText}>
-          You can change these later in Settings
+          {t("onboarding:confirmSettingsStep.infoText")}
         </ThemedText>
-      </View>
+      </V>
 
       {/* Footer CTA */}
       <View style={styles.footer}>
-        <PrimaryButton title="Start using Dukkan OS" onPress={onConfirm} />
+        <PrimaryButton title={t("onboarding:confirmSettingsStep.startButton")} onPress={onConfirm} />
         {onBack && (
           <Pressable onPress={onBack} style={styles.backButton}>
-            <ThemedText style={styles.backButtonText}>Back / Retour</ThemedText>
+            <ThemedText style={styles.backButtonText}>
+              {t("common:back")}
+            </ThemedText>
           </Pressable>
         )}
-      </View>
+      </V>
     </ThemedView>
   );
 }
