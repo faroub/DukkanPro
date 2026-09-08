@@ -43,6 +43,10 @@ export function CartList({
 
   const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cash" | "electronic" | "credit"
+  >("cash");
+
   return (
     <View style={styles.container}>
       {/* Grab Handle */}
@@ -117,6 +121,132 @@ export function CartList({
                 <ThemedText style={styles.totalValue}>
                   {formatCentimes(total)}
                 </ThemedText>
+              </View>
+            </View>
+
+            {/* Payment Method Selection */}
+            <View style={styles.paymentMethodSection}>
+              <ThemedText style={styles.paymentLabel}>Mode de règlement</ThemedText>
+              <View style={styles.paymentGrid}>
+                {/* Cash option */}
+                <Pressable
+                  onPress={() => setPaymentMethod("cash")}
+                  style={[
+                    styles.paymentCard,
+                    paymentMethod === "cash" && styles.paymentCardSelected,
+                  ]}
+                >
+                  <View style={styles.paymentIconContainer}>
+                    <SymbolView
+                      name={{
+                        ios: "banknote" as any,
+                        android: "payments" as any,
+                        web: "payments" as any,
+                      }}
+                      size={22}
+                      tintColor={
+                        paymentMethod === "cash"
+                          ? Colors.light.primary
+                          : Colors.light.textSecondary
+                      }
+                    />
+                  </View>
+                  <View style={styles.paymentDetails}>
+                    <ThemedText style={styles.paymentLabelText}>Espèces</ThemedText>
+                    <ThemedText style={styles.paymentSubLabel}>Règlement direct au comptoir</ThemedText>
+                  </View>
+                  <View style={styles.paymentRadio}>
+                    <SymbolView
+                      name={{
+                        ios: "check" as any,
+                        android: "check" as any,
+                        web: "check" as any,
+                      }}
+                      size={14}
+                      tintColor={Colors.light.primary}
+                    />
+                  </View>
+                </Pressable>
+
+                {/* Electronic option */}
+                <Pressable
+                  onPress={() => setPaymentMethod("electronic")}
+                  style={[
+                    styles.paymentCard,
+                    paymentMethod === "electronic" && styles.paymentCardSelected,
+                  ]}
+                >
+                  <View style={styles.paymentIconContainer}>
+                    <SymbolView
+                      name={{
+                        ios: "creditcard" as any,
+                        android: "credit_card" as any,
+                        web: "credit_card" as any,
+                      }}
+                      size={22}
+                      tintColor={
+                        paymentMethod === "electronic"
+                          ? Colors.light.primary
+                          : Colors.light.textSecondary
+                      }
+                    />
+                  </View>
+                  <View style={styles.paymentDetails}>
+                    <ThemedText style={styles.paymentLabelText}>Carte / CIB</ThemedText>
+                    <ThemedText style={styles.paymentSubLabel}>Terminal TPE ou code QR</ThemedText>
+                  </View>
+                  <View style={styles.paymentRadio}>
+                    <SymbolView
+                      name={{
+                        ios: "check" as any,
+                        android: "check" as any,
+                        web: "check" as any,
+                      }}
+                      size={14}
+                      tintColor={Colors.light.surface}
+                    />
+                  </View>
+                </Pressable>
+
+                {/* Credit option */}
+                <Pressable
+                  onPress={() => setPaymentMethod("credit")}
+                  style={[
+                    styles.paymentCard,
+                    paymentMethod === "credit" && styles.paymentCardSelected,
+                  ]}
+                >
+                  <View style={styles.paymentIconContainer}>
+                    <SymbolView
+                      name={{
+                        ios: "book.closed" as any,
+                        android: "menu_book" as any,
+                        web: "menu_book" as any,
+                      }}
+                      size={22}
+                      tintColor={
+                        paymentMethod === "credit"
+                          ? Colors.light.primary
+                          : Colors.light.textSecondary
+                      }
+                    />
+                  </View>
+                  <View style={styles.paymentDetails}>
+                    <ThemedText style={styles.paymentLabelText}>Dette (Carnet)</ThemedText>
+                    <ThemedText style={styles.paymentSubLabel}>Porté au solde du client</ThemedText>
+                  </View>
+                  <View style={styles.paymentRadio}>
+                    <SymbolView
+                      name={{
+                        ios: "check" as any,
+                        android: "check" as any,
+                        web: "check" as any,
+                      }}
+                      size={14}
+                      tintColor={Colors.light.surface}
+                    />
+                  </View>
+                </Pressable>
               </View>
             </View>
 
@@ -223,6 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   summaryRow: {
     flexDirection: "row",
@@ -248,6 +379,10 @@ const styles = StyleSheet.create({
   },
   totalRow: {
     paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.borderLight,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
   },
   totalLabel: {
     ...Typography.label,
@@ -262,6 +397,7 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     gap: Spacing.sm,
+    marginTop: Spacing.md,
   },
   clearBtn: {
     flexDirection: "row",
@@ -274,5 +410,69 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     fontWeight: "600",
     color: Colors.light.destructive,
+  },
+
+  /* Payment Method Section Styles */
+  paymentMethodSection: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.borderLight,
+  },
+  paymentLabel: {
+    ...Typography.label,
+    color: Colors.light.textSecondary,
+    textTransform: "uppercase",
+    fontSize: 11,
+    marginBottom: Spacing.sm,
+  },
+  paymentGrid: {
+    gap: Spacing.sm,
+  },
+  paymentCard: {
+    flex: 1,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    ...Shadows.sm,
+    alignItems: "center",
+    gap: 6,
+  },
+  paymentCardSelected: {
+    backgroundColor: Colors.light.primaryLight,
+    borderColor: Colors.light.primary,
+  },
+  paymentIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.lg,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: Spacing.md,
+  },
+  paymentDetails: {
+    flex: 1,
+  },
+  paymentLabelText: {
+    ...Typography.label,
+    color: Colors.light.textPrimary,
+    fontWeight: "600",
+  },
+  paymentSubLabel: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 10,
+    marginTop: 1,
+  },
+  paymentRadio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: Colors.light.primary,
   },
 });

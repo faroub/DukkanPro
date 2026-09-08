@@ -71,7 +71,7 @@ export function CartItem({
         </Pressable>
       </View>
 
-      {/* Stepper and Line Total Row */}
+      {/* Stepper and Line Total Row with 48px touch targets per Stitch design */}
       <View style={styles.bottomRow}>
         <View style={styles.stepperContainer}>
           <Pressable
@@ -88,7 +88,7 @@ export function CartItem({
                 android: "remove" as any,
                 web: "remove" as any,
               }}
-              size={18}
+              size={24}
               tintColor={Colors.light.textPrimary}
             />
           </Pressable>
@@ -108,7 +108,7 @@ export function CartItem({
                 android: "add" as any,
                 web: "add" as any,
               }}
-              size={18}
+              size={24}
               tintColor={Colors.light.primary}
             />
           </Pressable>
@@ -175,20 +175,22 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.light.borderLight,
   },
+  // Large 48px stepper controls per Stitch design specification
   stepperContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.light.backgroundElement,
     borderRadius: BorderRadius.lg,
-    padding: 2,
+    padding: Spacing.sm,
   },
   stepBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.md,
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
     backgroundColor: Colors.light.surface,
     justifyContent: "center",
     alignItems: "center",
+    ...Shadows.sm,
   },
   stepBtnAdd: {
     backgroundColor: Colors.light.primaryLight,
@@ -203,6 +205,7 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontWeight: "700",
     color: Colors.light.textPrimary,
+    fontSize: 20,
   },
   totalCol: {
     alignItems: "flex-end",
@@ -211,5 +214,6 @@ const styles = StyleSheet.create({
     ...Typography.moneySmall,
     color: Colors.light.primary,
     fontWeight: "700",
+    fontSize: 16,
   },
 });
