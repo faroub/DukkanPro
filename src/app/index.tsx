@@ -1,13 +1,15 @@
 import { useRouter, type Href } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet, Image, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors, Spacing } from "@/constants/theme";
+import { Colors, Spacing, ComponentDimensions, Typography, BorderRadius } from "@/constants/theme";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useTranslation } from "react-i18next";
+import { EmptyDashboardScreen } from "@/features/onboarding/EmptyDashboardScreen";
+import { SymbolView } from "expo-symbols";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -62,7 +64,7 @@ export default function Root() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <OnboardingScreen />
+      <EmptyDashboardScreen />
     </SafeAreaView>
   );
 }
