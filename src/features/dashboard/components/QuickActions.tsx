@@ -1,7 +1,7 @@
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Colors } from "@/constants/theme";
+import { Colors, Shadows, Typography } from "@/constants/theme";
 import { getTextAlignment } from "@/utils/text";
 
 interface QuickActionsProps {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.border,
     marginBottom: 12,
-    ...Colors.light.shadowSm,
+    ...Shadows.sm,
   },
   iconContainer: {
     width: 44,

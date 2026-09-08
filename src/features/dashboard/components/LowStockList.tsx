@@ -121,7 +121,7 @@ export function LowStockList({
               </View>
             </View>
             <View style={styles.progressBar}>
-              <View style={styles.progressBarFill} style={{ width: `${Math.max(1, Math.round((product.stockQuantity / product.minThreshold) * 100))}%` }} />
+              <View style={[{ ...styles.progressBarFill, width: `${Math.max(1, Math.round((product.stockQuantity / product.minThreshold) * 100))}%` }]} />
             </View>
             <View style={styles.actionButton}>
               <span className="material-symbols-outlined" style={{ fontSize: 20, color: Colors.light.primary }}>
@@ -137,7 +137,7 @@ export function LowStockList({
       {lowStockCount > 0 && (
         <View style={styles.stickyCTA}>
           <TouchableOpacity style={styles.ctaButton} onPress={() => {}}>
-            <span className="material-symbols-outlined" style={{ fontSize: 22, color: Colors.light.textOnPrimary }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 22, color: Colors.light.surface }}>
               shopping_cart_checkout
             </span>
             <ThemedText style={styles.ctaText}>Bulk Reorder Order</ThemedText>
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   searchInputWrapper: {
     display: "flex",
     alignItems: "center",
-    backgroundColor: Colors.light.surfaceAlt,
+    backgroundColor: Colors.light.backgroundElement,
     borderRadius: 12,
     padding: 8,
     marginBottom: 8,
@@ -249,14 +249,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   filterChipActive: {
-    ...styles.filterChip,
+    padding: 8,
+    borderRadius: 20,
     backgroundColor: Colors.light.primary,
-    color: Colors.light.textPrimary,
+    color: Colors.light.surface,
     borderColor: Colors.light.primary,
+    minWidth: 80,
+    alignItems: "center",
+    justifyContent: "center",
   },
   filterChipInactive: {
-    ...styles.filterChip,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "transparent",
     color: Colors.light.textSecondary,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    minWidth: 80,
+    alignItems: "center",
+    justifyContent: "center",
   },
   itemsList: {
     display: "flex",
@@ -312,7 +323,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 8,
-    backgroundColor: Colors.light.surfaceAlt,
+    backgroundColor: Colors.light.surface,
     borderRadius: 8,
     margin: 8,
   },
@@ -325,6 +336,12 @@ const styles = StyleSheet.create({
   metricsValue: {
     ...Typography.moneySmall,
     color: Colors.light.textPrimary,
+  },
+  currentStock: {
+    alignItems: "center",
+  },
+  minThreshold: {
+    alignItems: "flex-end",
   },
   metricsLabelUpper: {
     ...Typography.caption,
@@ -340,7 +357,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: Colors.light.secondaryContainer,
+    backgroundColor: Colors.light.backgroundElement,
   },
   actionButton: {
     width: "100%",
@@ -364,8 +381,8 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     width: "100%",
-    backgroundColor: Colors.light.primaryContainer,
-    color: Colors.light.textOnPrimary,
+    backgroundColor: Colors.light.primary,
+    color: Colors.light.surface,
     height: 52,
     borderRadius: 14,
     alignItems: "center",
@@ -374,7 +391,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     ...Typography.body,
-    color: Colors.light.textOnPrimary,
+    color: Colors.light.surface,
   },
   ctaBadge: {
     backgroundColor: "rgba(255,255,255,0.2)",
