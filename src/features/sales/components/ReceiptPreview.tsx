@@ -1,25 +1,31 @@
 import { SymbolView } from "expo-symbols";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import {
-  BorderRadius,
-  Colors,
-  ComponentDimensions,
-  Shadows,
-  Spacing,
-  Typography,
-} from "@/constants/theme";
-import { Sale } from "@/types/entities";
+import { BorderRadius, Colors, ComponentDimensions, Shadows, Spacing, Typography } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
 import { useTranslation } from "react-i18next";
+
+interface SaleItem {
+  id: number;
+  name: string;
+  quantity: number;
+  sale_price_centimes: number;
+}
 
 interface ReceiptPreviewProps {
   visible: boolean;
   onRequestClose: () => void;
   onNewSale: () => void;
-  sale: Sale | null;
+  saleItems: SaleItem[];
+  cartTotal: number;
+  discountCentimes: number;
+  paymentMethod: "cash" | "electronic" | "mixed" | "credit" | "partial";
+  amountReceived: number;
+  customerName?: string | null;
+  setCustomerId?: any;
+  customerId?: number;
   t?: any;
 }
 
@@ -27,18 +33,24 @@ export function ReceiptPreview({
   visible,
   onRequestClose,
   onNewSale,
-  sale,
+  saleItems,
+  cartTotal,
+  discountCentimes,
+  paymentMethod,
+  amountReceived,
+  customerName,
 }: ReceiptPreviewProps) {
   const { t } = useTranslation();
+  const changeDue = Math.max(0, amountReceived - cartTotal);
 
-  if (!sale) {
-    return null;
-  }
+  const totalCentimes = saleItems.reduce(
+    (sum, item) => sum + item.sale_price_centimes * item.quantity,
+    0
+  );
 
-  const dateStr = new Date(sale.sold_at).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const handleConfirm = () => {
+    onNewSale();
+  };
 
   return (
     <Modal
@@ -47,138 +59,140 @@ export function ReceiptPreview({
       animationType="fade"
       onRequestClose={onRequestClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* Success Checkmark Aura */}
-          <View style={styles.successHeader}>
-            <View style={styles.iconCircle}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.receiptCard}>
+          {/* Receipt Top Stripe */}
+          <View style={styles.topStripe} />
+
+          {/* Receipt Header with Checkmark */}
+          <View style={styles.headerRow}>
+            <View style={styles.checkmark}>
               <SymbolView
                 name={{
-                  ios: "checkmark.circle.fill" as any,
+                  ios: "checkmark.seal" as any,
                   android: "check_circle" as any,
                   web: "check_circle" as any,
                 }}
-                size={54}
+                size={32}
                 tintColor={Colors.light.primary}
               />
             </View>
-            <View style={styles.statusPill}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusPillText}>Caisse Enregistrée</Text>
+            <View style={styles.headerInfo}>
+              <ThemedText style={styles.headerTitle}>
+                {t("receipt.printed") || "Caisse Enregistrée"}
+              </ThemedText>
+              <ThemedText style={styles.headerSubTitle}>
+                {t("receipt.date") || new Date().toLocaleDateString("ar-DZ")}
+              </ThemedText>
             </View>
-            <ThemedText style={styles.successTitle}>Vente terminée !</ThemedText>
-            <ThemedText style={styles.successSubtitle}>
-              Ticket #{sale.id || "REC"} validé avec succès
+          </View>
+
+          {/* Items Table */}
+          <View style={styles.itemsSection}>
+            <ThemedText style={styles.itemsTitle}>
+              {t("receipt.items") || "Articles"}
+            </ThemedText>
+            <FlatList
+              data={saleItems}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.itemRow}>
+                  <View style={styles.itemNameCol}>
+                    <ThemedText style={styles.itemName}>
+                      {item.name}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.itemQtyCol}>
+                    <ThemedText style={styles.itemQty}>
+                      {item.quantity}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.itemTotalCol}>
+                    <Text style={styles.itemTotal}>
+                      {formatCentimes(item.sale_price_centimes * item.quantity)}
+                    </Text>
+                  </View>
+                </View>
+              )}
+              scrolls={false}
+              contentContainerStyle={styles.itemList}
+            />
+          </View>
+
+          {/* Subtotal, Discount, Grand Total */}
+          <View style={styles.totalsSection}>
+            <View style={styles.totalRow}>
+              <ThemedText style={styles.totalLabel}>
+                {t("receipt.subtotal") || "Sous-total"}
+              </ThemedText>
+              <Text style={styles.totalValue}>
+                {formatCentimes(totalCentimes)}
+              </Text>
+            </View>
+
+            {discountCentimes > 0 && (
+              <View style={styles.discountRow}>
+                <ThemedText style={styles.discountLabel}>
+                  {t("receipt.discount") || "Remise"}
+                </ThemedText>
+                <Text style={styles.discountValue}>
+                  -{formatCentimes(discountCentimes)}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.grandTotalRow}>
+              <ThemedText style={styles.grandTotalLabel}>
+                {t("receipt.grand_total") || "Total"}
+              </ThemedText>
+              <Text style={styles.grandTotalValue}>
+                {formatCentimes(totalCentimes - discountCentimes)}
+              </Text>
+            </View>
+          </View>
+
+          {/* Payment Breakdown */}
+          <View style={styles.paymentSection}>
+            <ThemedText style={styles.paymentLabel}>
+              {t("receipt.payment_method") || "Mode de paiement"}
+            </ThemedText>
+            <ThemedText style={styles.paymentValue}>
+              {t(`receipt.${paymentMethod}`, {
+                defaultValue: paymentMethod,
+              })}
             </ThemedText>
           </View>
 
-          {/* Thermal Receipt Ticket Simulation Card */}
-          <View style={styles.receiptCard}>
-            <View style={styles.receiptTopStripe} />
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              style={styles.receiptScroll}
-            >
-              {/* Store & Time Header */}
-              <View style={styles.shopInfoRow}>
-                <View style={styles.shopIcon}>
-                  <SymbolView
-                    name={{
-                      ios: "storefront.fill" as any,
-                      android: "storefront" as any,
-                      web: "storefront" as any,
-                    }}
-                    size={20}
-                    tintColor={Colors.light.primary}
-                  />
-                </View>
-                <View style={styles.shopMeta}>
-                  <ThemedText style={styles.shopName}>Supérette</ThemedText>
-                  <ThemedText style={styles.shopDate}>
-                    Aujourd'hui, {dateStr}
-                  </ThemedText>
-                </View>
-                <View style={styles.paidBadge}>
-                  <Text style={styles.paidBadgeText}>Payé</Text>
-                </View>
-              </View>
-
-              <View style={styles.dashedLine} />
-
-              {/* Items Table */}
-              <View style={styles.itemsSection}>
-                {sale.saleItems?.map((item, index) => (
-                  <View key={index} style={styles.itemRow}>
-                    <View style={styles.itemLeft}>
-                      <ThemedText style={styles.itemName} numberOfLines={1}>
-                        {item.product_name_snapshot}
-                      </ThemedText>
-                      <ThemedText style={styles.itemDetail}>
-                        {item.quantity} x {formatCentimes(item.unit_sale_price_centimes)}
-                      </ThemedText>
-                    </View>
-                    <ThemedText style={styles.itemLineTotal}>
-                      {formatCentimes(item.line_total_centimes)}
-                    </ThemedText>
-                  </View>
-                ))}
-              </View>
-
-              <View style={styles.dashedLine} />
-
-              {/* Totals */}
-              <View style={styles.totalsSection}>
-                <View style={styles.totalsRow}>
-                  <ThemedText style={styles.totalRowLabel}>Sous-total</ThemedText>
-                  <ThemedText style={styles.totalRowValue}>
-                    {formatCentimes(sale.subtotal_centimes)}
-                  </ThemedText>
-                </View>
-
-                {sale.discount_centimes > 0 && (
-                  <View style={styles.totalsRow}>
-                    <ThemedText style={styles.totalRowLabel}>Remise</ThemedText>
-                    <ThemedText style={[styles.totalRowValue, styles.discountText]}>
-                      -{formatCentimes(sale.discount_centimes)}
-                    </ThemedText>
-                  </View>
-                )}
-
-                <View style={[styles.totalsRow, styles.grandTotalRow]}>
-                  <ThemedText style={styles.grandTotalLabel}>
-                    Total Réglé
-                  </ThemedText>
-                  <Text style={styles.grandTotalValue}>
-                    {formatCentimes(sale.total_centimes)}
-                  </Text>
-                </View>
-
-                <View style={styles.totalsRow}>
-                  <ThemedText style={styles.totalRowLabel}>
-                    Mode de paiement
-                  </ThemedText>
-                  <ThemedText style={styles.totalRowValue}>
-                    {sale.payment_method === "cash"
-                      ? "Espèces"
-                      : sale.payment_method === "credit"
-                      ? "Dette (Carnet)"
-                      : "Carte"}
-                  </ThemedText>
-                </View>
-              </View>
-            </ScrollView>
+          {/* Change Due */}
+          <View style={styles.changeDueRow}>
+            <ThemedText style={styles.changeDueLabel}>
+              {t("receipt.change_due") || "Monnaie à rendre"}
+            </ThemedText>
+            <Text style={styles.changeDueValue}>
+              {formatCentimes(changeDue)}
+            </Text>
           </View>
 
-          {/* Action CTAs */}
+          {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <PrimaryButton title="Nouvelle vente" onPress={onNewSale} />
+            <Pressable
+              onPress={onNewSale}
+              style={styles.newSaleBtn}
+              hitSlop={8}
+            >
+              <ThemedText style={styles.newSaleBtnText}>
+                {t("receipt.new_sale") || "Nouvelle vente"}
+              </ThemedText>
+            </Pressable>
+
             <Pressable
               onPress={onRequestClose}
-              style={styles.closeBtn}
-              accessibilityLabel="Fermer le reçu"
+              style={styles.shareBtn}
+              hitSlop={8}
             >
-              <ThemedText style={styles.closeBtnText}>Fermer</ThemedText>
+              <ThemedText style={styles.shareBtnText}>
+                {t("receipt.share") || "Partager"}
+              </ThemedText>
             </Pressable>
           </View>
         </View>
@@ -188,203 +202,250 @@ export function ReceiptPreview({
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: ComponentDimensions.screenPadding,
-  },
-  container: {
-    width: "100%",
-    maxWidth: 440,
-    backgroundColor: Colors.light.background,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    ...Shadows.lg,
-  },
-  successHeader: {
-    alignItems: "center",
-    marginBottom: Spacing.md,
-  },
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.light.primaryLight,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: Spacing.xs,
-  },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: Colors.light.primaryLight,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-    marginTop: 4,
-    marginBottom: 4,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.light.primary,
-  },
-  statusPillText: {
-    ...Typography.caption,
-    fontSize: 11,
-    fontWeight: "600",
-    color: Colors.light.primary,
-    textTransform: "uppercase",
-  },
-  successTitle: {
-    ...Typography.heading2,
-    color: Colors.light.textPrimary,
-  },
-  successSubtitle: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    justifyContent: "flex-end",
   },
   receiptCard: {
     backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    maxHeight: 280,
-    position: "relative",
-    overflow: "hidden",
-    ...Shadows.sm,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    ...Shadows.lg,
   },
-  receiptTopStripe: {
+  topStripe: {
     height: 3,
     backgroundColor: Colors.light.primary,
   },
-  receiptScroll: {
-    padding: Spacing.md,
-  },
-  shopInfoRow: {
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
-  },
-  shopIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.backgroundElement,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  shopMeta: {
-    flex: 1,
-  },
-  shopName: {
-    ...Typography.label,
-    color: Colors.light.textPrimary,
-  },
-  shopDate: {
-    ...Typography.caption,
-    fontSize: 11,
-    color: Colors.light.textMuted,
-  },
-  paidBadge: {
-    backgroundColor: Colors.light.primaryLight,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
-  paidBadgeText: {
-    ...Typography.caption,
-    fontSize: 11,
-    fontWeight: "700",
-    color: Colors.light.primary,
-  },
-  dashedLine: {
-    height: 1,
+    justifyContent: "space-between",
+    padding: ComponentDimensions.cardPadding,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
-    borderStyle: "dashed",
-    marginVertical: Spacing.sm,
+  },
+  checkmark: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.light.primaryLight,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: ComponentDimensions.screenPadding,
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  headerTitle: {
+    ...Typography.body,
+    fontSize: 18,
+    color: Colors.light.textPrimary,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  headerSubTitle: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 2,
   },
   itemsSection: {
-    gap: Spacing.xs,
+    padding: ComponentDimensions.cardPadding,
+  },
+  itemsTitle: {
+    ...Typography.label,
+    color: Colors.light.textSecondary,
+    fontSize: 12,
+    textTransform: "uppercase",
+    marginBottom: Spacing.md,
+  },
+  itemList: {
+    gap: Spacing.md,
   },
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.borderLight,
   },
-  itemLeft: {
+  itemNameCol: {
     flex: 1,
-    marginRight: Spacing.sm,
   },
   itemName: {
     ...Typography.body,
-    fontSize: 14,
     color: Colors.light.textPrimary,
+    fontSize: 14,
   },
-  itemDetail: {
+  itemQtyCol: {
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  itemQty: {
     ...Typography.caption,
-    fontSize: 11,
     color: Colors.light.textSecondary,
-  },
-  itemLineTotal: {
-    ...Typography.body,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
+  },
+  itemTotalCol: {
+    alignItems: "flex-end",
+    flex: 1,
+    paddingHorizontal: Spacing.sm,
+  },
+  itemTotal: {
+    ...Typography.moneySmall,
+    color: Colors.light.primary,
+    fontWeight: "700",
+    fontSize: 16,
+    textAlign: "right",
   },
   totalsSection: {
-    gap: 4,
+    padding: ComponentDimensions.cardPadding,
+    gap: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.border,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
   },
-  totalsRow: {
+  totalRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  totalRowLabel: {
+  totalLabel: {
     ...Typography.caption,
     color: Colors.light.textSecondary,
+    fontSize: 11,
+    textTransform: "uppercase",
   },
-  totalRowValue: {
+  totalValue: {
+    ...Typography.moneyDisplay,
+    fontSize: 22,
+    color: Colors.light.primary,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+  discountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginVertical: Spacing.xs,
+  },
+  discountLabel: {
     ...Typography.caption,
-    color: Colors.light.textPrimary,
-    fontWeight: "600",
+    color: Colors.light.textSecondary,
+    fontSize: 11,
+    textTransform: "uppercase",
   },
-  discountText: {
+  discountValue: {
+    ...Typography.moneySmall,
     color: Colors.light.warning,
+    fontWeight: "600",
+    fontSize: 16,
+    textAlign: "right",
   },
   grandTotalRow: {
-    paddingTop: 4,
-    marginTop: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
     borderTopWidth: 1,
     borderTopColor: Colors.light.borderLight,
   },
   grandTotalLabel: {
-    ...Typography.label,
-    fontSize: 15,
-    color: Colors.light.textPrimary,
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 11,
+    textTransform: "uppercase",
   },
   grandTotalValue: {
+    ...Typography.moneyDisplay,
+    fontSize: 24,
+    color: Colors.light.primary,
+    fontWeight: "700",
+    textAlign: "right",
+  },
+  paymentSection: {
+    padding: ComponentDimensions.cardPadding,
+    marginVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.border,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
+  },
+  paymentLabel: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 11,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  paymentValue: {
+    ...Typography.body,
+    color: Colors.light.textPrimary,
+    fontSize: 16,
+  },
+  changeDueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: Spacing.md,
+    backgroundColor: Colors.light.primaryLight,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+  },
+  changeDueLabel: {
+    ...Typography.label,
+    color: Colors.light.primaryDark,
+  },
+  changeDueValue: {
     ...Typography.moneySmall,
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
     color: Colors.light.primary,
+    textAlign: "right",
   },
   actionButtons: {
-    marginTop: Spacing.md,
-    gap: Spacing.xs,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: ComponentDimensions.cardPadding,
+    gap: Spacing.md,
   },
-  closeBtn: {
+  newSaleBtn: {
+    flex: 1,
+    backgroundColor: Colors.light.backgroundElement,
     paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
     alignItems: "center",
+    justifyContent: "center",
   },
-  closeBtnText: {
+  newSaleBtnText: {
     ...Typography.label,
-    color: Colors.light.textSecondary,
+    color: Colors.light.primary,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  shareBtn: {
+    flex: 1,
+    backgroundColor: Colors.light.primary,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shareBtnText: {
+    ...Typography.label,
+    color: Colors.light.textPrimary,
+    fontWeight: "600",
+    fontSize: 14,
   },
 });

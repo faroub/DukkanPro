@@ -71,7 +71,6 @@ export function CheckoutSheet({
   ]);
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
-
   const changeDue = Math.max(0, amountReceived - cartTotal);
 
   const handleQuickAddCash = (centimesToAdd: number) => {
@@ -224,7 +223,7 @@ export function CheckoutSheet({
               )}
             </View>
 
-            {/* Payment Method Selector */}
+            {/* Payment Method Selector with Cards matching Stitch design */}
             <View style={styles.methodSection}>
               <ThemedText style={styles.sectionTitle}>
                 Mode de règlement
@@ -239,61 +238,32 @@ export function CheckoutSheet({
                     paymentMethod === "cash" && styles.methodBtnSelected,
                   ]}
                 >
-                  <SymbolView
-                    name={{
-                      ios: "banknote" as any,
-                      android: "payments" as any,
-                      web: "payments" as any,
-                    }}
-                    size={22}
-                    tintColor={
-                      paymentMethod === "cash"
-                        ? Colors.light.primary
-                        : Colors.light.textSecondary
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.methodBtnText,
-                      paymentMethod === "cash" && styles.methodBtnTextSelected,
-                    ]}
-                  >
-                    Espèces
-                  </Text>
+                  <View style={styles.paymentIcon}>
+                    <SymbolView
+                      name={{
+                        ios: "banknote" as any,
+                        android: "payments" as any,
+                        web: "payments" as any,
+                      }}
+                      size={22}
+                      tintColor={
+                        paymentMethod === "cash"
+                          ? Colors.light.primary
+                          : Colors.light.textSecondary
+                      }
+                    />
+                  </View>
+                  <View style={styles.paymentText}>
+                    <ThemedText style={styles.methodBtnText}>
+                      Espèces
+                    </ThemedText>
+                    <ThemedText style={styles.methodSubLabel} dir="rtl">
+                      نقد
+                    </ThemedText>
+                  </View>
                 </Pressable>
 
-                {/* Credit / Carnet */}
-                <Pressable
-                  onPress={() => setPaymentMethod("credit")}
-                  style={[
-                    styles.methodBtn,
-                    paymentMethod === "credit" && styles.methodBtnSelected,
-                  ]}
-                >
-                  <SymbolView
-                    name={{
-                      ios: "book.closed" as any,
-                      android: "menu_book" as any,
-                      web: "menu_book" as any,
-                    }}
-                    size={22}
-                    tintColor={
-                      paymentMethod === "credit"
-                        ? Colors.light.primary
-                        : Colors.light.textSecondary
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.methodBtnText,
-                      paymentMethod === "credit" && styles.methodBtnTextSelected,
-                    ]}
-                  >
-                    Dette (Carnet)
-                  </Text>
-                </Pressable>
-
-                {/* Electronic / Card */}
+                {/* Electronic */}
                 <Pressable
                   onPress={() => setPaymentMethod("electronic")}
                   style={[
@@ -301,27 +271,95 @@ export function CheckoutSheet({
                     paymentMethod === "electronic" && styles.methodBtnSelected,
                   ]}
                 >
-                  <SymbolView
-                    name={{
-                      ios: "creditcard" as any,
-                      android: "credit_card" as any,
-                      web: "credit_card" as any,
-                    }}
-                    size={22}
-                    tintColor={
-                      paymentMethod === "electronic"
-                        ? Colors.light.primary
-                        : Colors.light.textSecondary
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.methodBtnText,
-                      paymentMethod === "electronic" && styles.methodBtnTextSelected,
-                    ]}
-                  >
-                    Carte / CIB
-                  </Text>
+                  <View style={styles.paymentIcon}>
+                    <SymbolView
+                      name={{
+                        ios: "creditcard" as any,
+                        android: "credit_card" as any,
+                        web: "credit_card" as any,
+                      }}
+                      size={22}
+                      tintColor={
+                        paymentMethod === "electronic"
+                          ? Colors.light.primary
+                          : Colors.light.textSecondary
+                      }
+                    />
+                  </View>
+                  <View style={styles.paymentText}>
+                    <ThemedText style={styles.methodBtnText}>
+                      Carte / CIB
+                    </ThemedText>
+                    <ThemedText style={styles.methodSubLabel} dir="rtl">
+                      بطاقة ذهبية / بنكية
+                    </ThemedText>
+                  </View>
+                </Pressable>
+
+                {/* Credit / Carnet Dette */}
+                <Pressable
+                  onPress={() => setPaymentMethod("credit")}
+                  style={[
+                    styles.methodBtn,
+                    paymentMethod === "credit" && styles.methodBtnSelected,
+                  ]}
+                >
+                  <View style={styles.paymentIcon}>
+                    <SymbolView
+                      name={{
+                        ios: "book.closed" as any,
+                        android: "menu_book" as any,
+                        web: "menu_book" as any,
+                      }}
+                      size={22}
+                      tintColor={
+                        paymentMethod === "credit"
+                          ? Colors.light.primary
+                          : Colors.light.textSecondary
+                      }
+                    />
+                  </View>
+                  <View style={styles.paymentText}>
+                    <ThemedText style={styles.methodBtnText}>
+                      Dette (Carnet)
+                    </ThemedText>
+                    <ThemedText style={styles.methodSubLabel} dir="rtl">
+                      دفتر ديون
+                    </ThemedText>
+                  </View>
+                </Pressable>
+
+                {/* Partial Payment */}
+                <Pressable
+                  onPress={() => setPaymentMethod("partial")}
+                  style={[
+                    styles.methodBtn,
+                    paymentMethod === "partial" && styles.methodBtnSelected,
+                  ]}
+                >
+                  <View style={styles.paymentIcon}>
+                    <SymbolView
+                      name={{
+                        ios: "price_change" as any,
+                        android: "price_change" as any,
+                        web: "price_change" as any,
+                      }}
+                      size={22}
+                      tintColor={
+                        paymentMethod === "partial"
+                          ? Colors.light.primary
+                          : Colors.light.textSecondary
+                      }
+                    />
+                  </View>
+                  <View style={styles.paymentText}>
+                    <ThemedText style={styles.methodBtnText}>
+                      Versement partiel
+                    </ThemedText>
+                    <ThemedText style={styles.methodSubLabel} dir="rtl">
+                      دفع جزئي
+                    </ThemedText>
+                  </View>
                 </Pressable>
               </View>
             </View>
@@ -611,6 +649,25 @@ const styles = StyleSheet.create({
   methodBtnTextSelected: {
     color: Colors.light.primary,
     fontWeight: "700",
+  },
+  paymentIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.md,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.light.primaryLight,
+  },
+  paymentText: {
+    flex: 1,
+  },
+  methodSubLabel: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 10,
+    marginTop: 1,
+    display: "block",
+    marginTop: 1,
   },
   cashCalculatorCard: {
     backgroundColor: Colors.light.surface,

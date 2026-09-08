@@ -351,33 +351,38 @@ export default function SellScreen() {
                           {item.name ? item.name[0].toUpperCase() : "P"}
                         </Text>
                       </View>
+                    </View>
 
-                      <View style={styles.productDetails}>
-                        <ThemedText style={styles.productName} numberOfLines={1}>
-                          {item.name}
-                        </ThemedText>
-                        <View style={styles.productMeta}>
-                          {item.unit && (
-                            <Text style={styles.unitText}>{item.unit}</Text>
-                          )}
-                          {item.stock_quantity !== undefined && (
-                            <View
+                    <View style={styles.productCenter}>
+                      <ThemedText style={styles.productName} numberOfLines={1}>
+                        {item.name}
+                      </ThemedText>
+                      <View style={styles.productMeta}>
+                        {item.unit && (
+                          <Text style={styles.unitText}>{item.unit}</Text>
+                        )}
+                        {item.sku && (
+                          <Text style={styles.skuBadge}>
+                            SKU: {item.sku}
+                          </Text>
+                        )}
+                        {item.stock_quantity !== undefined && (
+                          <View
+                            style={[
+                              styles.stockBadge,
+                              isLowStock && styles.stockBadgeLow,
+                            ]}
+                          >
+                            <Text
                               style={[
-                                styles.stockBadge,
-                                isLowStock && styles.stockBadgeLow,
+                                styles.stockBadgeText,
+                                isLowStock && styles.stockBadgeTextLow,
                               ]}
                             >
-                              <Text
-                                style={[
-                                  styles.stockBadgeText,
-                                  isLowStock && styles.stockBadgeTextLow,
-                                ]}
-                              >
-                                Stock: {item.stock_quantity}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
+                              Stock: {item.stock_quantity}
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     </View>
 
@@ -517,7 +522,17 @@ export default function SellScreen() {
               clearCart();
               setSale(null);
             }}
-            sale={sale}
+            saleItems={sale?.items?.map((item: any) => ({
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              sale_price_centimes: item.unitSalePriceCentimes,
+            })) || []}
+            cartTotal={sale?.total_centimes || 0}
+            discountCentimes={discount}
+            paymentMethod={paymentMethod}
+            amountReceived={sale?.total_paid_centimes || 0}
+            customerName={sale?.customerName || null}
           />
         )}
 
@@ -731,14 +746,13 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   productLeft: {
-    flexDirection: "row",
+    width: 56,
     alignItems: "center",
-    gap: Spacing.md,
-    flex: 1,
+    justifyContent: "center",
   },
   productAvatar: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
@@ -754,15 +768,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   productName: {
-    ...Typography.label,
-    fontSize: 15,
+    ...Typography.caption,
+    fontSize: 13,
     color: Colors.light.textPrimary,
+    marginBottom: 2,
   },
   productMeta: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     marginTop: 2,
+  },
+
+  skuBadge: {
+    backgroundColor: Colors.light.backgroundElement,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: BorderRadius.sm,
+    fontSize: 10,
+    fontWeight: "600",
+    color: Colors.light.textSecondary,
   },
   unitText: {
     ...Typography.caption,
@@ -787,9 +812,17 @@ const styles = StyleSheet.create({
     color: "#B45309",
   },
   productRight: {
-    alignItems: "flex-end",
+    alignItems: "center",
+    justifyContent: "flex-end",
     gap: 6,
+    width: 80,
   },
+
+  productCenter: {
+    flex: 1,
+    paddingHorizontal: Spacing.sm,
+  },
+
   productPrice: {
     ...Typography.moneySmall,
     fontWeight: "700",
