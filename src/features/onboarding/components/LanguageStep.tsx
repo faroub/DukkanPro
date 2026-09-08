@@ -90,7 +90,7 @@ export function LanguageStep({
       <View style={styles.optionsSection}>
         <View style={styles.sectionHeader}>
           <ThemedText style={styles.sectionTitle}>
-            Select Language • اختر اللغة
+            {t("onboarding:languageStep.sectionTitle")}
           </ThemedText>
         </View>
 
@@ -157,7 +157,13 @@ export function LanguageStep({
       {/* Continue CTA */}
       <View style={styles.footer}>
         <PrimaryButton
-          title={locale === "fr" ? "Continuer" : locale === "ar" ? "متابعة" : "Continue"}
+          title={
+            locale === "fr"
+              ? t("common:primaryButton")
+              : locale === "ar"
+              ? "متابعة"
+              : "Continue"
+          }
           onPress={handleContinue}
         />
       </View>
