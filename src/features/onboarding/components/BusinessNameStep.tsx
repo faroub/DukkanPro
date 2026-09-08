@@ -69,55 +69,66 @@ export function BusinessNameStep({
           <View style={styles.bar} />
         </View>
       </View>
-      {/* Title & Subtitle */}
+
+      {/* Header */}
       <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={onBack}
+          accessibilityLabel={t("common:back")}
+        >
+          <SymbolView
+            name={{
+              ios: "arrow_back" as any,
+              android: "arrow_back" as any,
+              web: "arrow_back" as any,
+            }}
+            size={24}
+            tintColor={Colors.light.textSecondary}
+          />
+        </Pressable>
         <ThemedText style={styles.title}>
           {t("onboarding:businessNameStep.title")}
         </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          {t("onboarding:businessNameStep.subtitle")}
-        </ThemedText>
       </View>
 
-      {/* Visual Accent Preview Card */}
-      <View style={styles.previewCard}>
-        <View style={styles.previewIconBox}>
+      {/* Visual Accent Tile */}
+      <View style={styles.accentTile}>
+        <View style={styles.accentIconBox}>
           <SymbolView
             name={{
               ios: "storefront.fill" as any,
               android: "storefront" as any,
               web: "storefront" as any,
             }}
-            size={24}
+            size={32}
             tintColor={Colors.light.primary}
           />
         </View>
-        <View style={styles.previewContent}>
-          <ThemedText style={styles.previewTitle} numberOfLines={1}>
+        <View style={styles.accentContent}>
+          <ThemedText style={styles.accentTitle} numberOfLines={1}>
             {previewName}
           </ThemedText>
-          <ThemedText style={styles.previewSubtitle} numberOfLines={1}>
+          <ThemedText style={styles.accentSubtitle} numberOfLines={1}>
             {previewOwner}
           </ThemedText>
-          <View style={styles.previewBadge}>
-            <View style={styles.previewBadgeDot} />
-            <ThemedText style={styles.previewBadgeText}>
+          <View style={styles.accentBadge}>
+            <View style={styles.accentBadgeDot} />
+            <ThemedText style={styles.accentBadgeText}>
               {t("onboarding:businessNameStep.previewBadgeText")}
             </ThemedText>
           </View>
         </View>
       </View>
 
-      {/* Form Fields Card */}
-      <View style={styles.formCard}>
+      {/* Main Form Card */}
+      <View style={styles.mainCard}>
         {/* Field 1: Business Name */}
         <View style={styles.fieldGroup}>
-          <View style={styles.labelRow}>
-            <ThemedText style={styles.fieldLabel}>
-              {t("onboarding:businessNameStep.label")}
-            </ThemedText>
-            <ThemedText style={styles.requiredBadge}>Required</ThemedText>
-          </View>
+          <ThemedText style={styles.fieldLabel}>
+            {t("onboarding:businessNameStep.label")}
+          </ThemedText>
+          <ThemedText style={styles.requiredBadge}>Required</ThemedText>
           <View style={styles.inputWrapper}>
             <View style={styles.inputIcon}>
               <SymbolView
@@ -143,10 +154,8 @@ export function BusinessNameStep({
 
         {/* Field 2: Owner Name */}
         <View style={styles.fieldGroup}>
-          <View style={styles.labelRow}>
-            <ThemedText style={styles.fieldLabel}>Your name</ThemedText>
-            <ThemedText style={styles.optionalBadge}>Optional</ThemedText>
-          </View>
+          <ThemedText style={styles.fieldLabel}>Your name</ThemedText>
+          <ThemedText style={styles.optionalBadge}>Optional</ThemedText>
           <View style={styles.inputWrapper}>
             <View style={styles.inputIcon}>
               <SymbolView
@@ -250,50 +259,53 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     ...Typography.heading1,
     color: Colors.light.textPrimary,
   },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.light.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  previewCard: {
-    flexDirection: "row",
-    alignItems: "center",
+  accentTile: {
     backgroundColor: Colors.light.surface,
-    padding: Spacing.md,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.light.border,
+    padding: Spacing.md,
     marginBottom: Spacing.md,
-    gap: Spacing.md,
     ...Shadows.sm,
+    overflow: "hidden",
   },
-  previewIconBox: {
-    width: 48,
-    height: 48,
+  accentIconBox: {
+    width: 64,
+    height: 64,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: Spacing.md,
   },
-  previewContent: {
+  accentContent: {
     flex: 1,
   },
-  previewTitle: {
+  accentTitle: {
     ...Typography.label,
     fontSize: 15,
     color: Colors.light.textPrimary,
   },
-  previewSubtitle: {
+  accentSubtitle: {
     ...Typography.caption,
     color: Colors.light.textSecondary,
     marginTop: 2,
   },
-  previewBadge: {
+  accentBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
@@ -304,34 +316,29 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     marginTop: 4,
   },
-  previewBadgeDot: {
+  accentBadgeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: Colors.light.primary,
   },
-  previewBadgeText: {
+  accentBadgeText: {
     fontSize: 10,
     fontWeight: "600",
     color: Colors.light.primary,
   },
-  formCard: {
+  mainCard: {
     backgroundColor: Colors.light.surface,
-    padding: ComponentDimensions.cardPadding,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     borderWidth: 1,
     borderColor: Colors.light.border,
     marginBottom: Spacing.md,
-    gap: Spacing.md,
     ...Shadows.sm,
+    padding: ComponentDimensions.cardPadding,
   },
   fieldGroup: {
     gap: 6,
-  },
-  labelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    marginBottom: Spacing.md,
   },
   fieldLabel: {
     ...Typography.label,
@@ -390,7 +397,7 @@ const styles = StyleSheet.create({
     marginTop: "auto",
     gap: Spacing.sm,
   },
-  backButton: {
+  backButton2: {
     height: 44,
     justifyContent: "center",
     alignItems: "center",
