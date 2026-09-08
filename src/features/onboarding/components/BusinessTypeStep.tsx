@@ -97,8 +97,24 @@ export function BusinessTypeStep({
           <View style={styles.bar} />
         </View>
       </View>
+
       {/* Header */}
       <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={onBack}
+          accessibilityLabel={t("common:back")}
+        >
+          <SymbolView
+            name={{
+              ios: "arrow_back" as any,
+              android: "arrow_back" as any,
+              web: "arrow_back" as any,
+            }}
+            size={24}
+            tintColor={Colors.light.textSecondary}
+          />
+        </Pressable>
         <ThemedText style={styles.title}>
           {t("onboarding:businessTypeStep.title")}
         </ThemedText>
@@ -139,7 +155,7 @@ export function BusinessTypeStep({
                       android: cat.iconAndroid as any,
                       web: cat.iconAndroid as any,
                     }}
-                    size={22}
+                    size={24}
                     tintColor={
                       isSelected ? Colors.light.primary : Colors.light.textSecondary
                     }
@@ -167,7 +183,7 @@ export function BusinessTypeStep({
                       android: "check" as any,
                       web: "check" as any,
                     }}
-                    size={14}
+                    size={16}
                     tintColor={Colors.light.primary}
                   />
                 )}
@@ -176,6 +192,22 @@ export function BusinessTypeStep({
           );
         })}
       </ScrollView>
+
+      {/* Micro-delight helper message */}
+      <View style={styles.helperMessage}>
+        <SymbolView
+          name={{
+            ios: "info-circle" as any,
+            android: "info" as any,
+            web: "info" as any,
+          }}
+          size={18}
+          tintColor={Colors.light.primary}
+        />
+        <ThemedText style={styles.helperText}>
+          {t("onboarding:businessTypeStep.helperText")}
+        </ThemedText>
+      </View>
 
       {/* CTA Footer */}
       <View style={styles.footer}>
@@ -234,6 +266,15 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     ...Typography.heading1,
@@ -258,6 +299,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.border,
     ...Shadows.sm,
+    marginBottom: Spacing.md,
   },
   categoryCardSelected: {
     backgroundColor: Colors.light.surface,
@@ -308,13 +350,26 @@ const styles = StyleSheet.create({
     marginTop: "auto",
     gap: Spacing.sm,
   },
-  backButton: {
+  backButton2: {
     height: 44,
     justifyContent: "center",
     alignItems: "center",
   },
   backButtonText: {
     ...Typography.label,
+    color: Colors.light.textSecondary,
+  },
+  helperMessage: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    backgroundColor: Colors.light.backgroundElement,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.lg,
+  },
+  helperText: {
+    ...Typography.caption,
     color: Colors.light.textSecondary,
   },
 });

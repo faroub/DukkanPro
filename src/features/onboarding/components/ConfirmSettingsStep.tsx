@@ -66,6 +66,21 @@ export function ConfirmSettingsStep({
 
       {/* Header */}
       <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={onBack}
+          accessibilityLabel={t("common:back")}
+        >
+          <SymbolView
+            name={{
+              ios: "arrow_back" as any,
+              android: "arrow_back" as any,
+              web: "arrow_back" as any,
+            }}
+            size={24}
+            tintColor={Colors.light.textSecondary}
+          />
+        </Pressable>
         <ThemedText style={styles.title}>
           {t("onboarding:confirmSettingsStep.title")}
         </ThemedText>
@@ -242,11 +257,11 @@ export function ConfirmSettingsStep({
         </View>
       </View>
 
-      {/* Info Reassurance Note */}
+      {/* Soft Informational Note Box */}
       <View style={styles.infoBox}>
         <SymbolView
           name={{
-            ios: "info.circle" as any,
+            ios: "info-circle" as any,
             android: "info" as any,
             web: "info" as any,
           }}
@@ -258,16 +273,25 @@ export function ConfirmSettingsStep({
         </ThemedText>
       </View>
 
-      {/* Footer CTA */}
-      <View style={styles.footer}>
-        <PrimaryButton title={t("onboarding:confirmSettingsStep.startButton")} onPress={onConfirm} />
-        {onBack && (
-          <Pressable onPress={onBack} style={styles.backButton}>
-            <ThemedText style={styles.backButtonText}>
-              {t("common:back")}
-            </ThemedText>
-          </Pressable>
-        )}
+      {/* Store Preview Vignette */}
+      <View style={styles.storePreview}>
+        <img class="w-14 h-14 rounded-lg object-cover shadow-sm" data-alt="A bright warm Mediterranean corner grocery shop in Algiers with tidy shelves of fresh produce, spices, packaged goods, and morning sunlight reflecting off polished tile floors in a warm welcoming atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD53692wrdidV2LCxcxXF7_v9sLoypeoCiUTFEbUzRnANHaz-KO4aHYJXYoyJFGVLXjkpVq-Ebwq5UrJv8TN_y5v3bTzgNGGg46RZ9vrQiRu4CRL-dwZ1upQAy2AfeSFoZLv0CyNZZYfmv5cG8pqmhR_Q4gpkRmzFMI1jk-PLczeDtfwvii1x4k1edk-QE_WszKLFrI8dNuAQYMciYp3tVEiy35iWyXK6_L7evXP93RcIwHOMvypqwB"/>
+        <div class="flex flex-col min-w-0">
+          <span class="font-badge-label text-badge-label text-primary-container uppercase tracking-wider">Ready to launch</span>
+          <p class="font-label text-label text-text-primary truncate">Your digital ledger is prepared</p>
+          <p class="font-caption text-caption text-text-secondary truncate">Point of Sale, debts & inventory</p>
+        </div>
+      </View>
+
+      {/* Action Section */}
+      <View style={styles.actionSection}>
+        <button class="w-full h-12 rounded-[10px] bg-primary-container active:bg-primary-dark text-on-primary font-label text-label flex items-center justify-center gap-2 shadow-sm transition-all duration-150 transform active:scale-[0.99] cursor-pointer" id="start-btn" type="button">
+          <span>Start using Dukkan OS</span>
+          <span class="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+        </button>
+        <button class="w-full h-10 rounded-[10px] bg-transparent text-text-secondary hover:text-text-primary font-caption text-caption flex items-center justify-center transition-colors" onclick="history.back()" type="button">
+          Back to step 2
+        </button>
       </View>
     </ThemedView>
   );
@@ -327,12 +351,12 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     backgroundColor: Colors.light.surface,
-    padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     borderColor: Colors.light.border,
     marginBottom: Spacing.md,
     ...Shadows.sm,
+    overflow: "hidden",
   },
   summaryRow: {
     flexDirection: "row",
@@ -402,9 +426,14 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.light.textSecondary,
   },
-  footer: {
-    marginTop: "auto",
-    gap: Spacing.sm,
+  storePreview: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.lg,
+    overflow: "hidden",
+    marginBottom: Spacing.lg,
+  },
+  actionSection: {
+    marginTop: Spacing.lg,
   },
   backButton: {
     height: 44,
