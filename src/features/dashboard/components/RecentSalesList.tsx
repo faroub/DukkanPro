@@ -1,7 +1,7 @@
 import { View, StyleSheet, Text, ScrollView } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Colors, Typography } from "@/constants/theme";
+import { Colors, BorderRadius, Typography, Shadows } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
 import { getTextAlignment } from "@/utils/text";
 
@@ -112,14 +112,10 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: "#DDDDDD",
-    borderRadius: 12,
+    borderColor: Colors.light.border,
+    borderRadius: BorderRadius.lg,
     marginBottom: 24,
-    shadowColor: "#000000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    ...Shadows.sm,
   },
   label: {
     fontSize: 14,
@@ -137,33 +133,41 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
-  filterBtn: {
+  filterBtnAll: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: Colors.light.primary,
+    color: Colors.light.surface,
     minWidth: 60,
     alignItems: "center",
     justifyContent: "center",
   },
-  filterBtnAll: {
-    ...styles.filterBtn,
-    backgroundColor: "#1B6B3A",
-    color: "#FFFFFF",
-  },
   filterBtnToday: {
-    ...styles.filterBtn,
-    backgroundColor: "#F3F4F6",
-    color: "#6B7280",
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.light.backgroundElement,
+    color: Colors.light.textSecondary,
+    minWidth: 60,
+    alignItems: "center",
+    justifyContent: "center",
   },
   filterBtnWeek: {
-    ...styles.filterBtn,
-    backgroundColor: "#F3F4F6",
-    color: "#6B7280",
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.light.backgroundElement,
+    color: Colors.light.textSecondary,
+    minWidth: 60,
+    alignItems: "center",
+    justifyContent: "center",
   },
   filterBtnMonth: {
-    ...styles.filterBtn,
-    backgroundColor: "#F3F4F6",
-    color: "#6B7280",
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.light.backgroundElement,
+    color: Colors.light.textSecondary,
+    minWidth: 60,
+    alignItems: "center",
+    justifyContent: "center",
   },
   searchContainer: {
     display: "flex",
@@ -191,8 +195,7 @@ const styles = StyleSheet.create({
   clearBtn: {
     position: "absolute",
     right: 12,
-    top: "50%",
-    transform: [{ translateY: -50 }],
+    marginTop: 25,
     color: Colors.light.textMuted,
   },
   sectionDivider: {
