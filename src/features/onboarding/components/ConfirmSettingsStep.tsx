@@ -275,23 +275,52 @@ export function ConfirmSettingsStep({
 
       {/* Store Preview Vignette */}
       <View style={styles.storePreview}>
-        <img class="w-14 h-14 rounded-lg object-cover shadow-sm" data-alt="A bright warm Mediterranean corner grocery shop in Algiers with tidy shelves of fresh produce, spices, packaged goods, and morning sunlight reflecting off polished tile floors in a warm welcoming atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD53692wrdidV2LCxcxXF7_v9sLoypeoCiUTFEbUzRnANHaz-KO4aHYJXYoyJFGVLXjkpVq-Ebwq5UrJv8TN_y5v3bTzgNGGg46RZ9vrQiRu4CRL-dwZ1upQAy2AfeSFoZLv0CyNZZYfmv5cG8pqmhR_Q4gpkRmzFMI1jk-PLczeDtfwvii1x4k1edk-QE_WszKLFrI8dNuAQYMciYp3tVEiy35iWyXK6_L7evXP93RcIwHOMvypqwB"/>
-        <div class="flex flex-col min-w-0">
-          <span class="font-badge-label text-badge-label text-primary-container uppercase tracking-wider">Ready to launch</span>
-          <p class="font-label text-label text-text-primary truncate">Your digital ledger is prepared</p>
-          <p class="font-caption text-caption text-text-secondary truncate">Point of Sale, debts & inventory</p>
-        </div>
+        <View style={styles.logoPlaceholder}>
+          <SymbolView
+            name={{
+              ios: "storefront" as any,
+              android: "storefront" as any,
+              web: "storefront" as any,
+            }}
+            size={32}
+            tintColor={Colors.light.primary}
+          />
+        </View>
+        <View style={{ flexDirection: "column", minHeight: 0, marginTop: Spacing.xs }}>
+          <ThemedText style={{ ...Typography.caption, color: Colors.light.textPrimary, fontWeight: "600", marginTop: Spacing.xs }}>Ready to launch</ThemedText>
+          <ThemedText style={{ ...Typography.body, color: Colors.light.textPrimary, marginTop: Spacing.xs }}>Your digital ledger is prepared</ThemedText>
+          <ThemedText style={{ ...Typography.caption, color: Colors.light.textSecondary, marginTop: Spacing.xs }}>Point of Sale, debts & inventory</ThemedText>
+        </View>
       </View>
 
       {/* Action Section */}
       <View style={styles.actionSection}>
-        <button class="w-full h-12 rounded-[10px] bg-primary-container active:bg-primary-dark text-on-primary font-label text-label flex items-center justify-center gap-2 shadow-sm transition-all duration-150 transform active:scale-[0.99] cursor-pointer" id="start-btn" type="button">
-          <span>Start using Dukkan OS</span>
-          <span class="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
-        </button>
-        <button class="w-full h-10 rounded-[10px] bg-transparent text-text-secondary hover:text-text-primary font-caption text-caption flex items-center justify-center transition-colors" onclick="history.back()" type="button">
-          Back to step 2
-        </button>
+        <Pressable
+          style={styles.startButton}
+          onPress={() => onConfirm()}
+          accessible
+          accessibilityLabel={t("onboarding:confirmSettingsStep.startButton")}
+        >
+          <ThemedText style={{ ...Typography.body, color: Colors.light.surface }}>Start using Dukkan OS</ThemedText>
+          <SymbolView
+            name={{ ios: "arrow_forward" as any, android: "arrow_forward" as any, web: "arrow_forward" as any }}
+            size={20}
+            tintColor={Colors.light.surface}
+          />
+        </Pressable>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => { /* handle back */ }}
+          accessible
+          accessibilityLabel={t("common:back")}
+        >
+          <SymbolView
+            name={{ ios: "arrow_back" as any, android: "arrow_back" as any, web: "arrow_back" as any }}
+            size={18}
+            tintColor={Colors.light.textSecondary}
+          />
+          <ThemedText style={{ ...Typography.label, color: Colors.light.textSecondary }}>Back to step 2</ThemedText>
+        </Pressable>
       </View>
     </ThemedView>
   );
@@ -357,6 +386,15 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     ...Shadows.sm,
     overflow: "hidden",
+  },
+  logoPlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.backgroundElement,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: Spacing.md,
   },
   summaryRow: {
     flexDirection: "row",
@@ -439,6 +477,16 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
     alignItems: "center",
+  },
+  startButton: {
+    width: "100%",
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.light.primary,
+    color: Colors.light.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: Spacing.md,
   },
   backButtonText: {
     ...Typography.label,
