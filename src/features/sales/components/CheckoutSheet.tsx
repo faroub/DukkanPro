@@ -666,8 +666,6 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     fontSize: 10,
     marginTop: 1,
-    display: "block",
-    marginTop: 1,
   },
   cashCalculatorCard: {
     backgroundColor: Colors.light.surface,

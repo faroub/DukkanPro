@@ -1,6 +1,7 @@
 import { SymbolView } from "expo-symbols";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useState } from "react";
 import { ThemedText } from "@/components/themed-text";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
@@ -378,11 +379,10 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   totalRow: {
-    paddingTop: 4,
+    paddingTop: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.light.borderLight,
     marginTop: Spacing.md,
-    paddingTop: Spacing.md,
   },
   totalLabel: {
     ...Typography.label,
