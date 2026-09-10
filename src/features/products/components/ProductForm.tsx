@@ -134,13 +134,9 @@ export function ProductForm({ onSave, onClose, initialValues, mode }: ProductFor
             />
           </FormField>
 
-          <div className="flex flex-col gap-3">
+          <View style={styles.categorySection}>
               {/* Category Chips */}
-              <ThemedView style={styles.categorySection}>
-                <ThemedText type="small" style={styles.sectionTitle}>
-                  {t("products:category")}
-                </ThemedText>
-                <View style={styles.categoryChips}>
+              <View style={styles.categoryChips}>
                   <button className="cat-chip px-3 py-1.5 rounded-full font-label text-label bg-primary text-on-primary shadow-sm flex items-center gap-1.5" data-cat="Dairy & Fresh" type="button">
                     <span className="material-symbols-outlined text-[16px]">check</span>
                     Dairy & Fresh
@@ -159,7 +155,7 @@ export function ProductForm({ onSave, onClose, initialValues, mode }: ProductFor
                     New Category
                   </button>
                 </View>
-              </ThemedView>
+            </View>
 
           <FormField label={t('products:salePrice')}>
             <TextInput
