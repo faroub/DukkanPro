@@ -3,10 +3,12 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Platform,
+  StyleProp,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  ViewStyle,
 } from "react-native";
 
 interface VoiceButtonProps {
@@ -14,6 +16,7 @@ interface VoiceButtonProps {
   onVoiceEnd?: (finalText?: string) => void;
   onTranscript?: (transcript: string) => void;
   disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function VoiceButton({
@@ -21,6 +24,7 @@ export function VoiceButton({
   onVoiceEnd,
   onTranscript,
   disabled = false,
+  style,
 }: VoiceButtonProps) {
   const { t, i18n } = useTranslation();
   const [hasPermission, setHasPermission] = useState(false);
@@ -216,7 +220,7 @@ export function VoiceButton({
     <TouchableOpacity
       onPress={handlePress}
       disabled={disabled}
-      style={styles.container}
+      style={[styles.container, style]}
       accessibilityRole="button"
       accessibilityLabel={isListening ? t("voice.listening", "Listening...") : t("voice.title", "Voice Command")}
     >
@@ -225,7 +229,7 @@ export function VoiceButton({
           {isListening ? "🔴" : "🎤"}
         </Text>
       </View>
-      <Text style={styles.buttonText}>
+      <Text style={styles.buttonText} numberOfLines={1}>
         {isListening ? t("voice.listening", "Listening...") : t("voice.title", "Voice Command")}
       </Text>
     </TouchableOpacity>

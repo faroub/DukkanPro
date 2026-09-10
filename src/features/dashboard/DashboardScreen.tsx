@@ -22,6 +22,7 @@ import { QuickActions } from "@/features/dashboard/components/QuickActions";
 import { RecentSalesList } from "@/features/dashboard/components/RecentSalesList";
 import { SalesChart } from "@/features/dashboard/components/SalesChart";
 import { SummaryCards } from "@/features/dashboard/components/SummaryCards";
+import { EmptyDashboardScreen } from "@/features/onboarding/EmptyDashboardScreen";
 import { useDashboard } from "@/hooks/useDashboard";
 import { getTextAlignment } from "@/utils/text";
 
@@ -66,6 +67,23 @@ export default function DashboardScreenDefault({
   const handleRecordPayment = () => {
     router.push("/(tabs)/customers" as any);
   };
+
+  const isEmptyDashboard =
+    recentSales.length === 0 &&
+    todayRevenue_centimes === 0 &&
+    lowStockProducts.length === 0 &&
+    toCollect_centimes === 0;
+
+  if (isEmptyDashboard) {
+    return (
+      <EmptyDashboardScreen
+        onNewSale={handleNewSale}
+        onAddProduct={handleAddProduct}
+        onAddCustomer={handleAddCustomer}
+        onOpenSettings={() => router.push("/(tabs)/more" as any)}
+      />
+    );
+  }
 
   return (
     <ThemedView type="background" style={styles.container}>

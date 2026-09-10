@@ -54,17 +54,17 @@ export default function Root() {
   // - Restarting app with completed onboarding skips to tabs
   const shouldShowOnboarding = !isOnboardingComplete;
 
-  if (!shouldShowOnboarding) {
+  if (shouldShowOnboarding) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <OnboardingScreen onComplete={() => setIsOnboardingComplete(true)} />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <EmptyDashboardScreen />
+      <ActivityIndicator size="large" color={Colors.light.primary} />
     </SafeAreaView>
   );
 }
