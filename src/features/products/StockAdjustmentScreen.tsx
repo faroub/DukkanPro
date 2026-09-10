@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useRoute, useNavigation } from 'expo-router';
+import { useRoute, useNavigation } from 'expo.router';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -13,25 +13,71 @@ export function StockAdjustmentScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation();
     const [adjustment, setAdjustment] = useState(0);
+    const [mode, setMode] = useState<'set' | 'delta'>('delta');
+    const [reason, setReason] = useState<'delivery' | 'count_correction' | 'damaged' | 'return' | 'other'>('delivery');
+
+    const modes = [
+      { key: 'set', label: t('products:setNewTotal'), icon: 'pin' },
+      { key: 'delta', label: t('products:addRemove'), icon: 'swap_vert' },
+    ];
+
+    const reasons = [
+      { key: 'delivery', label: t('products:delivery'), icon: 'local_shipping', color: Colors.light.primary },
+      { key: 'count_correction', label: t('products:countCorrection'), icon: 'checklist', color: Colors.light.textSecondary },
+      { key: 'damaged', label: t('products:damaged'), icon: 'event_busy', color: Colors.light.warning },
+      { key: 'return', label: t('products:return'), icon: 'assignment_return', color: Colors.light.error },
+      { key: 'other', label: t('products:other'), icon: 'more_horiz', color: Colors.light.textMuted },
+    ];
 
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
                 <ThemedText style={styles.title}>{t('products:adjustmentTitle')}</ThemedText>
             </View>
-            
+
+            {/* Mode Selector */}
+            <ThemedView style={styles.modeSelector}>
+              {modes.map((m) => (
+                <TouchableOpacity
+                  key={m.key}
+                  style={[
+                    styles.modeButton,
+                    mode === m.key && styles.modeButtonActive,
+                  ]}
+                  onPress={() => setMode(m.key)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name={m.icon} size={18} />
+                  <ThemedText style={styles.modeButtonText}>{m.label}</ThemedText>
+                </TouchableOpacity>
+              ))}
+            </ThemedView>
+
             <ThemedView style={styles.card}>
                 <ThemedText style={styles.subtitle}>{params.productName}</ThemedText>
                 <ThemedText style={styles.caption}>{t('products:currentStock', { stock: params.currentStock })}</ThemedText>
             </ThemedView>
 
-            <ThemedView style={styles.card}>
-                <ThemedText style={styles.sectionTitle}>{t('products:adjustmentQuantity')}</ThemedText>
-                <View style={styles.quantityControls}>
-                    <TouchableOpacity onPress={() => setAdjustment(prev => prev - 1)} style={styles.button}><Ionicons name="remove" size={24} /></TouchableOpacity>
-                    <ThemedText style={styles.quantity}>{adjustment}</ThemedText>
-                    <TouchableOpacity onPress={() => setAdjustment(prev => prev + 1)} style={styles.button}><Ionicons name="add" size={24} /></TouchableOpacity>
-                </View>
+            {/* Diff Badge */}
+            <ThemedView style={styles.diffBadgeContainer}>
+              <span className={styles.diffBadge} style={styles.diffBadgeStyle}>
+                <Ionicons name={mode === 'set' || adjustment > 0 ? 'trending_up' : 'trending_down'} size={18} style={styles.diffIcon} />{'+' + Math.abs(adjustment) + ' packs will be ' + (mode === 'set' ? 'added' : 'removed') + ' from inventory'}
+              </span>
+            </ThemedView>
+
+            {/* Reason Radio Buttons */}
+            <ThemedView style={styles.reasonRadios}>
+              {reasons.map((r) => (
+                <label key={r.key} style={styles.reasonRadioCard} onPress={() => setReason(r.key)}><span className="material-symbols-outlined" style={{ color: r.iconColor }}>{r.icon}</span><span style={{ flex: 1, textAlign: 'center' }}>{r.label}</span><input type="radio" name="adjustment_reason" value={r.key} style={{ display: 'none' }} onChange={() => setReason(r.key)} /></label>
+              ))}
+            </ThemedView>
+
+            {/* Optional Note */}
+            <ThemedView style={styles.optionalNote}>
+              <ThemedText type="small" style={styles.sectionTitle}>{t('products:referenceNote')}</ThemedText>
+              <div style={styles.optionalNoteInput}>
+                <textarea style={{ width: '100%', padding: 12, borderRadius: 8, backgroundColor: 'white', border: '1px solid #E5E5E5', fontSize: 14, color: '#1A1A1A' }} placeholder={t('products:referenceNotePlaceholder')} rows={2} />
+              </div>
             </ThemedView>
 
             <PrimaryButton title="Confirm" onPress={() => navigation.goBack()} />
@@ -47,7 +93,57 @@ const styles = StyleSheet.create({
     subtitle: { ...Typography.heading3 },
     caption: { ...Typography.caption, color: Colors.light.textSecondary },
     sectionTitle: { ...Typography.heading3, marginBottom: Spacing.md },
-    quantityControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.md },
-    quantity: { ...Typography.heading2 },
-    button: { padding: Spacing.md, borderRadius: BorderRadius.md, backgroundColor: Colors.light.backgroundElement },
+    modeSelector: {
+      marginBottom: Spacing.md,
+      padding: Spacing.md,
+      backgroundColor: Colors.light.surface,
+      borderRadius: BorderRadius.lg,
+      ...Shadows.sm,
+    },
+    modeButton: {
+      padding: Spacing.md,
+      borderRadius: BorderRadius.md,
+      backgroundColor: mode === 'set' ? Colors.light.primary : Colors.light.surface,
+      color: mode === 'set' ? '#FFFFFF' : Colors.light.textPrimary,
+      marginHorizontal: 4,
+    },
+    modeButtonActive: {
+      backgroundColor: mode === 'set' ? Colors.light.primary : Colors.light.surface,
+      color: mode === 'set' ? '#FFFFFF' : Colors.light.textPrimary,
+    },
+    modeButtonText: { ...Typography.caption, marginLeft: 4 },
+    diffBadgeContainer: {
+      marginVertical: Spacing.md,
+      alignItems: 'center',
+    },
+    diffBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: Colors.light.warningLight,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: Spacing.xs,
+      borderRadius: BorderRadius.sm,
+      gap: 4,
+    },
+    diffIcon: { color: Colors.light.warning },
+    reasonRadios: {
+      marginVertical: Spacing.md,
+    },
+    reasonRadioCard: {
+      padding: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      backgroundColor: reason === 'count_correction' ? Colors.light.primaryLight : Colors.light.surface,
+      marginBottom: Spacing.sm,
+    },
+    optionalNote: {
+      marginVertical: Spacing.md,
+    },
+    optionalNoteInput: {
+      marginTop: Spacing.sm,
+      padding: 12,
+      backgroundColor: 'white',
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: Colors.light.border,
+    },
 });
