@@ -1,6 +1,7 @@
 import { ProductRow } from "@/components/products/ProductRow";
 import { ThemedText } from "@/components/themed-text";
-import { Colors, Typography } from "@/constants/theme";
+import { ThemedView } from "@/components/themed-view";
+import { Colors, Spacing, BorderRadius, Typography } from "@/constants/theme";
 import { ProductFilterTabs } from "@/features/products/components/ProductFilterTabs";
 import { ProductSearchBar } from "@/features/products/components/ProductSearchBar";
 import { useProducts } from "@/hooks/useProducts";
@@ -123,20 +124,20 @@ export function ProductListScreen({
         <View style={styles.summaryLeft}>
           <ThemedText type="caption" style={styles.summaryLabel}>
             {t("products:totalItems", { count: products.length })}</ThemedText>
-          <ThemedText type="headline-3" style={styles.summaryValue}>
+          <ThemedText type="body" style={styles.summaryValue}>
             {products.length}
           </ThemedText>
         </View>
         <View style={styles.summaryCenter}>
           <ThemedText type="caption" style={styles.summaryLabel}>
             {t("products:totalValue")}</ThemedText>
-          <ThemedText type="money-sm" style={styles.summaryValue}>
+          <ThemedText type="body" style={styles.summaryValue}>
             {(products.reduce((sum, p) => sum + (p.sale_price_centimes / 100), 0) || 0).toFixed(0)} {t("appText:money")}
           </ThemedText>
         </View>
         <View style={styles.summaryRight}>
           <ThemedView style={styles.summaryLowStockBadge}>
-            <ThemedText type="small" style={styles.badge}>
+            <ThemedText type="small" style={styles.badgeText}>
               {t("products:lowStockCount", { count: products.filter(p => p.lowStock || p.stock_quantity <= p.minimum_stock_quantity).length })}
             </ThemedText>
           </ThemedView>
@@ -233,11 +234,17 @@ const styles = StyleSheet.create({
     fontWeight: 400,
   },
   summaryValue: {
-    ...Typography.moneySmall,
+    ...Typography.body,
     color: Colors.light.primary,
     fontWeight: 600,
   },
   listContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -266,7 +273,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1B6B3A",
   },
-  listContainer: {
-    paddingBottom: 100,
+  badgeText: {
+    ...Typography.caption,
+    color: Colors.light.surface,
   },
 });
