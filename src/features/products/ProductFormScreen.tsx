@@ -1,639 +1,195 @@
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { FormField } from "@/components/ui/FormField";
-import { PrimaryButton } from "@/components/ui/PrimaryButton";
-import { executeRead, executeWrite } from "@/database/database";
-import { adjustStock } from "@/database/repositories/productRepository";
-import { Product } from "@/types/entities";
-import { useNavigation, useRoute } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
-import { Colors } from "@/constants/theme";
+import React, { useEffect, useState, useCallback } from 'react';
+import { useLocalSearchParams, useNavigation, useRoute, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { View, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
+import { ProductForm, ProductFormData } from './components/ProductForm';
+import { executeRead, executeWrite } from '@/database/database';
+import { getById, create, update, archive } from '@/database/repositories/productRepository';
+import { Product } from '@/types/entities';
+import { Colors } from '@/constants/theme';
 
 export interface ProductFormScreenProps {
   route?: any;
   navigation?: any;
   onClose?: () => void;
-  mode?: "create" | "edit";
+  mode?: 'create' | 'edit';
 }
 
 export function ProductFormScreen({
   route,
   navigation,
+  onClose,
+  mode: propMode,
 }: ProductFormScreenProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const defaultNavigation = useNavigation();
+  const localParams = useLocalSearchParams<{ id?: string }>();
   const routerRoute = useRoute() as { params?: { id?: string } };
-  const params = route?.params ?? routerRoute.params ?? {};
+  const params = route?.params ?? routerRoute?.params ?? localParams ?? {};
   const currentNavigation = navigation ?? defaultNavigation;
-  const productId = params?.id;
-  const isEditMode = !!productId;
-  const isCreateMode = !isEditMode;
 
-  // State for product data
-  const [product, setProduct] = useState<Product | null>({
-    id: 0,
-    name: "",
-    sku: "",
-    category: "",
-    sale_price_centimes: 0,
-    cost_price_centimes: 0,
-    stock_quantity: 0,
-    minimum_stock_quantity: 0,
-    unit: "pcs",
-    is_active: true,
-    created_at: "",
-    updated_at: "",
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const productId = params?.id ? Number(params.id) : undefined;
+  const mode = propMode ?? (productId ? 'edit' : 'create');
 
-  // Load product data on edit
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(mode === 'edit');
+
+  const handleClose = useCallback(() => {
+    if (onClose) {
+      onClose();
+    } else {
+      router.back();
+    }
+  }, [onClose, router]);
+
+  // Load product if editing
   useEffect(() => {
-    (async () => {
-      if (!productId) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const rows: any[] = await executeRead(
-          // language=SQLite
-          `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
-               stock_quantity, minimum_stock_quantity, unit, is_active,
-               created_at, updated_at
-           FROM products
-           WHERE id = ?`,
-          [Number(productId)],
-        );
-        if (rows.length > 0) {
-          const r = rows[0];
-          setProduct({
-            id: r.id,
-            name: r.name,
-            sku: r.sku || "",
-            category: r.category || "",
-            sale_price_centimes: r.sale_price_centimes,
-            cost_price_centimes: r.cost_price_centimes,
-            stock_quantity: r.stock_quantity,
-            minimum_stock_quantity: r.minimum_stock_quantity,
-            unit: r.unit || "pcs",
-            is_active: r.is_active !== 0,
-            created_at: r.created_at,
-            updated_at: r.updated_at,
-          });
+    if (mode === 'edit' && productId) {
+      let isMounted = true;
+      (async () => {
+        try {
+          setIsLoading(true);
+          const p = await getById(productId);
+          if (isMounted) {
+            setProduct(p);
+          }
+        } catch (err) {
+          console.error('Failed to load product:', err);
+        } finally {
+          if (isMounted) {
+            setIsLoading(false);
+          }
         }
-      } catch (err) {
-        console.error("Failed to load product:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [productId]);
+      })();
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [mode, productId]);
 
-  // Handle form save
   const handleSave = useCallback(
-    async (productData: Product) => {
-      setIsLoading(true);
-
-      try {
-        if (isCreateMode) {
-          // Create new product
-          await executeWrite(
-            // language=SQLite
-            `INSERT INTO products
-           (name, sku, category, sale_price_centimes, cost_price_centimes,
-            stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-            [
-              productData.name,
-              productData.sku,
-              productData.category,
-              productData.sale_price_centimes,
-              productData.cost_price_centimes,
-              productData.stock_quantity,
-              productData.minimum_stock_quantity,
-              productData.unit,
-              productData.is_active ? 1 : 0,
-            ],
-          );
-        } else {
-          // Update existing product
-          await executeWrite(
-            // language=SQLite
-            `UPDATE products
-           SET name = ?,
-               sku = ?,
-               category = ?,
-               sale_price_centimes = ?,
-               cost_price_centimes = ?,
-               stock_quantity = ?,
-               minimum_stock_quantity = ?,
-               unit = ?,
-               is_active = ?,
-               updated_at = datetime('now')
-           WHERE id = ?`,
-            [
-              productData.name,
-              productData.sku,
-              productData.category,
-              productData.sale_price_centimes,
-              productData.cost_price_centimes,
-              productData.stock_quantity,
-              productData.minimum_stock_quantity,
-              productData.unit,
-              productData.is_active ? 1 : 0,
-              productId,
-            ],
-          );
-        }
-        currentNavigation?.back();
-      } catch (err) {
-        setIsLoading(false);
-        Alert.alert(t("common:error"), (err as Error).message);
+    async (formData: ProductFormData) => {
+      if (mode === 'create') {
+        await create({
+          name: formData.name,
+          sku: formData.sku,
+          category: formData.category,
+          sale_price_centimes: formData.sale_price_centimes,
+          cost_price_centimes: formData.cost_price_centimes,
+          stock_quantity: formData.stock_quantity,
+          minimum_stock_quantity: formData.minimum_stock_quantity,
+          unit: formData.unit,
+          is_active: formData.is_active,
+        });
+      } else if (productId) {
+        await update(productId, {
+          name: formData.name,
+          sku: formData.sku,
+          category: formData.category,
+          sale_price_centimes: formData.sale_price_centimes,
+          cost_price_centimes: formData.cost_price_centimes,
+          stock_quantity: formData.stock_quantity,
+          minimum_stock_quantity: formData.minimum_stock_quantity,
+          unit: formData.unit,
+          is_active: formData.is_active,
+        });
       }
     },
-    [productId, isCreateMode, currentNavigation, t],
+    [mode, productId]
   );
 
-  // Handle stock adjustment
-  const handleStockAdjustment = useCallback(
-    async (quantityChange: number, reason: string) => {
-      if (!reason?.trim()) {
-        Alert.alert(
-          t("products.adjustmentReason"),
-          t("products.validationRequired").replace(
-            "This field is required",
-            t("products.adjustmentReason"),
-          ),
-        );
-        return;
-      }
-
-      try {
-        await adjustStock(productId!, quantityChange, reason);
-        // Refresh product data
-        if (productId) {
-          const rows: any[] = await executeRead(
-            // language=SQLite
-            `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
-               stock_quantity, minimum_stock_quantity, unit, is_active,
-               created_at, updated_at
-           FROM products
-           WHERE id = ?`,
-            [Number(productId)],
-          );
-          if (rows.length > 0) {
-            const r = rows[0];
-            setProduct({
-              id: r.id,
-              name: r.name,
-              sku: r.sku || "",
-              category: r.category || "",
-              sale_price_centimes: r.sale_price_centimes,
-              cost_price_centimes: r.cost_price_centimes,
-              stock_quantity: r.stock_quantity,
-              minimum_stock_quantity: r.minimum_stock_quantity,
-              unit: r.unit || "pcs",
-              is_active: r.is_active !== 0,
-              created_at: r.created_at,
-              updated_at: r.updated_at,
-            });
-          }
-        }
-      } catch (err) {
-        Alert.alert(t("common:error"), (err as Error).message);
-      }
-    },
-    [productId, t],
-  );
-
-  // Handle archive/reactivate
   const handleArchive = useCallback(async () => {
-    const actionTitle = product?.is_active
-      ? t("products.archive")
-      : t("products.reactivate");
-    const confirmText = product?.is_active ? t("products.deleteConfirm") : "OK";
+    if (!productId || !product) return;
 
-    const handleConfirm = async () => {
-      try {
-        await executeWrite(
-          // language=SQLite
-          `UPDATE products
-           SET is_active = ?,
-               updated_at = datetime('now')
-           WHERE id = ?`,
-          [product?.is_active ? 0 : 1, productId],
-        );
-        // Refresh product data
-        if (productId) {
-          const rows: any[] = await executeRead(
-            // language=SQLite
-            `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
-                 stock_quantity, minimum_stock_quantity, unit, is_active,
-                 created_at, updated_at
-             FROM products
-             WHERE id = ?`,
-            [Number(productId)],
-          );
-          if (rows.length > 0) {
-            const r = rows[0];
-            setProduct({
-              id: r.id,
-              name: r.name,
-              sku: r.sku || "",
-              category: r.category || "",
-              sale_price_centimes: r.sale_price_centimes,
-              cost_price_centimes: r.cost_price_centimes,
-              stock_quantity: r.stock_quantity,
-              minimum_stock_quantity: r.minimum_stock_quantity,
-              unit: r.unit || "pcs",
-              is_active: r.is_active !== 0,
-              created_at: r.created_at,
-              updated_at: r.updated_at,
-            });
-          }
-        }
-        currentNavigation?.back();
-      } catch (err) {
-        Alert.alert(t("common:error"), (err as Error).message);
-      }
-    };
+    const actionText = product.is_active
+      ? t('products:archiveProduct')
+      : t('products:reactivateProduct');
+    const confirmMessage = product.is_active
+      ? t('products:archiveConfirm')
+      : t('common:confirmDialog');
 
     Alert.alert(
-      actionTitle,
-      t("common:confirmDialog"),
+      actionText,
+      confirmMessage,
       [
-        { text: t("common:cancel"), style: "cancel" },
-        { text: confirmText, onPress: handleConfirm },
-      ],
-      { cancelable: false },
+        { text: t('common:cancel'), style: 'cancel' },
+        {
+          text: actionText,
+          style: product.is_active ? 'destructive' : 'default',
+          onPress: async () => {
+            try {
+              if (product.is_active) {
+                await archive(productId);
+              } else {
+                await update(productId, { is_active: true });
+              }
+              handleClose();
+            } catch (err: any) {
+              Alert.alert(t('common:error'), err.message);
+            }
+          },
+        },
+      ]
     );
-  }, [productId, product, t, currentNavigation]);
+  }, [productId, product, t, handleClose]);
+
+  const handleNavigateStockAdjustment = useCallback(() => {
+    if (productId) {
+      router.push({
+        pathname: '/products/stock-adjustment',
+        params: { productId: productId.toString() },
+      });
+    }
+  }, [productId, router]);
+
+  if (isLoading) {
+    return (
+      <ThemedView type="background" style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+        <ThemedText style={styles.loadingText}>{t('common:loading')}</ThemedText>
+      </ThemedView>
+    );
+  }
 
   return (
-    <ThemedView type="background" style={styles.container}>
-      {isLoading && (
-        <ThemedView style={styles.loadingView}>
-          <ThemedText type="small" style={styles.loadingText}>
-            {t("common:loading")}
-          </ThemedText>
-        </ThemedView>
-      )}
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <ThemedView style={styles.card}>
-          {!product && isEditMode && (
-            <ThemedView style={styles.emptyState}>
-              <ThemedText type="subtitle" style={styles.emptyText}>
-                {t("products.noProductFound")}
-              </ThemedText>
-            </ThemedView>
-          )}
-          {product && (
-            <ThemedView style={styles.form}>
-              <ThemedText type="title" style={styles.title}>
-                {t("products.formTitle")}
-              </ThemedText>
-
-              <ThemedText type="subtitle" style={styles.subtitle}>
-                {t(
-                  isEditMode
-                    ? "products.formSubtitle"
-                    : "products.formSubtitle",
-                )}
-              </ThemedText>
-
-              {/* Name */}
-              <FormField label={t("products.name")}>
-                <TextInput
-                  value={product?.name || ""}
-                  onChangeText={(value) =>
-                    setProduct((prev) => ({ ...prev, name: value }) as Product)
-                  }
-                  placeholder={t("products.placeholder")}
-                  autoCapitalize="words"
-                  style={styles.input}
-                />
-              </FormField>
-
-              {/* SKU */}
-              <FormField label={t("products.sku")}>
-                <TextInput
-                  value={product?.sku || ""}
-                  onChangeText={(value) =>
-                    setProduct(
-                      (prev) => ({ ...prev, sku: value || "" }) as Product,
-                    )
-                  }
-                  placeholder="FL-001, OI-001, etc."
-                  keyboardType="default"
-                  autoCapitalize="characters"
-                  style={styles.input}
-                />
-              </FormField>
-
-              {/* Category */}
-              <FormField label={t("products.category")}>
-                <TextInput
-                  value={product?.category || ""}
-                  onChangeText={(value) =>
-                    setProduct(
-                      (prev) => ({ ...prev, category: value || "" }) as Product,
-                    )
-                  }
-                  placeholder="مخبوزات, مطبخ, etc."
-                  style={styles.input}
-                />
-              </FormField>
-
-              {/* Sale Price */}
-              <FormField label={t("products.salePrice")}>
-                <TextInput
-                  value={product?.sale_price_centimes.toString()}
-                  onChangeText={(value) => {
-                    const num = parseInt(value.replace(/[^0-9]/g, ""), 10);
-                    setProduct(
-                      (prev) =>
-                        ({ ...prev, sale_price_centimes: num || 0 }) as Product,
-                    );
-                  }}
-                  keyboardType="numeric"
-                  placeholder={t("products.placeholder")}
-                  style={styles.input}
-                />
-                <ThemedText type="small" style={styles.hint}>
-                  {t("products.salePriceCentimes")}
-                </ThemedText>
-              </FormField>
-
-              {/* Cost Price */}
-              <FormField label={t("products.costPrice")}>
-                <TextInput
-                  value={product?.cost_price_centimes.toString()}
-                  onChangeText={(value) => {
-                    const num = parseInt(value.replace(/[^0-9]/g, ""), 10);
-                    setProduct(
-                      (prev) =>
-                        ({ ...prev, cost_price_centimes: num || 0 }) as Product,
-                    );
-                  }}
-                  keyboardType="numeric"
-                  placeholder={t("products.placeholder")}
-                  style={styles.input}
-                />
-                <ThemedText type="small" style={styles.hint}>
-                  {t("products.salePriceCentimes")}
-                </ThemedText>
-              </FormField>
-
-              {/* Current Stock */}
-              <FormField label={t("products.stock")}>
-                <TextInput
-                  value={product?.stock_quantity.toString()}
-                  onChangeText={(value) => {
-                    const num = parseInt(value, 10);
-                    setProduct(
-                      (prev) =>
-                        ({ ...prev, stock_quantity: num || 0 }) as Product,
-                    );
-                  }}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  style={styles.input}
-                />
-                {isCreateMode && (
-                  <ThemedText type="small" style={styles.hint}>
-                    {t("products.stockCreateNote")}
-                  </ThemedText>
-                )}
-              </FormField>
-
-              {/* Minimum Stock Threshold */}
-              <FormField label={t("products.minimumStock")}>
-                <TextInput
-                  value={product?.minimum_stock_quantity.toString()}
-                  onChangeText={(value) => {
-                    const num = parseInt(value, 10);
-                    setProduct(
-                      (prev) =>
-                        ({
-                          ...prev,
-                          minimum_stock_quantity: num || 0,
-                        }) as Product,
-                    );
-                  }}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  style={styles.input}
-                />
-              </FormField>
-
-              {/* Unit */}
-              <FormField label={t("products.unit")}>
-                <TextInput
-                  value={product?.unit || "pcs"}
-                  onChangeText={(value) =>
-                    setProduct((prev) => ({ ...prev, unit: value }) as Product)
-                  }
-                  style={styles.input}
-                />
-                <ThemedText type="small" style={styles.hint}>
-                  {t("products.unitPiece")} | {t("products.unitKg")} |{" "}
-                  {t("products.unitLiter")} | {t("products.unitPack")} |{" "}
-                  {t("products.unitBox")} | {t("products.unitOther")}
-                </ThemedText>
-              </FormField>
-
-              {/* Stock Adjustment Section (only in edit/detail mode) */}
-              {!isCreateMode && (
-                <View style={styles.adjustmentSection}>
-                  <ThemedText type="small" style={styles.sectionTitle}>
-                    {t("products.stockAdjustment")}
-                  </ThemedText>
-
-                  <TouchableOpacity
-                    style={styles.adjustmentButton}
-                    onPress={() => {
-                      currentNavigation?.push("stock-adjustment", {
-                        productId: product.id,
-                        productName: product.name,
-                        currentStock: product.stock_quantity,
-                      });
-                    }}
-                  >
-                    <ThemedText
-                      type="small"
-                      style={styles.adjustmentButtonText}
-                    >
-                      {t("products.adjustStock")}
-                    </ThemedText>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {/* Action buttons */}
-              <View style={styles.buttonRow}>
-                <PrimaryButton
-                  title={t("products.formSave")}
-                  loading={false}
-                  onPress={() => product && handleSave(product)}
-                />
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => currentNavigation?.back()}
-                >
-                  <ThemedText type="small" style={styles.cancelText}>
-                    {t(
-                      isEditMode
-                        ? "products.formCancel"
-                        : "products.formCancel",
-                    )}
-                  </ThemedText>
-                </TouchableOpacity>
-
-                {isEditMode && (
-                  <TouchableOpacity
-                    style={styles.archiveButton}
-                    onPress={() => handleArchive()}
-                  >
-                    <ThemedText type="small" style={styles.archiveText}>
-                      {product.is_active
-                        ? t("products.archive")
-                        : t("products.reactivate")}
-                    </ThemedText>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </ThemedView>
-          )}
-        </ThemedView>
-      </ScrollView>
-    </ThemedView>
+    <ProductForm
+      mode={mode}
+      productId={productId}
+      initialValues={
+        product
+          ? {
+              name: product.name,
+              sku: product.sku,
+              category: product.category,
+              sale_price_centimes: product.sale_price_centimes,
+              cost_price_centimes: product.cost_price_centimes,
+              stock_quantity: product.stock_quantity,
+              minimum_stock_quantity: product.minimum_stock_quantity,
+              unit: product.unit,
+              is_active: product.is_active,
+            }
+          : undefined
+      }
+      onSave={handleSave}
+      onClose={handleClose}
+      onArchive={mode === 'edit' ? handleArchive : undefined}
+      onNavigateStockAdjustment={handleNavigateStockAdjustment}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  scroll: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  content: {
-    flexGrow: 1,
-    maxWidth: 400,
-    width: "100%",
-    padding: 20,
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    margin: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 600,
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  input: {
-    height: 50,
-    borderColor: Colors.light.disabledBackground,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 14,
-    marginBottom: 16,
-    backgroundColor: "white",
-  },
-  hint: {
-    fontSize: 10,
-    color: Colors.light.textSecondary,
-    marginTop: 4,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
-    color: Colors.light.textSecondary,
-  },
-  adjustmentSection: {
-    marginVertical: 20,
-    paddingVertical: 16,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.light.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.light.border,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 500,
-    marginTop: 20,
-    marginBottom: 12,
-    color: Colors.light.textSecondary,
-  },
-  adjustmentButton: {
-    padding: 12,
-    backgroundColor: Colors.light.disabledBackground,
-    borderRadius: 8,
-    marginBottom: 8,
-    alignItems: "center",
-  },
-  adjustmentButtonText: {
-    color: Colors.light.textPrimary,
-    fontWeight: 500,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
   },
-  cancelButton: {
-    flex: 1,
-  },
-  emptyText: {
-    color: Colors.light.textSecondary,
-  },
-  form: {
-    padding: 24,
-  },
-  cancelText: {
-    color: Colors.light.textSecondary,
-  },
-  archiveText: {
-    color: Colors.light.destructive,
-  },
-  archiveButton: {
-    padding: 8,
-    backgroundColor: Colors.light.surface,
-    borderRadius: 8,
-  },
-  loadingView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
   loadingText: {
-    fontSize: 14,
     color: Colors.light.textSecondary,
+    fontSize: 14,
   },
 });

@@ -1,126 +1,870 @@
-import { useRoute, useNavigation } from 'expo-router';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  ScrollView,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
-import { useState, useEffect } from 'react';
-import { View, ScrollView, RefreshControl, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
-import { executeRead } from '@/database/database';
-import { getInventoryHistory } from '@/database/repositories/productRepository';
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
+import { getById, getInventoryHistory, archive, update } from '@/database/repositories/productRepository';
+import { Product, InventoryMovement } from '@/types/entities';
 import { formatCentimes } from '@/utils/money';
 
 export default function ProductDetailScreen() {
-  const { params } = useRoute() as { params: { id: string } };
-  const productId = Number(params?.id);
+  const localParams = useLocalSearchParams<{ id?: string }>();
+  const route = useRoute() as { params?: { id?: string } };
+  const rawId = localParams?.id ?? route?.params?.id;
+  const productId = Number(rawId);
   const { t, i18n } = useTranslation();
-  const navigation = useNavigation();
-  const [product, setProduct] = useState<any>(null);
-  const [inventory, setInventory] = useState<any[]>([]);
+  const router = useRouter();
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [inventory, setInventory] = useState<InventoryMovement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadData = async () => {
-    setRefreshing(true);
+  const loadData = useCallback(async () => {
+    if (!productId) return;
     try {
-        const rows: any[] = await executeRead(`SELECT * FROM products WHERE id = ?`, [productId]);
-        if (rows.length > 0) setProduct(rows[0]);
-        const history = await getInventoryHistory(productId);
-        setInventory(history);
+      const p = await getById(productId);
+      setProduct(p);
+      const history = await getInventoryHistory(productId);
+      setInventory(history);
     } catch (err) {
-        console.error(err);
+      console.error('Failed to load product detail:', err);
     } finally {
-        setRefreshing(false);
+      setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [productId]);
 
-  useEffect(() => { loadData(); }, [productId]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  if (!product) return <View style={styles.container}><ThemedText>{t('loading')}</ThemedText></View>;
+  const handleArchive = useCallback(async () => {
+    if (!productId || !product) return;
+
+    const actionText = product.is_active
+      ? t('products:archiveProduct')
+      : t('products:reactivateProduct');
+    const confirmMessage = product.is_active
+      ? t('products:archiveConfirm')
+      : t('common:confirmDialog');
+
+    Alert.alert(actionText, confirmMessage, [
+      { text: t('common:cancel'), style: 'cancel' },
+      {
+        text: actionText,
+        style: product.is_active ? 'destructive' : 'default',
+        onPress: async () => {
+          try {
+            if (product.is_active) {
+              await archive(productId);
+            } else {
+              await update(productId, { is_active: true });
+            }
+            await loadData();
+          } catch (err: any) {
+            Alert.alert(t('common:error'), err.message);
+          }
+        },
+      },
+    ]);
+  }, [productId, product, t, loadData]);
+
+  if (loading && !product) {
+    return (
+      <ThemedView type="background" style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+        <ThemedText style={styles.loadingText}>{t('common:loading')}</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (!product) {
+    return (
+      <ThemedView type="background" style={styles.loadingContainer}>
+        <ThemedText style={styles.errorTitle}>Product not found</ThemedText>
+        <TouchableOpacity style={styles.backBtnSimple} onPress={() => router.back()}>
+          <ThemedText style={styles.backBtnSimpleText}>Go Back</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    );
+  }
 
   const isLowStock = product.stock_quantity <= product.minimum_stock_quantity;
+  const profitCentimes = product.sale_price_centimes - product.cost_price_centimes;
+  const marginPercentage =
+    product.sale_price_centimes > 0
+      ? ((profitCentimes / product.sale_price_centimes) * 100).toFixed(1)
+      : '0.0';
 
   return (
-    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
-        <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={24} color={Colors.light.textPrimary} /></TouchableOpacity>
-            <View style={styles.headerActions}>
-                <TouchableOpacity onPress={() => (navigation as any).push(`products/edit/${productId}`)}><Ionicons name="pencil" size={24} /></TouchableOpacity>
-                <TouchableOpacity><Ionicons name="archive" size={24} color={Colors.light.error} /></TouchableOpacity>
-            </View>
+    <ThemedView type="background" style={styles.container}>
+      {/* Header bar */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="arrow-back" size={24} color={Colors.light.textPrimary} />
+          </TouchableOpacity>
+          <ThemedText style={styles.headerTitle}>
+            {t('products:productDetail')}
+          </ThemedText>
         </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.iconCircleBtn}
+            onPress={() => router.push(`/products/edit/${productId}`)}
+            accessibilityLabel="Edit product"
+          >
+            <Ionicons name="pencil" size={18} color={Colors.light.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconCircleBtn}
+            onPress={handleArchive}
+            accessibilityLabel="Archive product"
+          >
+            <Ionicons
+              name={product.is_active ? 'archive-outline' : 'refresh-outline'}
+              size={18}
+              color={product.is_active ? Colors.light.error : Colors.light.primary}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
 
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadData();
+            }}
+          />
+        }
+      >
+        {/* Low Stock Alert Banner */}
         {isLowStock && (
-            <View style={styles.warningBanner}>
-                <Ionicons name="warning" size={20} color={Colors.light.warning} />
-                <ThemedText style={styles.warningText}>{t('products:lowStock')}</ThemedText>
+          <View style={styles.warningBanner}>
+            <View style={styles.warningIconCircle}>
+              <Ionicons name="warning" size={18} color={Colors.light.secondary} />
             </View>
+            <View style={styles.warningTextContainer}>
+              <View style={styles.warningTitleRow}>
+                <ThemedText style={styles.warningTitle}>
+                  {t('products:lowStockAlert')}
+                </ThemedText>
+                <View style={styles.actionNeededBadge}>
+                  <ThemedText style={styles.actionNeededBadgeText}>
+                    {t('products:actionNeeded')}
+                  </ThemedText>
+                </View>
+              </View>
+              <ThemedText style={styles.warningDescription}>
+                {t('products:onlyCountLeft', {
+                  count: product.stock_quantity,
+                  unit: product.unit || 'units',
+                  min: product.minimum_stock_quantity,
+                })}
+              </ThemedText>
+            </View>
+          </View>
         )}
 
+        {/* Main Product Card */}
         <ThemedView style={styles.card}>
-            <ThemedText style={styles.name}>{product.name}</ThemedText>
-            <ThemedText style={styles.sku}>{t('products:sku')}: {product.sku}</ThemedText>
-            <View style={styles.priceRow}>
-                <ThemedText style={styles.price}>{t('products:salePrice')}: {formatCentimes(product.sale_price_centimes, i18n.language as any)}</ThemedText>
+          {/* Visual Header */}
+          <View style={styles.productHeader}>
+            <View style={styles.productAvatar}>
+              <Ionicons name="cube" size={28} color={Colors.light.primary} />
             </View>
-            <TouchableOpacity style={styles.adjustButton} onPress={() => (navigation as any).push('products/stock-adjustment', { productId })}>
-                <Ionicons name="options" size={20} color={Colors.light.primary} />
-                <ThemedText style={styles.adjustButtonText}>{t('products:adjustmentTitle')}</ThemedText>
-            </TouchableOpacity>
+            <View style={styles.productHeaderInfo}>
+              <View style={styles.tagRow}>
+                {product.category ? (
+                  <View style={styles.categoryBadge}>
+                    <ThemedText style={styles.categoryBadgeText}>
+                      {product.category}
+                    </ThemedText>
+                  </View>
+                ) : null}
+                <ThemedText style={styles.unitMetaText}>
+                  {t('products:unit')}: {product.unit || 'Piece'}
+                </ThemedText>
+              </View>
+              <ThemedText style={styles.productName} numberOfLines={2}>
+                {product.name}
+              </ThemedText>
+              {!product.is_active && (
+                <View style={styles.archivedPill}>
+                  <ThemedText style={styles.archivedPillText}>
+                    {t('products:archivedBadge')}
+                  </ThemedText>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Metadata Pill Grid */}
+          <View style={styles.metaGrid}>
+            <View style={styles.metaCol}>
+              <ThemedText style={styles.metaLabel}>{t('products:sku')}</ThemedText>
+              <ThemedText style={styles.metaValue}>
+                {product.sku || '—'}
+              </ThemedText>
+            </View>
+            <View style={styles.metaCol}>
+              <ThemedText style={styles.metaLabel}>Barcode</ThemedText>
+              <View style={styles.barcodeRow}>
+                <Ionicons name="barcode-outline" size={16} color={Colors.light.textSecondary} />
+                <ThemedText style={styles.metaValue}>
+                  {product.sku || '—'}
+                </ThemedText>
+              </View>
+            </View>
+          </View>
+
+          {/* Pricing Section */}
+          <View style={styles.pricingSection}>
+            <View style={styles.priceCol}>
+              <ThemedText style={styles.priceColLabel}>
+                {t('products:salePrice')}
+              </ThemedText>
+              <ThemedText style={styles.salePriceValue}>
+                {formatCentimes(product.sale_price_centimes, i18n.language as any)}
+              </ThemedText>
+              <ThemedText style={styles.priceSubHint}>
+                Per {product.unit || 'unit'}
+              </ThemedText>
+            </View>
+
+            <View style={styles.priceCol}>
+              <ThemedText style={styles.priceColLabel}>
+                {t('products:costPrice')} & Profit
+              </ThemedText>
+              <ThemedText style={styles.costPriceValue}>
+                {formatCentimes(product.cost_price_centimes, i18n.language as any)}
+              </ThemedText>
+              <View style={styles.profitBadge}>
+                <Ionicons name="trending-up" size={12} color={Colors.light.primary} />
+                <ThemedText style={styles.profitBadgeText}>
+                  {formatCentimes(profitCentimes, i18n.language as any)} ({marginPercentage}%)
+                </ThemedText>
+              </View>
+            </View>
+          </View>
+
+          {/* Stock Status Micro-Grid */}
+          <View style={styles.stockMicroGrid}>
+            <View style={styles.stockGridItem}>
+              <ThemedText style={styles.stockGridLabel}>
+                {t('products:currentOnHand')}
+              </ThemedText>
+              <View style={styles.stockValueRow}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    { backgroundColor: isLowStock ? Colors.light.secondary : Colors.light.primary },
+                  ]}
+                />
+                <ThemedText
+                  style={[
+                    styles.stockGridValue,
+                    isLowStock && { color: Colors.light.secondary },
+                  ]}
+                >
+                  {product.stock_quantity} {product.unit || 'units'}
+                </ThemedText>
+              </View>
+            </View>
+
+            <View style={styles.stockGridItem}>
+              <ThemedText style={styles.stockGridLabel}>
+                {t('products:minThreshold')}
+              </ThemedText>
+              <ThemedText style={styles.stockGridValue}>
+                {product.minimum_stock_quantity} {product.unit || 'units'}
+              </ThemedText>
+            </View>
+
+            <View style={styles.stockGridItem}>
+              <ThemedText style={styles.stockGridLabel}>
+                {t('products:stockStatus')}
+              </ThemedText>
+              <ThemedText
+                style={[
+                  styles.stockGridValue,
+                  { color: isLowStock ? Colors.light.secondary : Colors.light.primary },
+                ]}
+              >
+                {isLowStock ? t('products:needsRestock') : t('products:healthy')}
+              </ThemedText>
+            </View>
+          </View>
         </ThemedView>
 
-        <ThemedView style={styles.card}>
-            <ThemedText style={styles.sectionTitle}>{t('products:inventoryHistory')}</ThemedText>
-            {inventory.map((item) => (
-                <View key={item.id} style={styles.historyRow}>
-                    <ThemedText>{item.movement_type}</ThemedText>
-                    <ThemedText>{item.quantity_change}</ThemedText>
-                </View>
-            ))}
+        {/* Primary Action Button: Adjust Stock */}
+        <TouchableOpacity
+          style={styles.adjustStockButton}
+          onPress={() =>
+            router.push({
+              pathname: '/products/stock-adjustment',
+              params: {
+                productId: productId.toString(),
+                productName: product.name,
+                currentStock: product.stock_quantity.toString(),
+              },
+            })
+          }
+          activeOpacity={0.8}
+        >
+          <Ionicons name="options-outline" size={20} color="#FFFFFF" />
+          <ThemedText style={styles.adjustStockButtonText}>
+            {t('products:adjustStock')}
+          </ThemedText>
+        </TouchableOpacity>
+
+        {/* Inventory History Section */}
+        <ThemedView style={styles.historySection}>
+          <View style={styles.historySectionHeader}>
+            <View>
+              <ThemedText style={styles.historyTitle}>
+                {t('products:inventoryHistory')}
+              </ThemedText>
+              <ThemedText style={styles.historySubtitle}>
+                {t('products:recentMovements')}
+              </ThemedText>
+            </View>
+          </View>
+
+          {inventory.length === 0 ? (
+            <View style={styles.emptyHistoryWrap}>
+              <Ionicons name="file-tray-outline" size={32} color={Colors.light.textMuted} />
+              <ThemedText style={styles.emptyHistoryText}>
+                {t('products:noInventoryHistory')}
+              </ThemedText>
+            </View>
+          ) : (
+            <View style={styles.historyList}>
+              {inventory.map((item, idx) => {
+                const isPositive = item.quantity_change > 0;
+                const isSale = item.movement_type === 'sale';
+                const iconName = isSale
+                  ? 'cart-outline'
+                  : item.movement_type === 'restock' || isPositive
+                  ? 'cube-outline'
+                  : item.movement_type === 'damage'
+                  ? 'alert-circle-outline'
+                  : 'swap-vertical-outline';
+
+                const iconBg = isPositive
+                  ? Colors.light.primaryLight
+                  : isSale
+                  ? '#EFF6FF'
+                  : Colors.light.errorLight;
+
+                const iconColor = isPositive
+                  ? Colors.light.primary
+                  : isSale
+                  ? '#2563EB'
+                  : Colors.light.error;
+
+                return (
+                  <View key={item.id || idx}>
+                    <View style={styles.historyRow}>
+                      <View style={styles.historyRowLeft}>
+                        <View style={[styles.movementIconCircle, { backgroundColor: iconBg }]}>
+                          <Ionicons name={iconName as any} size={18} color={iconColor} />
+                        </View>
+                        <View style={styles.movementTextWrap}>
+                          <ThemedText style={styles.movementType}>
+                            {item.movement_type.toUpperCase()}
+                          </ThemedText>
+                          {item.notes ? (
+                            <ThemedText style={styles.movementNote} numberOfLines={1}>
+                              {item.notes}
+                            </ThemedText>
+                          ) : null}
+                          <ThemedText style={styles.movementDate}>
+                            {item.created_at ? new Date(item.created_at).toLocaleString() : ''}
+                          </ThemedText>
+                        </View>
+                      </View>
+
+                      <View style={styles.historyRowRight}>
+                        <View
+                          style={[
+                            styles.quantityPill,
+                            isPositive ? styles.quantityPillPositive : styles.quantityPillNegative,
+                          ]}
+                        >
+                          <ThemedText
+                            style={[
+                              styles.quantityPillText,
+                              isPositive
+                                ? styles.quantityPillTextPositive
+                                : styles.quantityPillTextNegative,
+                            ]}
+                          >
+                            {isPositive ? `+${item.quantity_change}` : item.quantity_change}{' '}
+                            {product.unit || 'units'}
+                          </ThemedText>
+                        </View>
+                        {item.balance_after !== undefined && (
+                          <ThemedText style={styles.balanceText}>
+                            Bal: {item.balance_after}
+                          </ThemedText>
+                        )}
+                      </View>
+                    </View>
+                    {idx < inventory.length - 1 && <View style={styles.divider} />}
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </ThemedView>
-    </ScrollView>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.light.background },
-    header: { flexDirection: 'row', justifyContent: 'space-between', padding: Spacing.lg },
-    headerActions: { flexDirection: 'row', gap: Spacing.md },
-    warningBanner: { flexDirection: 'row', backgroundColor: Colors.light.warningLight, padding: Spacing.md, gap: Spacing.sm },
-    warningText: { color: Colors.light.warning, fontWeight: '600' },
-    card: { margin: Spacing.lg, padding: Spacing.lg, borderRadius: BorderRadius.lg, ...Shadows.sm },
-    name: { ...Typography.heading2 },
-    sku: { ...Typography.caption, color: Colors.light.textSecondary },
-    priceRow: { marginVertical: Spacing.md },
-    price: { ...Typography.body },
-    adjustButton: { flexDirection: 'row', backgroundColor: Colors.light.primary, padding: Spacing.md, borderRadius: BorderRadius.button, justifyContent: 'center', gap: Spacing.sm },
-    adjustButtonText: { color: Colors.light.primary, fontWeight: '600' },
-    sectionTitle: { ...Typography.heading3, marginBottom: Spacing.md },
-    historyRow: {
-      flexDirection: 'column',
-      padding: Spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: Colors.light.border,
-      backgroundColor: 'white',
-      marginBottom: Spacing.sm,
-      borderRadius: BorderRadius.md,
-    },
-    inventoryType: {
-      fontSize: 12,
-      color: Colors.light.textSecondary,
-    },
-    inventoryQty: {
-      fontSize: 12,
-      color: Colors.light.textPrimary,
-      fontWeight: 500,
-      alignSelf: 'flex-end',
-    },
-    inventoryNote: {
-      fontSize: 10,
-      color: Colors.light.textSecondary,
-      marginHorizontal: 4,
-    },
-    inventoryDate: {
-      fontSize: 10,
-      color: Colors.light.textSecondary,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    color: Colors.light.textSecondary,
+    fontSize: 14,
+  },
+  errorTitle: {
+    ...Typography.heading3,
+    color: Colors.light.error,
+  },
+  backBtnSimple: {
+    padding: Spacing.md,
+  },
+  backBtnSimpleText: {
+    ...Typography.label,
+    color: Colors.light.primary,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    ...Typography.heading3,
+    color: Colors.light.textPrimary,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  iconCircleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F0F3FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+    paddingBottom: 48,
+    gap: Spacing.md,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    backgroundColor: Colors.light.warningLight,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  warningIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFEDD5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  warningTextContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  warningTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  warningTitle: {
+    ...Typography.label,
+    color: '#9A3412',
+    fontWeight: '700',
+  },
+  actionNeededBadge: {
+    backgroundColor: '#FFEDD5',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: BorderRadius.sm,
+  },
+  actionNeededBadgeText: {
+    ...Typography.caption,
+    fontSize: 11,
+    color: '#C2410C',
+    fontWeight: '700',
+  },
+  warningDescription: {
+    ...Typography.caption,
+    color: '#9A3412',
+    lineHeight: 18,
+  },
+  card: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    ...Shadows.sm,
+  },
+  productHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+  },
+  productAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.light.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  productHeaderInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  categoryBadge: {
+    backgroundColor: Colors.light.primaryLight,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  categoryBadgeText: {
+    ...Typography.caption,
+    color: Colors.light.primary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  unitMetaText: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 12,
+  },
+  productName: {
+    ...Typography.heading2,
+    color: Colors.light.textPrimary,
+  },
+  archivedPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.light.errorLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginTop: 2,
+  },
+  archivedPillText: {
+    ...Typography.caption,
+    color: Colors.light.error,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  metaGrid: {
+    flexDirection: 'row',
+    backgroundColor: '#F0F3FF',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  metaCol: {
+    flex: 1,
+    gap: 2,
+  },
+  metaLabel: {
+    ...Typography.caption,
+    color: Colors.light.textMuted,
+    fontSize: 12,
+  },
+  metaValue: {
+    ...Typography.label,
+    color: Colors.light.textPrimary,
+    fontWeight: '600',
+  },
+  barcodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  pricingSection: {
+    flexDirection: 'row',
+    backgroundColor: '#F8FAFC',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  priceCol: {
+    flex: 1,
+    gap: 2,
+  },
+  priceColLabel: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 12,
+  },
+  salePriceValue: {
+    ...Typography.heading2,
+    color: Colors.light.primary,
+    fontWeight: '700',
+  },
+  costPriceValue: {
+    ...Typography.body,
+    color: Colors.light.textSecondary,
+    fontSize: 14,
+    textDecorationLine: 'line-through',
+  },
+  priceSubHint: {
+    ...Typography.caption,
+    color: Colors.light.textMuted,
+    fontSize: 11,
+  },
+  profitBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.light.primaryLight,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginTop: 4,
+  },
+  profitBadgeText: {
+    ...Typography.caption,
+    color: Colors.light.primary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  stockMicroGrid: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  stockGridItem: {
+    flex: 1,
+    backgroundColor: '#F0F3FF',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.sm,
+    gap: 2,
+  },
+  stockGridLabel: {
+    ...Typography.caption,
+    color: Colors.light.textMuted,
+    fontSize: 11,
+  },
+  stockValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  stockGridValue: {
+    ...Typography.label,
+    color: Colors.light.textPrimary,
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  adjustStockButton: {
+    height: 48,
+    borderRadius: BorderRadius.xl,
+    backgroundColor: Colors.light.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    ...Shadows.sm,
+  },
+  adjustStockButtonText: {
+    ...Typography.label,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  historySection: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    ...Shadows.sm,
+  },
+  historySectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  historyTitle: {
+    ...Typography.heading3,
+    color: Colors.light.textPrimary,
+  },
+  historySubtitle: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 12,
+  },
+  emptyHistoryWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xl,
+    gap: Spacing.xs,
+  },
+  emptyHistoryText: {
+    ...Typography.caption,
+    color: Colors.light.textMuted,
+  },
+  historyList: {
+    gap: Spacing.xs,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.xs,
+  },
+  historyRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    flex: 1,
+  },
+  movementIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  movementTextWrap: {
+    flex: 1,
+    gap: 1,
+  },
+  movementType: {
+    ...Typography.label,
+    color: Colors.light.textPrimary,
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  movementNote: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 12,
+  },
+  movementDate: {
+    ...Typography.caption,
+    color: Colors.light.textMuted,
+    fontSize: 11,
+  },
+  historyRowRight: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  quantityPill: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  quantityPillPositive: {
+    backgroundColor: Colors.light.primaryLight,
+  },
+  quantityPillNegative: {
+    backgroundColor: Colors.light.errorLight,
+  },
+  quantityPillText: {
+    ...Typography.caption,
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  quantityPillTextPositive: {
+    color: Colors.light.primary,
+  },
+  quantityPillTextNegative: {
+    color: Colors.light.error,
+  },
+  balanceText: {
+    ...Typography.caption,
+    color: Colors.light.textMuted,
+    fontSize: 11,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.light.border,
+    marginVertical: 4,
+  },
 });

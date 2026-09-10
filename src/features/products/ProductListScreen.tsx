@@ -9,11 +9,11 @@ import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 
 export function ProductListScreen({ route, navigation }: any) {
   const { t } = useTranslation();
-  const currentNavigation = navigation ?? useNavigation();
+  const router = useRouter();
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
@@ -29,6 +29,19 @@ export function ProductListScreen({ route, navigation }: any) {
   }, [filter]);
 
   const { products, loading, error, reload } = useProducts(productsFilters);
+
+  const totalInventoryValueCentimes = useMemo(() => {
+    return products.reduce((sum, p) => {
+      const price = p.cost_price_centimes > 0 ? p.cost_price_centimes : p.sale_price_centimes;
+      return sum + price * Math.max(0, p.stock_quantity);
+    }, 0);
+  }, [products]);
+
+  const lowStockCount = useMemo(() => {
+    return products.filter(
+      (p) => p.is_active && p.stock_quantity <= p.minimum_stock_quantity
+    ).length;
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -75,7 +88,7 @@ export function ProductListScreen({ route, navigation }: any) {
         <TouchableOpacity
           style={styles.addButton}
           activeOpacity={0.8}
-          onPress={() => (currentNavigation as any)?.push("products/new")}
+          onPress={() => router.push("/products/new" as any)}
         >
           <Ionicons name="add" size={20} color="#FFFFFF" />
           <ThemedText style={styles.addButtonText}>{t("dashboard:quick:addProduct")}</ThemedText>
@@ -108,13 +121,12 @@ export function ProductListScreen({ route, navigation }: any) {
             <ThemedText style={styles.summaryTitle}>{filteredProducts.length} {t("products:items")}</ThemedText>
           </View>
           <View style={styles.summaryCenter}>
-            <ThemedText style={styles.summaryValue}>{formatCentimes(84200, "fr-DZ")}</ThemedText> {/* TODO: calculate actual total */}
-            <ThemedText style={styles.summaryUnit}>DZD</ThemedText>
+            <ThemedText style={styles.summaryValue}>{formatCentimes(totalInventoryValueCentimes, "fr-DZ")}</ThemedText>
           </View>
           <View style={styles.summaryRight}>
             <View style={styles.badgeContainer}>
               <ThemedText type="small" style={styles.badgeText}>
-                {filteredProducts.filter((p) => p.lowStock).length} {t("products:lowStock")}
+                {lowStockCount} {t("products:lowStock")}
               </ThemedText>
             </View>
           </View>
@@ -125,7 +137,7 @@ export function ProductListScreen({ route, navigation }: any) {
             <ProductListItem
               key={product.id}
               product={product}
-              onPress={() => (currentNavigation as any)?.push(`products/${product.id}`)}
+              onPress={() => router.push(`/products/${product.id}` as any)}
             />
           ))}
         </View>

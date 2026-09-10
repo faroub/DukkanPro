@@ -1,10 +1,8 @@
-import { useNavigation } from 'expo-router';
-import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { ProductFormScreen } from '@/features/products/ProductFormScreen';
 
 export default function ProductCreateScreen() {
-  const navigation = useNavigation();
-  const { t } = useTranslation();
+  const router = useRouter();
 
-  return <ProductFormScreen onClose={() => navigation?.goBack()} mode="create" />;
+  return <ProductFormScreen onClose={() => router.back()} mode="create" />;
 }
