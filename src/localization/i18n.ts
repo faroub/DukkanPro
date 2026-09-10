@@ -9,10 +9,11 @@ i18n.use(initReactI18next).init({
   fallbackLng: "fr",
   lng: "fr",
   resources: {
-    ar: { translation: ar },
-    en: { translation: en },
-    fr: { translation: fr },
+    ar: { translation: ar, onboarding: (ar as any).onboarding || ar },
+    en: { translation: en, onboarding: (en as any).onboarding || en },
+    fr: { translation: fr, onboarding: (fr as any).onboarding || fr },
   },
+  defaultNS: "translation",
   debug: false,
   interpolation: {
     escapeValue: false,

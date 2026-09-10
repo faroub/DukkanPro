@@ -124,6 +124,35 @@ export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
   }
 }
 
+export async function getBusinessProfile(): Promise<OnboardingProfile | null> {
+  try {
+    const rows = await dbAll<{
+      business_name: string;
+      owner_name: string;
+      business_type: string;
+      selected_locale: Locale;
+      currency: string;
+    }>(
+      "SELECT business_name, owner_name, business_type, selected_locale, currency FROM business_profiles WHERE id = 1",
+    );
+    if (rows.length > 0) {
+      return {
+        businessName: rows[0].business_name,
+        ownerName: rows[0].owner_name,
+        businessType: rows[0].business_type,
+        locale: rows[0].selected_locale,
+        currency: rows[0].currency,
+      };
+    }
+    return null;
+  } catch (error) {
+    if (__DEV__) {
+      console.warn("Failed to read business profile from SQLite:", error);
+    }
+    return null;
+  }
+}
+
 /**
  * Complete the onboarding flow
  * - Saves the profile to SQLite
@@ -153,4 +182,5 @@ export const useOnboarding = {
   saveProfileLocally,
   saveLocaleLocally,
   readStoredLocaleFromAsyncStorage,
+  getBusinessProfile,
 };

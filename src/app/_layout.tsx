@@ -21,7 +21,17 @@ export default function TabLayout() {
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
             <AnimatedSplashOverlay />
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+              <Stack.Screen name="products/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="products/new" options={{ headerShown: false }} />
+              <Stack.Screen name="products/stock-adjustment" options={{ headerShown: false }} />
+              <Stack.Screen name="products/edit/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="customers/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="customers/new" options={{ headerShown: false }} />
+            </Stack>
           </ThemeProvider>
         </SafeAreaProvider>
       </ErrorBoundary>

@@ -184,7 +184,7 @@ export default function SellScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <ThemedView style={styles.container}>
         {/* Header with Search & Barcode Scan */}
         <View style={styles.headerContainer}>
@@ -331,10 +331,7 @@ export default function SellScreen() {
               data={filteredProducts}
               keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.productsList,
-                itemCount > 0 && { paddingBottom: 100 },
-              ]}
+              contentContainerStyle={styles.productsList}
               renderItem={({ item }: { item: Product }) => {
                 const cartQty = getItemCartQty(item.id);
                 const isLowStock =
@@ -422,52 +419,117 @@ export default function SellScreen() {
           )}
         </View>
 
-        {/* Floating Cart Bar (Shown when cart has items) */}
-        {itemCount > 0 && (
-          <View style={styles.floatingCartBar}>
-            <Pressable
-              onPress={() => setCartVisible(true)}
-              style={styles.cartBarInner}
-              accessibilityLabel="Voir le panier"
-            >
-              <View style={styles.cartBarLeft}>
-                <View style={styles.cartBadgeContainer}>
-                  <SymbolView
-                    name={{
-                      ios: "bag.fill" as any,
-                      android: "shopping_bag" as any,
-                      web: "shopping_bag" as any,
-                    }}
-                    size={22}
-                    tintColor={Colors.light.primary}
-                  />
-                  <View style={styles.cartCountBadge}>
-                    <Text style={styles.cartCountBadgeText}>{itemCount}</Text>
+        {/* Bottom Dock: Voice Command Button and Cart Bar */}
+        <View
+          nativeID="sell-actions-container"
+          id="sell-actions-container"
+          // @ts-ignore
+          className="sell-actions-container"
+          style={styles.bottomDockContainer}
+        >
+          <View style={styles.actionsRow}>
+            {/* Voice Input Button */}
+            <View style={styles.voiceButtonCol}>
+              <VoiceButton
+                onVoiceStart={() => setVoiceVisible(true)}
+                onVoiceEnd={() => {}}
+                onTranscript={(text) => {
+                  setVoiceCommand(text);
+                  const parsed = parseSaleCommand(text, voiceAvailableProducts);
+                  if (parsed) {
+                    setParsedVoice(parsed);
+                  }
+                }}
+                disabled={isSaving}
+                style={styles.voiceButtonDock}
+              />
+            </View>
+
+            {/* Cart Bar Button */}
+            <View style={styles.cartBarCol}>
+              <Pressable
+                onPress={() => setCartVisible(true)}
+                style={[
+                  styles.cartBarInner,
+                  itemCount === 0 && styles.cartBarInnerEmpty,
+                ]}
+                accessibilityLabel={t("sell.cart.viewCart", {
+                  defaultValue: "Voir le panier",
+                })}
+                accessibilityRole="button"
+              >
+                <View style={styles.cartBarLeft}>
+                  <View style={styles.cartBadgeContainer}>
+                    <SymbolView
+                      name={{
+                        ios: "bag.fill" as any,
+                        android: "shopping_bag" as any,
+                        web: "shopping_bag" as any,
+                      }}
+                      size={18}
+                      tintColor={
+                        itemCount > 0 ? "#FFFFFF" : Colors.light.textSecondary
+                      }
+                    />
+                    {itemCount > 0 && (
+                      <View style={styles.cartCountBadge}>
+                        <Text style={styles.cartCountBadgeText}>{itemCount}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.cartTextGroup}>
+                    <Text
+                      style={[
+                        styles.cartBarLabel,
+                        itemCount === 0 && styles.cartBarLabelEmpty,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {itemCount > 0 ? "Panier" : "Panier"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cartBarTotal,
+                        itemCount === 0 && styles.cartBarTotalEmpty,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {formatCentimes(total)}
+                    </Text>
                   </View>
                 </View>
-                <View>
-                  <Text style={styles.cartBarLabel}>Total Panier</Text>
-                  <Text style={styles.cartBarTotal}>
-                    {formatCentimes(total)}
-                  </Text>
-                </View>
-              </View>
 
-              <View style={styles.cartBarRight}>
-                <Text style={styles.cartBarActionText}>Voir le panier</Text>
-                <SymbolView
-                  name={{
-                    ios: "chevron.right" as any,
-                    android: "chevron_right" as any,
-                    web: "chevron_right" as any,
-                  }}
-                  size={16}
-                  tintColor={Colors.light.primary}
-                />
-              </View>
-            </Pressable>
+                <View
+                  style={[
+                    styles.cartBarRight,
+                    itemCount === 0 && styles.cartBarRightEmpty,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.cartBarActionText,
+                      itemCount === 0 && styles.cartBarActionTextEmpty,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t("sell.cart.seeCart", { defaultValue: "Voir" })}
+                  </Text>
+                  <SymbolView
+                    name={{
+                      ios: "chevron.right" as any,
+                      android: "chevron_right" as any,
+                      web: "chevron_right" as any,
+                    }}
+                    size={14}
+                    tintColor={
+                      itemCount > 0 ? "#FFFFFF" : Colors.light.textMuted
+                    }
+                  />
+                </View>
+              </Pressable>
+            </View>
           </View>
-        )}
+        </View>
 
         {/* Cart Bottom Sheet Modal */}
         {cartVisible && (
@@ -544,20 +606,6 @@ export default function SellScreen() {
             onClose={() => setScannerVisible(false)}
           />
         )}
-
-        {/* Voice Input Button */}
-        <VoiceButton
-          onVoiceStart={() => setVoiceVisible(true)}
-          onVoiceEnd={() => {}}
-          onTranscript={(text) => {
-            setVoiceCommand(text);
-            const parsed = parseSaleCommand(text, voiceAvailableProducts);
-            if (parsed) {
-              setParsedVoice(parsed);
-            }
-          }}
-          disabled={isSaving}
-        />
 
         {/* Voice Review Sheet */}
         {parsedVoice && (
@@ -847,69 +895,130 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Colors.light.textPrimary,
   },
-  floatingCartBar: {
-    position: "absolute",
-    bottom: Spacing.md,
-    left: ComponentDimensions.screenPadding,
-    right: ComponentDimensions.screenPadding,
-    ...Shadows.lg,
+  bottomDockContainer: {
+    paddingHorizontal: ComponentDimensions.screenPadding,
+    paddingTop: 8,
+    paddingBottom: Spacing.sm,
+    backgroundColor: Colors.light.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.borderLight,
+    ...Shadows.sm,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    width: "100%",
+  },
+  voiceButtonCol: {
+    flex: 1,
+  },
+  voiceButtonDock: {
+    marginVertical: 0,
+    height: 48,
+    minHeight: 48,
+    paddingVertical: 0,
+    paddingHorizontal: 12,
+    borderRadius: BorderRadius.lg,
+  },
+  cartBarCol: {
+    flex: 1.15,
+  },
+  cartBarContainer: {
+    width: "100%",
   },
   cartBarInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: Colors.light.primary,
-    borderRadius: BorderRadius.xl,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: 10,
+    height: 48,
+    minHeight: 48,
+    ...Shadows.sm,
+  },
+  cartBarInnerEmpty: {
+    backgroundColor: Colors.light.backgroundElement,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   cartBarLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
+    gap: 6,
+    flex: 1,
+    minWidth: 0,
+  },
+  cartTextGroup: {
+    flex: 1,
+    minWidth: 0,
   },
   cartBadgeContainer: {
     position: "relative",
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
     justifyContent: "center",
     alignItems: "center",
   },
   cartCountBadge: {
     position: "absolute",
-    top: -2,
-    right: -6,
+    top: -3,
+    right: -5,
     backgroundColor: Colors.light.warning,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 3,
     justifyContent: "center",
     alignItems: "center",
   },
   cartCountBadgeText: {
-    color: Colors.light.textPrimary,
-    fontSize: 10,
+    color: "#FFFFFF",
+    fontSize: 9,
     fontWeight: "700",
   },
   cartBarLabel: {
-    ...Typography.caption,
-    fontSize: 10,
-    color: Colors.light.primary,
+    fontSize: 9,
+    color: "rgba(255, 255, 255, 0.85)",
     textTransform: "uppercase",
+    fontWeight: "600",
+    lineHeight: 12,
+  },
+  cartBarLabelEmpty: {
+    color: Colors.light.textSecondary,
   },
   cartBarTotal: {
-    ...Typography.moneySmall,
-    color: Colors.light.textPrimary,
+    fontSize: 13,
+    color: "#FFFFFF",
     fontWeight: "700",
+    lineHeight: 16,
+  },
+  cartBarTotalEmpty: {
+    color: Colors.light.textPrimary,
   },
   cartBarRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 2,
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  cartBarRightEmpty: {
+    backgroundColor: "transparent",
   },
   cartBarActionText: {
-    ...Typography.label,
-    color: Colors.light.textPrimary,
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  cartBarActionTextEmpty: {
+    color: Colors.light.textSecondary,
   },
   modalOverlay: {
     flex: 1,

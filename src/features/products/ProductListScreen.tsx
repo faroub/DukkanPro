@@ -137,7 +137,12 @@ export function ProductListScreen({ route, navigation }: any) {
             <ProductListItem
               key={product.id}
               product={product}
-              onPress={() => router.push(`/products/${product.id}` as any)}
+              onPress={() =>
+                router.push({
+                  pathname: "/products/[id]",
+                  params: { id: String(product.id) },
+                })
+              }
             />
           ))}
         </View>
