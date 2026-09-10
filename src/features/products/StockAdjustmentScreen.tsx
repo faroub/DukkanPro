@@ -17,8 +17,8 @@ export function StockAdjustmentScreen() {
     const [reason, setReason] = useState<'delivery' | 'count_correction' | 'damaged' | 'return' | 'other'>('delivery');
 
     const modes = [
-      { key: 'set', label: t('products:setNewTotal'), icon: 'ios-arrow-down' },
-      { key: 'delta', label: t('products:addRemove'), icon: 'ios-arrow-up' },
+      { key: 'set', label: t('products:setNewTotal'), icon: 'arrow-down' },
+      { key: 'delta', label: t('products:addRemove'), icon: 'arrow-up' },
     ];
 
     const reasons = [
@@ -47,7 +47,7 @@ export function StockAdjustmentScreen() {
                   onPress={() => setMode(m.key as 'set' | 'delta')}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name={m.icon} size={18} />
+                  <Ionicons name={m.icon as any} size={18} />
                   <ThemedText style={styles.modeButtonText}>{m.label}</ThemedText>
                 </TouchableOpacity>
               ))}
@@ -61,14 +61,14 @@ export function StockAdjustmentScreen() {
             {/* Diff Badge */}
             <ThemedView style={styles.diffBadgeContainer}>
               <span style={styles.diffBadge}>
-                <Ionicons name={mode === 'set' || adjustment > 0 ? 'trending_up' : 'trending_down'} size={18} style={styles.diffIcon} />{'+' + Math.abs(adjustment) + ' packs will be ' + (mode === 'set' ? 'added' : 'removed') + ' from inventory'}
+                <Ionicons name={(mode === 'set' || adjustment > 0 ? 'arrow-up' : 'arrow-down') as any} size={18} style={styles.diffIcon} />{'+' + Math.abs(adjustment) + ' packs will be ' + (mode === 'set' ? 'added' : 'removed') + ' from inventory'}
               </span>
             </ThemedView>
 
             {/* Reason Radio Buttons */}
             <ThemedView style={styles.reasonRadios}>
               {reasons.map((r) => (
-                <View key={r.key} style={styles.reasonRadioCard} onPress={() => setReason(r.key)}><span style={{ color: r.color }}>{r.icon}</span><span style={{ flex: 1, textAlign: 'center' }}>{r.label}</span><input type="radio" name="adjustment_reason" value={r.key} style={{ display: 'none' }} onChange={() => setReason(r.key)} /></View>
+                <TouchableOpacity key={r.key} style={styles.reasonRadioCard} onPress={() => setReason(r.key as 'delivery' | 'count_correction' | 'damaged' | 'return' | 'other')}><span style={{ color: r.color }}>{r.icon}</span><span style={{ flex: 1, textAlign: 'center' }}>{r.label}</span><input type="radio" name="adjustment_reason" value={r.key} style={{ display: 'none' }} onChange={() => setReason(r.key as 'delivery' | 'count_correction' | 'damaged' | 'return' | 'other')} /></TouchableOpacity>
               ))}
             </ThemedView>
 

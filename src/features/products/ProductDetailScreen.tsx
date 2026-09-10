@@ -42,7 +42,7 @@ export default function ProductDetailScreen() {
   return (
     <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
         <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={24} /></TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={24} color={Colors.light.textPrimary} /></TouchableOpacity>
             <View style={styles.headerActions}>
                 <TouchableOpacity onPress={() => (navigation as any).push(`products/edit/${productId}`)}><Ionicons name="pencil" size={24} /></TouchableOpacity>
                 <TouchableOpacity><Ionicons name="archive" size={24} color={Colors.light.error} /></TouchableOpacity>
@@ -63,7 +63,7 @@ export default function ProductDetailScreen() {
                 <ThemedText style={styles.price}>{t('products:salePrice')}: {formatCentimes(product.sale_price_centimes, i18n.language as any)}</ThemedText>
             </View>
             <TouchableOpacity style={styles.adjustButton} onPress={() => (navigation as any).push('products/stock-adjustment', { productId })}>
-                <Ionicons name="options" size={20} color="#FFFFFF" />
+                <Ionicons name="options" size={20} color={Colors.light.primary} />
                 <ThemedText style={styles.adjustButtonText}>{t('products:adjustmentTitle')}</ThemedText>
             </TouchableOpacity>
         </ThemedView>
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     priceRow: { marginVertical: Spacing.md },
     price: { ...Typography.body },
     adjustButton: { flexDirection: 'row', backgroundColor: Colors.light.primary, padding: Spacing.md, borderRadius: BorderRadius.button, justifyContent: 'center', gap: Spacing.sm },
-    adjustButtonText: { color: '#FFFFFF', fontWeight: '600' },
+    adjustButtonText: { color: Colors.light.primary, fontWeight: '600' },
     sectionTitle: { ...Typography.heading3, marginBottom: Spacing.md },
     historyRow: {
       flexDirection: 'column',
@@ -121,6 +121,6 @@ const styles = StyleSheet.create({
     },
     inventoryDate: {
       fontSize: 10,
-      color: '#9CA3AF',
+      color: Colors.light.textSecondary,
     },
 });
