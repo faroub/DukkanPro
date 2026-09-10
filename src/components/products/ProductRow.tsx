@@ -108,9 +108,9 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.xs,
   },
   outOfStockBadge: {
-    backgroundColor: "#FEF2F2",
+    backgroundColor: Colors.light.errorLight,
   },
   lowStockBadge: {
-    backgroundColor: "#FFFBEB",
+    backgroundColor: Colors.light.warningLight,
   },
 });
