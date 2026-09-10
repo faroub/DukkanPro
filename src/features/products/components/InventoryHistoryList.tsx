@@ -120,10 +120,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
+    padding: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.light.border,
     backgroundColor: 'white',
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
   },
   inventoryType: {
     fontSize: 12,
@@ -135,7 +137,7 @@ const styles = StyleSheet.create({
     fontWeight: 500,
   },
   inventoryNote: {
-    fontSize: 12,
+    fontSize: 10,
     color: Colors.light.textSecondary,
     marginHorizontal: 4,
   },

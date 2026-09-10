@@ -103,18 +103,24 @@ const styles = StyleSheet.create({
   },
   badge: {
     backgroundColor: Colors.light.borderLight,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
-    fontSize: 10,
+    paddingHorizontal: Spacing.xs, // 4px to match Stitch padding 4px 8px
+    paddingVertical: Spacing.xs, // 4px
+    borderRadius: BorderRadius.sm, // 4px
+    fontSize: 12, // Match Stitch badge-label font size
     marginLeft: 4,
+    color: Colors.light.warning, // Amber text for low stock badges
   },
   outOfStockBadge: {
     backgroundColor: Colors.light.destructive,
     marginTop: 8,
   },
   lowStockBadge: {
-    backgroundColor: Colors.light.warning,
+    backgroundColor: Colors.light.warningLight,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
     marginTop: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

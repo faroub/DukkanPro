@@ -95,5 +95,33 @@ const styles = StyleSheet.create({
     adjustButton: { flexDirection: 'row', backgroundColor: Colors.light.primary, padding: Spacing.md, borderRadius: BorderRadius.button, justifyContent: 'center', gap: Spacing.sm },
     adjustButtonText: { color: '#FFFFFF', fontWeight: '600' },
     sectionTitle: { ...Typography.heading3, marginBottom: Spacing.md },
-    historyRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderColor: Colors.light.border },
+    historyRow: {
+      flexDirection: 'column',
+      padding: Spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.light.border,
+      backgroundColor: 'white',
+      marginBottom: Spacing.sm,
+      borderRadius: BorderRadius.md,
+    },
+    inventoryType: {
+      fontSize: 12,
+      color: Colors.light.textSecondary,
+    },
+    inventoryQty: {
+      fontSize: 12,
+      color: Colors.light.textPrimary,
+      fontWeight: 500,
+      alignSelf: 'flex-end',
+    },
+    inventoryNote: {
+      fontSize: 10,
+      color: Colors.light.textSecondary,
+      marginHorizontal: 4,
+    },
+    inventoryDate: {
+      fontSize: 10,
+      color: '#9CA3AF',
+    },
+  },
 });

@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.light.warningLight,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: Spacing.xs, // 4px to match Stitch padding 4px 8px
     borderRadius: BorderRadius.sm,
     gap: 4,
   },
@@ -171,6 +171,8 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.light.warning,
     fontWeight: "600",
+    fontSize: 12, // Match Stitch badge-label font size
+    lineHeight: 16, // Match Stitch 12px/600 line height
   },
   badgeOutOfStock: {
     flexDirection: "row",

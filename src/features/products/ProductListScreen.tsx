@@ -101,6 +101,24 @@ export function ProductListScreen({ route, navigation }: any) {
           </View>
         )}
 
+        {/* Summary Metric Strip - matches Stitch design */}
+        <View style={styles.summaryStrip}>
+          <View style={styles.summaryLeft}>
+            <ThemedText style={styles.summaryTitle}>{filteredProducts.length} {t("products:items")}</ThemedText>
+          </View>
+          <View style={styles.summaryCenter}>
+            <ThemedText style={styles.summaryValue}>{formatCentimes(84200, "fr-DZ")}</ThemedText> {/* TODO: calculate actual total */}
+            <ThemedText style={styles.summaryUnit}>DZD</ThemedText>
+          </View>
+          <View style={styles.summaryRight}>
+            <View style={styles.badgeContainer}>
+              <ThemedText type="small" style={styles.badgeText}>
+                {filteredProducts.filter((p) => p.lowStock).length} {t("products:lowStock")}
+              </ThemedText>
+            </View>
+          </View>
+        </View>
+
         <View style={styles.listContainer}>
           {filteredProducts.map((product) => (
             <ProductListItem
@@ -157,6 +175,59 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     marginBottom: Spacing.md,
+  },
+  summaryStrip: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.light.border,
+    ...Shadows.sm,
+    marginBottom: Spacing.md,
+  },
+  summaryLeft: {
+    flex: 1,
+  },
+  summaryTitle: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  summaryCenter: {
+    flex: 1,
+    textAlign: "center",
+    marginHorizontal: Spacing.md,
+  },
+  summaryValue: {
+    ...Typography.moneyDisplay,
+    color: Colors.light.primary,
+  },
+  summaryUnit: {
+    ...Typography.caption,
+    color: Colors.light.textMuted,
+    marginLeft: Spacing.xs,
+  },
+  summaryRight: {
+    flex: 1,
+    textAlign: "right",
+  },
+  badgeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.light.warningLight,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  badgeText: {
+    ...Typography.caption,
+    color: Colors.light.warning,
+    fontWeight: "600",
+    marginRight: Spacing.xs,
   },
   emptyState: {
     flex: 1,

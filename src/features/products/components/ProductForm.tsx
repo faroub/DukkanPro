@@ -134,14 +134,32 @@ export function ProductForm({ onSave, onClose, initialValues, mode }: ProductFor
             />
           </FormField>
 
-          <FormField label={t('products:category')}>
-            <TextInput
-              value={form.category}
-              onChangeText={value => handleInputChange('category', value)}
-              placeholder="مخبوزات, مطبخ, etc."
-              style={styles.input}
-            />
-          </FormField>
+          <div className="flex flex-col gap-3">
+              {/* Category Chips */}
+              <ThemedView style={styles.categorySection}>
+                <ThemedText type="small" style={styles.sectionTitle}>
+                  {t("products:category")}
+                </ThemedText>
+                <View style={styles.categoryChips}>
+                  <button className="cat-chip px-3 py-1.5 rounded-full font-label text-label bg-primary text-on-primary shadow-sm flex items-center gap-1.5" data-cat="Dairy & Fresh" type="button">
+                    <span className="material-symbols-outlined text-[16px]">check</span>
+                    Dairy & Fresh
+                  </button>
+                  <button className="cat-chip px-3 py-1.5 rounded-full font-label text-label bg-surface-container text-text-secondary hover:text-text-primary transition-all" data-cat="Groceries" type="button">
+                    Groceries
+                  </button>
+                  <button className="cat-chip px-3 py-1.5 rounded-full font-label text-label bg-surface-container text-text-secondary hover:text-text-primary transition-all" data-cat="Beverages" type="button">
+                    Beverages
+                  </button>
+                  <button className="cat-chip px-3 py-1.5 rounded-full font-label text-label bg-surface-container text-text-secondary hover:text-text-primary transition-all" data-cat="Bakery" type="button">
+                    Bakery
+                  </button>
+                  <button className="px-3 py-1.5 rounded-full font-label text-label bg-surface-container-low text-primary hover:bg-primary-light transition-all flex items-center gap-1" id="new-category-btn" type="button">
+                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    New Category
+                  </button>
+                </View>
+              </ThemedView>
 
           <FormField label={t('products:salePrice')}>
             <TextInput
@@ -255,6 +273,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     maxWidth: 400,
     width: '100%',
+    padding: 24,
   },
   title: {
     fontSize: 24,
@@ -269,7 +288,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   input: {
-    height: 50,
+    height: 48,
     borderColor: Colors.light.disabledBackground,
     borderWidth: 1,
     borderRadius: 8,
@@ -299,5 +318,38 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: Colors.light.textSecondary,
+  },
+  profitMarginBadge: {
+    backgroundColor: Colors.light.warningLight,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    marginTop: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profitMarginText: {
+    ...Typography.caption,
+    color: Colors.light.warning,
+    fontWeight: '600',
+    marginLeft: Spacing.xs,
+  },
+  stockThresholdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: Spacing.md,
+  },
+  stockThresholdLabel: {
+    fontSize: 14,
+    fontWeight: 500,
+    color: Colors.light.textPrimary,
+  },
+  stockThresholdValue: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+  },
+  unitSelector: {
+    marginTop: Spacing.md,
   },
 });
