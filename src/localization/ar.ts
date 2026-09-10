@@ -99,6 +99,9 @@ export default {
     cancel: "إلغاء",
     delete: "حذف",
     noProductsYet: "لا توجد منتجات بعد",
+    totalItems: "إجمالي العناصر",
+    totalValue: "إجمالي القيمة",
+    lowStockCount: "مخزون منخفض ({count})",
   },
 
   // 6. inventory — stock, movements
