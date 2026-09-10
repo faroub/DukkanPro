@@ -1,287 +1,99 @@
-import { useRoute } from 'expo-router';
+import { useRoute, useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
 import { useState, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
+import { View, ScrollView, RefreshControl, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
-import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { ThemedView } from '@/components/themed-view';
+import { Ionicons } from '@expo/vector-icons';
 import { executeRead } from '@/database/database';
 import { getInventoryHistory } from '@/database/repositories/productRepository';
+import { formatCentimes } from '@/utils/money';
 
 export default function ProductDetailScreen() {
   const { params } = useRoute() as { params: { id: string } };
   const productId = Number(params?.id);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigation = useNavigation();
   const [product, setProduct] = useState<any>(null);
   const [inventory, setInventory] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (!productId) return;
-
-    const loadProduct = async () => {
-      try {
-        const rows: any[] = await executeRead(
-          // language=SQLite
-          `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
-               stock_quantity, minimum_stock_quantity, unit, is_active,
-               created_at, updated_at
-           FROM products
-           WHERE id = ?`,
-          [productId],
-        );
-        if (rows.length > 0) {
-          setProduct(rows[0]);
-        }
-      } catch (err) {
-        console.error('Failed to load product:', err);
-      }
-    };
-
-    const loadInventory = async () => {
-      setRefreshing(true);
-      try {
+  const loadData = async () => {
+    setRefreshing(true);
+    try {
+        const rows: any[] = await executeRead(`SELECT * FROM products WHERE id = ?`, [productId]);
+        if (rows.length > 0) setProduct(rows[0]);
         const history = await getInventoryHistory(productId);
         setInventory(history);
-      } catch (err) {
-        console.error('Failed to load inventory history:', err);
-      } finally {
+    } catch (err) {
+        console.error(err);
+    } finally {
         setRefreshing(false);
-      }
-    };
+    }
+  };
 
-    loadProduct();
-    loadInventory();
-  }, [productId]);
+  useEffect(() => { loadData(); }, [productId]);
 
-  useEffect(() => {
-    if (!productId) return;
+  if (!product) return <View style={styles.container}><ThemedText>{t('loading')}</ThemedText></View>;
 
-    const loadInventory = async () => {
-      setRefreshing(true);
-      try {
-        const history = await getInventoryHistory(productId);
-        setInventory(history);
-      } catch (err) {
-        console.error('Failed to load inventory history:', err);
-      } finally {
-        setRefreshing(false);
-      }
-    };
-
-    loadInventory();
-  }, [productId]);
-
-  if (!product) {
-    return (
-      <ThemedView type="background" style={styles.container}>
-        <ScrollView
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                const loadInventory = async () => {
-                  const history = await getInventoryHistory(productId);
-                  setInventory(history);
-                  setRefreshing(false);
-                };
-                loadInventory();
-              }}
-              tintColor={Colors.light.textSecondary}
-            />
-          }
-          style={styles.scroll}
-        >
-          <ThemedView style={styles.content}>
-            <ThemedText type="subtitle" style={styles.placeholder}>
-              {t('products:loadingProduct')}
-            </ThemedText>
-          </ThemedView>
-        </ScrollView>
-      </ThemedView>
-    );
-  }
+  const isLowStock = product.stock_quantity <= product.minimum_stock_quantity;
 
   return (
-    <ThemedView type="background" style={styles.container}>
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              const loadInventory = async () => {
-                const history = await getInventoryHistory(productId);
-                setInventory(history);
-                setRefreshing(false);
-              };
-              loadInventory();
-            }}
-            tintColor={Colors.light.textSecondary}
-          />
-        }
-        style={styles.scroll}
-      >
-        <ThemedView style={styles.content}>
-          {product.name && (
-            <ThemedText type="title" style={styles.title}>
-              {product.name}
-            </ThemedText>
-          )}
-
-          {product.sku && (
-            <ThemedText type="small" style={styles.detailLabel}>
-              {t('products:sku')}: {product.sku}
-            </ThemedText>
-          )}
-
-          {product.category && (
-            <ThemedText type="small" style={styles.detailLabel}>
-              {t('products:category')}: {product.category}
-            </ThemedText>
-          )}
-
-          <ThemedText type="small" style={styles.detailLabel}>
-            {t('products:salePrice')}: {(product.sale_price_centimes / 100).toFixed(2)} {t('appText:money')}
-          </ThemedText>
-
-          <ThemedText type="small" style={styles.detailLabel}>
-            {t('products:costPrice')}: {(product.cost_price_centimes / 100).toFixed(2)} {t('appText:money')}
-          </ThemedText>
-
-          <ThemedText type="small" style={styles.detailLabel}>
-            {t('products:stock')}: {product.stock_quantity} {product.unit}
-          </ThemedText>
-
-          <ThemedText type="small" style={styles.detailLabel}>
-            {t('products:minimumStock')}: {product.minimum_stock_quantity}
-          </ThemedText>
-
-          {product.is_active && (
-            <ThemedText type="small" style={styles.detailLabel}>
-              {t('products:archived')}: No (active)
-            </ThemedText>
-          )}
-
-          {!product.is_active && (
-            <ThemedText type="small" style={styles.detailLabel}>
-              {t('products:archived')}: Yes (archived)
-            </ThemedText>
-          )}
-
-          <ThemedText type="small" style={styles.sectionTitle}>
-            {t('products:inventoryHistory')}
-          </ThemedText>
-
-          {inventory.length === 0 ? (
-            <ThemedText type="small" style={styles.emptyState}>
-              {t('common:noData')}
-            </ThemedText>
-          ) : (
-            <View style={styles.inventoryList}>
-              {inventory.map((movement: any) => (
-                <ThemedView style={styles.inventoryRow} key={movement.id}>
-                  <ThemedText type="small" style={styles.inventoryType}>
-                    {t(
-                      movement.movement_type === 'in'
-                        ? 'products:movementIn'
-                        : movement.movement_type === 'out'
-                          ? 'products:movementOut'
-                          : 'products:movementAdjustment'
-                    )}
-                  </ThemedText>
-                  <ThemedText type="small" style={styles.inventoryQty}>
-                    {movement.quantity_change > 0 ? `+${movement.quantity_change}` : movement.quantity_change} {product.unit}
-                  </ThemedText>
-                  <ThemedText type="small" style={styles.inventoryNote}>
-                    {movement.note || t('common:noNote')}
-                  </ThemedText>
-                  <ThemedText type="small" style={styles.inventoryDate}>
-                    {new Date(movement.created_at).toLocaleDateString()}
-                  </ThemedText>
-                </ThemedView>
-              ))}
+    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} />}>
+        <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={24} /></TouchableOpacity>
+            <View style={styles.headerActions}>
+                <TouchableOpacity onPress={() => (navigation as any).push(`products/edit/${productId}`)}><Ionicons name="pencil" size={24} /></TouchableOpacity>
+                <TouchableOpacity><Ionicons name="archive" size={24} color={Colors.light.error} /></TouchableOpacity>
             </View>
-          )}
+        </View>
+        
+        {isLowStock && (
+            <View style={styles.warningBanner}>
+                <Ionicons name="warning" size={20} color={Colors.light.warning} />
+                <ThemedText style={styles.warningText}>{t('products:lowStock')}</ThemedText>
+            </View>
+        )}
+
+        <ThemedView style={styles.card}>
+            <ThemedText style={styles.name}>{product.name}</ThemedText>
+            <ThemedText style={styles.sku}>{t('products:sku')}: {product.sku}</ThemedText>
+            <View style={styles.priceRow}>
+                <ThemedText style={styles.price}>{t('products:salePrice')}: {formatCentimes(product.sale_price_centimes, i18n.language as any)}</ThemedText>
+            </View>
+            <TouchableOpacity style={styles.adjustButton} onPress={() => (navigation as any).push('products/stock-adjustment', { productId })}>
+                <Ionicons name="options" size={20} color="#FFFFFF" />
+                <ThemedText style={styles.adjustButtonText}>{t('products:adjustmentTitle')}</ThemedText>
+            </TouchableOpacity>
         </ThemedView>
-      </ScrollView>
-    </ThemedView>
+
+        <ThemedView style={styles.card}>
+            <ThemedText style={styles.sectionTitle}>{t('products:inventoryHistory')}</ThemedText>
+            {inventory.map((item) => (
+                <View key={item.id} style={styles.historyRow}>
+                    <ThemedText>{item.movement_type}</ThemedText>
+                    <ThemedText>{item.quantity_change}</ThemedText>
+                </View>
+            ))}
+        </ThemedView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  scroll: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  content: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 600,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: Colors.light.textPrimary,
-    marginBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 500,
-    marginTop: 20,
-    marginBottom: 12,
-    color: '#374151',
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    color: Colors.light.textSecondary,
-  },
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    color: Colors.light.textSecondary,
-  },
-  inventoryList: {
-    marginTop: 16,
-  },
-  inventoryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.light.border,
-    backgroundColor: 'white',
-  },
-  inventoryType: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-  },
-  inventoryQty: {
-    fontSize: 12,
-    color: Colors.light.textPrimary,
-    fontWeight: 500,
-  },
-  inventoryNote: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginHorizontal: 4,
-  },
-  inventoryDate: {
-    fontSize: 10,
-    color: '#9CA3AF',
-  },
+    container: { flex: 1, backgroundColor: Colors.light.background },
+    header: { flexDirection: 'row', justifyContent: 'space-between', padding: Spacing.lg },
+    headerActions: { flexDirection: 'row', gap: Spacing.md },
+    warningBanner: { flexDirection: 'row', backgroundColor: Colors.light.warningLight, padding: Spacing.md, gap: Spacing.sm },
+    warningText: { color: Colors.light.warning, fontWeight: '600' },
+    card: { margin: Spacing.lg, padding: Spacing.lg, borderRadius: BorderRadius.lg, ...Shadows.sm },
+    name: { ...Typography.heading2 },
+    sku: { ...Typography.caption, color: Colors.light.textSecondary },
+    priceRow: { marginVertical: Spacing.md },
+    price: { ...Typography.body },
+    adjustButton: { flexDirection: 'row', backgroundColor: Colors.light.primary, padding: Spacing.md, borderRadius: BorderRadius.button, justifyContent: 'center', gap: Spacing.sm },
+    adjustButtonText: { color: '#FFFFFF', fontWeight: '600' },
+    sectionTitle: { ...Typography.heading3, marginBottom: Spacing.md },
+    historyRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderColor: Colors.light.border },
 });

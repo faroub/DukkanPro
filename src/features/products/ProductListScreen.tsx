@@ -1,54 +1,61 @@
-import { ProductRow } from "@/components/products/ProductRow";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Colors, Spacing, BorderRadius, Typography } from "@/constants/theme";
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
 import { ProductFilterTabs } from "@/features/products/components/ProductFilterTabs";
 import { ProductSearchBar } from "@/features/products/components/ProductSearchBar";
+import { ProductListItem } from "@/features/products/components/ProductListItem";
 import { useProducts } from "@/hooks/useProducts";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "expo-router";
 
-interface ProductListScreenProps {
-  route?: any;
-  navigation?: any;
-}
-
-export function ProductListScreen({
-  route,
-  navigation,
-}: ProductListScreenProps) {
+export function ProductListScreen({ route, navigation }: any) {
   const { t } = useTranslation();
+  const currentNavigation = navigation ?? useNavigation();
   const [filter, setFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
 
-  // Build filters object from current filter selection
   const productsFilters = useMemo(() => {
-    if (filter === "all") {
-      return {};
-    } else if (filter === "lowStock") {
-      return { is_active: true };
-    } else if (filter === "outOfStock") {
-      return { is_active: true };
-    } else if (filter === "archived") {
-      return { is_active: false };
+    const filters: any = {};
+    if (filter === "archived") {
+      filters.is_active = false;
+    } else {
+      filters.is_active = true;
     }
-    return {};
+    return filters;
   }, [filter]);
 
   const { products, loading, error, reload } = useProducts(productsFilters);
 
-  // Handle filter tab changes
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = p.name.toLowerCase().includes(query);
+        const matchesSku = p.sku && p.sku.toLowerCase().includes(query);
+        if (!matchesName && !matchesSku) return false;
+      }
+
+      if (filter === "lowStock") {
+        return p.is_active && p.stock_quantity <= p.minimum_stock_quantity && p.stock_quantity > 0;
+      } else if (filter === "outOfStock") {
+        return p.is_active && p.stock_quantity === 0;
+      } else if (filter === "archived") {
+        return !p.is_active;
+      } else {
+        return p.is_active;
+      }
+    });
+  }, [products, searchQuery, filter]);
+
   const handleFilterChange = useCallback((newFilter: string) => {
     setFilter(newFilter);
   }, []);
 
-  // Handle search from search bar
   const handleSearch = useCallback((query: string) => {
-    if (query.trim()) {
-      // When searching, we don't apply the filter state, just search
-      setFilter("all");
-    }
+    setSearchQuery(query);
   }, []);
 
   const onRefresh = useCallback(() => {
@@ -57,224 +64,121 @@ export function ProductListScreen({
     setRefreshing(false);
   }, [reload]);
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ThemedText type="small" style={styles.loadingText}>
-          {t("loading")}
-        </ThemedText>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <ThemedText type="small" style={styles.errorText}>
-          {t("error")}
-        </ThemedText>
-        <ThemedText type="small" style={styles.errorRetry}>
-          {t("retry")}
-        </ThemedText>
-      </View>
-    );
-  }
-
   return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={Colors.light.textSecondary}
-        />
-      }
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.headerSection}>
-        <ProductSearchBar
-          onSearch={handleSearch}
-          onClear={() => {
-            // Clear search and reset to all products
-            handleSearch("");
-          }}
-          disabled={loading}
-        />
-
-        <ProductFilterTabs
-          activeFilter={filter}
-          onFilterChange={handleFilterChange}
-        />
+    <View style={styles.mainContainer}>
+      <View style={styles.topBar}>
+        <View>
+          <ThemedText style={styles.screenTitle}>{t("products:title")}</ThemedText>
+          <ThemedText style={styles.screenSubtitle}>{t("products:subtitle")}</ThemedText>
+        </View>
+        <TouchableOpacity
+          style={styles.addButton}
+          activeOpacity={0.8}
+          onPress={() => (currentNavigation as any)?.push("products/new")}
+        >
+          <Ionicons name="add" size={20} color="#FFFFFF" />
+          <ThemedText style={styles.addButtonText}>{t("dashboard:quick:addProduct")}</ThemedText>
+        </TouchableOpacity>
       </View>
 
-      {products.length === 0 && !loading && !error && (
-        <View style={styles.emptyState}>
-          <ThemedText type="subtitle" style={styles.emptyTitle}>
-            {t("products.noProducts")}
-          </ThemedText>
-          <ThemedText type="small" style={styles.emptyDescription}>
-            {t("products.searchNoResults")}
-          </ThemedText>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.textSecondary} />
+        }
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerSection}>
+          <ProductSearchBar onSearch={handleSearch} onClear={() => setSearchQuery("")} disabled={loading} />
+          <ProductFilterTabs activeFilter={filter} onFilterChange={handleFilterChange} />
         </View>
-      )}
 
-      {/* Summary Metric Strip - matches Stitch design */}
-      <View style={styles.summaryStrip}>
-        <View style={styles.summaryLeft}>
-          <ThemedText type="caption" style={styles.summaryLabel}>
-            {t("products:totalItems", { count: products.length })}</ThemedText>
-          <ThemedText type="body" style={styles.summaryValue}>
-            {products.length}
-          </ThemedText>
-        </View>
-        <View style={styles.summaryCenter}>
-          <ThemedText type="caption" style={styles.summaryLabel}>
-            {t("products:totalValue")}</ThemedText>
-          <ThemedText type="body" style={styles.summaryValue}>
-            {(products.reduce((sum, p) => sum + (p.sale_price_centimes / 100), 0) || 0).toFixed(0)} {t("appText:money")}
-          </ThemedText>
-        </View>
-        <View style={styles.summaryRight}>
-          <ThemedView style={styles.summaryLowStockBadge}>
-            <ThemedText type="small" style={styles.badgeText}>
-              {t("products:lowStockCount", { count: products.filter(p => p.lowStock || p.stock_quantity <= p.minimum_stock_quantity).length })}
-            </ThemedText>
-          </ThemedView>
-        </View>
-      </View>
+        {filteredProducts.length === 0 && !loading && !error && (
+          <View style={styles.emptyState}>
+            <Ionicons name="cube-outline" size={48} color={Colors.light.textMuted} style={styles.emptyIcon} />
+            <ThemedText style={styles.emptyTitle}>{t("products:noProductsInList")}</ThemedText>
+            <ThemedText style={styles.emptyDescription}>{t("products:description")}</ThemedText>
+          </View>
+        )}
 
-      <View style={styles.listContainer}>
-        {products.map((product) => (
-          <ProductRow
-            key={product.id}
-            product={{
-              id: product.id,
-              name: product.name,
-              sku: product.sku,
-              sale_price_centimes: product.sale_price_centimes,
-              stock_quantity: product.stock_quantity,
-              minimum_stock_quantity: product.minimum_stock_quantity,
-              unit: product.unit,
-              is_active: product.is_active,
-              lowStock: product.lowStock,
-              outOfStock: product.outOfStock,
-            }}
-          />
-        ))}
-      </View>
-    </ScrollView>
+        <View style={styles.listContainer}>
+          {filteredProducts.map((product) => (
+            <ProductListItem
+              key={product.id}
+              product={product}
+              onPress={() => (currentNavigation as any)?.push(`products/${product.id}`)}
+            />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
+  },
+  screenTitle: {
+    ...Typography.heading1,
+    color: Colors.light.textPrimary,
+  },
+  screenSubtitle: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.light.primary,
+    height: 44,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.button,
+    gap: Spacing.xs,
+    ...Shadows.sm,
+  },
+  addButtonText: {
+    ...Typography.label,
+    color: "#FFFFFF",
+  },
   contentContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: 80,
   },
   headerSection: {
-    marginBottom: 24,
+    marginBottom: Spacing.md,
   },
   emptyState: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 40,
+    paddingVertical: 60,
+  },
+  emptyIcon: {
+    marginBottom: Spacing.md,
   },
   emptyTitle: {
-    ...Typography.body,
-    fontSize: 16,
+    ...Typography.heading3,
     color: Colors.light.textSecondary,
-    marginBottom: 8,
+    marginBottom: Spacing.xs,
     textAlign: "center",
   },
   emptyDescription: {
-    ...Typography.body,
-    fontSize: 14,
-    color: "#9CA3AF",
-    textAlign: "center",
-  },
-  summaryStrip: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.light.border,
-  },
-  summaryLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-  },
-  summaryCenter: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: Spacing.md,
-    textAlign: "center",
-  },
-  summaryRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-  },
-  summaryLowStockBadge: {
-    backgroundColor: Colors.light.warning,
-    borderRadius: BorderRadius.sm,
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: Spacing.xs,
-  },
-  summaryLabel: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
-    fontWeight: 400,
-  },
-  summaryValue: {
-    ...Typography.body,
-    color: Colors.light.primary,
-    fontWeight: 600,
+    color: Colors.light.textMuted,
+    textAlign: "center",
   },
   listContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  loadingText: {
-    ...Typography.body,
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  errorText: {
-    ...Typography.body,
-    fontSize: 14,
-    color: "#B91C1C",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  errorRetry: {
-    ...Typography.body,
-    fontSize: 14,
-    color: "#1B6B3A",
-  },
-  badgeText: {
-    ...Typography.caption,
-    color: Colors.light.surface,
   },
 });
