@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useRoute, useNavigation } from 'expo.router';
+import { useRoute, useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -17,8 +17,8 @@ export function StockAdjustmentScreen() {
     const [reason, setReason] = useState<'delivery' | 'count_correction' | 'damaged' | 'return' | 'other'>('delivery');
 
     const modes = [
-      { key: 'set', label: t('products:setNewTotal'), icon: 'pin' },
-      { key: 'delta', label: t('products:addRemove'), icon: 'swap_vert' },
+      { key: 'set', label: t('products:setNewTotal'), icon: 'ios-arrow-down' },
+      { key: 'delta', label: t('products:addRemove'), icon: 'ios-arrow-up' },
     ];
 
     const reasons = [
@@ -44,7 +44,7 @@ export function StockAdjustmentScreen() {
                     styles.modeButton,
                     mode === m.key && styles.modeButtonActive,
                   ]}
-                  onPress={() => setMode(m.key)}
+                  onPress={() => setMode(m.key as 'set' | 'delta')}
                   activeOpacity={0.7}
                 >
                   <Ionicons name={m.icon} size={18} />
@@ -60,7 +60,7 @@ export function StockAdjustmentScreen() {
 
             {/* Diff Badge */}
             <ThemedView style={styles.diffBadgeContainer}>
-              <span className={styles.diffBadge} style={styles.diffBadgeStyle}>
+              <span style={styles.diffBadge}>
                 <Ionicons name={mode === 'set' || adjustment > 0 ? 'trending_up' : 'trending_down'} size={18} style={styles.diffIcon} />{'+' + Math.abs(adjustment) + ' packs will be ' + (mode === 'set' ? 'added' : 'removed') + ' from inventory'}
               </span>
             </ThemedView>
@@ -68,7 +68,7 @@ export function StockAdjustmentScreen() {
             {/* Reason Radio Buttons */}
             <ThemedView style={styles.reasonRadios}>
               {reasons.map((r) => (
-                <label key={r.key} style={styles.reasonRadioCard} onPress={() => setReason(r.key)}><span className="material-symbols-outlined" style={{ color: r.iconColor }}>{r.icon}</span><span style={{ flex: 1, textAlign: 'center' }}>{r.label}</span><input type="radio" name="adjustment_reason" value={r.key} style={{ display: 'none' }} onChange={() => setReason(r.key)} /></label>
+                <View key={r.key} style={styles.reasonRadioCard} onPress={() => setReason(r.key)}><span style={{ color: r.color }}>{r.icon}</span><span style={{ flex: 1, textAlign: 'center' }}>{r.label}</span><input type="radio" name="adjustment_reason" value={r.key} style={{ display: 'none' }} onChange={() => setReason(r.key)} /></View>
               ))}
             </ThemedView>
 
@@ -103,13 +103,13 @@ const styles = StyleSheet.create({
     modeButton: {
       padding: Spacing.md,
       borderRadius: BorderRadius.md,
-      backgroundColor: mode === 'set' ? Colors.light.primary : Colors.light.surface,
-      color: mode === 'set' ? '#FFFFFF' : Colors.light.textPrimary,
+      backgroundColor: Colors.light.primary,
+      color: '#FFFFFF',
       marginHorizontal: 4,
     },
     modeButtonActive: {
-      backgroundColor: mode === 'set' ? Colors.light.primary : Colors.light.surface,
-      color: mode === 'set' ? '#FFFFFF' : Colors.light.textPrimary,
+      backgroundColor: Colors.light.primary,
+      color: '#FFFFFF',
     },
     modeButtonText: { ...Typography.caption, marginLeft: 4 },
     diffBadgeContainer: {
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     reasonRadioCard: {
       padding: Spacing.md,
       borderRadius: BorderRadius.lg,
-      backgroundColor: reason === 'count_correction' ? Colors.light.primaryLight : Colors.light.surface,
+      backgroundColor: Colors.light.surface,
       marginBottom: Spacing.sm,
     },
     optionalNote: {

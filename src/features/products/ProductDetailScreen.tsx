@@ -48,7 +48,7 @@ export default function ProductDetailScreen() {
                 <TouchableOpacity><Ionicons name="archive" size={24} color={Colors.light.error} /></TouchableOpacity>
             </View>
         </View>
-        
+
         {isLowStock && (
             <View style={styles.warningBanner}>
                 <Ionicons name="warning" size={20} color={Colors.light.warning} />
@@ -123,5 +123,4 @@ const styles = StyleSheet.create({
       fontSize: 10,
       color: '#9CA3AF',
     },
-  },
 });

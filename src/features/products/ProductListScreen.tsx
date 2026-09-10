@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
+import { formatCentimes } from "@/utils/money";
 import { ProductFilterTabs } from "@/features/products/components/ProductFilterTabs";
 import { ProductSearchBar } from "@/features/products/components/ProductSearchBar";
 import { ProductListItem } from "@/features/products/components/ProductListItem";
