@@ -98,7 +98,10 @@ export default {
     save: "Enregistrer",
     cancel: "Annuler",
     delete: "Supprimer",
-    noProductsYet: "Aucun produit pour l'instant"
+    noProductsYet: "Aucun produit pour l'instant",
+    totalItems: "Articles totaux",
+    totalValue: "Valeur totale",
+    lowStockCount: "Stock faible ({count})",
   },
 
   // 6. inventory — stock, movements
