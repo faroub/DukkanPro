@@ -1,11 +1,24 @@
-import { View, ScrollView, StyleSheet, Text, Pressable, Modal, TextInput } from 'react-native';
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+  ActivityIndicator,
+} from "react-native";
 import { useTranslation } from "react-i18next";
-import { useRoute } from "expo-router";
-import { Typography, Colors, Spacing, BorderRadius } from "@/constants/theme";
-import { ThemedView } from "@/components/themed-view";
+import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
-import { useCustomers } from "@/hooks/useCustomers";
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { getById } from "@/database/repositories/customerRepository";
+import { getAll as getAllSales } from "@/database/repositories/saleRepository";
+import {
+  getCustomerDebt,
+  getCustomerPayments,
+} from "@/services/customers/customerBalanceService";
+import { Customer, CustomerPayment, Sale } from "@/types/entities";
 import { formatCentimes } from "@/utils/money";
 
 interface CustomerDetailScreenProps {
@@ -13,509 +26,893 @@ interface CustomerDetailScreenProps {
 }
 
 export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
-  const [customer, setCustomer] = useState<any>(null);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [saleHistory, setSaleHistory] = useState<any[]>([]);
-  const [note, setNote] = useState<string>("");
-  const [newPaymentAmount, setNewPaymentAmount] = useState<string>("");
-  const [isAddingPayment, setIsAddingPayment] = useState(false);
-  const route = useRoute();
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [debtCentimes, setDebtCentimes] = useState(0);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [payments, setPayments] = useState<CustomerPayment[]>([]);
+  const [activeTab, setActiveTab] = useState<
+    "credit-sales" | "payments" | "timeline" | "notes"
+  >("credit-sales");
 
-  // Load customer data
-  useEffect(() => {
-    async function loadCustomer() {
-      const customer = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(null);
-        }, 100);
-      });
+  const loadData = useCallback(async () => {
+    if (!customerId) {
       setLoading(false);
-    }
-    loadCustomer();
-  }, [customerId]);
-
-  const handleAddPayment = useCallback(async () => {
-    const amount = parseFloat(newPaymentAmount);
-    if (isNaN(amount) || amount <= 0) {
       return;
     }
-
-    setIsAddingPayment(true);
+    setLoading(true);
     try {
-      // In a full implementation, this would record a payment
-      // and update the customer's balance
-      setPayments((prev: any[]) => [...prev, { amount, date: new Date() }]);
-      setNewPaymentAmount("");
+      const [cust, debt, customerSales, customerPayments] = await Promise.all([
+        getById(customerId),
+        getCustomerDebt(customerId),
+        getAllSales({ customerId }),
+        getCustomerPayments(customerId),
+      ]);
+
+      setCustomer(cust);
+      setDebtCentimes(debt);
+      setSales(customerSales.filter((s) => s.status === "completed"));
+      setPayments(customerPayments);
     } catch (err) {
-      // Show error
+      // Error handled by state
     } finally {
-      setIsAddingPayment(false);
+      setLoading(false);
     }
-  }, []);
+  }, [customerId]);
 
-  const renderPaymentHistory = () => {
-    if (!payments || payments.length === 0) {
-      return (
-        <View style={styles.noHistory}>
-          <ThemedText type="caption" style={styles.noHistoryText}>
-            {t("customers:noPayments")}
-          </ThemedText>
-        </View>
-      );
-    }
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-    return (
-      <View style={styles.paymentHistoryContainer}>
-        {payments.map((payment, index) => (
-          <View key={index} style={styles.paymentHistoryItem}>
-            <ThemedText type="caption" style={styles.paymentHistoryAmount}>
-              -{formatCentimes(payment.amount)}
-            </ThemedText>
-            <ThemedText type="caption" style={styles.paymentHistoryDate}>
-              {new Date(payment.date).toLocaleDateString()}
-            </ThemedText>
-          </View>
-        ))}
-      </View>
+  // Credit sales (sales with remaining balance or total > amount paid or credit method)
+  const creditSales = useMemo(() => {
+    return sales.filter(
+      (s) =>
+        s.payment_method === "credit" ||
+        s.remaining_balance_centimes > 0 ||
+        s.total_centimes > s.amount_paid_centimes
     );
+  }, [sales]);
+
+  // Combined chronological timeline
+  const timelineItems = useMemo(() => {
+    const items: Array<{
+      id: string;
+      type: "sale" | "payment";
+      date: string;
+      amountCentimes: number;
+      title: string;
+      subtitle: string;
+    }> = [];
+
+    sales.forEach((sale) => {
+      items.push({
+        id: `sale-${sale.id}`,
+        type: "sale",
+        date: sale.sold_at || sale.created_at,
+        amountCentimes: sale.total_centimes,
+        title: `${t("customers:creditSale")} #${sale.id}`,
+        subtitle: sale.note || t("sales:completed"),
+      });
+    });
+
+    payments.forEach((payment) => {
+      items.push({
+        id: `payment-${payment.id}`,
+        type: "payment",
+        date: payment.paid_at || payment.created_at,
+        amountCentimes: payment.amount_centimes,
+        title: `${t("customers:payment")} #${payment.id}`,
+        subtitle:
+          payment.payment_method === "electronic"
+            ? t("customers:edahabia")
+            : t("customers:cash"),
+      });
+    });
+
+    items.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    return items;
+  }, [sales, payments, t]);
+
+  const handleCall = () => {
+    if (customer?.phone) {
+      Linking.openURL(`tel:${customer.phone}`);
+    }
   };
 
-  const renderSaleHistory = () => {
-    if (!saleHistory || saleHistory.length === 0) {
-      return (
-        <View style={styles.noHistory}>
-          <ThemedText type="caption" style={styles.noHistoryText}>
-            {t("customers:noSales")}
-          </ThemedText>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.saleHistoryContainer}>
-        {saleHistory.map((sale, index) => (
-          <View key={index} style={styles.saleHistoryItem}>
-            <ThemedText type="caption" style={styles.saleHistoryTotal}>
-              {formatCentimes(sale.total_centimes)}
-            </ThemedText>
-            <ThemedText type="caption" style={styles.saleHistoryDate}>
-              {new Date(sale.sold_at).toLocaleDateString()}
-            </ThemedText>
-          </View>
-        ))}
-      </View>
-    );
+  const handleRecordPayment = () => {
+    if (!customer) return;
+    router.push({
+      pathname: "/customers/record-payment",
+      params: {
+        customerId: String(customer.id),
+        customerName: customer.name,
+        currentDebt: String(debtCentimes),
+      },
+    } as any);
   };
 
-  const renderTimeline = () => {
-    if (!payments && !saleHistory || (payments && payments.length === 0 && saleHistory && saleHistory.length === 0)) {
-      return (
-        <View style={styles.noHistory}>
-          <ThemedText type="caption" style={styles.noHistoryText}>
-            {t("customers:noTimeline")}
-          </ThemedText>
-        </View>
-      );
-    }
-
-    const items: any[] = [];
-
-    // Add payment records to timeline (most recent first)
-    if (payments) {
-      for (let i = payments.length - 1; i >= 0; i--) {
-        items.push({
-          type: 'payment',
-          amount: -payments[i].amount,
-          date: payments[i].date,
-          description: `Payment ${payments[i].id || 'PAY-' + i}`,
-        });
-      }
-    }
-
-    // Add sale records to timeline (most recent first)
-    if (saleHistory) {
-      for (let i = saleHistory.length - 1; i >= 0; i--) {
-        items.push({
-          type: 'sale',
-          amount: saleHistory[i].total_centimes,
-          date: saleHistory[i].sold_at,
-          description: `Sale ${saleHistory[i].id || 'REC-' + i}`,
-        });
-      }
-    }
-
-    // Sort by date, most recent first
-    items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    return (
-      <View style={styles.timelineContainer}>
-        {items.map((item, index) => {
-          const isPayment = item.type === 'payment';
-          const amountDisplay = isPayment
-            ? `-${formatCentimes(Math.abs(item.amount))} DZD`
-            : `+${formatCentimes(item.amount)} DZD`;
-
-          return (
-            <article key={index} style={styles.timelineItem}>
-              <View style={styles.timelineLeft}>
-                <ThemedText type="caption" style={styles.timelineIcon}>
-                  {isPayment ? 'payments' : 'receipt_long'}
-                </ThemedText>
-              </View>
-              <View style={styles.timelineRight}>
-                <ThemedText type="caption" style={styles.timelineLabel}>
-                  {item.description}
-                </ThemedText>
-                <ThemedText type="caption" style={styles.timelineDate}>
-                  {new Date(item.date).toLocaleDateString()}
-                </ThemedText>
-              </View>
-              <View style={styles.timelineAmount}>
-                <ThemedText type="body" style={styles.timelineAmountText}>
-                  {amountDisplay}
-                </ThemedText>
-              </View>
-            </article>
-          );
-        })}
-      </View>
-    );
+  const handleShareReminder = () => {
+    if (!customer) return;
+    router.push({
+      pathname: "/customers/reminder",
+      params: {
+        customerId: String(customer.id),
+        customerName: customer.name,
+        currentDebt: String(debtCentimes),
+      },
+    } as any);
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ThemedText type="small" style={styles.loadingText}>
-          {t("common:loading")}
-        </ThemedText>
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+        <ThemedText style={styles.loadingText}>{t("common:loading")}</ThemedText>
       </View>
     );
   }
 
   if (!customer) {
     return (
-      <View style={styles.errorContainer}>
-        <ThemedText type="small" style={styles.errorText}>
-          {t("common:error")}
+      <View style={styles.centerContainer}>
+        <ThemedText style={styles.errorText}>
+          {t("customers:notFound")}
         </ThemedText>
-        <ThemedText type="small" style={styles.errorRetry}>
-          {t("common:retry")}
-        </ThemedText>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => router.back()}
+        >
+          <ThemedText style={styles.retryButtonText}>
+            {t("common:back")}
+          </ThemedText>
+        </TouchableOpacity>
       </View>
     );
   }
 
+  const hasDebt = debtCentimes > 0;
+
   return (
-    <ThemedView type="background" style={styles.container}>
-      <ScrollView style={styles.content}>
-        <View style={styles.header}>
-          <ThemedText type="title" style={styles.title}>
+    <View style={styles.screen}>
+      {/* Top Header Navigation */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.iconButton}
+          accessibilityRole="button"
+          accessibilityLabel={t("common:back")}
+        >
+          <MaterialIcons
+            name="arrow-back"
+            size={24}
+            color={Colors.light.textPrimary}
+          />
+        </TouchableOpacity>
+
+        <View style={styles.headerInfo}>
+          <ThemedText style={styles.customerHeaderName} numberOfLines={1}>
             {customer.name}
           </ThemedText>
-          {customer.phone && (
-            <ThemedText type="caption" style={styles.subtitle}>
-              {customer.phone}
-            </ThemedText>
-          )}
-        </View>
-
-        {/* Current Debt Section */}
-        <View style={styles.section}>
-          <ThemedText type="body" style={styles.sectionLabel}>
-            {t("customers:currentDebt")}
+          <ThemedText style={styles.customerHeaderSubtitle} numberOfLines={1}>
+            {hasDebt
+              ? t("customers:hasDebt")
+              : t("customers:settled")}
+            {customer.phone ? ` • ${customer.phone}` : ""}
           </ThemedText>
-          <View style={styles.debtRow}>
-            <ThemedText type="body" style={styles.debtAmount}>
-              {formatCentimes(customer.outstandingBalance)}
+        </View>
+
+        <View style={styles.headerActions}>
+          {customer.phone ? (
+            <TouchableOpacity
+              onPress={handleCall}
+              style={styles.iconButton}
+              accessibilityLabel={t("customers:phone")}
+            >
+              <MaterialIcons
+                name="phone"
+                size={20}
+                color={Colors.light.primary}
+              />
+            </TouchableOpacity>
+          ) : null}
+
+          <TouchableOpacity
+            onPress={() => router.push(`/customers/edit/${customer.id}` as any)}
+            style={styles.iconButton}
+            accessibilityLabel={t("common:edit")}
+          >
+            <MaterialIcons
+              name="edit"
+              size={20}
+              color={Colors.light.textSecondary}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero Debt Card */}
+        <View
+          style={[
+            styles.heroDebtCard,
+            hasDebt ? styles.heroDebtCardActive : styles.heroDebtCardSettled,
+          ]}
+        >
+          <View style={styles.heroDebtHeader}>
+            <ThemedText
+              style={[
+                styles.heroDebtLabel,
+                hasDebt ? styles.heroDebtLabelActive : styles.heroDebtLabelSettled,
+              ]}
+            >
+              {t("customers:currentDebt")}
             </ThemedText>
-            {customer.hasDebt && (
-              <ThemedText type="body" style={styles.debtStatus}>
-                {t("customers:hasDebt")}
+            <View
+              style={[
+                styles.statusPill,
+                hasDebt ? styles.statusPillDebt : styles.statusPillSettled,
+              ]}
+            >
+              <ThemedText
+                style={[
+                  styles.statusPillText,
+                  hasDebt ? styles.statusPillTextDebt : styles.statusPillTextSettled,
+                ]}
+              >
+                {hasDebt ? t("customers:immediateDue") : t("customers:settled")}
               </ThemedText>
-            )}
-            {!customer.hasDebt && (
-              <ThemedText type="body" style={styles.debtStatus}>
-                {t("customers:noDebt")}
-              </ThemedText>
-            )}
-          </View>
-        </View>
-
-        {/* Tabbed Records Segment */}
-        <View style={styles.tabbedRecords}>
-          {/* Horizontal Scrollable Segmented Tabs */}
-          <View style={styles.tabsContainer}>
-            <Pressable style={styles.tabButton} onPress={() => setActiveTab('credit-sales')}>
-              <ThemedText style={styles.tabButtonText}>{t("customers:creditSales")}</ThemedText>
-              <ThemedText style={styles.tabCount}>3</ThemedText>
-            </Pressable>
-            <Pressable style={styles.tabButton} onPress={() => setActiveTab('payments')}>
-              <ThemedText style={styles.tabButtonText}>{t("customers:payments")}</ThemedText>
-              <ThemedText style={styles.tabCount}>2</ThemedText>
-            </Pressable>
-            <Pressable style={styles.tabButton} onPress={() => setActiveTab('timeline')}>
-              <ThemedText style={styles.tabButtonText}>{t("customers:activityTimeline")}</ThemedText>
-            </Pressable>
-            <Pressable style={styles.tabButton} onPress={() => setActiveTab('notes')}>
-              <ThemedText style={styles.tabButtonText}>{t("customers:notes")}</ThemedText>
-            </Pressable>
+            </View>
           </View>
 
-          {/* Active Tab Content */}
-          {activeTab === 'credit-sales' && (
-            <div style={styles.tabContent}>
-              <ThemedText type="body" style={styles.sectionLabel}>
-                {t("customers:creditSaleHistory")}
-              </ThemedText>
-              {renderSaleHistory()}
-            </div>
-          )}
-
-          {activeTab === 'payments' && (
-            <div style={styles.tabContent}>
-              <ThemedText type="body" style={styles.sectionLabel}>
-                {t("customers:paymentHistory")}
-              </ThemedText>
-              {renderPaymentHistory()}
-            </div>
-          )}
-
-          {activeTab === 'timeline' && (
-            <div style={styles.tabContent}>
-              {renderTimeline()}
-            </div>
-          )}
-
-          {activeTab === 'notes' && (
-            <div style={styles.tabContent}>
-              <ThemedText type="body" style={styles.sectionLabel}>
-                {t("customers:notes")}
-              </ThemedText>
-              <ThemedText type="caption" style={styles.notesText}>
-                {note || customer.note || t("customers:noNotes")}
-              </ThemedText>
-            </div>
-          )}
+          <ThemedText
+            style={[
+              styles.heroDebtAmount,
+              hasDebt ? styles.heroDebtAmountActive : styles.heroDebtAmountSettled,
+            ]}
+          >
+            {formatCentimes(debtCentimes, i18n.language as any)}
+          </ThemedText>
         </View>
+
+        {/* Action Buttons Row */}
+        <View style={styles.actionButtonsRow}>
+          <TouchableOpacity
+            style={[
+              styles.primaryActionBtn,
+              !hasDebt && styles.primaryActionBtnDisabled,
+            ]}
+            onPress={handleRecordPayment}
+            activeOpacity={0.8}
+            disabled={!hasDebt}
+          >
+            <MaterialIcons name="payments" size={20} color="#FFFFFF" />
+            <ThemedText style={styles.primaryActionBtnText}>
+              {t("customers:recordPayment")}
+            </ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryActionBtn}
+            onPress={handleShareReminder}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons
+              name="share"
+              size={18}
+              color={Colors.light.textPrimary}
+            />
+            <ThemedText style={styles.secondaryActionBtnText}>
+              {t("customers:shareReminder")}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Segmented Tabs Bar */}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabItem,
+              activeTab === "credit-sales" && styles.tabItemActive,
+            ]}
+            onPress={() => setActiveTab("credit-sales")}
+          >
+            <ThemedText
+              style={[
+                styles.tabItemText,
+                activeTab === "credit-sales" && styles.tabItemTextActive,
+              ]}
+            >
+              {t("customers:creditSales")}
+            </ThemedText>
+            <View
+              style={[
+                styles.tabBadge,
+                activeTab === "credit-sales" && styles.tabBadgeActive,
+              ]}
+            >
+              <ThemedText
+                style={[
+                  styles.tabBadgeText,
+                  activeTab === "credit-sales" && styles.tabBadgeTextActive,
+                ]}
+              >
+                {creditSales.length}
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabItem,
+              activeTab === "payments" && styles.tabItemActive,
+            ]}
+            onPress={() => setActiveTab("payments")}
+          >
+            <ThemedText
+              style={[
+                styles.tabItemText,
+                activeTab === "payments" && styles.tabItemTextActive,
+              ]}
+            >
+              {t("customers:payments")}
+            </ThemedText>
+            <View
+              style={[
+                styles.tabBadge,
+                activeTab === "payments" && styles.tabBadgeActive,
+              ]}
+            >
+              <ThemedText
+                style={[
+                  styles.tabBadgeText,
+                  activeTab === "payments" && styles.tabBadgeTextActive,
+                ]}
+              >
+                {payments.length}
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabItem,
+              activeTab === "timeline" && styles.tabItemActive,
+            ]}
+            onPress={() => setActiveTab("timeline")}
+          >
+            <ThemedText
+              style={[
+                styles.tabItemText,
+                activeTab === "timeline" && styles.tabItemTextActive,
+              ]}
+            >
+              {t("customers:timeline")}
+            </ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabItem,
+              activeTab === "notes" && styles.tabItemActive,
+            ]}
+            onPress={() => setActiveTab("notes")}
+          >
+            <ThemedText
+              style={[
+                styles.tabItemText,
+                activeTab === "notes" && styles.tabItemTextActive,
+              ]}
+            >
+              {t("customers:notes")}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Tab Content Section */}
+        {activeTab === "credit-sales" && (
+          <View style={styles.tabContent}>
+            {creditSales.length === 0 ? (
+              <View style={styles.tabEmptyState}>
+                <MaterialIcons
+                  name="receipt"
+                  size={36}
+                  color={Colors.light.textMuted}
+                />
+                <ThemedText style={styles.tabEmptyText}>
+                  {t("customers:noSales")}
+                </ThemedText>
+              </View>
+            ) : (
+              creditSales.map((sale) => (
+                <View key={sale.id} style={styles.recordRow}>
+                  <View style={styles.recordLeft}>
+                    <View style={styles.recordIconSale}>
+                      <MaterialIcons
+                        name="receipt-long"
+                        size={18}
+                        color={Colors.light.destructive}
+                      />
+                    </View>
+                    <View style={styles.recordTexts}>
+                      <ThemedText style={styles.recordTitle}>
+                        {t("customers:creditSale")} #{sale.id}
+                      </ThemedText>
+                      <ThemedText style={styles.recordSubtitle}>
+                        {sale.sold_at
+                          ? new Date(sale.sold_at).toLocaleDateString()
+                          : new Date(sale.created_at).toLocaleDateString()}
+                      </ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText style={styles.recordAmountSale}>
+                    +{formatCentimes(sale.total_centimes, i18n.language as any)}
+                  </ThemedText>
+                </View>
+              ))
+            )}
+          </View>
+        )}
+
+        {activeTab === "payments" && (
+          <View style={styles.tabContent}>
+            {payments.length === 0 ? (
+              <View style={styles.tabEmptyState}>
+                <MaterialIcons
+                  name="payments"
+                  size={36}
+                  color={Colors.light.textMuted}
+                />
+                <ThemedText style={styles.tabEmptyText}>
+                  {t("customers:noPayments")}
+                </ThemedText>
+              </View>
+            ) : (
+              payments.map((payment) => (
+                <View key={payment.id} style={styles.recordRow}>
+                  <View style={styles.recordLeft}>
+                    <View style={styles.recordIconPayment}>
+                      <MaterialIcons
+                        name="check-circle"
+                        size={18}
+                        color={Colors.light.primary}
+                      />
+                    </View>
+                    <View style={styles.recordTexts}>
+                      <ThemedText style={styles.recordTitle}>
+                        {t("customers:payment")} #{payment.id}
+                      </ThemedText>
+                      <ThemedText style={styles.recordSubtitle}>
+                        {new Date(payment.paid_at).toLocaleDateString()} •{" "}
+                        {payment.payment_method === "electronic"
+                          ? t("customers:edahabia")
+                          : t("customers:cash")}
+                      </ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText style={styles.recordAmountPayment}>
+                    -{formatCentimes(payment.amount_centimes, i18n.language as any)}
+                  </ThemedText>
+                </View>
+              ))
+            )}
+          </View>
+        )}
+
+        {activeTab === "timeline" && (
+          <View style={styles.tabContent}>
+            {timelineItems.length === 0 ? (
+              <View style={styles.tabEmptyState}>
+                <MaterialIcons
+                  name="history"
+                  size={36}
+                  color={Colors.light.textMuted}
+                />
+                <ThemedText style={styles.tabEmptyText}>
+                  {t("customers:noTimeline")}
+                </ThemedText>
+              </View>
+            ) : (
+              timelineItems.map((item) => (
+                <View key={item.id} style={styles.recordRow}>
+                  <View style={styles.recordLeft}>
+                    <View
+                      style={
+                        item.type === "sale"
+                          ? styles.recordIconSale
+                          : styles.recordIconPayment
+                      }
+                    >
+                      <MaterialIcons
+                        name={
+                          item.type === "sale" ? "receipt-long" : "check-circle"
+                        }
+                        size={18}
+                        color={
+                          item.type === "sale"
+                            ? Colors.light.destructive
+                            : Colors.light.primary
+                        }
+                      />
+                    </View>
+                    <View style={styles.recordTexts}>
+                      <ThemedText style={styles.recordTitle}>
+                        {item.title}
+                      </ThemedText>
+                      <ThemedText style={styles.recordSubtitle}>
+                        {new Date(item.date).toLocaleDateString()} •{" "}
+                        {item.subtitle}
+                      </ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText
+                    style={
+                      item.type === "sale"
+                        ? styles.recordAmountSale
+                        : styles.recordAmountPayment
+                    }
+                  >
+                    {item.type === "sale" ? "+" : "-"}
+                    {formatCentimes(item.amountCentimes, i18n.language as any)}
+                  </ThemedText>
+                </View>
+              ))
+            )}
+          </View>
+        )}
+
+        {activeTab === "notes" && (
+          <View style={styles.tabContent}>
+            <View style={styles.notesCard}>
+              <ThemedText style={styles.notesTitle}>
+                {t("customers:merchantNote")}
+              </ThemedText>
+              <ThemedText style={styles.notesBody}>
+                {customer.note && customer.note.trim().length > 0
+                  ? customer.note
+                  : t("customers:noNotes")}
+              </ThemedText>
+            </View>
+          </View>
+        )}
       </ScrollView>
-    </ThemedView>
+    </View>
   );
 }
 
-// Tab state management
-const [activeTab, setActiveTab] = useState<string>('credit-sales');
-
-const isActiveTab = (tab: string) => activeTab === tab;
-
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: Colors.light.background,
   },
-  content: {
-    padding: Spacing.lg,
-  },
-  header: {
-    marginBottom: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.light.border,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 600,
-    marginBottom: Spacing.xs,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: Colors.light.textSecondary,
-  },
-  section: {
-    marginBottom: Spacing.lg,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginBottom: Spacing.xs,
-  },
-  debtRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.md,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.md,
-  },
-  debtAmount: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.light.destructive,
-  },
-  debtStatus: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-  },
-  noHistory: {
-    padding: Spacing.xl,
-    color: Colors.light.textSecondary,
-    textAlign: 'center',
-  },
-  noHistoryText: {
-    fontSize: 14,
-  },
-  paymentHistoryContainer: {
-    marginTop: Spacing.md,
-  },
-  paymentHistoryItem: {
-    padding: Spacing.xs,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.light.border,
-  },
-  paymentHistoryAmount: {
-    fontSize: 14,
-    color: Colors.light.primary,
-    fontWeight: '600',
-  },
-  paymentHistoryDate: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginLeft: Spacing.xs,
-  },
-  saleHistoryContainer: {
-    marginTop: Spacing.md,
-  },
-  saleHistoryItem: {
-    padding: Spacing.xs,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.light.border,
-  },
-  saleHistoryTotal: {
-    fontSize: 14,
-    color: Colors.light.primary,
-    fontWeight: '600',
-  },
-  saleHistoryDate: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginLeft: Spacing.xs,
-  },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.xl,
+    backgroundColor: Colors.light.background,
   },
   loadingText: {
-    ...Typography.body,
+    marginTop: Spacing.md,
     fontSize: 14,
     color: Colors.light.textSecondary,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
   },
   errorText: {
-    ...Typography.body,
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.light.destructive,
+    textAlign: "center",
     marginBottom: Spacing.md,
-    textAlign: 'center',
   },
-  errorRetry: {
-    ...Typography.body,
+  retryButton: {
+    backgroundColor: Colors.light.surface,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: BorderRadius.button,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  retryButtonText: {
     fontSize: 14,
+    color: Colors.light.textPrimary,
+  },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.borderLight,
+  },
+  iconButton: {
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+  headerInfo: {
+    flex: 1,
+    marginHorizontal: Spacing.sm,
+  },
+  customerHeaderName: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+  },
+  customerHeaderSubtitle: {
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+    marginTop: 1,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxxxxx,
+  },
+  heroDebtCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xxl,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  heroDebtCardActive: {
+    backgroundColor: Colors.light.surface,
+    borderColor: Colors.light.borderLight,
+  },
+  heroDebtCardSettled: {
+    backgroundColor: Colors.light.primaryLight,
+    borderColor: Colors.light.primaryLight,
+  },
+  heroDebtHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: Spacing.xs,
+  },
+  heroDebtLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  heroDebtLabelActive: {
+    color: Colors.light.textSecondary,
+  },
+  heroDebtLabelSettled: {
     color: Colors.light.primary,
   },
-
-  // Tabbed records styles
-  tabbedRecords: {
-    marginTop: Spacing.lg,
+  heroDebtAmount: {
+    fontSize: 32,
+    fontWeight: "800",
+    letterSpacing: -0.5,
   },
-  tabsContainer: {
-    flexDirection: 'row',
-    marginBottom: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.light.border,
-    paddingBottom: Spacing.md,
+  heroDebtAmountActive: {
+    color: Colors.light.destructive, // Debt amounts use red per Stitch export
   },
-  tabButton: {
-    flex: 1,
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surface,
-    marginRight: 2,
+  heroDebtAmountSettled: {
+    color: Colors.light.primary,
   },
-  tabButtonActive: {
+  statusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+  },
+  statusPillDebt: {
+    backgroundColor: Colors.light.errorLight,
+  },
+  statusPillSettled: {
+    backgroundColor: "rgba(27, 107, 58, 0.15)",
+  },
+  statusPillText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  statusPillTextDebt: {
+    color: Colors.light.destructive,
+  },
+  statusPillTextSettled: {
+    color: Colors.light.primary,
+  },
+  actionButtonsRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  primaryActionBtn: {
+    flex: 1.4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
     backgroundColor: Colors.light.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: BorderRadius.button,
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  primaryActionBtnDisabled: {
+    opacity: 0.5,
+  },
+  primaryActionBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
     color: "#FFFFFF",
   },
-  tabButtonInactive: {
+  secondaryActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
     backgroundColor: Colors.light.surface,
-    color: Colors.light.textSecondary,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: BorderRadius.button,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
   },
-  tabButtonText: {
-    fontSize: 14,
+  secondaryActionBtnText: {
+    fontSize: 12,
+    fontWeight: "600",
     color: Colors.light.textPrimary,
   },
-  tabCount: {
-    marginLeft: Spacing.xs,
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    color: Colors.light.primary,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  tabContent: {
-    marginTop: Spacing.md,
-  },
-  timelineContainer: {
-    marginTop: Spacing.md,
-  },
-  timelineItem: {
-    flexDirection: 'row',
-    padding: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.light.border,
+  tabsContainer: {
+    flexDirection: "row",
+    backgroundColor: Colors.light.surfaceAlt,
+    borderRadius: BorderRadius.xl,
+    padding: 3,
     marginBottom: Spacing.md,
   },
-  timelineLeft: {
-    width: 40,
-  },
-  timelineIcon: {
-    fontSize: 20,
-    color: Colors.light.primary,
-  },
-  timelineRight: {
+  tabItem: {
     flex: 1,
-    marginLeft: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.lg,
   },
-  timelineLabel: {
-    fontSize: 14,
+  tabItemActive: {
+    backgroundColor: Colors.light.surface,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabItemText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.light.textSecondary,
+  },
+  tabItemTextActive: {
     color: Colors.light.textPrimary,
   },
-  timelineDate: {
-    fontSize: 12,
+  tabBadge: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  tabBadgeActive: {
+    backgroundColor: Colors.light.primaryLight,
+  },
+  tabBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
     color: Colors.light.textSecondary,
   },
-  timelineAmount: {
-    flexShrink: 0,
-    marginLeft: 12,
+  tabBadgeTextActive: {
+    color: Colors.light.primary,
   },
-  timelineAmountText: {
+  tabContent: {
+    gap: Spacing.xs,
+  },
+  tabEmptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.xxxx,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.light.borderLight,
+  },
+  tabEmptyText: {
     fontSize: 14,
-    color: Colors.light.destructive,
-    fontWeight: '600',
+    color: Colors.light.textSecondary,
+    marginTop: Spacing.sm,
   },
-  notesText: {
+  recordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.light.borderLight,
+    marginBottom: Spacing.xs,
+  },
+  recordLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    flex: 1,
+  },
+  recordIconSale: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.light.errorLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recordIconPayment: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.light.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recordTexts: {
+    flex: 1,
+  },
+  recordTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+  },
+  recordSubtitle: {
     fontSize: 12,
     color: Colors.light.textSecondary,
+    marginTop: 2,
+  },
+  recordAmountSale: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: Colors.light.destructive, // Sale / debt in red
+  },
+  recordAmountPayment: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: Colors.light.primary, // Payment in green
+  },
+  notesCard: {
+    padding: Spacing.lg,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.light.borderLight,
+  },
+  notesTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.light.textSecondary,
+    marginBottom: Spacing.xs,
+    textTransform: "uppercase",
+  },
+  notesBody: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.light.textPrimary,
   },
 });

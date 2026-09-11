@@ -2,7 +2,7 @@
   "name": "DukkanOS",
   "description": "Point of sale and inventory management application for Algerian micro-businesses",
   "requestFramePermissions": [
-    "microphone"
+    "camera"
   ],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

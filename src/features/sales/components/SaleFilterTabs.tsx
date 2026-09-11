@@ -1,85 +1,209 @@
-import React, { useState } from 'react';
-import { Colors } from '@/constants/theme';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
+import React from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { ThemedText } from '@/components/themed-text';
+import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+
+export type SaleFilterKey =
+  | 'all'
+  | 'today'
+  | 'week'
+  | 'month'
+  | 'paid'
+  | 'partial'
+  | 'credit'
+  | 'cancelled'
+  | 'returned';
 
 interface SaleFilterTabsProps {
-  initialFilter?: string;
-  onFilterChange?: (filter: string) => void;
+  activeFilter: SaleFilterKey;
+  onSelectFilter: (filter: SaleFilterKey) => void;
 }
 
 export function SaleFilterTabs({
-  initialFilter = 'all',
-  onFilterChange,
+  activeFilter,
+  onSelectFilter,
 }: SaleFilterTabsProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language || 'fr';
+  const isArabic = lang.startsWith('ar');
+  const isFrench = lang.startsWith('fr');
 
-  const [activeFilter, setActiveFilter] = useState(initialFilter);
-
-  const filters = [
-    { key: 'all', label: t('sales.filter_all') },
-    { key: 'today', label: t('sales.filter_today') },
-    { key: 'week', label: t('sales.filter_week') },
-    { key: 'month', label: t('sales.filter_month') },
-    { key: 'custom', label: t('sales.filter_custom') },
-    { key: 'paid', label: t('sales.filter_paid') },
-    { key: 'partial', label: t('sales.filter_partial') },
-    { key: 'credit', label: t('sales.filter_credit') },
-    { key: 'cancelled', label: t('sales.filter_cancelled') },
-    { key: 'returned', label: t('sales.filter_returned') },
+  const periodFilters: { key: SaleFilterKey; label: string }[] = [
+    {
+      key: 'all',
+      label: isArabic ? 'الكل' : isFrench ? 'Tous' : 'All',
+    },
+    {
+      key: 'today',
+      label: isArabic ? 'اليوم' : isFrench ? "Aujourd'hui" : 'Today',
+    },
+    {
+      key: 'week',
+      label: isArabic ? 'هذا الأسبوع' : isFrench ? 'Cette semaine' : 'This Week',
+    },
+    {
+      key: 'month',
+      label: isArabic ? 'هذا الشهر' : isFrench ? 'Ce mois' : 'This Month',
+    },
   ];
 
-  const handleFilterSelect = (filter: string) => {
-    setActiveFilter(filter);
-    onFilterChange?.(filter);
-  };
+  const statusFilters: { key: SaleFilterKey; label: string; dotColor: string }[] = [
+    {
+      key: 'paid',
+      label: isArabic ? 'مدفوع' : isFrench ? 'Payé' : 'Paid',
+      dotColor: Colors.light.primary,
+    },
+    {
+      key: 'partial',
+      label: isArabic ? 'جزئي' : isFrench ? 'Partiel' : 'Partial',
+      dotColor: Colors.light.warning,
+    },
+    {
+      key: 'credit',
+      label: isArabic ? 'دين / آجل' : isFrench ? 'Crédit' : 'Credit',
+      dotColor: Colors.light.primaryDark,
+    },
+    {
+      key: 'cancelled',
+      label: isArabic ? 'ملغى' : isFrench ? 'Annulé' : 'Cancelled',
+      dotColor: Colors.light.error,
+    },
+    {
+      key: 'returned',
+      label: isArabic ? 'مسترجع' : isFrench ? 'Retourné' : 'Returned',
+      dotColor: Colors.light.textMuted,
+    },
+  ];
 
   return (
-    <ThemedView style={styles.tabsContainer}>
-      {filters.map((filter) => (
-        <Pressable
-          key={filter.key}
-          style={[
-            styles.tabButton,
-            activeFilter === filter.key && styles.tabButtonActive,
-          ]}
-          onPress={() => handleFilterSelect(filter.key)}
-        >
-          <ThemedText type="caption" style={styles.tabLabel}>
-            {filter.label}
-          </ThemedText>
-        </Pressable>
-      ))}
-    </ThemedView>
+    <View style={styles.wrapper}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {periodFilters.map((tab) => {
+          const isActive = activeFilter === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[
+                styles.chip,
+                isActive ? styles.chipActive : styles.chipInactive,
+              ]}
+              onPress={() => onSelectFilter(tab.key)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={`Filter by ${tab.label}`}
+            >
+              <ThemedText
+                style={[
+                  styles.chipText,
+                  isActive ? styles.chipTextActive : styles.chipTextInactive,
+                ]}
+              >
+                {tab.label}
+              </ThemedText>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Vertical Divider */}
+        <View style={styles.divider} />
+
+        {statusFilters.map((tab) => {
+          const isActive = activeFilter === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[
+                styles.chip,
+                isActive ? styles.chipActive : styles.chipInactive,
+              ]}
+              onPress={() => onSelectFilter(tab.key)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={`Filter by status ${tab.label}`}
+            >
+              <View
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: isActive ? '#FFFFFF' : tab.dotColor },
+                ]}
+              />
+              <ThemedText
+                style={[
+                  styles.chipText,
+                  isActive ? styles.chipTextActive : styles.chipTextInactive,
+                ]}
+              >
+                {tab.label}
+              </ThemedText>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tabsContainer: {
+  wrapper: {
+    marginBottom: Spacing.md,
+  },
+  scrollContent: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 4,
-    marginBottom: 16,
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
   },
-  tabButton: {
-    padding: 8,
+  chip: {
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: BorderRadius.pill,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  chipInactive: {
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 20,
-    backgroundColor: '#f8f9fa',
+    borderColor: Colors.light.border,
+    ...Shadows.sm,
   },
-  tabButtonActive: {
+  chipActive: {
     backgroundColor: Colors.light.primary,
+    borderWidth: 1,
     borderColor: Colors.light.primary,
   },
-  tabLabel: {
-    color: Colors.light.textSecondary,
-    fontSize: 12,
+  chipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.1,
   },
-  tabLabelActive: {
-    color: Colors.light.textPrimary,
+  chipTextInactive: {
+    color: Colors.light.textSecondary,
+  },
+  chipTextActive: {
+    color: '#FFFFFF',
+  },
+  divider: {
+    width: 1,
+    height: 20,
+    backgroundColor: Colors.light.border,
+    marginHorizontal: 4,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

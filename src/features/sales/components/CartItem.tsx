@@ -76,8 +76,11 @@ export function CartItem({
         <View style={styles.stepperContainer}>
           <Pressable
             onPress={() => {
-              const newQty = Math.max(1, quantity - 1);
-              onUpdateQuantity(product.id, newQty);
+              if (quantity > 1) {
+                onUpdateQuantity(product.id, quantity - 1);
+              } else {
+                onRemove(product.id);
+              }
             }}
             style={styles.stepBtn}
             accessibilityLabel="Decrease quantity"

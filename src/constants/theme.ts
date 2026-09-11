@@ -259,6 +259,7 @@ export const Spacing = {
   xl: 20,
   xxl: 24,
   xxxl: 32,
+  xxxx: 40,
   xxxxl: 40,
   xxxxxx: 48,
 } as const;
@@ -295,6 +296,7 @@ export const BorderRadius = {
   md: 8,
   lg: 12,
   xl: 16,
+  xxl: 24,
   button: 10,
   full: 9999,
   pill: 9999,

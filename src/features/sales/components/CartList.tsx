@@ -19,6 +19,7 @@ import { CartItem } from "./CartItem";
 interface CartListProps {
   items: Array<{ product: any; quantity: number }>;
   onRemove: (productId: number) => void;
+  onClearCart?: () => void;
   onUpdateQuantity: (productId: number, quantity: number) => void;
   onPreserveCartToggle?: (value: boolean) => void;
   preserveCart?: boolean;
@@ -33,6 +34,7 @@ interface CartListProps {
 export function CartList({
   items,
   onRemove,
+  onClearCart,
   onUpdateQuantity,
   subtotal,
   discount,
@@ -261,7 +263,13 @@ export function CartList({
               )}
 
               <Pressable
-                onPress={() => onRemove(0)}
+                onPress={() => {
+                  if (onClearCart) {
+                    onClearCart();
+                  } else {
+                    items.forEach((item) => onRemove(item.product.id));
+                  }
+                }}
                 style={styles.clearBtn}
                 accessibilityLabel="Clear cart"
               >
