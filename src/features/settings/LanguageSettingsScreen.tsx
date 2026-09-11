@@ -1,34 +1,83 @@
-import { ThemedText, ThemedView } from "@/components";
-import i18n from "@/localization/i18n";
+import React, { useCallback } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { showToast } from "@/components/use-toast";
+import {
+  BorderRadius,
+  Colors,
+  ComponentDimensions,
+  Shadows,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
+import i18n from "@/localization/i18n";
+
+interface LanguageOption {
+  code: "ar" | "fr" | "en";
+  shortLabel: string;
+  name: string;
+  subname: string;
+  description: string;
+  isDefault?: boolean;
+  toastMsg: string;
+}
+
+const LANGUAGES: LanguageOption[] = [
+  {
+    code: "ar",
+    shortLabel: "ع",
+    name: "العربية",
+    subname: "(Arabic)",
+    description: "العربية الفصحى (جزائر)",
+    toastMsg: "تم تحديث اللغة بنجاح",
+  },
+  {
+    code: "fr",
+    shortLabel: "FR",
+    name: "Français",
+    subname: "(French)",
+    description: "Français (Courant)",
+    isDefault: true,
+    toastMsg: "Langue mise à jour immédiatement",
+  },
+  {
+    code: "en",
+    shortLabel: "EN",
+    name: "English",
+    subname: "(International)",
+    description: "English (International Standard)",
+    toastMsg: "Language updated successfully",
+  },
+];
 
 /**
- * LanguageSettingsScreen - Screen for managing application language settings.
- * - Shows language options: العربية, Français, English
- * - Switching language applies immediately without reload
- * - Layout direction remains LTR in all languages
- * - Arabic text may use right alignment inside individual text components
- * - Does not show Darija (not available in MVP)
+ * LanguageSettingsScreen - Screen for switching languages matching Stitch design `2._language_settings`.
+ * - Immediate zero-downtime switch without app reload
+ * - Layout strictly remains LTR in all languages
+ * - Arabic text aligns naturally within components
+ * - Cultural framing card, zero-downtime card, and ergonomic counter usability explanation
  */
 export function LanguageSettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const currentLanguage = i18n.language || "fr";
 
-  const handleLanguageChange = React.useCallback(
-    (language: string) => {
-      // Apply language immediately using i18n.changeLanguage
-      i18n.changeLanguage(language);
-      // Do NOT reload the app
-      // Do NOT change layout direction
-      // Keep app architecture LTR in all languages
-      // Arabic text may use right alignment inside individual text components
-      // Do not show Darija
+  const handleSelectLanguage = useCallback(
+    (lang: LanguageOption) => {
+      i18n.changeLanguage(lang.code);
+      showToast(lang.toastMsg);
     },
-    [i18n],
+    []
   );
 
   return (
@@ -36,71 +85,154 @@ export function LanguageSettingsScreen() {
       contentContainerStyle={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
     >
-      <ThemedView style={styles.content}>
-        <ThemedView style={styles.header}>
-          <ThemedText style={styles.headerTitle}>
-            {t("settings.languageTitle")}
+      <ThemedView style={styles.container}>
+        {/* Breadcrumb Context */}
+        <TouchableOpacity
+          style={styles.breadcrumb}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="arrow-back" size={18} color={Colors.light.textSecondary} />
+          <ThemedText style={styles.breadcrumbText}>
+            {t("navigation.back") || "Back to More"}
           </ThemedText>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <ThemedText style={styles.backButtonText}>{t("back")}</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
+        </TouchableOpacity>
 
-        <ThemedView style={styles.settingsSection}>
-          <ThemedText style={styles.settingsTitle}>
-            {t("settings.languageDescription")}
+        {/* Screen Heading */}
+        <View style={styles.headerSection}>
+          <View style={styles.badgeRow}>
+            <MaterialIcons name="translate" size={18} color={Colors.light.primary} />
+            <ThemedText style={styles.badgeText}>Locale & Display</ThemedText>
+          </View>
+          <ThemedText style={styles.headingTitle}>
+            {"App Language / Langue de l'application"}
           </ThemedText>
+          <ThemedText style={styles.headingSubtitle}>
+            Choose the display language for Dukkan OS interface, cash-register screens, and printed customer receipts.
+          </ThemedText>
+        </View>
 
-          <ThemedView style={styles.languageOption}>
-            {t("settings.arabic") === "العربية" && (
-              <TouchableOpacity
-                style={styles.languageOptionItem}
-                onPress={() => handleLanguageChange("ar")}
-                accessibilityRole="radio"
-                accessibilityState={
-                  i18n.language === "ar" ? { checked: true } : undefined
-                }
-              >
-                <ThemedText style={styles.languageOptionLabel}>
-                  {t("settings.arabic")}
-                </ThemedText>
-              </TouchableOpacity>
-            )}
+        {/* Cultural Visual Framing Card */}
+        <View style={styles.framingCard}>
+          <View style={styles.framingIconContainer}>
+            <MaterialIcons name="receipt-long" size={24} color={Colors.light.primary} />
+          </View>
+          <View style={styles.framingContent}>
+            <ThemedText style={styles.framingTitle}>Fast Bilingual POS Sync</ThemedText>
+            <ThemedText style={styles.framingSubtitle}>
+              Thermal receipts render instant bilingual headers
+            </ThemedText>
+          </View>
+          <View style={styles.activePill}>
+            <ThemedText style={styles.activePillText}>Active</ThemedText>
+          </View>
+        </View>
 
-            {t("settings.french") === "Français" && (
+        {/* Language Selection List */}
+        <View style={styles.optionsList}>
+          {LANGUAGES.map((item) => {
+            const isSelected = currentLanguage.startsWith(item.code);
+            return (
               <TouchableOpacity
-                style={styles.languageOptionItem}
-                onPress={() => handleLanguageChange("fr")}
+                key={item.code}
+                style={[
+                  styles.optionCard,
+                  isSelected && styles.optionCardSelected,
+                ]}
+                onPress={() => handleSelectLanguage(item)}
+                activeOpacity={0.8}
                 accessibilityRole="radio"
-                accessibilityState={
-                  i18n.language === "fr" ? { checked: true } : undefined
-                }
+                accessibilityState={{ checked: isSelected }}
               >
-                <ThemedText style={styles.languageOptionLabel}>
-                  {t("settings.french")}
-                </ThemedText>
-              </TouchableOpacity>
-            )}
+                {/* Default badge for French */}
+                {item.isDefault && (
+                  <View style={styles.defaultBadge}>
+                    <MaterialIcons name="star" size={12} color="#FFFFFF" />
+                    <ThemedText style={styles.defaultBadgeText}>Par défaut / Actuel</ThemedText>
+                  </View>
+                )}
 
-            {t("settings.english") === "English" && (
-              <TouchableOpacity
-                style={styles.languageOptionItem}
-                onPress={() => handleLanguageChange("en")}
-                accessibilityRole="radio"
-                accessibilityState={
-                  i18n.language === "en" ? { checked: true } : undefined
-                }
-              >
-                <ThemedText style={styles.languageOptionLabel}>
-                  {t("settings.english")}
-                </ThemedText>
+                <View style={styles.optionLeft}>
+                  <View
+                    style={[
+                      styles.avatarCircle,
+                      isSelected && { backgroundColor: Colors.light.primaryLight },
+                    ]}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.avatarText,
+                        isSelected && { color: Colors.light.primary },
+                      ]}
+                    >
+                      {item.shortLabel}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.optionInfo}>
+                    <View style={styles.optionTitleRow}>
+                      <ThemedText style={styles.optionName}>{item.name}</ThemedText>
+                      <ThemedText style={styles.optionSubname}>{item.subname}</ThemedText>
+                    </View>
+                    <ThemedText style={styles.optionDescription}>
+                      {item.description}
+                    </ThemedText>
+                  </View>
+                </View>
+
+                {/* Radio Indicator */}
+                <View
+                  style={[
+                    styles.radioIndicator,
+                    isSelected && styles.radioIndicatorSelected,
+                  ]}
+                >
+                  {isSelected && (
+                    <MaterialIcons name="check" size={16} color="#FFFFFF" />
+                  )}
+                </View>
               </TouchableOpacity>
-            )}
-          </ThemedView>
-        </ThemedView>
+            );
+          })}
+        </View>
+
+        {/* Zero Downtime Switch Banner */}
+        <View style={styles.featureBanner}>
+          <View style={styles.featureIconContainer}>
+            <MaterialIcons name="bolt" size={18} color={Colors.light.primary} />
+          </View>
+          <View style={styles.featureContent}>
+            <ThemedText style={styles.featureTitle}>Zero Downtime Switch</ThemedText>
+            <ThemedText style={styles.featureSubtitle}>
+              Swapping languages requires no app restart. POS quick-keys, category shortcuts, and price barcodes stay precisely where your fingers expect them.
+            </ThemedText>
+          </View>
+        </View>
+
+        {/* Informational Usability Card */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoIconContainer}>
+            <MaterialIcons name="info" size={20} color={Colors.light.primary} />
+          </View>
+          <View style={styles.infoContent}>
+            <ThemedText style={styles.infoTitle}>Ergonomic Counter Usability (LTR)</ThemedText>
+            <ThemedText style={styles.infoSubtitle}>
+              The app layout remains left-to-right (LTR) for all languages to ensure consistent counter usability. Text inside fields aligns naturally.
+            </ThemedText>
+          </View>
+        </View>
+
+        {/* Decorative Store System Versioning */}
+        <View style={styles.versionFooter}>
+          <View style={styles.versionRow}>
+            <MaterialIcons name="verified" size={16} color={Colors.light.textMuted} />
+            <ThemedText style={styles.versionTitle}>
+              Dukkan OS v2.4.1 • Multi-dialect Engine
+            </ThemedText>
+          </View>
+          <ThemedText style={styles.versionSubtitle}>
+            Algerian Dinar (DZD) compliant localized registry
+          </ThemedText>
+        </View>
       </ThemedView>
     </ScrollView>
   );
@@ -109,54 +241,272 @@ export function LanguageSettingsScreen() {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    padding: Spacing.lg,
+    paddingHorizontal: ComponentDimensions.screenPadding,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xxl,
     backgroundColor: Colors.light.background,
   },
-  content: {
+  container: {
     width: "100%",
+    maxWidth: 480,
+    alignSelf: "center",
+    backgroundColor: "transparent",
+    gap: Spacing.md,
   },
-  header: {
+  breadcrumb: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: Spacing.lg,
+    gap: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    alignSelf: "flex-start",
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginLeft: Spacing.md,
-  },
-  backButton: {
-    padding: Spacing.md,
-  },
-  backButtonText: {
+  breadcrumbText: {
     fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.textSecondary,
+  },
+  headerSection: {
+    gap: Spacing.xs,
+  },
+  badgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.light.primary,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  headingTitle: {
+    ...Typography.heading2,
+    color: Colors.light.textPrimary,
+  },
+  headingSubtitle: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    lineHeight: 20,
+  },
+  framingCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    padding: ComponentDimensions.cardPadding,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    ...Shadows.sm,
+  },
+  framingIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  framingContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  framingTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+  },
+  framingSubtitle: {
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
+  },
+  activePill: {
+    backgroundColor: Colors.light.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  activePillText: {
+    fontSize: 12,
+    fontWeight: "600",
     color: Colors.light.primary,
   },
-  settingsSection: {
-    padding: Spacing.lg,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.md,
+  optionsList: {
+    gap: ComponentDimensions.cardGap,
   },
-  settingsTitle: {
-    fontSize: 16,
-    color: Colors.light.textPrimary,
-    marginBottom: Spacing.md,
-  },
-  languageOption: {
-    padding: Spacing.md,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.md,
-  },
-  languageOptionItem: {
+  optionCard: {
+    position: "relative",
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: Spacing.md,
+    justifyContent: "space-between",
+    minHeight: 64,
+    padding: ComponentDimensions.cardPadding,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    ...Shadows.sm,
   },
-  languageOptionLabel: {
-    fontSize: 15,
+  optionCardSelected: {
+    borderColor: Colors.light.primary,
+  },
+  defaultBadge: {
+    position: "absolute",
+    top: -10,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: Colors.light.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  defaultBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  optionLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    flex: 1,
+    minWidth: 0,
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.light.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.light.textSecondary,
+  },
+  optionInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  optionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  optionName: {
+    fontSize: 16,
+    fontWeight: "600",
     color: Colors.light.textPrimary,
+  },
+  optionSubname: {
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+  },
+  optionDescription: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
+  },
+  radioIndicator: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.light.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioIndicatorSelected: {
+    backgroundColor: Colors.light.primary,
+  },
+  featureBanner: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.md,
+    backgroundColor: Colors.light.surfaceAlt,
+    padding: ComponentDimensions.cardPadding,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  featureIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.light.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+  featureContent: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+  },
+  featureSubtitle: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    marginTop: 3,
+    lineHeight: 18,
+  },
+  infoCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    padding: ComponentDimensions.cardPadding,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    ...Shadows.sm,
+  },
+  infoIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.light.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+  infoContent: {
+    flex: 1,
+  },
+  infoTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+  },
+  infoSubtitle: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    marginTop: 3,
+    lineHeight: 18,
+  },
+  versionFooter: {
+    alignItems: "center",
+    paddingVertical: Spacing.md,
+    gap: 2,
+  },
+  versionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  versionTitle: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: Colors.light.textMuted,
+  },
+  versionSubtitle: {
+    fontSize: 11,
+    color: Colors.light.textMuted,
   },
 });

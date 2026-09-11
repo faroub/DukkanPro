@@ -13,7 +13,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/themed-text';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
-import { getSaleById, SaleWithItems } from '@/database/repositories/saleRepository';
+import { getSaleById } from '@/database/repositories/saleRepository';
+import { Sale, SaleItem } from '@/types/entities';
+export type SaleWithItems = Sale & { customer_name?: string | null; items: SaleItem[] };
 import { CancelSaleDialog } from '@/features/sales/components/CancelSaleDialog';
 import { ReturnSaleDialog } from '@/features/sales/components/ReturnSaleDialog';
 import { formatCentimes } from '@/utils/money';
@@ -67,7 +69,7 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
           isArabic ? 'المعاملة غير موجودة' : isFrench ? 'Vente non trouvée' : 'Sale not found',
         );
       } else {
-        setSale(data);
+        setSale(data as SaleWithItems);
       }
     } catch (err: any) {
       console.error('Failed to load sale:', err);
@@ -156,7 +158,7 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
   const isPartial =
     !isCancelled &&
     !isReturned &&
-    (sale.status === 'partial' ||
+    (
       (sale.remaining_balance_centimes > 0 && sale.amount_paid_centimes > 0));
   const isCredit =
     !isCancelled &&
@@ -167,11 +169,11 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
   const isCompleted = !isCancelled && !isReturned;
 
   // Semantic status colors and titles
-  let statusBadgeBg = Colors.light.primaryLight;
-  let statusBadgeColor = Colors.light.primary;
+  let statusBadgeBg: string = Colors.light.primaryLight;
+  let statusBadgeColor: string = Colors.light.primary;
   let statusBadgeText = isArabic ? 'مدفوع بالكامل' : isFrench ? 'PAYÉ' : 'PAID';
-  let heroCardBg = '#E8F5EE';
-  let heroBorderColor = '#C7E7D2';
+  let heroCardBg: string = '#E8F5EE';
+  let heroBorderColor: string = '#C7E7D2';
 
   if (isCancelled) {
     statusBadgeBg = Colors.light.errorLight;
