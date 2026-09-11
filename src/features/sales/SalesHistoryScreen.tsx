@@ -21,7 +21,7 @@ import {
 import { SaleCard, SaleCardData } from '@/features/sales/components/SaleCard';
 import {
   SaleFilterTabs,
-  SaleFilterType,
+  SaleFilterKey,
 } from '@/features/sales/components/SaleFilterTabs';
 import { formatCentimes } from '@/utils/money';
 
@@ -35,7 +35,7 @@ export function SalesHistoryScreen() {
   const localeParam = isArabic ? 'ar-DZ' : isFrench ? 'fr-DZ' : 'en-DZ';
 
   const [sales, setSales] = useState<SaleCardData[]>([]);
-  const [activeFilter, setActiveFilter] = useState<SaleFilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<SaleFilterKey>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

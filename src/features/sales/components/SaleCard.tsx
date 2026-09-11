@@ -65,13 +65,13 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
 
   // Icon, colors, and badge styling
   let iconName: keyof typeof MaterialIcons.glyphMap = 'payments';
-  let iconColor = Colors.light.primary;
-  let iconBg = Colors.light.primaryLight;
-  let badgeBg = Colors.light.primaryLight;
-  let badgeColor = Colors.light.primary;
+  let iconColor: string = Colors.light.primary;
+  let iconBg: string = Colors.light.primaryLight;
+  let badgeBg: string = Colors.light.primaryLight;
+  let badgeColor: string = Colors.light.primary;
   let badgeText = isArabic ? 'مدفوع' : isFrench ? 'Payé' : 'Paid';
   let subStatusText = isArabic ? 'نقداً' : isFrench ? 'Espèces' : 'Cash';
-  let subStatusColor = Colors.light.primary;
+  let subStatusColor: string = Colors.light.primary;
 
   if (isCancelled) {
     iconName = 'block';
