@@ -21,7 +21,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   const [note, setNote] = useState<string>("");
   const [newPaymentAmount, setNewPaymentAmount] = useState<string>("");
   const [isAddingPayment, setIsAddingPayment] = useState(false);
-  // Navigation available via route in expo-router
+  const route = useRoute();
 
   // Load customer data
   useEffect(() => {
@@ -109,6 +109,81 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
     );
   };
 
+  const renderTimeline = () => {
+    if (!payments && !saleHistory || (payments && payments.length === 0 && saleHistory && saleHistory.length === 0)) {
+      return (
+        <View style={styles.noHistory}>
+          <ThemedText type="caption" style={styles.noHistoryText}>
+            {t("customers:noTimeline")}
+          </ThemedText>
+        </View>
+      );
+    }
+
+    const items: any[] = [];
+
+    // Add payment records to timeline (most recent first)
+    if (payments) {
+      for (let i = payments.length - 1; i >= 0; i--) {
+        items.push({
+          type: 'payment',
+          amount: -payments[i].amount,
+          date: payments[i].date,
+          description: `Payment ${payments[i].id || 'PAY-' + i}`,
+        });
+      }
+    }
+
+    // Add sale records to timeline (most recent first)
+    if (saleHistory) {
+      for (let i = saleHistory.length - 1; i >= 0; i--) {
+        items.push({
+          type: 'sale',
+          amount: saleHistory[i].total_centimes,
+          date: saleHistory[i].sold_at,
+          description: `Sale ${saleHistory[i].id || 'REC-' + i}`,
+        });
+      }
+    }
+
+    // Sort by date, most recent first
+    items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return (
+      <View style={styles.timelineContainer}>
+        {items.map((item, index) => {
+          const isPayment = item.type === 'payment';
+          const amountDisplay = isPayment
+            ? `-${formatCentimes(Math.abs(item.amount))} DZD`
+            : `+${formatCentimes(item.amount)} DZD`;
+
+          return (
+            <article key={index} style={styles.timelineItem}>
+              <View style={styles.timelineLeft}>
+                <ThemedText type="caption" style={styles.timelineIcon}>
+                  {isPayment ? 'payments' : 'receipt_long'}
+                </ThemedText>
+              </View>
+              <View style={styles.timelineRight}>
+                <ThemedText type="caption" style={styles.timelineLabel}>
+                  {item.description}
+                </ThemedText>
+                <ThemedText type="caption" style={styles.timelineDate}>
+                  {new Date(item.date).toLocaleDateString()}
+                </ThemedText>
+              </View>
+              <View style={styles.timelineAmount}>
+                <ThemedText type="body" style={styles.timelineAmountText}>
+                  {amountDisplay}
+                </ThemedText>
+              </View>
+            </article>
+          );
+        })}
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -168,58 +243,71 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
           </View>
         </View>
 
-        {/* Payment History Section */}
-        <View style={{ ...styles.section, marginTop: 24 }}>
-          <ThemedText type="body" style={styles.sectionLabel}>
-            {t("customers:paymentHistory")}
-          </ThemedText>
-          {renderPaymentHistory()}
-        </View>
-
-        {/* Credit Sale History Section */}
-        <View style={{ ...styles.section, marginTop: 24 }}>
-          <ThemedText type="body" style={styles.sectionLabel}>
-            {t("customers:creditSaleHistory")}
-          </ThemedText>
-          {renderSaleHistory()}
-        </View>
-
-        {/* Notes Section */}
-        <View style={{ ...styles.section, marginTop: 24 }}>
-          <ThemedText type="body" style={styles.sectionLabel}>
-            {t("customers:notes")}
-          </ThemedText>
-          <ThemedText type="caption" style={styles.notesText}>
-            {note || customer.note || t("customers:noNotes")}
-          </ThemedText>
-        </View>
-
-        {/* Record Payment Form */}
-        {(!customer.hasDebt || customer.outstandingBalance > 0) && (
-          <View style={{ ...styles.section, marginTop: 24 }}>
-            <ThemedText type="body" style={styles.sectionLabel}>
-              {t("customers:recordPayment")}
-            </ThemedText>
-            <View style={styles.paymentForm}>
-              <TextInput
-                value={newPaymentAmount}
-                onChangeText={(text) => setNewPaymentAmount(text)}
-                placeholder={t("customers:amountPlaceholder")}
-                keyboardType="number-pad"
-                style={styles.input}
-              />
-              <Pressable style={styles.addPaymentButton} onPress={handleAddPayment} disabled={isAddingPayment}>
-                <ThemedText type="body" style={styles.addPaymentText}>
-                  {t("customers:addPayment")}
-                </ThemedText>
-              </Pressable>
-            </View>
+        {/* Tabbed Records Segment */}
+        <View style={styles.tabbedRecords}>
+          {/* Horizontal Scrollable Segmented Tabs */}
+          <View style={styles.tabsContainer}>
+            <Pressable style={styles.tabButton} onPress={() => setActiveTab('credit-sales')}>
+              <ThemedText style={styles.tabButtonText}>{t("customers:creditSales")}</ThemedText>
+              <ThemedText style={styles.tabCount}>3</ThemedText>
+            </Pressable>
+            <Pressable style={styles.tabButton} onPress={() => setActiveTab('payments')}>
+              <ThemedText style={styles.tabButtonText}>{t("customers:payments")}</ThemedText>
+              <ThemedText style={styles.tabCount}>2</ThemedText>
+            </Pressable>
+            <Pressable style={styles.tabButton} onPress={() => setActiveTab('timeline')}>
+              <ThemedText style={styles.tabButtonText}>{t("customers:activityTimeline")}</ThemedText>
+            </Pressable>
+            <Pressable style={styles.tabButton} onPress={() => setActiveTab('notes')}>
+              <ThemedText style={styles.tabButtonText}>{t("customers:notes")}</ThemedText>
+            </Pressable>
           </View>
-        )}
+
+          {/* Active Tab Content */}
+          {activeTab === 'credit-sales' && (
+            <div style={styles.tabContent}>
+              <ThemedText type="body" style={styles.sectionLabel}>
+                {t("customers:creditSaleHistory")}
+              </ThemedText>
+              {renderSaleHistory()}
+            </div>
+          )}
+
+          {activeTab === 'payments' && (
+            <div style={styles.tabContent}>
+              <ThemedText type="body" style={styles.sectionLabel}>
+                {t("customers:paymentHistory")}
+              </ThemedText>
+              {renderPaymentHistory()}
+            </div>
+          )}
+
+          {activeTab === 'timeline' && (
+            <div style={styles.tabContent}>
+              {renderTimeline()}
+            </div>
+          )}
+
+          {activeTab === 'notes' && (
+            <div style={styles.tabContent}>
+              <ThemedText type="body" style={styles.sectionLabel}>
+                {t("customers:notes")}
+              </ThemedText>
+              <ThemedText type="caption" style={styles.notesText}>
+                {note || customer.note || t("customers:noNotes")}
+              </ThemedText>
+            </div>
+          )}
+        </View>
       </ScrollView>
     </ThemedView>
   );
 }
+
+// Tab state management
+const [activeTab, setActiveTab] = useState<string>('credit-sales');
+
+const isActiveTab = (tab: string) => activeTab === tab;
 
 const styles = StyleSheet.create({
   container: {
@@ -265,7 +353,7 @@ const styles = StyleSheet.create({
   debtAmount: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.light.primary,
+    color: Colors.light.destructive,
   },
   debtStatus: {
     fontSize: 12,
@@ -344,31 +432,87 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.light.primary,
   },
-  paymentForm: {
+
+  // Tabbed records styles
+  tabbedRecords: {
+    marginTop: Spacing.lg,
+  },
+  tabsContainer: {
     flexDirection: 'row',
-    marginTop: Spacing.md,
-    alignItems: 'center',
-  },
-  input: {
-    width: 180,
-    height: 40,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
+    marginBottom: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.light.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    fontSize: 14,
-    marginRight: Spacing.md,
+    paddingBottom: Spacing.md,
   },
-  addPaymentButton: {
-    padding: Spacing.md,
+  tabButton: {
+    flex: 1,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.surface,
+    marginRight: 2,
+  },
+  tabButtonActive: {
     backgroundColor: Colors.light.primary,
-    borderRadius: BorderRadius.md,
+    color: "#FFFFFF",
   },
-  addPaymentText: {
-    color: Colors.light.textPrimary,
-    fontWeight: '600',
+  tabButtonInactive: {
+    backgroundColor: Colors.light.surface,
+    color: Colors.light.textSecondary,
+  },
+  tabButtonText: {
     fontSize: 14,
+    color: Colors.light.textPrimary,
+  },
+  tabCount: {
+    marginLeft: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    color: Colors.light.primary,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  tabContent: {
+    marginTop: Spacing.md,
+  },
+  timelineContainer: {
+    marginTop: Spacing.md,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    padding: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.light.border,
+    marginBottom: Spacing.md,
+  },
+  timelineLeft: {
+    width: 40,
+  },
+  timelineIcon: {
+    fontSize: 20,
+    color: Colors.light.primary,
+  },
+  timelineRight: {
+    flex: 1,
+    marginLeft: Spacing.md,
+  },
+  timelineLabel: {
+    fontSize: 14,
+    color: Colors.light.textPrimary,
+  },
+  timelineDate: {
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+  },
+  timelineAmount: {
+    flexShrink: 0,
+    marginLeft: 12,
+  },
+  timelineAmountText: {
+    fontSize: 14,
+    color: Colors.light.destructive,
+    fontWeight: '600',
   },
   notesText: {
     fontSize: 12,
