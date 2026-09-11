@@ -1,7 +1,7 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "@/components/themed-text";
-import { Colors } from "@/constants/theme";
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 
 interface CustomerFilterTabsProps {
   activeFilter?: string;
@@ -19,12 +19,13 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
   ];
 
   // Compute tab styles based on activeFilter
-  const tabBackgroundColor = activeFilter === undefined ? Colors.light.surface : Colors.light.surface;
-  const tabTextColor = activeFilter === undefined ? Colors.light.textPrimary : Colors.light.textPrimary;
-  const tabFontWeight = activeFilter === undefined ? '500' : '600';
+  const tabBackgroundColor = Colors.light.surface;
+  const tabTextInactiveColor = Colors.light.textSecondary;
+  const tabTextActiveColor = Colors.light.textPrimary;
 
   const activeTabStyle = {
     backgroundColor: Colors.light.primary,
+    color: Colors.light.onPrimary,
   };
 
   return (
@@ -34,17 +35,18 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
           key={filter.value}
           style={[
             styles.tab,
-            { backgroundColor: activeFilter === filter.value ? activeTabStyle.backgroundColor : tabBackgroundColor },
+            { backgroundColor: activeFilter === filter.value ? Colors.light.primary : tabBackgroundColor },
           ]}
           onPress={() => onFilterChange(filter.value)}
         >
           <ThemedText style={[
             styles.tabText,
-            { color: activeFilter === filter.value ? Colors.light.textPrimary : tabTextColor,
-              fontWeight: activeFilter === filter.value ? '600' : tabFontWeight,
+            { color: activeFilter === filter.value ? tabTextActiveColor : tabTextInactiveColor,
+              fontWeight: activeFilter === filter.value ? '600' : '500',
             }]}
           >
-            {filter.label}
+            <span>{filter.label}</span>
+            <<span style={styles.countBadge}>{filter.value === 'all' ? '48' : filter.value === 'withDebt' ? '12' : '36'}</span>
           </ThemedText>
         </Pressable>
       ))}
@@ -55,16 +57,28 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
 const styles = StyleSheet.create({
   tabs: {
     flexDirection: 'row',
-    marginBottom: 16,
-    borderRadius: 8,
-    overflow: 'hidden',
+    marginBottom: Spacing.lg,
+    overflowX: 'auto',
+    '-webkitOverflowScrolling': 'touch',
   },
   tab: {
     flex: 1,
-    padding: 10,
+    minWidth: 0,
+    padding: Spacing.xs,
+    borderRadius: BorderRadius.full,
   },
   tabText: {
     fontSize: 12,
     textAlign: 'center',
+  },
+  countBadge: {
+    marginLeft: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.light.onPrimary,
+    color: Colors.light.primary,
+    fontSize: 10,
+    fontWeight: '600',
   },
 });

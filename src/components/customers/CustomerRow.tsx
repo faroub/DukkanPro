@@ -39,6 +39,11 @@ export function CustomerRow({ customer }: CustomerRowProps) {
             {t("customers:hasDebt")}
           </ThemedText>
         )}
+        {!customer.hasDebt && (
+          <ThemedText type="caption" style={styles.settledTag}>
+            {t("customers:noDebt")}
+          </ThemedText>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -88,5 +93,14 @@ const styles = StyleSheet.create({
     marginTop: 1,
     paddingHorizontal: Spacing.xs,
     paddingVertical: Spacing.xs,
+    backgroundColor: Colors.light.errorLight,
+  },
+  settledTag: {
+    fontSize: 10,
+    color: Colors.light.primary,
+    marginTop: 1,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    backgroundColor: Colors.light.primaryLight,
   },
 });
