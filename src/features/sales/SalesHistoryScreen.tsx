@@ -1,233 +1,279 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
+  RefreshControl,
   StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
-
-import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
-import { getAllSales, getSalesByDateRange, search } from "@/database/repositories/saleRepository";
-import { formatCentimes } from "@/utils/money";
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { ThemedText } from '@/components/themed-text';
+import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import {
+  getAllSales,
+  getSalesByDateRange,
+  search,
+} from '@/database/repositories/saleRepository';
+import { SaleCard, SaleCardData } from '@/features/sales/components/SaleCard';
+import {
+  SaleFilterTabs,
+  SaleFilterType,
+} from '@/features/sales/components/SaleFilterTabs';
+import { formatCentimes } from '@/utils/money';
 
 export function SalesHistoryScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const locale = (i18n.language?.startsWith("ar") ? "ar" : i18n.language?.startsWith("fr") ? "fr" : "en") as "ar" | "fr" | "en";
 
-  const [sales, setSales] = useState<any[]>([]);
-  const [activeFilter, setActiveFilter] = useState<"all" | "today" | "week" | "month">("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const lang = i18n.language || 'fr';
+  const isArabic = lang.startsWith('ar');
+  const isFrench = lang.startsWith('fr');
+  const localeParam = isArabic ? 'ar-DZ' : isFrench ? 'fr-DZ' : 'en-DZ';
+
+  const [sales, setSales] = useState<SaleCardData[]>([]);
+  const [activeFilter, setActiveFilter] = useState<SaleFilterType>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadSales = async () => {
+  const fetchSalesFromDb = useCallback(async () => {
     try {
-      setLoading(true);
       let data: any[] = [];
 
       if (searchQuery.trim()) {
         data = await search(searchQuery.trim());
       } else {
-        const todayStr = new Date().toISOString().split("T")[0];
-        if (activeFilter === "today") {
-          data = await getSalesByDateRange(todayStr, todayStr);
-        } else if (activeFilter === "week") {
-          const past = new Date();
-          past.setDate(past.getDate() - 7);
-          data = await getSalesByDateRange(past.toISOString().split("T")[0], todayStr);
-        } else if (activeFilter === "month") {
-          const past = new Date();
-          past.setMonth(past.getMonth() - 1);
-          data = await getSalesByDateRange(past.toISOString().split("T")[0], todayStr);
-        } else {
-          data = await getAllSales({});
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        switch (activeFilter) {
+          case 'today':
+            data = await getSalesByDateRange(todayStr, todayStr);
+            break;
+          case 'week': {
+            const past = new Date();
+            past.setDate(past.getDate() - 7);
+            data = await getSalesByDateRange(
+              past.toISOString().split('T')[0],
+              todayStr,
+            );
+            break;
+          }
+          case 'month': {
+            const past = new Date();
+            past.setMonth(past.getMonth() - 1);
+            data = await getSalesByDateRange(
+              past.toISOString().split('T')[0],
+              todayStr,
+            );
+            break;
+          }
+          case 'paid':
+            data = await getAllSales({ status: 'completed' });
+            // Filter only fully paid (no remaining balance)
+            data = data.filter(
+              (s) =>
+                s.status === 'completed' &&
+                (!s.remaining_balance_centimes ||
+                  s.remaining_balance_centimes === 0),
+            );
+            break;
+          case 'partial':
+            data = await getAllSales({ hasCredit: true });
+            data = data.filter(
+              (s) =>
+                s.status !== 'cancelled' &&
+                s.status !== 'returned' &&
+                s.amount_paid_centimes > 0,
+            );
+            break;
+          case 'credit':
+            data = await getAllSales({ hasCredit: true });
+            data = data.filter(
+              (s) =>
+                s.status !== 'cancelled' &&
+                s.status !== 'returned' &&
+                (s.payment_method === 'credit' || s.amount_paid_centimes === 0),
+            );
+            break;
+          case 'cancelled':
+            data = await getAllSales({ status: 'cancelled' });
+            break;
+          case 'returned':
+            data = await getAllSales({ status: 'returned' });
+            break;
+          case 'all':
+          default:
+            data = await getAllSales({});
+            break;
         }
       }
 
-      // If database is empty, provide mock sales matching Stitch design
-      if (!data || data.length === 0) {
-        data = [
-          {
-            id: 8902,
-            customer_name: "Youcef Boumedienne",
-            status: "completed",
-            total_centimes: 12000,
-            remaining_balance_centimes: 0,
-            sold_at: new Date().toISOString(),
-            payment_method: "cash",
-            receipt_no: "REC-8902",
-            items_count: 3,
-          },
-          {
-            id: 8901,
-            customer_name: locale === "ar" ? "بيع نقدي (الزبون)" : "Cash Sale (Vente comptoir)",
-            status: "completed",
-            total_centimes: 4500,
-            remaining_balance_centimes: 0,
-            sold_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-            payment_method: "cash",
-            receipt_no: "REC-8901",
-            items_count: 1,
-          },
-          {
-            id: 8900,
-            customer_name: "Amine Kaci",
-            status: "partial",
-            total_centimes: 11500,
-            remaining_balance_centimes: 6500,
-            sold_at: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
-            payment_method: "credit",
-            receipt_no: "REC-8900",
-            items_count: 4,
-          },
-          {
-            id: 8899,
-            customer_name: "Kamel Haddad",
-            status: "completed",
-            total_centimes: 28000,
-            remaining_balance_centimes: 0,
-            sold_at: new Date(Date.now() - 180 * 60 * 1000).toISOString(),
-            payment_method: "cash",
-            receipt_no: "REC-8899",
-            items_count: 5,
-          },
-          {
-            id: 8898,
-            customer_name: "Nadia Belkacem",
-            status: "completed",
-            total_centimes: 6400,
-            remaining_balance_centimes: 0,
-            sold_at: new Date(Date.now() - 240 * 60 * 1000).toISOString(),
-            payment_method: "cash",
-            receipt_no: "REC-8898",
-            items_count: 2,
-          },
-          {
-            id: 8897,
-            customer_name: "Tariq Mansouri",
-            status: "partial",
-            total_centimes: 19000,
-            remaining_balance_centimes: 9000,
-            sold_at: new Date(Date.now() - 320 * 60 * 1000).toISOString(),
-            payment_method: "credit",
-            receipt_no: "REC-8897",
-            items_count: 3,
-          },
-        ];
-      }
-
-      setSales(data);
-    } catch (e) {
-      console.error("Error loading sales", e);
+      setSales(data || []);
+    } catch (err) {
+      console.error('Failed to load sales:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    loadSales();
   }, [activeFilter, searchQuery]);
 
-  const totalRevenueCentimes = sales.reduce(
-    (sum, s) => sum + (s.total_centimes || 0),
-    0
-  );
-  const totalRevenueDZD = Math.round(totalRevenueCentimes / 100);
+  useEffect(() => {
+    setLoading(true);
+    fetchSalesFromDb();
+  }, [fetchSalesFromDb]);
 
-  const filterTabs: { key: "all" | "today" | "week" | "month"; label: string }[] = [
-    { key: "all", label: locale === "ar" ? "الكل" : locale === "fr" ? "Tous" : "All" },
-    { key: "today", label: locale === "ar" ? "اليوم" : locale === "fr" ? "Aujourd'hui" : "Today" },
-    { key: "week", label: locale === "ar" ? "هذا الأسبوع" : locale === "fr" ? "Cette semaine" : "This Week" },
-    { key: "month", label: locale === "ar" ? "هذا الشهر" : locale === "fr" ? "Ce mois" : "This Month" },
-  ];
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchSalesFromDb();
+  };
+
+  // Calculate metrics for the banner (excluding cancelled & returned sales)
+  const validSales = useMemo(
+    () => sales.filter((s) => s.status !== 'cancelled' && s.status !== 'returned'),
+    [sales],
+  );
+
+  const totalRevenueCentimes = useMemo(
+    () => validSales.reduce((sum, s) => sum + (s.total_centimes || 0), 0),
+    [validSales],
+  );
+
+  const totalRevenueFormatted = formatCentimes(totalRevenueCentimes, localeParam);
+
+  // Section Header Label
+  let sectionLabel = isArabic
+    ? 'جميع المعاملات'
+    : isFrench
+    ? 'TOUTES LES TRANSACTIONS'
+    : 'ALL TRANSACTIONS';
+
+  if (activeFilter === 'today') {
+    sectionLabel = isArabic
+      ? 'معاملات اليوم'
+      : isFrench
+      ? 'TRANSACTIONS DU JOUR'
+      : 'TODAY’S TRANSACTIONS';
+  } else if (activeFilter === 'cancelled') {
+    sectionLabel = isArabic
+      ? 'المبيعات الملغاة'
+      : isFrench
+      ? 'VENTES ANNULÉES'
+      : 'CANCELLED SALES';
+  } else if (activeFilter === 'returned') {
+    sectionLabel = isArabic
+      ? 'المبيعات المسترجعة'
+      : isFrench
+      ? 'VENTES RETOURNÉES'
+      : 'RETURNED SALES';
+  } else if (searchQuery.trim()) {
+    sectionLabel = isArabic
+      ? 'نتائج البحث'
+      : isFrench
+      ? 'RÉSULTATS DE RECHERCHE'
+      : 'SEARCH RESULTS';
+  }
 
   return (
     <View style={styles.container}>
-      {/* Top App Bar & Back Navigation */}
+      {/* 1. Top Bar */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
+            activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Back to dashboard"
           >
-            <MaterialIcons name="arrow-back" size={22} color={Colors.light.textPrimary} />
+            <MaterialIcons
+              name="arrow-back"
+              size={22}
+              color={Colors.light.textPrimary}
+            />
           </TouchableOpacity>
 
           <View style={styles.topBarTitleWrap}>
             <ThemedText style={styles.topBarTitle}>
-              {locale === "ar" ? "المبيعات الأخيرة" : locale === "fr" ? "Ventes récentes" : "Recent Sales"}
+              {isArabic ? 'المبيعات الأخيرة' : isFrench ? 'Ventes récentes' : 'Recent Sales'}
             </ThemedText>
             <ThemedText style={styles.topBarSubtitle}>
-              {locale === "ar" ? "سجل المعاملات" : locale === "fr" ? "Historique des transactions" : "Transaction history"}
+              {isArabic
+                ? 'سجل المعاملات والفواتير'
+                : isFrench
+                ? 'Historique des transactions'
+                : 'Transaction history'}
             </ThemedText>
           </View>
         </View>
 
         <TouchableOpacity
-          style={styles.tuneButton}
-          onPress={() => loadSales()}
+          style={styles.refreshButton}
+          onPress={handleRefresh}
+          activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel="Refresh sales list"
         >
-          <MaterialIcons name="tune" size={20} color={Colors.light.textSecondary} />
+          <MaterialIcons
+            name="refresh"
+            size={20}
+            color={Colors.light.textSecondary}
+          />
         </TouchableOpacity>
       </View>
 
-      {/* Summary Performance Strip */}
-      <View style={styles.summaryStrip}>
-        <View style={styles.summaryStripLeft}>
+      {/* 2. Key Summary Metrics Banner (Google Stitch Design) */}
+      <View style={styles.summaryBanner}>
+        <View style={styles.summaryBannerLeft}>
           <View style={styles.statsIconBox}>
-            <MaterialIcons name="query-stats" size={22} color={Colors.light.primary} />
+            <MaterialIcons
+              name="query-stats"
+              size={22}
+              color={Colors.light.primary}
+            />
           </View>
-          <View>
+          <View style={styles.summaryTextGroup}>
             <ThemedText style={styles.performanceLabel}>
-              {locale === "ar" ? "الأداء" : "PERFORMANCE"}
+              {isArabic ? 'الأداء المالي' : isFrench ? 'PERFORMANCE' : 'PERFORMANCE'}
             </ThemedText>
             <ThemedText style={styles.performanceValue}>
-              {sales.length} {locale === "ar" ? "عمليات" : "sales"} • {totalRevenueDZD.toLocaleString()}{" "}
-              DZD
+              {validSales.length}{' '}
+              {isArabic ? 'عملية' : isFrench ? 'ventes' : 'sales'} • {totalRevenueFormatted}
             </ThemedText>
           </View>
         </View>
 
         <View style={styles.trendingBadge}>
-          <MaterialIcons name="trending-up" size={16} color={Colors.light.primary} />
-          <ThemedText style={styles.trendingText}>+12%</ThemedText>
+          <MaterialIcons
+            name="trending-up"
+            size={16}
+            color={Colors.light.primary}
+          />
+          <ThemedText style={styles.trendingText}>
+            {activeFilter === 'today'
+              ? isArabic ? 'اليوم' : 'Today'
+              : activeFilter === 'week'
+              ? isArabic ? 'هذا الأسبوع' : '7d'
+              : activeFilter === 'month'
+              ? isArabic ? 'هذا الشهر' : '30d'
+              : isArabic ? 'نشط' : 'Active'}
+          </ThemedText>
         </View>
       </View>
 
-      {/* Filter Chips */}
-      <View style={styles.filterChipsRow}>
-        {filterTabs.map((tab) => {
-          const isActive = activeFilter === tab.key;
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              style={[styles.filterChip, isActive && styles.activeFilterChip]}
-              onPress={() => setActiveFilter(tab.key)}
-              activeOpacity={0.7}
-            >
-              <ThemedText
-                style={[
-                  styles.filterChipText,
-                  isActive && styles.activeFilterChipText,
-                ]}
-              >
-                {tab.label}
-              </ThemedText>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      {/* 3. Filter Tabs (Period & Status with horizontal scroll) */}
+      <SaleFilterTabs
+        activeFilter={activeFilter}
+        onSelectFilter={(tab) => {
+          setActiveFilter(tab);
+          setSearchQuery('');
+        }}
+      />
 
-      {/* Search Input */}
+      {/* 4. Search Input Bar */}
       <View style={styles.searchBarWrapper}>
         <MaterialIcons
           name="search"
@@ -238,161 +284,141 @@ export function SalesHistoryScreen() {
         <TextInput
           style={styles.searchInput}
           placeholder={
-            locale === "ar"
-              ? "البحث عن طريق الزبون أو رقم الإيصال..."
-              : locale === "fr"
-              ? "Rechercher par client ou n° reçu"
-              : "Search by customer or receipt #"
+            isArabic
+              ? 'البحث عن طريق الزبون، السلعة أو رقم الوصل...'
+              : isFrench
+              ? 'Rechercher par client, article ou n° reçu...'
+              : 'Search by customer, product, or receipt #...'
           }
           placeholderTextColor={Colors.light.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="while-editing"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity
-            onPress={() => setSearchQuery("")}
+            onPress={() => setSearchQuery('')}
             style={styles.clearSearchButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <MaterialIcons name="cancel" size={18} color={Colors.light.textMuted} />
+            <MaterialIcons
+              name="cancel"
+              size={18}
+              color={Colors.light.textMuted}
+            />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Section Divider & Counter */}
+      {/* 5. Sales List Header / Counter */}
       <View style={styles.listHeader}>
-        <ThemedText style={styles.groupLabel}>
-          {locale === "ar" ? "الطلبات المكتملة" : "COMPLETED ORDERS"}
-        </ThemedText>
+        <ThemedText style={styles.groupLabel}>{sectionLabel}</ThemedText>
         <ThemedText style={styles.resultsCount}>
-          {locale === "ar"
-            ? `عرض ${sales.length} نتائج`
-            : `Showing ${sales.length} results`}
+          {isArabic
+            ? `${sales.length} نتيجة`
+            : isFrench
+            ? `${sales.length} résultats`
+            : `${sales.length} results`}
         </ThemedText>
       </View>
 
-      {/* Sales Records List */}
-      <FlatList
-        data={sales}
-        keyExtractor={(item) => String(item.id)}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => {
-          const isCash =
-            !item.customer_name ||
-            item.customer_name.toLowerCase().includes("cash") ||
-            item.customer_name.toLowerCase().includes("comptoir");
-          const isPartial =
-            item.status === "partial" ||
-            (item.remaining_balance_centimes && item.remaining_balance_centimes > 0);
-
-          const badgeBg = isPartial
-            ? Colors.light.warningLight
-            : Colors.light.primaryLight;
-          const badgeColor = isPartial
-            ? Colors.light.secondary
-            : Colors.light.primary;
-          const badgeText = isPartial
-            ? locale === "ar"
-              ? "جزئي"
-              : "Partial"
-            : locale === "ar"
-            ? "مدفوع"
-            : locale === "fr"
-            ? "Payé"
-            : "Paid";
-
-          const amountDZD = Math.round((item.total_centimes || 0) / 100);
-          const balanceDZD = Math.round((item.remaining_balance_centimes || 0) / 100);
-          const receiptCode = item.receipt_no || `#REC-${item.id}`;
-
-          return (
-            <TouchableOpacity
-              style={styles.saleItemCard}
-              onPress={() => router.push(`/sales/${item.id}` as any)}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={`Sale ${receiptCode} for ${item.customer_name}`}
-            >
-              <View style={styles.saleItemLeft}>
-                <View
-                  style={[
-                    styles.avatarCircle,
-                    {
-                      backgroundColor: isPartial
-                        ? Colors.light.warningLight
-                        : isCash
-                        ? Colors.light.surfaceAlt
-                        : Colors.light.primaryLight,
-                    },
-                  ]}
-                >
-                  <MaterialIcons
-                    name={
-                      isPartial
-                        ? "pending-actions"
-                        : isCash
-                        ? "payments"
-                        : "account-circle"
-                    }
-                    size={20}
-                    color={
-                      isPartial
-                        ? Colors.light.secondary
-                        : isCash
-                        ? Colors.light.textSecondary
-                        : Colors.light.primary
-                    }
-                  />
-                </View>
-
-                <View style={styles.saleItemDetails}>
-                  <View style={styles.nameBadgeRow}>
-                    <ThemedText style={styles.saleCustomerName} numberOfLines={1}>
-                      {item.customer_name || "Cash Customer"}
-                    </ThemedText>
-                    <View style={[styles.statusPill, { backgroundColor: badgeBg }]}>
-                      <ThemedText style={[styles.statusPillText, { color: badgeColor }]}>
-                        {badgeText}
-                      </ThemedText>
-                    </View>
-                  </View>
-
-                  <ThemedText style={styles.saleMetaText}>
-                    {item.sold_at
-                      ? new Date(item.sold_at).toLocaleTimeString(
-                          locale === "ar" ? "ar-DZ" : "fr-DZ",
-                          { hour: "2-digit", minute: "2-digit" }
-                        )
-                      : "10:30 AM"}{" "}
-                    • {item.items_count || 3} {locale === "ar" ? "منتجات" : "items"}
-                  </ThemedText>
-                </View>
-              </View>
-
-              <View style={styles.saleItemRight}>
-                <View style={styles.amountWrap}>
-                  <ThemedText
-                    style={[
-                      styles.saleAmount,
-                      { color: isPartial ? Colors.light.secondary : Colors.light.primary },
-                    ]}
-                  >
-                    {amountDZD} DZD
-                  </ThemedText>
-                  <ThemedText style={styles.receiptCodeText}>
-                    {isPartial ? `Bal: ${balanceDZD} DZD` : receiptCode}
-                  </ThemedText>
-                </View>
+      {/* 6. FlatList Content */}
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={Colors.light.primary} />
+          <ThemedText style={styles.loadingText}>
+            {isArabic ? 'جارٍ تحميل المبيعات...' : isFrench ? 'Chargement des ventes...' : 'Loading sales...'}
+          </ThemedText>
+        </View>
+      ) : (
+        <FlatList
+          data={sales}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[Colors.light.primary]}
+              tintColor={Colors.light.primary}
+            />
+          }
+          renderItem={({ item }) => (
+            <SaleCard
+              sale={item}
+              onPress={() => {
+                router.push({
+                  pathname: '/sales/[id]',
+                  params: { id: String(item.id) },
+                });
+              }}
+            />
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconCircle}>
                 <MaterialIcons
-                  name="chevron-right"
-                  size={20}
+                  name="receipt-long"
+                  size={36}
                   color={Colors.light.textMuted}
                 />
               </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
+              <ThemedText style={styles.emptyTitle}>
+                {searchQuery
+                  ? isArabic
+                    ? 'لم يتم العثور على نتائج'
+                    : isFrench
+                    ? 'Aucun résultat trouvé'
+                    : 'No matching sales found'
+                  : isArabic
+                  ? 'لا توجد مبيعات مسجلة'
+                  : isFrench
+                  ? 'Aucune vente enregistrée'
+                  : 'No sales recorded yet'}
+              </ThemedText>
+              <ThemedText style={styles.emptySubtitle}>
+                {searchQuery
+                  ? isArabic
+                    ? 'جرب البحث باسم آخر أو مسح حقل البحث'
+                    : isFrench
+                    ? 'Essayez avec un autre mot-clé ou réinitialisez les filtres'
+                    : 'Try checking for spelling errors or clear your search query'
+                  : isArabic
+                  ? 'قم بتسجيل مبيعات جديدة من الشاشة الرئيسية'
+                  : isFrench
+                  ? 'Enregistrez votre première vente depuis la caisse'
+                  : 'Record sales from the checkout counter to see them here'}
+              </ThemedText>
+              {(searchQuery.length > 0 || activeFilter !== 'all') && (
+                <TouchableOpacity
+                  style={styles.clearFiltersButton}
+                  onPress={() => {
+                    setSearchQuery('');
+                    setActiveFilter('all');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <MaterialIcons
+                    name="filter-alt-off"
+                    size={16}
+                    color={Colors.light.primary}
+                  />
+                  <ThemedText style={styles.clearFiltersButtonText}>
+                    {isArabic
+                      ? 'إعادة ضبط الفلاتر'
+                      : isFrench
+                      ? 'Réinitialiser les filtres'
+                      : 'Reset filters'}
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -401,248 +427,213 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.sm,
   },
   topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
   },
   topBarLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    alignItems: "center",
-    justifyContent: "center",
-    ...Shadows.sm,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  topBarTitleWrap: {},
+  topBarTitleWrap: {
+    gap: 1,
+  },
   topBarTitle: {
-    ...Typography.heading2,
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: '700',
     color: Colors.light.textPrimary,
   },
   topBarSubtitle: {
-    ...Typography.caption,
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.light.textSecondary,
-    marginTop: 1,
   },
-  tuneButton: {
+  refreshButton: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    alignItems: "center",
-    justifyContent: "center",
-    ...Shadows.sm,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  summaryStrip: {
+  summaryBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+    padding: Spacing.md,
     backgroundColor: Colors.light.primaryLight,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    marginTop: Spacing.sm,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    ...Shadows.sm,
+    borderWidth: 1,
+    borderColor: '#C7E7D2',
   },
-  summaryStripLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  summaryBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    flex: 1,
   },
   statsIconBox: {
     width: 40,
     height: 40,
-    borderRadius: 8,
-    backgroundColor: Colors.light.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  performanceLabel: {
-    ...Typography.badge,
-    fontSize: 11,
-    color: Colors.light.textSecondary,
-    letterSpacing: 0.5,
-  },
-  performanceValue: {
-    ...Typography.label,
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.light.primary,
-    marginTop: 2,
-  },
-  trendingBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-  },
-  trendingText: {
-    ...Typography.badge,
-    fontSize: 12,
-    fontWeight: "700",
-    color: Colors.light.primary,
-  },
-  filterChipsRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginVertical: Spacing.sm + 2,
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  activeFilterChip: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
-  },
-  filterChipText: {
-    ...Typography.caption,
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.light.textSecondary,
-  },
-  activeFilterChipText: {
-    color: "#FFFFFF",
-  },
-  searchBarWrapper: {
-    position: "relative",
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    marginBottom: Spacing.sm,
-    paddingHorizontal: 10,
-    height: 44,
+    backgroundColor: Colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...Shadows.sm,
   },
+  summaryTextGroup: {
+    flex: 1,
+    gap: 2,
+  },
+  performanceLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.light.primary,
+    letterSpacing: 0.8,
+  },
+  performanceValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.light.textPrimary,
+  },
+  trendingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.light.surface,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.pill,
+    ...Shadows.sm,
+  },
+  trendingText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.light.primary,
+  },
+  searchBarWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.surface,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    height: 44,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
   searchIcon: {
-    marginRight: 8,
+    marginRight: Spacing.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.light.textPrimary,
+    paddingVertical: 0,
   },
   clearSearchButton: {
     padding: 4,
   },
   listHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
   groupLabel: {
-    ...Typography.badge,
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '700',
     color: Colors.light.textSecondary,
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   resultsCount: {
-    ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textMuted,
+    fontWeight: '500',
+    color: Colors.light.textSecondary,
   },
   listContent: {
-    gap: 8,
-    paddingBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xs,
+    paddingBottom: 40,
+    gap: Spacing.sm,
   },
-  saleItemCard: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    minHeight: 70,
-    ...Shadows.sm,
-  },
-  saleItemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  centerContainer: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.xl,
+    gap: Spacing.sm,
   },
-  avatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  saleItemDetails: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  nameBadgeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  saleCustomerName: {
-    ...Typography.label,
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-    flexShrink: 1,
-  },
-  statusPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  statusPillText: {
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  saleMetaText: {
-    ...Typography.caption,
-    fontSize: 12,
+  loadingText: {
+    fontSize: 13,
     color: Colors.light.textSecondary,
-    marginTop: 2,
   },
-  saleItemRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.sm,
   },
-  amountWrap: {
-    alignItems: "flex-end",
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.light.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xs,
   },
-  saleAmount: {
-    ...Typography.moneySm,
-    fontSize: 15,
-    fontWeight: "700",
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.light.textPrimary,
+    textAlign: 'center',
   },
-  receiptCodeText: {
-    ...Typography.caption,
-    fontSize: 11,
-    color: Colors.light.textMuted,
-    marginTop: 2,
+  emptySubtitle: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  clearFiltersButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.light.primaryLight,
+    borderWidth: 1,
+    borderColor: '#C7E7D2',
+  },
+  clearFiltersButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.light.primary,
   },
 });

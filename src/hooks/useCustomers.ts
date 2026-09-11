@@ -14,6 +14,7 @@ import {
   getById,
   search as customerSearch,
 } from "@/database/repositories/customerRepository";
+import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 import type { Customer } from "@/types/entities";
 
 /**
@@ -63,22 +64,25 @@ export function useCustomers(filters: CustomersFilters = {}) {
         allCustomers = await getAll({ is_active: undefined });
       }
 
-      // Compute debt info for each customer
-      // In a full implementation, this would query sales and payments
-      // For now, we compute based on available data
-      const transformed = allCustomers.map((customer) => {
-        // Calculate outstanding balance from sales
-        // This is a simplified calculation - full implementation would
-        // query the sales and payments tables
-        const hasDebt = false; // Placeholder - will be computed properly
-        const outstandingBalance = 0; // Placeholder
-
-        return {
-          ...customer,
-          hasDebt,
-          outstandingBalance,
-        } as CustomerListItem;
-      });
+      // Compute actual debt info for each customer from customerBalanceService
+      const transformed: CustomerListItem[] = await Promise.all(
+        allCustomers.map(async (customer) => {
+          try {
+            const debt = await getCustomerDebt(customer.id);
+            return {
+              ...customer,
+              hasDebt: debt > 0,
+              outstandingBalance: debt,
+            };
+          } catch {
+            return {
+              ...customer,
+              hasDebt: false,
+              outstandingBalance: 0,
+            };
+          }
+        }),
+      );
 
       setCustomers(transformed);
     } catch (err) {
@@ -93,33 +97,42 @@ export function useCustomers(filters: CustomersFilters = {}) {
 
   const searchCustomers = useCallback(async (query: string) => {
     if (!query.trim()) {
-      setFilter("all");
       return loadCustomers();
     }
-    setFilter("all");
     try {
+      setLoading(true);
       const results = await customerSearch(query);
-      setCustomers(
-        results.map((customer) => ({
-          ...customer,
-          hasDebt: false,
-          outstandingBalance: 0,
-        } as CustomerListItem)),
+      const transformed: CustomerListItem[] = await Promise.all(
+        results.map(async (customer) => {
+          try {
+            const debt = await getCustomerDebt(customer.id);
+            return {
+              ...customer,
+              hasDebt: debt > 0,
+              outstandingBalance: debt,
+            };
+          } catch {
+            return {
+              ...customer,
+              hasDebt: false,
+              outstandingBalance: 0,
+            };
+          }
+        }),
       );
+      setCustomers(transformed);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to search customers",
       );
       setCustomers([]);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [loadCustomers]);
 
   const setActiveFilter = useCallback((newFilter: string) => {
     setFilter(newFilter);
-    if (newFilter === "all") {
-      loadCustomers();
-    }
-    // "withDebt" and "noDebt" filters would query based on balance
   }, []);
 
   const reload = useCallback(() => {

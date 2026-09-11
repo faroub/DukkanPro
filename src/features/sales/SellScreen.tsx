@@ -1,5 +1,5 @@
 import { SymbolView } from "expo-symbols";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -28,13 +28,7 @@ import { BarcodeScannerModal } from "@/features/sales/components/BarcodeScannerM
 import { CartList } from "@/features/sales/components/CartList";
 import { CheckoutSheet } from "@/features/sales/components/CheckoutSheet";
 import { ReceiptPreview } from "@/features/sales/components/ReceiptPreview";
-import { ReviewSheet } from "@/features/voice/components/ReviewSheet";
-import { VoiceButton } from "@/features/voice/components/VoiceButton";
 import { useProducts } from "@/hooks/useProducts";
-import {
-  AvailableProduct,
-  parseSaleCommand,
-} from "@/services/voice/voiceSaleParser";
 import { useCartStoreHook } from "@/stores/cartStore";
 import { Product } from "@/types/entities";
 import { formatCentimes } from "@/utils/money";
@@ -55,8 +49,6 @@ export default function SellScreen() {
     itemCount,
     discount,
     setDiscount,
-    preserveCart,
-    setPreserveCart,
   } = useCartStoreHook();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,25 +65,6 @@ export default function SellScreen() {
   >("cash");
   const [note, setNote] = useState<string>("");
   const [customerId, setCustomerId] = useState<number | null>(null);
-
-  // Voice input state
-  const [voiceVisible, setVoiceVisible] = useState(false);
-  const [voiceCommand, setVoiceCommand] = useState<string>("");
-  const [parsedVoice, setParsedVoice] = useState<any | null>(null);
-  const [voiceAvailableProducts, setVoiceAvailableProducts] = useState<
-    AvailableProduct[]
-  >([]);
-
-  useEffect(() => {
-    const available = products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      category: p.category ?? "",
-      price_centimes: p.sale_price_centimes,
-      stock: p.stock_quantity,
-    }));
-    setVoiceAvailableProducts(available);
-  }, [products]);
 
   // Unique categories for filter chips
   const categories = useMemo(() => {
@@ -255,115 +228,39 @@ export default function SellScreen() {
               <ThemedText style={styles.sectionTitle}>
                 Articles Fréquents
               </ThemedText>
-              <ThemedText style={styles.sectionSubtitle}>
-                Appuyer pour ajouter
-              </ThemedText>
             </View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.frequentList}
             >
-              {frequentProducts.map((p) => {
-                const qty = getItemCartQty(p.id);
-                const isInCart = qty > 0;
-                return (
-                  <View
-                    key={p.id}
-                    style={[
-                      styles.frequentCard,
-                      isInCart && styles.frequentCardInCart,
-                    ]}
-                  >
-                    <Pressable
-                      onPress={() => !isInCart && addItemWithProduct(p, 1)}
-                      style={styles.frequentCardContent}
-                      accessibilityLabel={`${p.name}, ${formatCentimes(p.sale_price_centimes)}`}
-                    >
-                      <View style={styles.frequentIconBox}>
-                        <SymbolView
-                          name={{
-                            ios: "bag" as any,
-                            android: "shopping_bag" as any,
-                            web: "shopping_bag" as any,
-                          }}
-                          size={18}
-                          tintColor={Colors.light.primary}
-                        />
-                        {isInCart && (
-                          <View style={styles.frequentQtyBadge}>
-                            <Text style={styles.frequentQtyBadgeText}>{qty}</Text>
-                          </View>
-                        )}
-                      </View>
-                      <ThemedText style={styles.frequentName} numberOfLines={1}>
-                        {p.name}
-                      </ThemedText>
-                      <ThemedText style={styles.frequentPrice}>
-                        {formatCentimes(p.sale_price_centimes)}
-                      </ThemedText>
-                    </Pressable>
-
-                    {isInCart ? (
-                      <View style={styles.frequentStepper}>
-                        <Pressable
-                          onPress={() => subtractItem(p.id)}
-                          style={styles.frequentStepBtnMinus}
-                          hitSlop={6}
-                          accessibilityLabel={`Retirer ${p.name}`}
-                        >
-                          <SymbolView
-                            name={{
-                              ios: "minus" as any,
-                              android: "remove" as any,
-                              web: "remove" as any,
-                            }}
-                            size={12}
-                            tintColor={Colors.light.primary}
-                          />
-                        </Pressable>
-                        <Text style={styles.frequentStepQty}>{qty}</Text>
-                        <Pressable
-                          onPress={() => addItemWithProduct(p, 1)}
-                          style={styles.frequentStepBtnPlus}
-                          hitSlop={6}
-                          accessibilityLabel={`Ajouter ${p.name}`}
-                        >
-                          <SymbolView
-                            name={{
-                              ios: "plus" as any,
-                              android: "add" as any,
-                              web: "add" as any,
-                            }}
-                            size={12}
-                            tintColor="#FFFFFF"
-                          />
-                        </Pressable>
-                      </View>
-                    ) : (
-                      <Pressable
-                        onPress={() => addItemWithProduct(p, 1)}
-                        style={styles.frequentAddPill}
-                        hitSlop={6}
-                        accessibilityLabel={`Ajouter ${p.name} au panier`}
-                      >
-                        <SymbolView
-                          name={{
-                            ios: "plus" as any,
-                            android: "add" as any,
-                            web: "add" as any,
-                          }}
-                          size={12}
-                          tintColor={Colors.light.primary}
-                        />
-                        <Text style={styles.frequentAddPillText}>
-                          {t("sell.add", { defaultValue: "Ajouter" })}
-                        </Text>
-                      </Pressable>
-                    )}
+              {frequentProducts.map((p) => (
+                <View
+                  key={p.id}
+                  style={styles.frequentCard}
+                  accessibilityLabel={`${p.name}, ${formatCentimes(p.sale_price_centimes)}`}
+                >
+                  <View style={styles.frequentCardContent}>
+                    <View style={styles.frequentIconBox}>
+                      <SymbolView
+                        name={{
+                          ios: "bag" as any,
+                          android: "shopping_bag" as any,
+                          web: "shopping_bag" as any,
+                        }}
+                        size={18}
+                        tintColor={Colors.light.primary}
+                      />
+                    </View>
+                    <ThemedText style={styles.frequentName} numberOfLines={1}>
+                      {p.name}
+                    </ThemedText>
+                    <ThemedText style={styles.frequentPrice}>
+                      {formatCentimes(p.sale_price_centimes)}
+                    </ThemedText>
                   </View>
-                );
-              })}
+                </View>
+              ))}
             </ScrollView>
           </View>
         )}
@@ -397,6 +294,7 @@ export default function SellScreen() {
           ) : (
             <FlatList
               data={filteredProducts}
+              extraData={items}
               keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.productsList}
@@ -415,46 +313,60 @@ export default function SellScreen() {
                       cartQty > 0 && styles.productCardInCart,
                     ]}
                   >
-                    <View style={styles.productLeft}>
-                      <View style={styles.productAvatar}>
-                        <Text style={styles.productInitial}>
-                          {item.name ? item.name[0].toUpperCase() : "P"}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.productCenter}>
-                      <ThemedText style={styles.productName} numberOfLines={1}>
-                        {item.name}
-                      </ThemedText>
-                      <View style={styles.productMeta}>
-                        {item.unit && (
-                          <Text style={styles.unitText}>{item.unit}</Text>
-                        )}
-                        {item.sku && (
-                          <Text style={styles.skuBadge}>
-                            SKU: {item.sku}
+                    <Pressable
+                      style={styles.productCardMainArea}
+                      onPress={() => addItemWithProduct(item, 1)}
+                      accessibilityLabel={`${item.name}, ${formatCentimes(item.sale_price_centimes)}`}
+                      accessibilityHint="Appuyer pour ajouter au panier"
+                    >
+                      <View style={styles.productLeft}>
+                        <View style={styles.productAvatar}>
+                          <Text style={styles.productInitial}>
+                            {item.name ? item.name[0].toUpperCase() : "P"}
                           </Text>
-                        )}
-                        {item.stock_quantity !== undefined && (
-                          <View
-                            style={[
-                              styles.stockBadge,
-                              isLowStock && styles.stockBadgeLow,
-                            ]}
-                          >
-                            <Text
+                          {cartQty > 0 && (
+                            <View style={styles.productQtyBadge}>
+                              <Text style={styles.productQtyBadgeText}>
+                                {cartQty}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+
+                      <View style={styles.productCenter}>
+                        <ThemedText style={styles.productName} numberOfLines={1}>
+                          {item.name}
+                        </ThemedText>
+                        <View style={styles.productMeta}>
+                          {item.unit && (
+                            <Text style={styles.unitText}>{item.unit}</Text>
+                          )}
+                          {item.sku && (
+                            <Text style={styles.skuBadge}>
+                              SKU: {item.sku}
+                            </Text>
+                          )}
+                          {item.stock_quantity !== undefined && (
+                            <View
                               style={[
-                                styles.stockBadgeText,
-                                isLowStock && styles.stockBadgeTextLow,
+                                styles.stockBadge,
+                                isLowStock && styles.stockBadgeLow,
                               ]}
                             >
-                              Stock: {item.stock_quantity}
-                            </Text>
-                          </View>
-                        )}
+                              <Text
+                                style={[
+                                  styles.stockBadgeText,
+                                  isLowStock && styles.stockBadgeTextLow,
+                                ]}
+                              >
+                                Stock: {item.stock_quantity}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
-                    </View>
+                    </Pressable>
 
                     <View style={styles.productRight}>
                       <Text style={styles.productPrice}>
@@ -465,7 +377,7 @@ export default function SellScreen() {
                         <Pressable
                           onPress={() => addItemWithProduct(item, 1)}
                           style={styles.addBtn}
-                          hitSlop={6}
+                          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                           accessibilityLabel={`Ajouter ${item.name} au panier`}
                         >
                           <SymbolView
@@ -486,7 +398,7 @@ export default function SellScreen() {
                           <Pressable
                             onPress={() => subtractItem(item.id)}
                             style={styles.stepperBtnMinus}
-                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 6 }}
                             accessibilityLabel={`Retirer ${item.name} du panier`}
                           >
                             <SymbolView
@@ -505,7 +417,7 @@ export default function SellScreen() {
                           <Pressable
                             onPress={() => addItemWithProduct(item, 1)}
                             style={styles.stepperBtnPlus}
-                            hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+                            hitSlop={{ top: 8, bottom: 8, left: 6, right: 8 }}
                             accessibilityLabel={`Ajouter ${item.name} au panier`}
                           >
                             <SymbolView
@@ -528,7 +440,7 @@ export default function SellScreen() {
           )}
         </View>
 
-        {/* Bottom Dock: Voice Command Button and Cart Bar */}
+        {/* Bottom Dock: Cart Bar */}
         <View
           nativeID="sell-actions-container"
           id="sell-actions-container"
@@ -536,108 +448,86 @@ export default function SellScreen() {
           className="sell-actions-container"
           style={styles.bottomDockContainer}
         >
-          <View style={styles.actionsRow}>
-            {/* Voice Input Button */}
-            <View style={styles.voiceButtonCol}>
-              <VoiceButton
-                onVoiceStart={() => setVoiceVisible(true)}
-                onVoiceEnd={() => {}}
-                onTranscript={(text) => {
-                  setVoiceCommand(text);
-                  const parsed = parseSaleCommand(text, voiceAvailableProducts);
-                  if (parsed) {
-                    setParsedVoice(parsed);
+          <Pressable
+            onPress={() => setCartVisible(true)}
+            style={[
+              styles.cartBarInner,
+              itemCount === 0 && styles.cartBarInnerEmpty,
+            ]}
+            accessibilityLabel={t("sell.cart.viewCart", {
+              defaultValue: "Voir le panier",
+            })}
+            accessibilityRole="button"
+          >
+            <View style={styles.cartBarLeft}>
+              <View style={styles.cartBadgeContainer}>
+                <SymbolView
+                  name={{
+                    ios: "bag.fill" as any,
+                    android: "shopping_bag" as any,
+                    web: "shopping_bag" as any,
+                  }}
+                  size={20}
+                  tintColor={
+                    itemCount > 0 ? "#FFFFFF" : Colors.light.textSecondary
                   }
+                />
+                {itemCount > 0 && (
+                  <View style={styles.cartCountBadge}>
+                    <Text style={styles.cartCountBadgeText}>{itemCount}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.cartTextGroup}>
+                <Text
+                  style={[
+                    styles.cartBarLabel,
+                    itemCount === 0 && styles.cartBarLabelEmpty,
+                  ]}
+                  numberOfLines={1}
+                >
+                  Panier
+                </Text>
+                <Text
+                  style={[
+                    styles.cartBarTotal,
+                    itemCount === 0 && styles.cartBarTotalEmpty,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {formatCentimes(total)}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.cartBarRight,
+                itemCount === 0 && styles.cartBarRightEmpty,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.cartBarActionText,
+                  itemCount === 0 && styles.cartBarActionTextEmpty,
+                ]}
+                numberOfLines={1}
+              >
+                {t("sell.cart.seeCart", { defaultValue: "Voir le panier" })}
+              </Text>
+              <SymbolView
+                name={{
+                  ios: "chevron.right" as any,
+                  android: "chevron_right" as any,
+                  web: "chevron_right" as any,
                 }}
-                disabled={isSaving}
-                style={styles.voiceButtonDock}
+                size={16}
+                tintColor={
+                  itemCount > 0 ? "#FFFFFF" : Colors.light.textSecondary
+                }
               />
             </View>
-
-            {/* Cart Bar Button */}
-            <View style={styles.cartBarCol}>
-              <Pressable
-                onPress={() => setCartVisible(true)}
-                style={[
-                  styles.cartBarInner,
-                  itemCount === 0 && styles.cartBarInnerEmpty,
-                ]}
-                accessibilityLabel={t("sell.cart.viewCart", {
-                  defaultValue: "Voir le panier",
-                })}
-                accessibilityRole="button"
-              >
-                <View style={styles.cartBarLeft}>
-                  <View style={styles.cartBadgeContainer}>
-                    <SymbolView
-                      name={{
-                        ios: "bag.fill" as any,
-                        android: "shopping_bag" as any,
-                        web: "shopping_bag" as any,
-                      }}
-                      size={18}
-                      tintColor={
-                        itemCount > 0 ? "#FFFFFF" : Colors.light.textSecondary
-                      }
-                    />
-                    {itemCount > 0 && (
-                      <View style={styles.cartCountBadge}>
-                        <Text style={styles.cartCountBadgeText}>{itemCount}</Text>
-                      </View>
-                    )}
-                  </View>
-                  <View style={styles.cartTextGroup}>
-                    <Text
-                      style={[
-                        styles.cartBarLabel,
-                        itemCount === 0 && styles.cartBarLabelEmpty,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {itemCount > 0 ? "Panier" : "Panier"}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.cartBarTotal,
-                        itemCount === 0 && styles.cartBarTotalEmpty,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {formatCentimes(total)}
-                    </Text>
-                  </View>
-                </View>
-
-                <View
-                  style={[
-                    styles.cartBarRight,
-                    itemCount === 0 && styles.cartBarRightEmpty,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.cartBarActionText,
-                      itemCount === 0 && styles.cartBarActionTextEmpty,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {t("sell.cart.seeCart", { defaultValue: "Voir" })}
-                  </Text>
-                  <SymbolView
-                    name={{
-                      ios: "chevron.right" as any,
-                      android: "chevron_right" as any,
-                      web: "chevron_right" as any,
-                    }}
-                    size={14}
-                    tintColor={
-                      itemCount > 0 ? "#FFFFFF" : Colors.light.textMuted
-                    }
-                  />
-                </View>
-              </Pressable>
-            </View>
-          </View>
+          </Pressable>
         </View>
 
         {/* Cart Bottom Sheet Modal */}
@@ -652,6 +542,7 @@ export default function SellScreen() {
               <CartList
                 items={items}
                 onRemove={removeItem}
+                onClearCart={clearCart}
                 onUpdateQuantity={updateQuantity}
                 subtotal={subtotal}
                 discount={discount}
@@ -713,24 +604,6 @@ export default function SellScreen() {
             visible={scannerVisible}
             onScan={handleBarcodeScanned}
             onClose={() => setScannerVisible(false)}
-          />
-        )}
-
-        {/* Voice Review Sheet */}
-        {parsedVoice && (
-          <ReviewSheet
-            isVisible={voiceVisible}
-            onClose={() => setVoiceVisible(false)}
-            onConfirm={(parsed) => {
-              const product = products.find(
-                (item) => item.name === parsed.productName,
-              );
-              if (product) addItemWithProduct(product, parsed.quantity);
-              setVoiceVisible(false);
-              setParsedVoice(null);
-            }}
-            availableProducts={voiceAvailableProducts}
-            commandText={voiceCommand}
           />
         )}
       </ThemedView>
@@ -838,17 +711,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.border,
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     ...Shadows.sm,
-  },
-  frequentCardInCart: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.surface,
   },
   frequentCardContent: {
     alignItems: "center",
     width: "100%",
-    gap: 3,
+    gap: 4,
   },
   frequentIconBox: {
     width: 36,
@@ -857,23 +726,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.backgroundElement,
     justifyContent: "center",
     alignItems: "center",
-    position: "relative",
-  },
-  frequentQtyBadge: {
-    position: "absolute",
-    top: -4,
-    right: -4,
-    backgroundColor: Colors.light.primary,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  frequentQtyBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "700",
   },
   frequentName: {
     ...Typography.caption,
@@ -886,63 +738,6 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     fontSize: 11,
     fontWeight: "700",
-    color: Colors.light.primary,
-  },
-  frequentStepper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.light.surfaceAlt,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    marginTop: 4,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: Colors.light.primaryLight,
-  },
-  frequentStepBtnMinus: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.light.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  frequentStepBtnPlus: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.light.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  frequentStepQty: {
-    ...Typography.caption,
-    fontWeight: "700",
-    color: Colors.light.primary,
-    fontSize: 12,
-    minWidth: 18,
-    textAlign: "center",
-  },
-  frequentAddPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.light.surfaceAlt,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginTop: 4,
-    gap: 3,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  frequentAddPillText: {
-    fontSize: 10,
-    fontWeight: "600",
     color: Colors.light.primary,
   },
   listContainer: {
@@ -967,6 +762,12 @@ const styles = StyleSheet.create({
   },
   productCardInCart: {
     borderColor: Colors.light.primary,
+    backgroundColor: "#F7FBF8",
+  },
+  productCardMainArea: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
   },
   productLeft: {
     width: 56,
@@ -974,12 +775,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   productAvatar: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
+  },
+  productQtyBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+  },
+  productQtyBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "700",
   },
   productInitial: {
     ...Typography.label,
@@ -1054,17 +875,17 @@ const styles = StyleSheet.create({
   addBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    height: 34,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    gap: 5,
+    height: 38,
+    paddingHorizontal: 12,
+    borderRadius: BorderRadius.full,
     backgroundColor: Colors.light.surfaceAlt,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.light.primary,
   },
   addBtnText: {
     ...Typography.caption,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
     color: Colors.light.primary,
   },
@@ -1072,85 +893,63 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.light.surfaceAlt,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1.5,
     borderColor: Colors.light.primary,
-    height: 34,
-    paddingHorizontal: 2,
+    height: 38,
+    paddingHorizontal: 3,
+    gap: 2,
   },
   stepperBtnMinus: {
-    width: 28,
-    height: 28,
-    borderRadius: BorderRadius.sm,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: Colors.light.surface,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Colors.light.borderLight,
+    borderColor: Colors.light.border,
   },
   stepperQtyBox: {
-    minWidth: 26,
+    minWidth: 28,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 3,
+    paddingHorizontal: 4,
   },
   stepperQtyText: {
     ...Typography.caption,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: Colors.light.primary,
   },
   stepperBtnPlus: {
-    width: 28,
-    height: 28,
-    borderRadius: BorderRadius.sm,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: Colors.light.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   bottomDockContainer: {
     paddingHorizontal: ComponentDimensions.screenPadding,
-    paddingTop: 8,
+    paddingTop: Spacing.sm,
     paddingBottom: Spacing.sm,
     backgroundColor: Colors.light.surface,
     borderTopWidth: 1,
     borderTopColor: Colors.light.borderLight,
     ...Shadows.sm,
   },
-  actionsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    width: "100%",
-  },
-  voiceButtonCol: {
-    flex: 1,
-  },
-  voiceButtonDock: {
-    marginVertical: 0,
-    height: 48,
-    minHeight: 48,
-    paddingVertical: 0,
-    paddingHorizontal: 12,
-    borderRadius: BorderRadius.lg,
-  },
-  cartBarCol: {
-    flex: 1.15,
-  },
-  cartBarContainer: {
-    width: "100%",
-  },
   cartBarInner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: Colors.light.primary,
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: 10,
-    height: 48,
-    minHeight: 48,
-    ...Shadows.sm,
+    borderRadius: BorderRadius.xl,
+    paddingHorizontal: 16,
+    height: 52,
+    minHeight: 52,
+    width: "100%",
+    ...Shadows.md,
   },
   cartBarInnerEmpty: {
     backgroundColor: Colors.light.backgroundElement,
@@ -1162,7 +961,7 @@ const styles = StyleSheet.create({
   cartBarLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 10,
     flex: 1,
     minWidth: 0,
   },
@@ -1172,43 +971,43 @@ const styles = StyleSheet.create({
   },
   cartBadgeContainer: {
     position: "relative",
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     justifyContent: "center",
     alignItems: "center",
   },
   cartCountBadge: {
     position: "absolute",
-    top: -3,
-    right: -5,
+    top: -2,
+    right: -4,
     backgroundColor: Colors.light.warning,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    paddingHorizontal: 3,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
     justifyContent: "center",
     alignItems: "center",
   },
   cartCountBadgeText: {
     color: "#FFFFFF",
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "700",
   },
   cartBarLabel: {
-    fontSize: 9,
+    fontSize: 11,
     color: "rgba(255, 255, 255, 0.85)",
     textTransform: "uppercase",
     fontWeight: "600",
-    lineHeight: 12,
+    lineHeight: 14,
   },
   cartBarLabelEmpty: {
     color: Colors.light.textSecondary,
   },
   cartBarTotal: {
-    fontSize: 13,
+    fontSize: 16,
     color: "#FFFFFF",
     fontWeight: "700",
-    lineHeight: 16,
+    lineHeight: 20,
   },
   cartBarTotalEmpty: {
     color: Colors.light.textPrimary,
@@ -1216,18 +1015,18 @@ const styles = StyleSheet.create({
   cartBarRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: 6,
     backgroundColor: "rgba(255, 255, 255, 0.18)",
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.lg,
   },
   cartBarRightEmpty: {
     backgroundColor: "transparent",
   },
   cartBarActionText: {
     color: "#FFFFFF",
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "600",
   },
   cartBarActionTextEmpty: {

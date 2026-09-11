@@ -1,245 +1,354 @@
-import { View, ScrollView, RefreshControl, StyleSheet, Text, Pressable } from 'react-native';
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
+import {
+  View,
+  ScrollView,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
-import { Typography, Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useCustomers } from "@/hooks/useCustomers";
 import { CustomerSearchBar } from "@/features/customers/components/CustomerSearchBar";
 import { CustomerFilterTabs } from "@/features/customers/components/CustomerFilterTabs";
 import { CustomerRow } from "@/components/customers/CustomerRow";
+import { formatCentimes } from "@/utils/money";
 
-interface CustomerListScreenProps {
-  route?: any;
-  navigation?: any;
-}
-
-export function CustomerListScreen({ route, navigation }: CustomerListScreenProps) {
-  const { t } = useTranslation();
+export function CustomerListScreen() {
+  const { t, i18n } = useTranslation();
+  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<string>("all");
 
-  // Filters: all, withDebt, noDebt
+  // Fetch all customers
   const { customers, loading, error, refetch, searchCustomers } = useCustomers({
     onlyActive: filter !== "archived",
   });
 
-  // Build filters object from current filter selection
-  const customersFilters = useMemo(() => {
-    if (filter === "all") {
-      return { onlyActive: true };
-    } else if (filter === "withDebt") {
-      return { onlyActive: true };
-    } else if (filter === "noDebt") {
-      return { onlyActive: true };
-    } else if (filter === "archived") {
-      return { onlyActive: false };
+  // Calculate metrics
+  const { totalCount, totalDebtCentimes, activeDebtCount, settledCount } = useMemo(() => {
+    let debtSum = 0;
+    let debtCount = 0;
+    let settled = 0;
+
+    customers.forEach((c) => {
+      if (c.hasDebt) {
+        debtSum += c.outstandingBalance;
+        debtCount += 1;
+      } else {
+        settled += 1;
+      }
+    });
+
+    return {
+      totalCount: customers.length,
+      totalDebtCentimes: debtSum,
+      activeDebtCount: debtCount,
+      settledCount: settled,
+    };
+  }, [customers]);
+
+  // Counts for filter pills
+  const filterCounts = useMemo(() => ({
+    all: totalCount,
+    withDebt: activeDebtCount,
+    noDebt: settledCount,
+    archived: undefined,
+  }), [totalCount, activeDebtCount, settledCount]);
+
+  // Filtered customer list
+  const filteredCustomers = useMemo(() => {
+    if (filter === "withDebt") {
+      return customers.filter((c) => c.hasDebt);
     }
-    return { onlyActive: true };
-  }, [filter]);
-
-  // Handle filter tab changes
-  const handleFilterChange = useCallback((newFilter: string) => {
-    setFilter(newFilter);
-  }, []);
-
-  // Handle search from search bar
-  const handleSearch = useCallback((query: string) => {
-    if (query.trim()) {
-      setFilter("all");
-      searchCustomers(query);
-    } else {
-      // Clear search and reload
-      setFilter("all");
-      refetch();
+    if (filter === "noDebt") {
+      return customers.filter((c) => !c.hasDebt);
     }
-  }, [searchCustomers, refetch]);
+    return customers;
+  }, [customers, filter]);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    refetch();
+    await refetch();
     setRefreshing(false);
   }, [refetch]);
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ThemedText type="small" style={styles.loadingText}>
-          {t("common:loading")}
-        </ThemedText>
-      </View>
-    );
-  }
+  const handleSearch = useCallback((query: string) => {
+    searchCustomers(query);
+  }, [searchCustomers]);
 
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <ThemedText type="small" style={styles.errorText}>
-          {t("common:error")}
-        </ThemedText>
-        <ThemedText type="small" style={styles.errorRetry}>
-          {t("common:retry")}
-        </ThemedText>
-      </View>
-    );
-  }
+  const handleClearSearch = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={Colors.light.textSecondary}
-        />
-      }
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.headerSection}>
+    <View style={styles.screen}>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.light.primary}
+          />
+        }
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Top Header Bar */}
+        <View style={styles.topHeader}>
+          <View style={styles.titleContainer}>
+            <ThemedText style={styles.headerTitle}>
+              {t("customers:title")}
+            </ThemedText>
+            <ThemedText style={styles.headerSubtitle}>
+              {t("customers:carnetDette")}
+            </ThemedText>
+          </View>
+
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => router.push("/customers/new" as any)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t("customers:addCustomer")}
+          >
+            <MaterialIcons name="person-add" size={18} color="#FFFFFF" />
+            <ThemedText style={styles.addButtonText}>
+              {t("customers:add")}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Quick Metrics Summary Banner */}
+        <View style={styles.metricsBanner}>
+          <View style={styles.metricColumn}>
+            <ThemedText style={styles.metricLabel} numberOfLines={1}>
+              {t("customers:totalCustomers")}
+            </ThemedText>
+            <ThemedText style={styles.metricValue}>
+              {totalCount}
+            </ThemedText>
+          </View>
+
+          <View style={styles.metricDivider} />
+
+          <View style={styles.metricColumnCenter}>
+            <ThemedText style={styles.metricDebtLabel} numberOfLines={1}>
+              {t("customers:debtToCollect")}
+            </ThemedText>
+            <ThemedText style={styles.metricDebtValue} numberOfLines={1}>
+              {formatCentimes(totalDebtCentimes, i18n.language as any)}
+            </ThemedText>
+          </View>
+
+          <View style={styles.metricDivider} />
+
+          <View style={styles.metricColumnRight}>
+            <ThemedText style={styles.metricLabel} numberOfLines={1}>
+              {t("customers:activeDebt")}
+            </ThemedText>
+            <ThemedText style={styles.metricSecondaryValue}>
+              {activeDebtCount}
+            </ThemedText>
+          </View>
+        </View>
+
+        {/* Search Bar */}
         <CustomerSearchBar
           onSearch={handleSearch}
-          onClear={() => {
-            setFilter("all");
-            refetch();
-          }}
+          onClear={handleClearSearch}
           disabled={loading}
         />
 
+        {/* Filter Pills */}
         <CustomerFilterTabs
           activeFilter={filter}
-          onFilterChange={handleFilterChange}
+          onFilterChange={setFilter}
+          counts={filterCounts}
         />
-      </View>
 
-      {/* Quick Metrics Summary Banner */}
-      <View style={styles.metricsBanner}>
-        <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-primary-light/40 pointer-events-none"></div>
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <span className="font-tab-label text-tab-label text-text-secondary block truncate">Total Customers</span>
-            <span className="font-headline-2 text-headline-2 text-text-primary mt-0.5 block">48</span>
-          </div>
-          <div className="w-px h-8 bg-divider shrink-0"></div>
-          <div className="flex-1 min-w-0 px-1">
-            <span className="font-tab-label text-tab-label text-tertiary block truncate">Debt to Collect</span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="font-headline-2 text-headline-2 text-tertiary font-bold tracking-tight">19,400</span>
-              <span className="font-badge-label text-badge-label text-tertiary">DZD</span>
-            </div>
-          </div>
-          <div className="w-px h-8 bg-divider shrink-0"></div>
-          <div className="flex-1 min-w-0 text-right">
-            <span className="font-tab-label text-tab-label text-text-secondary block truncate">Active Debt</span>
-            <span className="font-headline-2 text-headline-2 text-secondary block mt-0.5">12</span>
-          </div>
-        </div>
-      </View>
-
-      {customers.length === 0 && !loading && !error && (
-        <View style={styles.emptyState}>
-          <ThemedText type="subtitle" style={styles.emptyTitle}>
-            {t("customers:noCustomers")}
-          </ThemedText>
-          {filter === "archived" && (
-            <ThemedText type="small" style={styles.emptyDescription}>
-              {t("customers:archivedMessage")}
+        {/* Customer List */}
+        {filteredCustomers.length === 0 && !loading ? (
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <MaterialIcons
+                name="people-outline"
+                size={48}
+                color={Colors.light.textMuted}
+              />
+            </View>
+            <ThemedText style={styles.emptyTitle}>
+              {t("customers:noCustomersYet")}
             </ThemedText>
-          )}
-          {filter !== "archived" && (
-            <ThemedText type="small" style={styles.emptyDescription}>
-              {t("customers:searchNoResults")}
+            <ThemedText style={styles.emptySubtitle}>
+              {filter === "withDebt"
+                ? t("customers:noDebt")
+                : t("customers:nameHelp")}
             </ThemedText>
-          )}
-        </View>
-      )}
-
-      <View style={styles.listContainer}>
-        {customers.map((customer) => (
-          <CustomerRow
-            key={customer.id}
-            customer={{
-              id: customer.id,
-              name: customer.name,
-              phone: customer.phone,
-              note: customer.note,
-              isActive: customer.is_active,
-              hasDebt: customer.hasDebt,
-              outstandingBalance: customer.outstandingBalance,
-            }}
-          />
-        ))}
-      </View>
-    </ScrollView>
+          </View>
+        ) : (
+          <View style={styles.listContainer}>
+            {filteredCustomers.map((customer) => (
+              <CustomerRow
+                key={customer.id}
+                customer={{
+                  id: customer.id,
+                  name: customer.name,
+                  phone: customer.phone,
+                  note: customer.note,
+                  isActive: customer.is_active,
+                  hasDebt: customer.hasDebt,
+                  outstandingBalance: customer.outstandingBalance,
+                }}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  contentContainer: {
-    paddingHorizontal: 16,
+  screen: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
   },
-  headerSection: {
-    marginBottom: Spacing.lg,
+  contentContainer: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxxxxx,
+  },
+  topHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: Spacing.md,
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Colors.light.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: BorderRadius.button,
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   metricsBanner: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: BorderRadius.lg,
-    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.light.surface,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.light.borderLight,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
-    marginBottom: Spacing.lg,
   },
-  emptyState: {
+  metricColumn: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xxl,
   },
-  emptyTitle: {
-    ...Typography.body,
-    fontSize: 16,
-    color: Colors.light.textSecondary,
-    marginBottom: Spacing.xs,
-    textAlign: 'center',
+  metricColumnCenter: {
+    flex: 1.2,
+    paddingHorizontal: Spacing.xs,
+    alignItems: "center",
   },
-  emptyDescription: {
-    ...Typography.body,
-    fontSize: 14,
-    color: Colors.light.textMuted,
-    textAlign: 'center',
-  },
-  loadingContainer: {
+  metricColumnRight: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
+    alignItems: "flex-end",
   },
-  loadingText: {
-    ...Typography.body,
-    fontSize: 14,
+  metricDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: Colors.light.borderLight,
+  },
+  metricLabel: {
+    fontSize: 11,
+    fontWeight: "500",
     color: Colors.light.textSecondary,
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
-  },
-  errorText: {
-    ...Typography.body,
-    fontSize: 14,
+  metricDebtLabel: {
+    fontSize: 11,
+    fontWeight: "600",
     color: Colors.light.destructive,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
   },
-  errorRetry: {
-    ...Typography.body,
-    fontSize: 14,
-    color: Colors.light.primary,
+  metricValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+    marginTop: 2,
+  },
+  metricDebtValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.light.destructive, // Red color for debt to collect
+    marginTop: 2,
+  },
+  metricSecondaryValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: Colors.light.secondary,
+    marginTop: 2,
   },
   listContainer: {
-    paddingBottom: 100,
+    marginTop: Spacing.xs,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.xxxxxx,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.light.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.md,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+    marginBottom: 4,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    textAlign: "center",
+    paddingHorizontal: Spacing.xxl,
   },
 });

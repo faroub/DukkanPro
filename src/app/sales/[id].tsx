@@ -1,8 +1,8 @@
+import React from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { SaleDetailScreen } from '@/features/sales/SaleDetailScreen';
-import { useRoute } from 'expo-router';
 
 export default function SaleDetailRoute() {
-  const route = useRoute();
-  // @ts-ignore - expo-router route typing
-  return <SaleDetailScreen params={route.params} />;
+  const params = useLocalSearchParams<{ id: string }>();
+  return <SaleDetailScreen params={params} />;
 }

@@ -23,6 +23,10 @@ import {
 export type SaleFilters = {
   status?: "completed" | "cancelled" | "returned";
   customerId?: number;
+  startDate?: string;
+  endDate?: string;
+  paymentMethod?: string;
+  hasCredit?: boolean;
 };
 
 export type SaleResult = {
@@ -334,13 +338,15 @@ export async function returnSale(id: number, reason: string): Promise<void> {
 /**
  - Get a sale by ID, including its sale items.
  */
-export async function getSaleById(id: number): Promise<Sale | null> {
+export async function getSaleById(id: number): Promise<Sale & { customer_name?: string | null } | null> {
   const saleRows: any[] = await executeRead(
     // language=SQLite
     `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
          s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-         s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
+         s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
+         c.name AS customer_name
       FROM sales s
+      LEFT JOIN customers c ON c.id = s.customer_id
      WHERE s.id = ?`,
     [id],
   );
@@ -364,6 +370,7 @@ export async function getSaleById(id: number): Promise<Sale | null> {
   return {
     id: sale.id,
     customer_id: sale.customer_id,
+    customer_name: sale.customer_name || null,
     status: sale.status as "completed" | "cancelled" | "returned",
     subtotal_centimes: sale.subtotal_centimes as number,
     discount_centimes: sale.discount_centimes as number,
@@ -395,28 +402,50 @@ export async function getSaleById(id: number): Promise<Sale | null> {
 }
 
 /**
- - Get all sales, optionally filtered by status and/or customerId.
+ * Get all sales, optionally filtered by status and/or customerId.
  */
-export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
-  const { status, customerId } = filters;
+export async function getAll(filters: SaleFilters = {}): Promise<(Sale & { customer_name?: string | null })[]> {
+  const { status, customerId, startDate, endDate, paymentMethod, hasCredit } = filters;
   let sql = `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
              s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
-          FROM sales s`;
+             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
+             c.name AS customer_name
+          FROM sales s
+          LEFT JOIN customers c ON c.id = s.customer_id`;
+  const whereClauses: string[] = [];
   const params: unknown[] = [];
 
   if (status) {
-    sql += ` WHERE s.status = ?`;
+    whereClauses.push(`s.status = ?`);
     params.push(status);
   }
 
   if (customerId !== undefined) {
-    if (status) {
-      sql += ` AND s.customer_id = ?`;
-    } else {
-      sql += ` WHERE s.customer_id = ?`;
-    }
+    whereClauses.push(`s.customer_id = ?`);
     params.push(customerId);
+  }
+
+  if (startDate) {
+    whereClauses.push(`DATE(s.sold_at) >= ?`);
+    params.push(startDate);
+  }
+
+  if (endDate) {
+    whereClauses.push(`DATE(s.sold_at) <= ?`);
+    params.push(endDate);
+  }
+
+  if (paymentMethod) {
+    whereClauses.push(`s.payment_method = ?`);
+    params.push(paymentMethod);
+  }
+
+  if (hasCredit) {
+    whereClauses.push(`s.remaining_balance_centimes > 0`);
+  }
+
+  if (whereClauses.length > 0) {
+    sql += ` WHERE ` + whereClauses.join(` AND `);
   }
 
   sql += ` ORDER BY s.sold_at DESC`;
@@ -426,6 +455,7 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
   return rows.map((sale) => ({
     id: sale.id,
     customer_id: sale.customer_id,
+    customer_name: sale.customer_name || null,
     status: sale.status as "completed" | "cancelled" | "returned",
     subtotal_centimes: sale.subtotal_centimes as number,
     discount_centimes: sale.discount_centimes as number,
@@ -452,24 +482,29 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
 export async function search(
   query: string,
   filters: SaleFilters = {},
-): Promise<Sale[]> {
+): Promise<(Sale & { customer_name?: string | null })[]> {
   const { status } = filters;
   let sql = `SELECT DISTINCT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
              s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
+             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
+             c.name AS customer_name
           FROM sales s
-      JOIN customers c ON c.id = s.customer_id
-      JOIN sale_items si ON si.sale_id = s.id`;
+          LEFT JOIN customers c ON c.id = s.customer_id
+          LEFT JOIN sale_items si ON si.sale_id = s.id
+         WHERE (c.name LIKE ? OR s.note LIKE ? OR si.product_name_snapshot LIKE ? OR CAST(s.id AS TEXT) LIKE ?)`;
 
-  const params: unknown[] = [`%${query}%`];
+  const cleanQuery = query.replace(/^#?REC-?/i, '');
+  const params: unknown[] = [
+    `%${query}%`,
+    `%${query}%`,
+    `%${query}%`,
+    `%${cleanQuery}%`,
+  ];
 
   if (status) {
-    sql += ` WHERE s.status = ?`;
+    sql += ` AND s.status = ?`;
     params.push(status);
   }
-
-  sql += ` AND (c.name LIKE ? OR s.note LIKE ?)`;
-  params.push(`%${query}%`, `%${query}%`);
 
   sql += ` ORDER BY s.sold_at DESC`;
 
@@ -478,6 +513,7 @@ export async function search(
   return rows.map((sale) => ({
     id: sale.id,
     customer_id: sale.customer_id,
+    customer_name: sale.customer_name || null,
     status: sale.status as "completed" | "cancelled" | "returned",
     subtotal_centimes: sale.subtotal_centimes as number,
     discount_centimes: sale.discount_centimes as number,
@@ -530,8 +566,8 @@ export async function getAllSales(filters: SaleFilters = {}): Promise<Sale[]> {
 export async function getSalesByDateRange(
   start: string,
   end: string,
-): Promise<Sale[]> {
-  return await getAll({});
+): Promise<(Sale & { customer_name?: string | null })[]> {
+  return await getAll({ startDate: start, endDate: end });
 }
 
 /**

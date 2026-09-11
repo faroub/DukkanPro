@@ -1,15 +1,23 @@
-import { View, ScrollView, StyleSheet, TextInput, Pressable, Modal } from 'react-native';
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { useTranslation } from "react-i18next";
-import { useRoute } from "expo-router";
-import { Typography, Colors } from "@/constants/theme";
-import { ThemedView } from "@/components/themed-view";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
-import { useCustomers } from "@/hooks/useCustomers";
-import { Customer } from "@/types/entities";
-import { getAll } from "@/database/repositories/customerRepository";
-import { create } from "@/database/repositories/customerRepository";
-import { update } from "@/database/repositories/customerRepository";
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import {
+  getById,
+  create,
+  update,
+} from "@/database/repositories/customerRepository";
 
 interface CustomerFormScreenProps {
   customerId?: number;
@@ -17,177 +25,371 @@ interface CustomerFormScreenProps {
 
 export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
   const { t } = useTranslation();
-  const [editing, setEditing] = useState<boolean>(false);
-  const [name, setName] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
-  const [note, setNote] = useState<string>("");
+  const router = useRouter();
+  const params = useLocalSearchParams<{ id?: string; customerId?: string }>();
+
+  const resolvedId = customerId || (params.id ? Number(params.id) : params.customerId ? Number(params.customerId) : undefined);
+  const isEditing = !!resolvedId;
+
+  const [loading, setLoading] = useState(isEditing);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [note, setNote] = useState("");
+  const [nameError, setNameError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const route = useRoute();
 
-  // Determine if we're editing or creating from route params
   useEffect(() => {
-    const customer = (route.params as any)?.customer;
-    if (customer) {
-      setEditing(true);
-      setName(customer.name || "");
-      setPhone(customer.phone || "");
-      setNote(customer.note || "");
-    }
-  }, [route.params]);
+    if (!resolvedId) return;
 
-  const saveCustomer = useCallback(async () => {
-    if (!name.trim()) {
+    async function loadCustomer() {
+      try {
+        const customer = await getById(resolvedId!);
+        if (customer) {
+          setName(customer.name);
+          setPhone(customer.phone || "");
+          setNote(customer.note || "");
+        }
+      } catch (err) {
+        Alert.alert(t("common:error"), t("customers:notFound"));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCustomer();
+  }, [resolvedId, t]);
+
+  const handleSave = useCallback(async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setNameError(true);
       return;
     }
 
+    setNameError(false);
     setIsSaving(true);
+
     try {
-      if (editing && customerId) {
-        // Update existing customer
-        await update(customerId, { name, phone, note, is_active: true });
+      if (isEditing && resolvedId) {
+        await update(resolvedId, {
+          name: trimmedName,
+          phone: phone.trim() || undefined,
+          note: note.trim() || undefined,
+        });
       } else {
-        // Create new customer
-        await create({ name, phone, note, is_active: true });
+        await create({
+          name: trimmedName,
+          phone: phone.trim() || null,
+          note: note.trim() || null,
+          is_active: true,
+        });
       }
+      router.back();
     } catch (err) {
-      // Show error
+      Alert.alert(t("common:error"), t("customers:errorSave"));
     } finally {
       setIsSaving(false);
     }
-  }, [editing, customerId, name, phone, note]);
+  }, [name, phone, note, isEditing, resolvedId, router, t]);
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+      </View>
+    );
+  }
 
   return (
-    <ThemedView type="background" style={styles.container}>
-      <ScrollView style={styles.content}>
-        <View style={styles.header}>
-          <ThemedText type="title" style={styles.title}>
-            {editing ? t('customers:editCustomer') : t('customers:newCustomer')}
+    <View style={styles.screen}>
+      {/* Top Header */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.iconButton}
+          accessibilityRole="button"
+          accessibilityLabel={t("common:back")}
+        >
+          <MaterialIcons
+            name="arrow-back"
+            size={24}
+            color={Colors.light.textPrimary}
+          />
+        </TouchableOpacity>
+
+        <View style={styles.headerInfo}>
+          <ThemedText style={styles.headerTitle}>
+            {isEditing ? t("customers:editCustomer") : t("customers:newCustomer")}
+          </ThemedText>
+          <ThemedText style={styles.headerSubtitle}>
+            {t("customers:carnetDette")}
           </ThemedText>
         </View>
+      </View>
 
-        <View style={styles.formSection}>
-          <ThemedText type="body" style={styles.formLabel}>
-            {t('customers:customerName')}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Main Form Card */}
+        <View style={styles.card}>
+          <ThemedText style={styles.cardSectionTitle}>
+            {t("customers:identityAndContact")}
           </ThemedText>
-          <TextInput
-            value={name}
-            onChangeText={(text) => setName(text)}
-            placeholder={t('customers:customerNamePlaceholder')}
-            autoCapitalize="words"
-            style={isSaving ? { ...styles.input, opacity: 0.5 } : styles.input}
-          />
 
-          <ThemedText type="body" style={{ ...styles.formLabel, marginTop: 16 }}>
-            {t('customers:phone')}
-          </ThemedText>
-          <TextInput
-            value={phone}
-            onChangeText={(text) => setPhone(text)}
-            placeholder={t('customers:phonePlaceholder')}
-            keyboardType="phone-pad"
-            autoCapitalize="none"
-            style={isSaving ? { ...styles.input, opacity: 0.5 } : styles.input}
-          />
-
-          {note !== '' && (
-            <View style={styles.formSection}>
-              <ThemedText type="body" style={{ ...styles.formLabel, marginTop: 16 }}>
-                {t('customers:note')}
+          {/* Customer Name Field */}
+          <View style={styles.fieldGroup}>
+            <View style={styles.labelRow}>
+              <ThemedText style={styles.fieldLabel}>
+                {t("customers:customerName")}
               </ThemedText>
-              <TextInput
-                value={note}
-                onChangeText={(text) => setNote(text)}
-                placeholder={t('customers:notePlaceholder')}
-                multiline
-                numberOfLines={3}
-                style={isSaving ? { ...styles.input, opacity: 0.5 } : styles.input}
-              />
+              <ThemedText style={styles.requiredAsterisk}>*</ThemedText>
             </View>
-          )}
+            <TextInput
+              value={name}
+              onChangeText={(text) => {
+                setName(text);
+                if (nameError && text.trim()) setNameError(false);
+              }}
+              placeholder={t("customers:customerNamePlaceholder")}
+              placeholderTextColor={Colors.light.textMuted}
+              autoCapitalize="words"
+              style={[styles.input, nameError && styles.inputError]}
+            />
+            {nameError && (
+              <ThemedText style={styles.errorText}>
+                {t("customers:nameRequired")}
+              </ThemedText>
+            )}
+            <ThemedText style={styles.fieldHint}>
+              {t("customers:nameHelp")}
+            </ThemedText>
+          </View>
+
+          {/* Phone Number Field */}
+          <View style={styles.fieldGroup}>
+            <ThemedText style={styles.fieldLabel}>
+              {t("customers:phone")}
+            </ThemedText>
+            <TextInput
+              value={phone}
+              onChangeText={setPhone}
+              placeholder={t("customers:phonePlaceholder")}
+              placeholderTextColor={Colors.light.textMuted}
+              keyboardType="phone-pad"
+              autoCapitalize="none"
+              style={styles.input}
+            />
+            <ThemedText style={styles.fieldHint}>
+              {t("customers:phoneHelp")}
+            </ThemedText>
+          </View>
+
+          {/* Merchant Note Field */}
+          <View style={styles.fieldGroup}>
+            <ThemedText style={styles.fieldLabel}>
+              {t("customers:merchantNote")}
+            </ThemedText>
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder={t("customers:notePlaceholder")}
+              placeholderTextColor={Colors.light.textMuted}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              style={[styles.input, styles.textArea]}
+            />
+            <ThemedText style={styles.fieldHint}>
+              {t("customers:noteHelp")}
+            </ThemedText>
+          </View>
         </View>
 
-        <View style={styles.actions}>
-          <Pressable onPress={() => {}} style={[styles.cancelButton, { marginRight: 12 }]}>
-            <ThemedText type="body" style={styles.cancelText}>
-              {t('common:cancel')}
+        {/* Action Buttons */}
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            onPress={() => router.back()}
+            disabled={isSaving}
+          >
+            <ThemedText style={styles.cancelBtnText}>
+              {t("common:cancel")}
             </ThemedText>
-          </Pressable>
-          <Pressable style={styles.saveButton} onPress={saveCustomer} disabled={isSaving}>
-            <ThemedText type="body" style={styles.saveText}>
-              {editing ? t('customers:saveChanges') : t('customers:createCustomer')}
-            </ThemedText>
-          </Pressable>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.saveBtn, isSaving && styles.saveBtnDisabled]}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <>
+                <MaterialIcons name="check" size={20} color="#FFFFFF" />
+                <ThemedText style={styles.saveBtnText}>
+                  {isEditing
+                    ? t("customers:saveChanges")
+                    : t("customers:createCustomer")}
+                </ThemedText>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       </ScrollView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: Colors.light.background,
   },
-  content: {
-    padding: 24,
+  centerContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.light.background,
   },
-  header: {
-    marginBottom: 24,
-    paddingBottom: 16,
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.light.surface,
     borderBottomWidth: 1,
-    borderColor: Colors.light.border,
+    borderBottomColor: Colors.light.borderLight,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 600,
-    marginBottom: 8,
-    textAlign: 'center',
+  iconButton: {
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.full,
   },
-  formSection: {
-    marginBottom: 24,
+  headerInfo: {
+    flex: 1,
+    marginHorizontal: Spacing.sm,
   },
-  formLabel: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginBottom: 8,
-  },
-  cancelText: {
-    color: Colors.light.textSecondary,
-    fontSize: 14,
-  },
-  saveText: {
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: "700",
     color: Colors.light.textPrimary,
-    fontWeight: '600',
-    fontSize: 16,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+    marginTop: 1,
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxxxxx,
+  },
+  card: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xxl,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.borderLight,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+    marginBottom: Spacing.lg,
+  },
+  cardSectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+    marginBottom: Spacing.md,
+  },
+  fieldGroup: {
+    marginBottom: Spacing.md,
+  },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+    marginBottom: 6,
+  },
+  requiredAsterisk: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.light.destructive,
+    marginBottom: 6,
   },
   input: {
-    width: '100%',
-    height: 52,
+    backgroundColor: Colors.light.surfaceAlt,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: Colors.light.textPrimary,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  inputError: {
+    borderColor: Colors.light.destructive,
+  },
+  textArea: {
+    minHeight: 80,
+  },
+  errorText: {
+    fontSize: 12,
+    color: Colors.light.destructive,
+    marginTop: 4,
+  },
+  fieldHint: {
+    fontSize: 11,
+    color: Colors.light.textSecondary,
+    marginTop: 4,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  cancelBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: BorderRadius.button,
     backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: Colors.light.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    marginBottom: 16,
   },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 24,
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.textSecondary,
   },
-  cancelButton: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    backgroundColor: Colors.light.surface,
-    marginRight: 8,
-  },
-  saveButton: {
-    padding: 12,
-    borderRadius: 8,
+  saveBtn: {
+    flex: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: BorderRadius.button,
     backgroundColor: Colors.light.primary,
-    alignItems: 'center',
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  saveBtnDisabled: {
+    opacity: 0.6,
+  },
+  saveBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });
