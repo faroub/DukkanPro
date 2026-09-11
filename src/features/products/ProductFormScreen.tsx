@@ -139,7 +139,7 @@ export function ProductFormScreen({
   const handleNavigateStockAdjustment = useCallback(() => {
     if (productId) {
       router.push({
-        pathname: '/products/stock-adjustment',
+        pathname: '/products/stock-adjustment' as any,
         params: { productId: productId.toString() },
       });
     }
