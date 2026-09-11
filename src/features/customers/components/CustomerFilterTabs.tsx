@@ -25,7 +25,7 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
 
   const activeTabStyle = {
     backgroundColor: Colors.light.primary,
-    color: Colors.light.onPrimary,
+    color: "#FFFFFF",
   };
 
   return (
@@ -46,7 +46,7 @@ export function CustomerFilterTabs({ activeFilter, onFilterChange }: CustomerFil
             }]}
           >
             <span>{filter.label}</span>
-            <<span style={styles.countBadge}>{filter.value === 'all' ? '48' : filter.value === 'withDebt' ? '12' : '36'}</span>
+            <span style={styles.countBadge}>{filter.value === 'all' ? '48' : filter.value === 'withDebt' ? '12' : '36'}</span>
           </ThemedText>
         </Pressable>
       ))}
@@ -59,7 +59,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: Spacing.lg,
     overflowX: 'auto',
-    '-webkitOverflowScrolling': 'touch',
   },
   tab: {
     flex: 1,
@@ -76,8 +75,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xs,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.onPrimary,
-    color: Colors.light.primary,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    color: "#FFFFFF",
     fontSize: 10,
     fontWeight: '600',
   },
