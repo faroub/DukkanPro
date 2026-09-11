@@ -56,6 +56,17 @@ describe('cartStore with AsyncStorage persistence', () => {
     expect(useCartStore.getState().items).toHaveLength(0);
   });
 
+  it('subtracts item quantity and removes it when reaching zero', () => {
+    useCartStore.getState().addItemWithProduct(mockProduct, 2);
+    expect(useCartStore.getState().items[0].quantity).toBe(2);
+
+    useCartStore.getState().subtractItem(1, 1);
+    expect(useCartStore.getState().items[0].quantity).toBe(1);
+
+    useCartStore.getState().subtractItem(1, 1);
+    expect(useCartStore.getState().items).toHaveLength(0);
+  });
+
   it('persists cart state to AsyncStorage', async () => {
     useCartStore.getState().addItemWithProduct(mockProduct, 2);
     useCartStore.getState().setPreserveCart(true);

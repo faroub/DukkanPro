@@ -108,6 +108,15 @@ export default function ProductDetailScreen() {
       ? ((profitCentimes / product.sale_price_centimes) * 100).toFixed(1)
       : '0.0';
 
+  const getMovementTypeLabel = (type: string) => {
+    const lower = String(type).toLowerCase();
+    if (lower === 'sale' || lower === 'out') return t('products:customerSale');
+    if (lower === 'restock' || lower === 'in' || lower === 'delivery') return t('products:adjustmentDelivery');
+    if (lower === 'damage' || lower === 'damaged' || lower === 'loss') return t('products:adjustmentLoss');
+    if (lower === 'initial' || lower === 'opening') return t('products:openingStock');
+    return t('products:movementAdjustment');
+  };
+
   return (
     <ThemedView type="background" style={styles.container}>
       {/* Header bar */}
@@ -128,10 +137,10 @@ export default function ProductDetailScreen() {
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={styles.iconCircleBtn}
-            onPress={() => router.push(`/products/edit/${productId}`)}
+            onPress={() => router.push(`/products/edit/${productId}` as any)}
             accessibilityLabel="Edit product"
           >
-            <Ionicons name="pencil" size={18} color={Colors.light.textSecondary} />
+            <Ionicons name="pencil" size={18} color={Colors.light.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.iconCircleBtn}
@@ -157,9 +166,18 @@ export default function ProductDetailScreen() {
               setRefreshing(true);
               loadData();
             }}
+            tintColor={Colors.light.primary}
           />
         }
       >
+        {/* Breadcrumb strip matching Stitch */}
+        <View style={styles.breadcrumbRow}>
+          <Ionicons name="layers-outline" size={14} color={Colors.light.textMuted} />
+          <ThemedText style={styles.breadcrumbText} numberOfLines={1}>
+            {t('products:title')} • {product.category || 'General'} • {product.name}
+          </ThemedText>
+        </View>
+
         {/* Low Stock Alert Banner */}
         {isLowStock && (
           <View style={styles.warningBanner}>
@@ -230,7 +248,7 @@ export default function ProductDetailScreen() {
               </ThemedText>
             </View>
             <View style={styles.metaCol}>
-              <ThemedText style={styles.metaLabel}>Barcode</ThemedText>
+              <ThemedText style={styles.metaLabel}>{t('products:barcodeScan')}</ThemedText>
               <View style={styles.barcodeRow}>
                 <Ionicons name="barcode-outline" size={16} color={Colors.light.textSecondary} />
                 <ThemedText style={styles.metaValue}>
@@ -244,7 +262,7 @@ export default function ProductDetailScreen() {
           <View style={styles.pricingSection}>
             <View style={styles.priceCol}>
               <ThemedText style={styles.priceColLabel}>
-                {t('products:salePrice')}
+                {t('products:sellingPrice')}
               </ThemedText>
               <ThemedText style={styles.salePriceValue}>
                 {formatCentimes(product.sale_price_centimes, i18n.language as any)}
@@ -256,17 +274,21 @@ export default function ProductDetailScreen() {
 
             <View style={styles.priceCol}>
               <ThemedText style={styles.priceColLabel}>
-                {t('products:costPrice')} & Profit
+                {t('products:costAndProfit')}
               </ThemedText>
               <ThemedText style={styles.costPriceValue}>
-                {formatCentimes(product.cost_price_centimes, i18n.language as any)}
+                {product.cost_price_centimes > 0
+                  ? formatCentimes(product.cost_price_centimes, i18n.language as any)
+                  : '—'}
               </ThemedText>
-              <View style={styles.profitBadge}>
-                <Ionicons name="trending-up" size={12} color={Colors.light.primary} />
-                <ThemedText style={styles.profitBadgeText}>
-                  {formatCentimes(profitCentimes, i18n.language as any)} ({marginPercentage}%)
-                </ThemedText>
-              </View>
+              {profitCentimes > 0 ? (
+                <View style={styles.profitBadge}>
+                  <Ionicons name="trending-up" size={12} color={Colors.light.primary} />
+                  <ThemedText style={styles.profitBadgeText}>
+                    +{formatCentimes(profitCentimes, i18n.language as any)} ({marginPercentage}%)
+                  </ThemedText>
+                </View>
+              ) : null}
             </View>
           </View>
 
@@ -364,12 +386,12 @@ export default function ProductDetailScreen() {
             <View style={styles.historyList}>
               {inventory.map((item, idx) => {
                 const isPositive = item.quantity_change > 0;
-                const isSale = item.movement_type === 'sale';
+                const isSale = (item.movement_type as string) === 'sale' || (item.movement_type as string) === 'out';
                 const iconName = isSale
                   ? 'cart-outline'
-                  : item.movement_type === 'restock' || isPositive
+                  : (item.movement_type as string) === 'restock' || isPositive
                   ? 'cube-outline'
-                  : item.movement_type === 'damage'
+                  : (item.movement_type as string) === 'damage'
                   ? 'alert-circle-outline'
                   : 'swap-vertical-outline';
 
@@ -385,6 +407,9 @@ export default function ProductDetailScreen() {
                   ? '#2563EB'
                   : Colors.light.error;
 
+                const itemNote = (item as any).note || (item as any).notes;
+                const balanceAfter = (item as any).balance_after;
+
                 return (
                   <View key={item.id || idx}>
                     <View style={styles.historyRow}>
@@ -394,11 +419,11 @@ export default function ProductDetailScreen() {
                         </View>
                         <View style={styles.movementTextWrap}>
                           <ThemedText style={styles.movementType}>
-                            {item.movement_type.toUpperCase()}
+                            {getMovementTypeLabel(String(item.movement_type))}
                           </ThemedText>
-                          {item.notes ? (
+                          {itemNote ? (
                             <ThemedText style={styles.movementNote} numberOfLines={1}>
-                              {item.notes}
+                              {itemNote}
                             </ThemedText>
                           ) : null}
                           <ThemedText style={styles.movementDate}>
@@ -426,9 +451,9 @@ export default function ProductDetailScreen() {
                             {product.unit || 'units'}
                           </ThemedText>
                         </View>
-                        {item.balance_after !== undefined && (
+                        {balanceAfter !== undefined && (
                           <ThemedText style={styles.balanceText}>
-                            Bal: {item.balance_after}
+                            Bal: {balanceAfter}
                           </ThemedText>
                         )}
                       </View>
@@ -506,7 +531,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -520,6 +545,18 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     alignSelf: 'center',
     width: '100%',
+  },
+  breadcrumbRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 2,
+    marginBottom: 2,
+  },
+  breadcrumbText: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 12,
   },
   warningBanner: {
     flexDirection: 'row',
@@ -551,7 +588,7 @@ const styles = StyleSheet.create({
   },
   warningTitle: {
     ...Typography.label,
-    color: '#9A3412',
+    color: Colors.light.secondary,
     fontWeight: '700',
   },
   actionNeededBadge: {
@@ -563,12 +600,12 @@ const styles = StyleSheet.create({
   actionNeededBadgeText: {
     ...Typography.caption,
     fontSize: 11,
-    color: '#C2410C',
+    color: Colors.light.secondary,
     fontWeight: '700',
   },
   warningDescription: {
     ...Typography.caption,
-    color: '#9A3412',
+    color: Colors.light.secondary,
     lineHeight: 18,
   },
   card: {
@@ -637,7 +674,7 @@ const styles = StyleSheet.create({
   },
   metaGrid: {
     flexDirection: 'row',
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     gap: Spacing.md,
@@ -663,7 +700,7 @@ const styles = StyleSheet.create({
   },
   pricingSection: {
     flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     gap: Spacing.md,
@@ -716,7 +753,7 @@ const styles = StyleSheet.create({
   },
   stockGridItem: {
     flex: 1,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.lg,
     padding: Spacing.sm,
     gap: 2,

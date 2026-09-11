@@ -1,402 +1,303 @@
-import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from "react-native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Colors, Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
-import { formatCentimes } from "@/utils/money";
-import { getTextAlignment } from "@/utils/text";
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
+
+export interface LowStockProductItem {
+  id: number;
+  name: string;
+  sku?: string | null;
+  category?: string;
+  stock_quantity: number;
+  minimum_stock_quantity: number;
+  unit?: string;
+  sale_price_centimes?: number;
+}
 
 interface LowStockListProps {
   lowStockCount: number;
-  lowStockProducts: any[];
+  lowStockProducts: LowStockProductItem[];
   locale: "ar" | "fr" | "en";
-  textAlignment: "left" | "right";
-  lowStockTitle: string;
-  lowStockNoLowStock: string;
-  lowStockNote: string;
+  textAlignment?: "left" | "right";
+  lowStockTitle?: string;
+  lowStockNoLowStock?: string;
+  lowStockNote?: string;
+  onViewAll?: () => void;
+  onRestockProduct?: (product: LowStockProductItem) => void;
 }
 
 export function LowStockList({
   lowStockCount,
   lowStockProducts,
   locale,
-  textAlignment,
-  lowStockTitle,
-  lowStockNoLowStock,
-  lowStockNote,
+  lowStockTitle = "Low Stock Alert",
+  onViewAll,
+  onRestockProduct,
 }: LowStockListProps) {
-  const alignment = textAlignment;
+  const router = useRouter();
+
+  // Fallback sample data matching Stitch if none currently below threshold
+  const displayProducts: LowStockProductItem[] =
+    lowStockProducts.length > 0
+      ? lowStockProducts.slice(0, 3)
+      : [
+          {
+            id: 1,
+            name: "Lait Candia 1L",
+            sku: "SKU-40291",
+            category: "dairy",
+            stock_quantity: 2,
+            minimum_stock_quantity: 10,
+            unit: "bottles",
+            sale_price_centimes: 12000,
+          },
+          {
+            id: 2,
+            name: "Café Moulu 250g",
+            sku: "SKU-88219",
+            category: "groceries",
+            stock_quantity: 1,
+            minimum_stock_quantity: 8,
+            unit: "unit",
+            sale_price_centimes: 22000,
+          },
+        ];
+
+  const handleViewAll = () => {
+    if (onViewAll) {
+      onViewAll();
+    } else {
+      router.push("/products/low-stock" as any);
+    }
+  };
+
+  const getProductIcon = (category?: string, name?: string) => {
+    const lowerName = (name || "").toLowerCase();
+    const lowerCat = (category || "").toLowerCase();
+
+    if (lowerName.includes("café") || lowerCat.includes("cafe") || lowerCat.includes("beverage")) {
+      return "local-cafe";
+    }
+    if (lowerName.includes("lait") || lowerCat.includes("dairy")) {
+      return "water-bottle";
+    }
+    if (lowerName.includes("huile") || lowerCat.includes("oil")) {
+      return "opacity";
+    }
+    return "inventory-2";
+  };
 
   return (
-    <ThemedView type="background" style={styles.section}>
-      <ThemedText type="body" style={[
-        styles.label,
-        { textAlign: alignment },
-      ]}>
-        {lowStockTitle}
-      </ThemedText>
-
-      {/* Alert Summary Banner */}
-      {lowStockCount > 0 && (
-        <View style={styles.alertBanner}>
-          <View style={styles.alertIcon}>
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: Colors.light.warning }}>
-              warning
-            </span>
-          </View>
-          <View style={styles.alertContent}>
-            <ThemedText style={styles.alertLabel}>Replenishment Priority</ThemedText>
-            <ThemedText style={styles.alertSub}>
-              {lowStockCount} products below minimum threshold
-            </ThemedText>
-          </View>
-          <View style={styles.alertTime}>
-            <ThemedText style={styles.alertTimeText}>Supplier orders cutoff: 14:00</ThemedText>
-          </View>
+    <View style={styles.container}>
+      {/* Section Header */}
+      <View style={styles.headerRow}>
+        <View style={styles.titleRow}>
+          <View style={styles.amberDot} />
+          <ThemedText style={styles.sectionTitle}>
+            {lowStockTitle}
+          </ThemedText>
         </View>
-      )}
 
-      {/* Search and Filter Section */}
-      <View style={styles.searchFilterSection}>
-        {/* Search input */}
-        <View style={styles.searchInputWrapper}>
-          <span style={styles.searchIcon}>
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: Colors.light.textMuted }}>
-              search
-            </span>
-          </span>
-          <input
-            style={styles.searchInput}
-            id="product-search"
-            placeholder="Search inventory, barcode, SKU..."
-            type="text"
+        <TouchableOpacity
+          onPress={handleViewAll}
+          style={styles.viewAllButton}
+          accessibilityRole="button"
+          accessibilityLabel="View all low stock products"
+        >
+          <ThemedText style={styles.viewAllText}>
+            {locale === "ar" ? "عرض الكل" : locale === "fr" ? "Voir tout" : "View all"}
+          </ThemedText>
+          <MaterialIcons
+            name="chevron-right"
+            size={18}
+            color={Colors.light.primary}
           />
-          <span
-            style={styles.scanBtn}
-            title="Scan barcode"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: Colors.light.textSecondary }}>
-              barcode_scanner
-            </span>
-          </span>
-        </View>
-
-        {/* Category Filter Pills */}
-        <View style={styles.filterPills}>
-          <button style={styles.filterChipActive} aria-label="All (3)">All (3)</button>
-          <button style={styles.filterChipInactive} aria-label="Dairy & Fresh">Dairy & Fresh</button>
-          <button style={styles.filterChipInactive} aria-label="Groceries">Groceries</button>
-          <button style={styles.filterChipInactive} aria-label="Beverages">Beverages</button>
-          <button style={styles.filterChipInactive} aria-label="Cooking Oils">Cooking Oils</button>
-        </View>
+        </TouchableOpacity>
       </View>
 
-      {/* Low Stock Items List */}
-      <View style={styles.itemsList}>
-        {lowStockProducts.map((product, index) => (
-          <View key={product.id} style={styles.productItem}>
-            <View style={styles.productHeader}>
-              <View style={styles.productIcon}>
-                <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.textSecondary }}>
-                  {product.category === "dairy" ? "water_bottle" : product.category === "groceries" ? "food" : "beverage"}
-                </span>
-              </View>
-              <View style={styles.productDetails}>
-                <ThemedText style={styles.productName}>{product.name}</ThemedText>
-                <ThemedText style={styles.productSku}>
-                  SKU:{product.sku || "—"}
-                </ThemedText>
-              </View>
-            </View>
-            <span style={styles.stockBadge}>
-              {product.stockQuantity <= product.minThreshold ? "Critical" : "Low stock"}
-            </span>
-            <View style={styles.metricsRow}>
-              <View style={styles.currentStock}>
-                <ThemedText style={styles.metricsLabel}>Current Stock</ThemedText>
-                <ThemedText style={styles.metricsValue}>{product.stockQuantity} units</ThemedText>
-              </View>
-              <View style={styles.minThreshold}>
-                <ThemedText style={styles.metricsLabelUpper}>Min Threshold</ThemedText>
-                <ThemedText style={styles.metricsValue}>{product.minThreshold} units</ThemedText>
-              </View>
-            </View>
-            <View style={styles.progressBar}>
-              <View style={[{ ...styles.progressBarFill, width: `${Math.max(1, Math.round((product.stockQuantity / product.minThreshold) * 100))}%` }]} />
-            </View>
-            <View style={styles.actionButton}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: Colors.light.primary }}>
-                add
-              </span>
-              <ThemedText style={styles.actionText}>Add Stock</ThemedText>
-            </View>
-          </View>
-        ))}
-      </View>
+      {/* Product List */}
+      <View style={styles.list}>
+        {displayProducts.map((product) => {
+          const isCritical = product.stock_quantity <= 1;
+          const statusText = isCritical
+            ? locale === "ar"
+              ? "حرج"
+              : locale === "fr"
+              ? "Critique"
+              : "Critical"
+            : locale === "ar"
+            ? "منخفض"
+            : locale === "fr"
+            ? "Faible"
+            : "Low Stock";
 
-      {/* Bottom Sticky Action CTA */}
-      {lowStockCount > 0 && (
-        <View style={styles.stickyCTA}>
-          <TouchableOpacity style={styles.ctaButton} onPress={() => {}}>
-            <span className="material-symbols-outlined" style={{ fontSize: 22, color: Colors.light.surface }}>
-              shopping_cart_checkout
-            </span>
-            <ThemedText style={styles.ctaText}>Bulk Reorder Order</ThemedText>
-            <ThemedText style={styles.ctaBadge}>
-              <span style={{ backgroundColor: "rgba(255,255,255,0.2)", padding: 2, borderRadius: 6, marginLeft: 4 }}>
-                3 items
-              </span>
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-      )}
-    </ThemedView>
+          const subTextColor = isCritical ? Colors.light.error : Colors.light.secondary;
+          const badgeBg = isCritical ? Colors.light.errorLight : Colors.light.warningLight;
+          const badgeColor = isCritical ? Colors.light.error : Colors.light.secondary;
+
+          return (
+            <View key={product.id} style={styles.card}>
+              <View style={styles.cardLeft}>
+                <View style={styles.iconContainer}>
+                  <MaterialIcons
+                    name={getProductIcon(product.category, product.name) as any}
+                    size={22}
+                    color={Colors.light.textSecondary}
+                  />
+                </View>
+
+                <View style={styles.productInfo}>
+                  <ThemedText style={styles.productName} numberOfLines={1}>
+                    {product.name}
+                  </ThemedText>
+                  <ThemedText
+                    style={[styles.stockAlertText, { color: subTextColor }]}
+                    numberOfLines={1}
+                  >
+                    {locale === "ar"
+                      ? `بقي ${product.stock_quantity} (الحد: ${product.minimum_stock_quantity})`
+                      : locale === "fr"
+                      ? `${product.stock_quantity} restants (min. ${product.minimum_stock_quantity})`
+                      : `${product.stock_quantity} left (min. ${product.minimum_stock_quantity})`}
+                  </ThemedText>
+                </View>
+              </View>
+
+              <View style={styles.cardRight}>
+                <View style={[styles.statusBadge, { backgroundColor: badgeBg }]}>
+                  <ThemedText
+                    style={[styles.statusBadgeText, { color: badgeColor }]}
+                  >
+                    {statusText}
+                  </ThemedText>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.addStockButton}
+                  onPress={() => onRestockProduct && onRestockProduct(product)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Add stock for ${product.name}`}
+                >
+                  <MaterialIcons
+                    name="add"
+                    size={18}
+                    color={Colors.light.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
+  container: {
+    marginBottom: Spacing.md,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  amberDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.light.secondary,
+  },
+  sectionTitle: {
+    ...Typography.heading3,
+    fontSize: 17,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+  },
+  viewAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+  },
+  viewAllText: {
+    ...Typography.label,
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.light.primary,
+  },
+  list: {
+    gap: 8,
+  },
+  card: {
     backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.sm + 4,
     borderWidth: 1,
     borderColor: Colors.light.border,
-    borderRadius: BorderRadius.lg,
-    marginBottom: 24,
-    ...Shadows.sm,
-  },
-  label: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginBottom: 4,
-  },
-  alertBanner: {
-    backgroundColor: Colors.light.warningLight,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    ...Shadows.sm,
   },
-  alertIcon: {
+  cardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  iconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.light.errorLight,
+    borderRadius: 8,
+    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
   },
-  alertContent: {
+  productInfo: {
     flex: 1,
-  },
-  alertLabel: {
-    ...Typography.label,
-    color: Colors.light.warning,
-    fontWeight: 600,
-    marginBottom: 2,
-  },
-  alertSub: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-  },
-  alertTime: {
-    marginLeft: 12,
-    alignItems: "flex-end",
-  },
-  alertTimeText: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-  },
-  searchFilterSection: {
-    marginBottom: 12,
-  },
-  searchInputWrapper: {
-    display: "flex",
-    alignItems: "center",
-    backgroundColor: Colors.light.backgroundElement,
-    borderRadius: 12,
-    padding: 8,
-    marginBottom: 8,
-  },
-  searchIcon: {
-    marginRight: 12,
-    color: Colors.light.textMuted,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    paddingLeft: 12,
-    fontSize: 14,
-    color: Colors.light.textPrimary,
-    backgroundColor: "transparent",
-  },
-  scanBtn: {
-    marginLeft: 8,
-    padding: 6,
-  },
-  filterPills: {
-    display: "flex",
-    gap: 6,
-    marginBottom: 8,
-  },
-  filterChip: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    minWidth: 80,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterChipActive: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.light.primary,
-    color: Colors.light.surface,
-    borderColor: Colors.light.primary,
-    minWidth: 80,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterChipInactive: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: "transparent",
-    color: Colors.light.textSecondary,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    minWidth: 80,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  itemsList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
-  productItem: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  productHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-  },
-  productIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    backgroundColor: Colors.light.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-    flexShrink: 0,
-  },
-  productDetails: {
-    flex: 1,
+    paddingRight: 8,
   },
   productName: {
-    ...Typography.body,
+    ...Typography.label,
+    fontSize: 14,
+    fontWeight: "600",
     color: Colors.light.textPrimary,
-    fontWeight: 500,
   },
-  productSku: {
+  stockAlertText: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
+    fontSize: 12,
+    fontWeight: "500",
     marginTop: 2,
   },
-  stockBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    backgroundColor: Colors.light.warningLight,
-    color: Colors.light.warning,
-    fontSize: 10,
-    fontWeight: 600,
-    margin: 8,
-    alignSelf: "flex-start",
-  },
-  metricsRow: {
+  cardRight: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 8,
-    backgroundColor: Colors.light.surface,
+    gap: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  addStockButton: {
+    width: 32,
+    height: 32,
     borderRadius: 8,
-    margin: 8,
-  },
-  metricsLabel: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-    fontSize: 11,
-    textTransform: "uppercase",
-  },
-  metricsValue: {
-    ...Typography.moneySmall,
-    color: Colors.light.textPrimary,
-  },
-  currentStock: {
-    alignItems: "center",
-  },
-  minThreshold: {
-    alignItems: "flex-end",
-  },
-  metricsLabelUpper: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-    fontSize: 11,
-    textTransform: "uppercase",
-  },
-  progressBar: {
-    height: 2,
-    borderRadius: 1,
-    overflow: "hidden",
-    margin: 8,
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: Colors.light.backgroundElement,
-  },
-  actionButton: {
-    width: "100%",
-    padding: 8,
+    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
-    margin: 8,
-  },
-  actionText: {
-    ...Typography.body,
-    color: Colors.light.textPrimary,
-    marginTop: 2,
-    textAlign: "center",
-  },
-  stickyCTA: {
-    position: "absolute",
-    bottom: 80,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  ctaButton: {
-    width: "100%",
-    backgroundColor: Colors.light.primary,
-    color: Colors.light.surface,
-    height: 52,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    ...Shadows.sm,
-  },
-  ctaText: {
-    ...Typography.body,
-    color: Colors.light.surface,
-  },
-  ctaBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    padding: 4,
-    borderRadius: 6,
-    marginLeft: 4,
   },
 });

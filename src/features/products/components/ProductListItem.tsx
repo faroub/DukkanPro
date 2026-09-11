@@ -1,3 +1,4 @@
+import React from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -17,6 +18,7 @@ interface ProductListItemProps {
     id: number;
     name: string;
     sku: string | null;
+    category?: string | null;
     sale_price_centimes: number;
     stock_quantity: number;
     minimum_stock_quantity: number;
@@ -28,76 +30,95 @@ interface ProductListItemProps {
 
 export function ProductListItem({ product, onPress }: ProductListItemProps) {
   const { t, i18n } = useTranslation();
-  const isLowStock = product.stock_quantity <= product.minimum_stock_quantity;
   const isOutOfStock = product.stock_quantity === 0;
+  const isLowStock = !isOutOfStock && product.stock_quantity <= product.minimum_stock_quantity;
+
+  const categoryOrUnit = product.category || product.unit || t("products:unitPiece");
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.85}
       style={styles.touchable}
+      accessibilityRole="button"
+      accessibilityLabel={`${product.name}, ${product.stock_quantity} ${product.unit}`}
     >
-      <ThemedView style={styles.container}>
-        <View style={styles.iconContainer}>
+      <View style={styles.card}>
+        {/* Visual Thumbnail Box */}
+        <View style={styles.thumbnailBox}>
           <Ionicons
             name="cube-outline"
-            size={24}
-            color={Colors.light.textSecondary}
+            size={22}
+            color={Colors.light.primary}
           />
         </View>
-        <View style={styles.details}>
-          <View style={styles.header}>
-            <ThemedText style={styles.name} numberOfLines={1}>
+
+        {/* Content Details */}
+        <View style={styles.contentCol}>
+          {/* Header Row: Title & Price */}
+          <View style={styles.titleRow}>
+            <ThemedText style={styles.productName} numberOfLines={1}>
               {product.name}
             </ThemedText>
-            <ThemedText style={styles.price}>
-              {formatCentimes(
-                product.sale_price_centimes,
-                i18n.language as any,
-              )}
+            <ThemedText style={styles.priceText}>
+              {formatCentimes(product.sale_price_centimes, i18n.language as any)}
             </ThemedText>
           </View>
-          <View style={styles.footer}>
-            <ThemedText type="caption" style={styles.subtext} numberOfLines={1}>
-              {product.sku || "N/A"} • {product.unit}
+
+          {/* Subtitle Row: SKU & Category */}
+          <View style={styles.metaRow}>
+            <ThemedText style={styles.skuText}>
+              {product.sku ? product.sku : `ID-${product.id}`}
             </ThemedText>
-            <View style={styles.rightFooter}>
-              {isLowStock && (
-                <View
-                  style={
-                    isOutOfStock ? styles.badgeOutOfStock : styles.badgeLowStock
-                  }
-                >
-                  <Ionicons
-                    name="warning"
-                    size={12}
-                    color={
-                      isOutOfStock ? Colors.light.error : Colors.light.warning
-                    }
-                  />
-                  <ThemedText
-                    style={
-                      isOutOfStock
-                        ? styles.badgeTextOutOfStock
-                        : styles.badgeTextLowStock
-                    }
-                  >
-                    {isOutOfStock
-                      ? t("products:outOfStock")
-                      : t("products:lowStock")}{" "}
-                    ({product.stock_quantity})
-                  </ThemedText>
-                </View>
-              )}
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.light.textMuted}
-              />
-            </View>
+            <ThemedText style={styles.dotSeparator}>•</ThemedText>
+            <ThemedText style={styles.categoryText} numberOfLines={1}>
+              {categoryOrUnit}
+            </ThemedText>
+          </View>
+
+          {/* Bottom Row: Stock Quantity & Status Badge */}
+          <View style={styles.stockRow}>
+            <ThemedText style={styles.stockLabel}>
+              {t("products:stockLabel")}:{" "}
+              <ThemedText style={styles.stockValue}>
+                {product.stock_quantity} {product.unit || "pcs"}
+              </ThemedText>
+            </ThemedText>
+
+            {/* Status Badges with circular indicator dots */}
+            {isOutOfStock ? (
+              <View style={styles.badgeOutOfStock}>
+                <View style={styles.dotError} />
+                <ThemedText style={styles.badgeTextOutOfStock}>
+                  {t("products:outOfStock")}
+                </ThemedText>
+              </View>
+            ) : isLowStock ? (
+              <View style={styles.badgeLowStock}>
+                <View style={styles.dotWarning} />
+                <ThemedText style={styles.badgeTextLowStock}>
+                  {t("products:lowStock")} ({t("products:minThreshold")}: {product.minimum_stock_quantity})
+                </ThemedText>
+              </View>
+            ) : (
+              <View style={styles.badgeInStock}>
+                <View style={styles.dotSuccess} />
+                <ThemedText style={styles.badgeTextInStock}>
+                  {t("products:inStock")}
+                </ThemedText>
+              </View>
+            )}
           </View>
         </View>
-      </ThemedView>
+
+        {/* Right Action Chevron */}
+        <Ionicons
+          name="chevron-forward"
+          size={18}
+          color={Colors.light.textMuted}
+          style={styles.chevron}
+        />
+      </View>
     </TouchableOpacity>
   );
 }
@@ -106,86 +127,140 @@ const styles = StyleSheet.create({
   touchable: {
     marginBottom: Spacing.md,
   },
-  container: {
+  card: {
     flexDirection: "row",
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.light.border,
+    alignItems: "center",
+    padding: 14,
+    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xl,
     ...Shadows.sm,
   },
-  iconContainer: {
-    width: 56,
-    height: 56,
+  thumbnailBox: {
+    width: 48,
+    height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.backgroundElement,
+    backgroundColor: Colors.light.surfaceAlt,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: Spacing.md,
+    marginRight: 12,
   },
-  details: {
+  contentCol: {
     flex: 1,
-    justifyContent: "center",
+    minWidth: 0,
   },
-  header: {
+  titleRow: {
     flexDirection: "row",
+    alignItems: "baseline",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.xs,
+    gap: 8,
   },
-  name: {
-    ...Typography.heading3,
-    fontSize: 16,
+  productName: {
+    ...Typography.label,
+    fontSize: 15,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
     flex: 1,
-    marginRight: Spacing.sm,
   },
-  price: {
-    ...Typography.moneySmall,
+  priceText: {
+    ...Typography.moneySm,
     color: Colors.light.primary,
   },
-  footer: {
+  metaRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 2,
+    gap: 6,
   },
-  subtext: {
+  skuText: {
+    ...Typography.caption,
+    color: Colors.light.textMuted,
+    fontSize: 12,
+  },
+  dotSeparator: {
+    color: Colors.light.textMuted,
+    fontSize: 10,
+  },
+  categoryText: {
     ...Typography.caption,
     color: Colors.light.textSecondary,
+    fontSize: 12,
     flex: 1,
   },
-  rightFooter: {
+  stockRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
+    justifyContent: "space-between",
+    marginTop: 8,
+    gap: 8,
+  },
+  stockLabel: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    fontSize: 13,
+  },
+  stockValue: {
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
   },
   badgeLowStock: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.light.warningLight,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs, // 4px to match Stitch padding 4px 8px
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: BorderRadius.sm,
-    gap: 4,
+    gap: 5,
   },
   badgeTextLowStock: {
-    ...Typography.caption,
-    color: Colors.light.warning,
-    fontWeight: "600",
-    fontSize: 12, // Match Stitch badge-label font size
-    lineHeight: 16, // Match Stitch 12px/600 line height
+    ...Typography.badge,
+    color: Colors.light.secondary,
+  },
+  dotWarning: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.secondary,
   },
   badgeOutOfStock: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.light.errorLight,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: BorderRadius.sm,
-    gap: 4,
+    gap: 5,
   },
   badgeTextOutOfStock: {
-    ...Typography.caption,
+    ...Typography.badge,
     color: Colors.light.error,
-    fontWeight: "600",
+  },
+  dotError: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.error,
+  },
+  badgeInStock: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.light.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+    gap: 5,
+  },
+  badgeTextInStock: {
+    ...Typography.badge,
+    color: Colors.light.primary,
+  },
+  dotSuccess: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.primary,
+  },
+  chevron: {
+    marginLeft: 6,
   },
 });
+

@@ -16,6 +16,7 @@ interface CartState {
   // Actions
   addItem: (productId: number, quantity: number) => void;
   removeItem: (productId: number) => void;
+  subtractItem: (productId: number, quantity?: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
   setPreserveCart: (value: boolean) => void;
@@ -83,6 +84,28 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           items: state.items.filter(item => item.product.id !== productId),
         }));
+      },
+
+      subtractItem: (productId: number, quantity: number = 1) => {
+        set((state) => {
+          const existingItem = state.items.find(item => item.product.id === productId);
+          if (!existingItem) return state;
+
+          const newQuantity = existingItem.quantity - quantity;
+          if (newQuantity <= 0) {
+            return {
+              items: state.items.filter(item => item.product.id !== productId),
+            };
+          }
+
+          return {
+            items: state.items.map(item =>
+              item.product.id === productId
+                ? { ...item, quantity: newQuantity }
+                : item
+            ),
+          };
+        });
       },
 
       updateQuantity: (productId: number, quantity: number) => {
@@ -159,6 +182,7 @@ export function useCartStoreHook() {
     items: store.items,
     addItem: store.addItem,
     addItemWithProduct: store.addItemWithProduct,
+    subtractItem: store.subtractItem,
     removeItem: store.removeItem,
     updateQuantity: store.updateQuantity,
     clearCart: store.clearCart,

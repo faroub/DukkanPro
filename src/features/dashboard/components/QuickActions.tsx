@@ -1,16 +1,17 @@
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Colors, Shadows, Typography } from "@/constants/theme";
-import { getTextAlignment } from "@/utils/text";
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
 
 interface QuickActionsProps {
-  quickActionNewSale: string;
-  quickActionAddProduct: string;
-  quickActionAddCustomer: string;
-  quickActionRecordPayment: string;
-  locale: "ar" | "fr" | "en";
-  textAlignment: "left" | "right";
+  quickActionNewSale?: string;
+  quickActionAddProduct?: string;
+  quickActionAddCustomer?: string;
+  quickActionRecordPayment?: string;
+  locale?: "ar" | "fr" | "en";
+  textAlignment?: "left" | "right";
   onNewSale: () => void;
   onAddProduct: () => void;
   onAddCustomer: () => void;
@@ -18,163 +19,191 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({
-  quickActionNewSale,
-  quickActionAddProduct,
-  quickActionAddCustomer,
-  quickActionRecordPayment,
-  locale,
-  textAlignment,
+  quickActionNewSale = "New Sale",
+  quickActionAddProduct = "Add Product",
+  quickActionAddCustomer = "Add Customer",
+  quickActionRecordPayment = "Record Payment",
+  locale = "fr",
   onNewSale,
   onAddProduct,
   onAddCustomer,
   onRecordPayment,
 }: QuickActionsProps) {
-  const alignment = textAlignment;
+  const actions = [
+    {
+      id: "sale",
+      title: quickActionNewSale,
+      subtitle:
+        locale === "ar"
+          ? "تسجيل بيع سريع وإيصال"
+          : locale === "fr"
+          ? "Caisse rapide & reçu"
+          : "Quick checkout & receipt",
+      icon: "point-of-sale" as const,
+      onPress: onNewSale,
+    },
+    {
+      id: "product",
+      title: quickActionAddProduct,
+      subtitle:
+        locale === "ar"
+          ? "مسح الباركود أو الإدخال اليدوي"
+          : locale === "fr"
+          ? "Scanner code-barres ou saisie"
+          : "Scan barcode or enter manually",
+      icon: "qr-code-scanner" as const,
+      onPress: onAddProduct,
+    },
+    {
+      id: "customer",
+      title: quickActionAddCustomer,
+      subtitle:
+        locale === "ar"
+          ? "إنشاء حساب أو دفتر ديون"
+          : locale === "fr"
+          ? "Créer compte ou carnet crédit"
+          : "Create account or credit ledger",
+      icon: "person-add" as const,
+      onPress: onAddCustomer,
+    },
+    {
+      id: "payment",
+      title: quickActionRecordPayment,
+      subtitle:
+        locale === "ar"
+          ? "تسديد دين أو دفعة جزئية"
+          : locale === "fr"
+          ? "Régler crédit ou acompte"
+          : "Settle credit or partial payment",
+      icon: "payments" as const,
+      onPress: onRecordPayment,
+    },
+  ];
 
   return (
-    <ThemedView type="background" style={styles.section}>
-      <ThemedText type="body" style={[
-        styles.label,
-        { textAlign: alignment },
-      ]}>
-        {quickActionNewSale}
-      </ThemedText>
-
-      <View style={styles.actionSheet}>
-        {/* Action 1: New Sale */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onNewSale}
-          accessible={true}
-          accessibilityLabel={quickActionNewSale}
-        >
-          <ThemedView style={styles.iconContainer}>
-            <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.primary }}>
-              point_of_sale
-            </span>
-          </ThemedView>
-          <View style={styles.buttonContent}>
-            <ThemedText style={styles.actionText}>{quickActionNewSale}</ThemedText>
-            <ThemedText style={styles.captionText}>Quick checkout & receipt</ThemedText>
-          </View>
-        </TouchableOpacity>
-
-        {/* Action 2: Add Product */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onAddProduct}
-          accessible={true}
-          accessibilityLabel={quickActionAddProduct}
-        >
-          <ThemedView style={styles.iconContainer}>
-            <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.primary }}>
-              barcode_scanner
-            </span>
-          </ThemedView>
-          <View style={styles.buttonContent}>
-            <ThemedText style={styles.actionText}>{quickActionAddProduct}</ThemedText>
-            <ThemedText style={styles.captionText}>Scan barcode or enter manually</ThemedText>
-          </View>
-        </TouchableOpacity>
-
-        {/* Action 3: Add Customer */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onAddCustomer}
-          accessible={true}
-          accessibilityLabel={quickActionAddCustomer}
-        >
-          <ThemedView style={styles.iconContainer}>
-            <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.primary }}>
-              person_add
-            </span>
-          </ThemedView>
-          <View style={styles.buttonContent}>
-            <ThemedText style={styles.actionText}>{quickActionAddCustomer}</ThemedText>
-            <ThemedText style={styles.captionText}>Create account or credit ledger</ThemedText>
-          </View>
-        </TouchableOpacity>
-
-        {/* Action 4: Record Payment */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onRecordPayment}
-          accessible={true}
-          accessibilityLabel={quickActionRecordPayment}
-        >
-          <ThemedView style={styles.iconContainer}>
-            <span className="material-symbols-outlined" style={{ fontSize: 24, color: Colors.light.primary }}>
-              payments
-            </span>
-          </ThemedView>
-          <View style={styles.buttonContent}>
-            <ThemedText style={styles.actionText}>{quickActionRecordPayment}</ThemedText>
-            <ThemedText style={styles.captionText}>Settle credit or partial payment</ThemedText>
-          </View>
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <ThemedText style={styles.sectionTitle}>
+          {locale === "ar" ? "إجراءات سريعة" : locale === "fr" ? "Raccourcis rapides" : "Quick Actions"}
+        </ThemedText>
+        <View style={styles.badge}>
+          <ThemedText style={styles.badgeText}>
+            {locale === "ar" ? "اختصارات" : "Shortcuts"}
+          </ThemedText>
+        </View>
       </View>
-    </ThemedView>
+
+      <View style={styles.grid}>
+        {actions.map((action) => (
+          <TouchableOpacity
+            key={action.id}
+            style={styles.actionCard}
+            onPress={action.onPress}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`${action.title}: ${action.subtitle}`}
+          >
+            <View style={styles.cardLeft}>
+              <View style={styles.iconCircle}>
+                <MaterialIcons
+                  name={action.icon}
+                  size={22}
+                  color={Colors.light.primary}
+                />
+              </View>
+
+              <View style={styles.textWrap}>
+                <ThemedText style={styles.actionTitle}>
+                  {action.title}
+                </ThemedText>
+                <ThemedText style={styles.actionSubtitle}>
+                  {action.subtitle}
+                </ThemedText>
+              </View>
+            </View>
+
+            <MaterialIcons
+              name="chevron-right"
+              size={20}
+              color={Colors.light.textMuted}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: "#000000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+  container: {
+    marginBottom: Spacing.md,
   },
-  label: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  actionSheet: {
-    backgroundColor: Colors.light.surface,
-  },
-  actionButton: {
-    backgroundColor: Colors.light.surface,
-    padding: 16,
-    borderRadius: 16,
-    minHeight: 58,
+  header: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 8,
+    marginBottom: Spacing.sm,
+  },
+  sectionTitle: {
+    ...Typography.heading3,
+    fontSize: 17,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.pill,
+    backgroundColor: Colors.light.primaryLight,
+  },
+  badgeText: {
+    ...Typography.badge,
+    fontSize: 11,
+    fontWeight: "600",
+    color: Colors.light.primary,
+  },
+  grid: {
+    gap: 10,
+  },
+  actionCard: {
+    minHeight: 58,
+    padding: 12,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: Colors.light.border,
-    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     ...Shadows.sm,
   },
-  iconContainer: {
+  cardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  iconCircle: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 22,
     backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
-    flexShrink: 0,
   },
-  buttonContent: {
-    alignItems: "center",
-    gap: 6,
+  textWrap: {
+    flex: 1,
   },
-  actionText: {
+  actionTitle: {
+    ...Typography.label,
+    fontSize: 15,
+    fontWeight: "600",
     color: Colors.light.textPrimary,
-    fontSize: 16,
-    fontWeight: 600,
-    textAlign: "center",
   },
-  captionText: {
+  actionSubtitle: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     fontSize: 12,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
   },
 });

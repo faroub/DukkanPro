@@ -11,6 +11,7 @@
 import { getDatabase } from "@/database/database";
 import { getAll } from "@/database/repositories/customerRepository";
 import { getByCustomerId } from "@/database/repositories/saleRepository";
+import { getSevenDaySales } from "@/database/repositories/dashboardRepository";
 import { useEffect, useState } from "react";
 
 export interface CustomerPayment {
@@ -45,6 +46,7 @@ export interface DashboardData {
   lowStockCount: number;
   recentSales: any[];
   lowStockProducts: any[];
+  sevenDaySales?: { date: string; total: number }[];
 
   // Quick action keys (i18n keys)
   quickActionNewSale: string;
@@ -157,6 +159,7 @@ export async function fetchDashboardData(
     lowStockCount,
     recentSales,
     lowStockProducts,
+    sevenDaySales: await getSevenDaySales(),
 
     // Quick action keys - will be overridden by deps.t in the hook
     quickActionNewSale: "dashboard.quick.newSale",

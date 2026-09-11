@@ -47,6 +47,8 @@ export const Colors = {
     primary: "#1B6B3A",
     primaryDark: "#14552E",
     primaryLight: "#E8F5EE",
+    secondary: "#904D00",
+    secondaryLight: "#FFDCC2",
     positive: "#1B6B3A",
     warning: "#D97706",
     destructive: "#B91C1C",
@@ -55,6 +57,7 @@ export const Colors = {
     warningLight: "#FFFBEB",
     disabledBackground: "#D1D5DB",
     surface: "#FFFFFF",
+    surfaceAlt: "#F0EFEA",
     border: "#E5E5E5",
     borderLight: "#F0F0F0",
     backgroundElement: "#F0EFEA",
@@ -69,6 +72,8 @@ export const Colors = {
     primary: "#1B6B3A",
     primaryDark: "#14552E",
     primaryLight: "#E8F5EE",
+    secondary: "#904D00",
+    secondaryLight: "#FFDCC2",
     positive: "#1B6B3A",
     warning: "#D97706",
     destructive: "#B91C1C",
@@ -77,6 +82,7 @@ export const Colors = {
     warningLight: "#FFFBEB",
     disabledBackground: "#D1D5DB",
     surface: "#1F2937",
+    surfaceAlt: "#1E293B",
     border: "#374151",
     borderLight: "#2C2C2C",
     backgroundElement: "#1E293B",
@@ -199,6 +205,40 @@ export const Typography = {
     fontWeight: 600 as const,
     letterSpacing: 0,
   },
+  moneySm: {
+    fontFamily: Platform.select({
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
+    }),
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: 600 as const,
+    letterSpacing: 0,
+  },
+  // Badges
+  badge: {
+    fontFamily: Platform.select({
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
+    }),
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: 600 as const,
+    letterSpacing: 0.1,
+  },
+  badgeLabel: {
+    fontFamily: Platform.select({
+      ios: "system-ui",
+      android: "Roboto",
+      default: "system-ui",
+    }),
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: 600 as const,
+    letterSpacing: 0.1,
+  },
   // Arabic-specific: right-aligned text within LTR layout
   arabic: {
     textAlign: "right" as const,
@@ -255,6 +295,7 @@ export const BorderRadius = {
   xl: 16,
   button: 10,
   full: 9999,
+  pill: 9999,
 } as const;
 
 /**
