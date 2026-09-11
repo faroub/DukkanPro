@@ -36,6 +36,8 @@ export const Fonts = Platform.select({
 /**
  * Color palette — LTR-compatible, same layout in all languages.
  * Values sourced from DESIGN.md (Google Stitch design system).
+ * Core palette matches DESIGN.md exactly. Additional app colors (secondary)
+ * are part of the existing Dukkan OS visual language.
  */
 export const Colors = {
   light: {

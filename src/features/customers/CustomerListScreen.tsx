@@ -1,8 +1,8 @@
-import { View, ScrollView, RefreshControl, StyleSheet } from 'react-native';
+import { View, ScrollView, RefreshControl, StyleSheet, Text, Pressable } from 'react-native';
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "@/components/themed-text";
-import { Typography, Colors, Spacing } from "@/constants/theme";
+import { Typography, Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useCustomers } from "@/hooks/useCustomers";
 import { CustomerSearchBar } from "@/features/customers/components/CustomerSearchBar";
 import { CustomerFilterTabs } from "@/features/customers/components/CustomerFilterTabs";
@@ -111,6 +111,30 @@ export function CustomerListScreen({ route, navigation }: CustomerListScreenProp
         />
       </View>
 
+      {/* Quick Metrics Summary Banner */}
+      <View style={styles.metricsBanner}>
+        <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-primary-light/40 pointer-events-none"></div>
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <span className="font-tab-label text-tab-label text-text-secondary block truncate">Total Customers</span>
+            <span className="font-headline-2 text-headline-2 text-text-primary mt-0.5 block">48</span>
+          </div>
+          <div className="w-px h-8 bg-divider shrink-0"></div>
+          <div className="flex-1 min-w-0 px-1">
+            <span className="font-tab-label text-tab-label text-tertiary block truncate">Debt to Collect</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="font-headline-2 text-headline-2 text-tertiary font-bold tracking-tight">19,400</span>
+              <span className="font-badge-label text-badge-label text-tertiary">DZD</span>
+            </div>
+          </div>
+          <div className="w-px h-8 bg-divider shrink-0"></div>
+          <div className="flex-1 min-w-0 text-right">
+            <span className="font-tab-label text-tab-label text-text-secondary block truncate">Active Debt</span>
+            <span className="font-headline-2 text-headline-2 text-secondary block mt-0.5">12</span>
+          </div>
+        </div>
+      </View>
+
       {customers.length === 0 && !loading && !error && (
         <View style={styles.emptyState}>
           <ThemedText type="subtitle" style={styles.emptyTitle}>
@@ -154,6 +178,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerSection: {
+    marginBottom: Spacing.lg,
+  },
+  metricsBanner: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: BorderRadius.lg,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
     marginBottom: Spacing.lg,
   },
   emptyState: {
