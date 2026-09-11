@@ -78,9 +78,9 @@ export function StockAdjustmentScreen() {
   const router = useRouter();
   const route = useRoute();
   const localParams = useLocalSearchParams<{
-    productId?: string | number;
+    productId?: string;
     productName?: string;
-    currentStock?: string | number;
+    currentStock?: string;
   }>();
   const routeParams = (route.params || {}) as {
     productId?: string | number;
@@ -387,20 +387,20 @@ export function StockAdjustmentScreen() {
                 <View style={[styles.diffBadge, styles.diffBadgePositive]}>
                   <Ionicons name="trending-up" size={16} color={Colors.light.primary} />
                   <ThemedText style={styles.diffBadgeTextPositive}>
-                    +{delta} {unitLabel} will be added to inventory
+                    {t('products:willBeAdded', { count: delta, unit: unitLabel })}
                   </ThemedText>
                 </View>
               ) : delta < 0 ? (
                 <View style={[styles.diffBadge, styles.diffBadgeNegative]}>
                   <Ionicons name="trending-down" size={16} color={Colors.light.error} />
                   <ThemedText style={styles.diffBadgeTextNegative}>
-                    {delta} {unitLabel} will be removed from inventory
+                    {t('products:willBeRemoved', { count: Math.abs(delta), unit: unitLabel })}
                   </ThemedText>
                 </View>
               ) : (
                 <View style={[styles.diffBadge, styles.diffBadgeNeutral]}>
                   <ThemedText style={styles.diffBadgeTextNeutral}>
-                    No change in inventory balance
+                    {t('products:noInventoryChange')}
                   </ThemedText>
                 </View>
               )}
@@ -510,8 +510,8 @@ export function StockAdjustmentScreen() {
                   ]}
                 >
                   {newTotal >= minStock
-                    ? `Normal ≥ ${minStock}`
-                    : `Low Stock < ${minStock}`}
+                    ? t('products:statusNormal', { min: minStock })
+                    : t('products:statusLowStock', { min: minStock })}
                 </ThemedText>
               </View>
             </View>
@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: BorderRadius.lg,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -802,7 +802,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   diffBadgeNeutral: {
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
   },
   diffBadgeTextNeutral: {
     ...Typography.caption,
@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 12,
     borderRadius: BorderRadius.lg,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
     borderWidth: 1,
     borderColor: 'transparent',
   },

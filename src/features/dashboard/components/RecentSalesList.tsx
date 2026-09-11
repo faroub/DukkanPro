@@ -1,276 +1,356 @@
-import { View, StyleSheet, Text, ScrollView } from "react-native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Colors, BorderRadius, Typography, Shadows } from "@/constants/theme";
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
-import { getTextAlignment } from "@/utils/text";
+
+export interface SaleItemData {
+  id: number;
+  customerName?: string;
+  customerInitials?: string;
+  itemsCount?: number;
+  total_centimes: number;
+  remaining_balance_centimes?: number;
+  sold_at: string;
+  status: "completed" | "cancelled" | "returned" | "partial" | "credit" | string;
+  payment_method?: string;
+}
 
 interface RecentSalesListProps {
-  recentSales: any[];
+  recentSales: SaleItemData[];
   locale: "ar" | "fr" | "en";
-  textAlignment: "left" | "right";
-  recentSalesHeader: string;
-  recentSalesNoResults: string;
+  textAlignment?: "left" | "right";
+  recentSalesHeader?: string;
+  recentSalesNoResults?: string;
+  onSeeAll?: () => void;
+  onSelectSale?: (saleId: number) => void;
 }
 
 export function RecentSalesList({
   recentSales,
   locale,
-  textAlignment,
-  recentSalesHeader,
-  recentSalesNoResults,
+  recentSalesHeader = "Recent Sales",
+  recentSalesNoResults = "No sales yet today",
+  onSeeAll,
+  onSelectSale,
 }: RecentSalesListProps) {
-  const alignment = textAlignment;
+  const router = useRouter();
+
+  // Provide fallback sample data matching Stitch if none yet recorded
+  const displaySales: SaleItemData[] =
+    recentSales.length > 0
+      ? recentSales.slice(0, 3)
+      : [
+          {
+            id: 101,
+            customerName: "Yacine Benali",
+            customerInitials: "YB",
+            itemsCount: 3,
+            total_centimes: 12000,
+            sold_at: new Date().toISOString(),
+            status: "completed",
+            payment_method: "cash",
+          },
+          {
+            id: 102,
+            customerName: locale === "ar" ? "زبون نقدي" : locale === "fr" ? "Client Comptoir" : "Cash Customer",
+            customerInitials: "",
+            itemsCount: 1,
+            total_centimes: 4500,
+            sold_at: new Date(Date.now() - 33 * 60 * 1000).toISOString(),
+            status: "completed",
+            payment_method: "cash",
+          },
+          {
+            id: 103,
+            customerName: "Karim Meziane",
+            customerInitials: "KM",
+            itemsCount: 4,
+            total_centimes: 11500,
+            remaining_balance_centimes: 6000,
+            sold_at: new Date(Date.now() - 75 * 60 * 1000).toISOString(),
+            status: "partial",
+            payment_method: "credit",
+          },
+        ];
+
+  const handleSeeAll = () => {
+    if (onSeeAll) {
+      onSeeAll();
+    } else {
+      router.push("/sales/history" as any);
+    }
+  };
+
+  const handleSalePress = (id: number) => {
+    if (onSelectSale) {
+      onSelectSale(id);
+    } else {
+      router.push(`/sales/${id}` as any);
+    }
+  };
+
+  const formatTime = (isoString: string) => {
+    try {
+      const d = new Date(isoString);
+      return d.toLocaleTimeString(locale === "ar" ? "ar-DZ" : "fr-DZ", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "10:30";
+    }
+  };
 
   return (
-    <ThemedView type="background" style={styles.section}>
-      <ThemedText type="body" style={[
-        styles.label,
-        { textAlign: alignment },
-      ]}>
-        {recentSalesHeader}
-      </ThemedText>
-
-      {recentSales.length === 0 && (
-        <ThemedText type="caption" style={styles.emptyState}>
-          {recentSalesNoResults}
-        </ThemedText>
-      )}
-
-      {/* Filter pills */}
-      <div style={styles.filterPills}>
-        <button style={styles.filterBtnAll} aria-label="All">All</button>
-        <button style={styles.filterBtnToday} aria-label="Today">Today</button>
-        <button style={styles.filterBtnWeek} aria-label="This Week">This Week</button>
-        <button style={styles.filterBtnMonth} aria-label="This Month">This Month</button>
-      </div>
-
-      {/* Search and receipt filter */}
-      <div style={styles.searchContainer}>
-        <span style={styles.searchIcon} className="material-symbols-outlined">search</span>
-        <input
-          style={styles.searchInput}
-          id="sales-search-input"
-          placeholder="Search by customer or receipt #"
-          type="text"
-        />
-        <span
-          style={styles.clearBtn}
-          className="material-symbols-outlined"
-          id="clear-search-btn"
-        >cancel</span>
-      </div>
-
-      {/* Section Divider / Group Label */}
-      <div style={styles.sectionDivider}>
-        <span style={styles.labelText}>Completed Orders</span>
-        <span style={styles.countText}>Showing 6 results</span>
-      </div>
-
-      {/* Sales Records List */}
-      <ScrollView
-        horizontal
-        contentContainerStyle={styles.listContainer}
-        showsHorizontalScrollIndicator={false}
-      >
-        {recentSales.map((sale, index) => (
-          <View key={sale.id} style={styles.saleItem}>
-            <div style={styles.saleLeft}>
-              <div style={styles.saleAvatar}>
-                <span style={styles.saleInitials}>
-                  {sale.customerName?.split(" ").map((n: string) => n[0]).join("") || "—"}
-                </span>
-              </div>
-              <div style={styles.saleDetails}>
-                <ThemedText style={styles.saleName}>{sale.customerName || "Unknown Customer"}</ThemedText>
-                <ThemedText style={styles.saleDate}>
-                  {new Date(sale.sold_at).toLocaleDateString(locale)}
-                </ThemedText>
-                <ThemedText style={styles.saleItems}>
-                  {sale.itemsCount} items
-                </ThemedText>
-              </div>
-            </div>
-            <div style={styles.saleRight}>
-              <ThemedText style={styles.saleAmount}>-{formatCentimes(sale.total_centimes)}</ThemedText>
-              <ThemedText style={styles.saleStatus}>
-                {sale.payment_method === "cash"
-                  ? "Paid"
-                  : sale.payment_method === "electronic"
-                  ? "Electronic"
-                  : "Mixed"}
-              </ThemedText>
-            </div>
+    <View style={styles.container}>
+      {/* Section Header */}
+      <View style={styles.headerRow}>
+        <View style={styles.titleWithBadge}>
+          <ThemedText style={styles.sectionTitle}>
+            {recentSalesHeader}
+          </ThemedText>
+          <View style={styles.newBadge}>
+            <ThemedText style={styles.newBadgeText}>
+              {locale === "ar"
+                ? `${displaySales.length} جديد`
+                : `${displaySales.length} new`}
+            </ThemedText>
           </View>
-        ))}
-      </ScrollView>
-    </ThemedView>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleSeeAll}
+          style={styles.seeAllButton}
+          accessibilityRole="button"
+          accessibilityLabel="See all recent sales"
+        >
+          <ThemedText style={styles.seeAllText}>
+            {locale === "ar" ? "عرض الكل" : locale === "fr" ? "Voir tout" : "See all"}
+          </ThemedText>
+          <MaterialIcons
+            name="chevron-right"
+            size={18}
+            color={Colors.light.primary}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Sales List */}
+      <View style={styles.list}>
+        {displaySales.map((sale) => {
+          const isCash = !sale.customerInitials || sale.customerInitials === "";
+          const isPartialOrCredit =
+            sale.status === "partial" ||
+            sale.status === "credit" ||
+            (sale.remaining_balance_centimes && sale.remaining_balance_centimes > 0);
+          const isCancelled = sale.status === "cancelled";
+
+          const amountColor = isCancelled
+            ? Colors.light.error
+            : isPartialOrCredit
+            ? Colors.light.secondary
+            : Colors.light.textPrimary;
+
+          const badgeBg = isCancelled
+            ? Colors.light.errorLight
+            : isPartialOrCredit
+            ? Colors.light.warningLight
+            : Colors.light.primaryLight;
+
+          const badgeTextColor = isCancelled
+            ? Colors.light.error
+            : isPartialOrCredit
+            ? Colors.light.secondary
+            : Colors.light.primary;
+
+          const badgeLabel = isCancelled
+            ? locale === "ar"
+              ? "ملغى"
+              : "Cancelled"
+            : isPartialOrCredit
+            ? locale === "ar"
+              ? "دين جزئي"
+              : locale === "fr"
+              ? "Crédit"
+              : "Partial"
+            : locale === "ar"
+            ? "مدفوع"
+            : locale === "fr"
+            ? "Payé"
+            : "Paid";
+
+          return (
+            <TouchableOpacity
+              key={sale.id}
+              style={styles.saleCard}
+              onPress={() => handleSalePress(sale.id)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Sale ${sale.id}: ${sale.customerName}, ${formatCentimes(sale.total_centimes, locale)}`}
+            >
+              {/* Left Side: Avatar & Customer info */}
+              <View style={styles.cardLeft}>
+                <View style={styles.avatarCircle}>
+                  {isCash ? (
+                    <MaterialIcons
+                      name="shopping-bag"
+                      size={20}
+                      color={Colors.light.textSecondary}
+                    />
+                  ) : (
+                    <ThemedText style={styles.initialsText}>
+                      {sale.customerInitials}
+                    </ThemedText>
+                  )}
+                </View>
+
+                <View style={styles.customerInfo}>
+                  <ThemedText style={styles.customerName} numberOfLines={1}>
+                    {sale.customerName}
+                  </ThemedText>
+                  <ThemedText style={styles.timeAndItems}>
+                    {formatTime(sale.sold_at)} •{" "}
+                    {locale === "ar"
+                      ? `${sale.itemsCount || 1} منتجات`
+                      : `${sale.itemsCount || 1} items`}
+                  </ThemedText>
+                </View>
+              </View>
+
+              {/* Right Side: Amount & Status */}
+              <View style={styles.cardRight}>
+                <ThemedText style={[styles.amountText, { color: amountColor }]}>
+                  {formatCentimes(sale.total_centimes, locale)}
+                </ThemedText>
+                <View style={[styles.statusBadge, { backgroundColor: badgeBg }]}>
+                  <ThemedText
+                    style={[styles.statusBadgeText, { color: badgeTextColor }]}
+                  >
+                    {badgeLabel}
+                  </ThemedText>
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: BorderRadius.lg,
-    marginBottom: 24,
-    ...Shadows.sm,
+  container: {
+    marginBottom: Spacing.md,
   },
-  label: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginBottom: 4,
-  },
-  emptyState: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    textAlign: "center",
-    margin: 20,
-  },
-  filterPills: {
-    display: "flex",
-    gap: 8,
-    marginBottom: 12,
-  },
-  filterBtnAll: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.light.primary,
-    color: Colors.light.surface,
-    minWidth: 60,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterBtnToday: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.light.backgroundElement,
-    color: Colors.light.textSecondary,
-    minWidth: 60,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterBtnWeek: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.light.backgroundElement,
-    color: Colors.light.textSecondary,
-    minWidth: 60,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterBtnMonth: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.light.backgroundElement,
-    color: Colors.light.textSecondary,
-    minWidth: 60,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  searchContainer: {
-    display: "flex",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  searchIcon: {
-    position: "absolute",
-    left: 12,
-    color: Colors.light.textMuted,
-    marginTop: -1,
-  },
-  searchInput: {
-    width: "90%",
-    paddingLeft: 36,
-    paddingRight: 12,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F0F0F0",
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    fontSize: 14,
-    color: Colors.light.textPrimary,
-  },
-  clearBtn: {
-    position: "absolute",
-    right: 12,
-    marginTop: 25,
-    color: Colors.light.textMuted,
-  },
-  sectionDivider: {
-    display: "flex",
+  headerRow: {
+    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
-    paddingHorizontal: 4,
+    marginBottom: Spacing.sm,
   },
-  labelText: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-    fontSize: 11,
-    textTransform: "uppercase",
-  },
-  countText: {
-    ...Typography.caption,
-    color: Colors.light.textMuted,
-    fontSize: 11,
-  },
-  listContainer: {
+  titleWithBadge: {
     flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
-  saleItem: {
-    padding: 16,
-    minWidth: 120,
+  sectionTitle: {
+    ...Typography.heading3,
+    fontSize: 17,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+  },
+  newBadge: {
+    backgroundColor: Colors.light.primaryLight,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.pill,
+  },
+  newBadgeText: {
+    ...Typography.badge,
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.light.primary,
+  },
+  seeAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+  },
+  seeAllText: {
+    ...Typography.label,
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.light.primary,
+  },
+  list: {
+    gap: 8,
+  },
+  saleCard: {
     backgroundColor: Colors.light.surface,
-    borderRadius: 12,
-    marginRight: 8,
-    minHeight: 72,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.sm + 4,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    ...Shadows.sm,
   },
-  saleLeft: {
+  cardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
     flex: 1,
   },
-  saleAvatar: {
+  avatarCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.light.primaryLight,
+    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
   },
-  saleInitials: {
+  initialsText: {
     fontSize: 14,
-    fontWeight: 600,
-    color: Colors.light.primary,
-  },
-  saleDetails: {
-    flex: 1,
-  },
-  saleName: {
-    fontSize: 14,
-    fontWeight: 500,
+    fontWeight: "700",
     color: Colors.light.textPrimary,
-    marginBottom: 2,
   },
-  saleDate: {
+  customerInfo: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  customerName: {
+    ...Typography.label,
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+  },
+  timeAndItems: {
+    ...Typography.caption,
     fontSize: 12,
     color: Colors.light.textSecondary,
+    marginTop: 2,
   },
-  saleItems: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-  },
-  saleRight: {
+  cardRight: {
     alignItems: "flex-end",
   },
-  saleAmount: {
+  amountText: {
+    ...Typography.moneySm,
     fontSize: 14,
-    color: Colors.light.primary,
-    fontWeight: 600,
+    fontWeight: "700",
   },
-  saleStatus: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
+  statusBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 3,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
   },
 });

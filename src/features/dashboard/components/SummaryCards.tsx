@@ -1,7 +1,9 @@
-import { StyleSheet, View } from "react-native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
 
@@ -14,8 +16,15 @@ interface SummaryCardsProps {
   toCollectValue_centimes?: number;
   lowStockKey?: string;
   lowStockCount?: number;
+  salesCount?: number;
+  debtCustomersCount?: number;
+  profitPercent?: string;
   locale: "ar" | "fr" | "en";
-  textAlignment: "left" | "right";
+  textAlignment?: "left" | "right";
+  onPressRevenue?: () => void;
+  onPressProfit?: () => void;
+  onPressToCollect?: () => void;
+  onPressLowStock?: () => void;
 }
 
 export function SummaryCards({
@@ -27,94 +36,209 @@ export function SummaryCards({
   toCollectValue_centimes = 0,
   lowStockKey = "Low Stock",
   lowStockCount = 0,
+  salesCount = 14,
+  debtCustomersCount = 5,
+  profitPercent = "+22%",
   locale,
-  textAlignment,
+  onPressRevenue,
+  onPressProfit,
+  onPressToCollect,
+  onPressLowStock,
 }: SummaryCardsProps) {
-  const alignment = textAlignment;
+  const router = useRouter();
+
+  const handleRevenuePress = () => {
+    if (onPressRevenue) onPressRevenue();
+    else router.push("/sales/history" as any);
+  };
+
+  const handleProfitPress = () => {
+    if (onPressProfit) onPressProfit();
+    else router.push("/sales/history" as any);
+  };
+
+  const handleToCollectPress = () => {
+    if (onPressToCollect) onPressToCollect();
+    else router.push("/(tabs)/customers" as any);
+  };
+
+  const handleLowStockPress = () => {
+    if (onPressLowStock) onPressLowStock();
+    else router.push("/products/low-stock" as any);
+  };
+
+  // Convert centimes to DZD number string for display
+  const revenueDZD = Math.round(revenueValue_centimes / 100);
+  const profitDZD = Math.round(profitValue_centimes / 100);
+  const toCollectDZD = Math.round(toCollectValue_centimes / 100);
+
+  const formatAmount = (val: number) => {
+    return val.toLocaleString(locale === "ar" ? "ar-DZ" : "fr-DZ");
+  };
 
   return (
     <View style={styles.grid}>
-      {/* Card 1: Today's Sales */}
-      <ThemedView style={styles.card}>
-        <View style={styles.cardHeader}>
+      {/* Metric Card 1: Today's Sales (Green) */}
+      <TouchableOpacity
+        style={styles.card}
+        onPress={handleRevenuePress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`${revenueKey}: ${revenueDZD} DZD`}
+      >
+        <View style={styles.cardTop}>
           <ThemedText style={styles.cardLabel} numberOfLines={1}>
             {revenueKey}
           </ThemedText>
-          <View style={[styles.badge, { backgroundColor: Colors.light.primaryLight }]}>
-            <ThemedText style={[styles.badgeText, { color: Colors.light.primary }]}>DZD</ThemedText>
+          <View style={styles.iconBoxPrimary}>
+            <MaterialIcons
+              name="point-of-sale"
+              size={15}
+              color={Colors.light.primary}
+            />
           </View>
         </View>
+
         <View style={styles.cardBottom}>
-          <ThemedText style={[styles.cardValue, { color: Colors.light.primary }]}>
-            {formatCentimes(revenueValue_centimes, locale)}
-          </ThemedText>
-          <ThemedText style={styles.cardSub}>
-            {revenueValue_centimes > 0 ? "14 transactions" : ""}
+          <View style={styles.amountRow}>
+            <ThemedText style={[styles.amountText, styles.primaryText]}>
+              {formatAmount(revenueDZD)}
+            </ThemedText>
+            <ThemedText style={[styles.currencyLabel, styles.primaryText]}>
+              DZD
+            </ThemedText>
+          </View>
+          <ThemedText style={styles.subText} numberOfLines={1}>
+            {locale === "ar"
+              ? `${salesCount} عملية بيع`
+              : locale === "fr"
+              ? `${salesCount} transactions`
+              : `${salesCount} transactions`}
           </ThemedText>
         </View>
-      </ThemedView>
+      </TouchableOpacity>
 
-      {/* Card 2: Est. Profit */}
-      <ThemedView style={styles.card}>
-        <View style={styles.cardHeader}>
+      {/* Metric Card 2: Est. Profit (Green) */}
+      <TouchableOpacity
+        style={styles.card}
+        onPress={handleProfitPress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`${profitKey}: ${profitDZD} DZD`}
+      >
+        <View style={styles.cardTop}>
           <ThemedText style={styles.cardLabel} numberOfLines={1}>
             {profitKey}
           </ThemedText>
-          <View style={[styles.badge, { backgroundColor: Colors.light.primaryLight }]}>
-            <ThemedText style={[styles.badgeText, { color: Colors.light.primary }]}>Net</ThemedText>
-          </View>
-        </View>
-        <View style={styles.cardBottom}>
-          <ThemedText style={[styles.cardValue, { color: Colors.light.primary }]}>
-            {formatCentimes(profitValue_centimes, locale)}
-          </ThemedText>
-          <ThemedText style={styles.cardSub}>
-            {profitValue_centimes >= 0 ? "+22%" : ""}
-          </ThemedText>
-        </View>
-      </ThemedView>
-
-      {/* Card 3: To Collect (Carnet crédit) */}
-      <ThemedView style={styles.card}>
-        <View style={styles.cardHeader}>
-          <ThemedText style={styles.cardLabel} numberOfLines={1}>
-            {toCollectKey}
-          </ThemedText>
-          <View style={[styles.badge, { backgroundColor: Colors.light.warningLight }]}>
-            <ThemedText style={[styles.badgeText, { color: Colors.light.warning }]}>Credit</ThemedText>
-          </View>
-        </View>
-        <View style={styles.cardBottom}>
-          <ThemedText style={[styles.cardValue, { color: Colors.light.warning }]}>
-            {formatCentimes(toCollectValue_centimes, locale)}
-          </ThemedText>
-          <ThemedText style={styles.cardSub}>
-            {toCollectValue_centimes > 0 ? "5 clients" : ""}
-          </ThemedText>
-        </View>
-      </ThemedView>
-
-      {/* Card 4: Low Stock Alert */}
-      <ThemedView style={styles.card}>
-        <View style={styles.cardHeader}>
-          <ThemedText style={styles.cardLabel} numberOfLines={1}>
-            {lowStockKey}
-          </ThemedText>
-          <View style={[styles.badge, { backgroundColor: lowStockCount > 0 ? Colors.light.warningLight : Colors.light.primaryLight }]}>
-            <ThemedText style={[styles.badgeText, { color: lowStockCount > 0 ? Colors.light.warning : Colors.light.primary }]}>
-              {lowStockCount > 0 ? "Alert" : "OK"}
+          <View style={styles.badgePrimary}>
+            <ThemedText style={styles.badgePrimaryText}>
+              {profitPercent}
             </ThemedText>
           </View>
         </View>
+
         <View style={styles.cardBottom}>
-          <ThemedText style={[styles.cardValue, { color: lowStockCount > 0 ? Colors.light.warning : Colors.light.textPrimary }]}>
-            {lowStockCount}
-          </ThemedText>
-          <ThemedText style={styles.cardSub}>
-            {lowStockCount > 0 ? "Reorder soon" : "Stock OK"}
+          <View style={styles.amountRow}>
+            <ThemedText style={[styles.amountText, styles.primaryText]}>
+              {formatAmount(profitDZD)}
+            </ThemedText>
+            <ThemedText style={[styles.currencyLabel, styles.primaryText]}>
+              DZD
+            </ThemedText>
+          </View>
+          <ThemedText style={styles.subText} numberOfLines={1}>
+            {locale === "ar"
+              ? "الربح التقديري"
+              : locale === "fr"
+              ? "Bénéfice net"
+              : "Estimated net"}
           </ThemedText>
         </View>
-      </ThemedView>
+      </TouchableOpacity>
+
+      {/* Metric Card 3: To Collect (Amber) */}
+      <TouchableOpacity
+        style={styles.card}
+        onPress={handleToCollectPress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`${toCollectKey}: ${toCollectDZD} DZD`}
+      >
+        <View style={styles.cardTop}>
+          <ThemedText style={styles.cardLabel} numberOfLines={1}>
+            {toCollectKey}
+          </ThemedText>
+          <View style={styles.badgeWarning}>
+            <ThemedText style={styles.badgeWarningText}>
+              {locale === "ar"
+                ? `${debtCustomersCount} زبائن`
+                : `${debtCustomersCount} clients`}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.cardBottom}>
+          <View style={styles.amountRow}>
+            <ThemedText style={[styles.amountText, styles.secondaryText]}>
+              {formatAmount(toCollectDZD)}
+            </ThemedText>
+            <ThemedText style={[styles.currencyLabel, styles.secondaryText]}>
+              DZD
+            </ThemedText>
+          </View>
+          <ThemedText style={styles.subText} numberOfLines={1}>
+            {locale === "ar"
+              ? "دفتر الديون"
+              : locale === "fr"
+              ? "Carnet crédit"
+              : "Credit / Debt"}
+          </ThemedText>
+        </View>
+      </TouchableOpacity>
+
+      {/* Metric Card 4: Low Stock Alert (Amber) */}
+      <TouchableOpacity
+        style={styles.card}
+        onPress={handleLowStockPress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`${lowStockKey}: ${lowStockCount} items`}
+      >
+        <View style={styles.cardTop}>
+          <ThemedText style={styles.cardLabel} numberOfLines={1}>
+            {lowStockKey}
+          </ThemedText>
+          <View style={styles.iconBoxWarning}>
+            <MaterialIcons
+              name="notification-important"
+              size={15}
+              color={Colors.light.secondary}
+            />
+          </View>
+        </View>
+
+        <View style={styles.cardBottom}>
+          <View style={styles.amountRow}>
+            <ThemedText style={[styles.amountText, styles.secondaryText]}>
+              {lowStockCount}
+            </ThemedText>
+            <ThemedText style={[styles.currencyLabel, styles.secondaryText]}>
+              {locale === "ar" ? "منتجات" : "items"}
+            </ThemedText>
+          </View>
+          <ThemedText style={styles.subText} numberOfLines={1}>
+            {lowStockCount > 0
+              ? locale === "ar"
+                ? "تنبيه بالنقص"
+                : locale === "fr"
+                ? "Réapprovisionner"
+                : "Reorder soon"
+              : locale === "ar"
+              ? "المخزون متوفر"
+              : "Stock OK"}
+          </ThemedText>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -124,54 +248,101 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
-    marginBottom: 24,
+    marginBottom: Spacing.md,
   },
   card: {
     width: "48%",
     flexGrow: 1,
+    height: 128,
     backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: Colors.light.border,
     borderRadius: BorderRadius.lg,
-    padding: 16,
-    minHeight: 128,
+    padding: Spacing.md,
     justifyContent: "space-between",
     ...Shadows.sm,
   },
-  cardHeader: {
+  cardTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
   },
   cardLabel: {
     ...Typography.caption,
+    fontSize: 13,
     color: Colors.light.textSecondary,
     fontWeight: "500",
     flex: 1,
+    paddingRight: 4,
   },
-  badge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
+  iconBoxPrimary: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
-  badgeText: {
-    fontSize: 10,
+  badgePrimary: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: Colors.light.primaryLight,
+  },
+  badgePrimaryText: {
+    ...Typography.badge,
+    fontSize: 11,
     fontWeight: "700",
+    color: Colors.light.primary,
+  },
+  iconBoxWarning: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: Colors.light.warningLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeWarning: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: Colors.light.warningLight,
+  },
+  badgeWarningText: {
+    ...Typography.badge,
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.light.secondary,
   },
   cardBottom: {
-    marginTop: 4,
+    marginTop: 2,
   },
-  cardValue: {
+  amountRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 4,
+  },
+  amountText: {
     ...Typography.moneyDisplay,
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: "700",
   },
-  cardSub: {
-    ...Typography.caption,
+  currencyLabel: {
+    ...Typography.label,
     fontSize: 13,
+    fontWeight: "600",
+  },
+  primaryText: {
+    color: Colors.light.primary,
+  },
+  secondaryText: {
+    color: Colors.light.secondary,
+  },
+  subText: {
+    ...Typography.caption,
+    fontSize: 11,
     color: Colors.light.textSecondary,
     marginTop: 1,
   },

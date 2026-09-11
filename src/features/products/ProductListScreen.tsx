@@ -7,40 +7,50 @@ import { ProductListItem } from "@/features/products/components/ProductListItem"
 import { useProducts } from "@/hooks/useProducts";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshControl, ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 export function ProductListScreen({ route, navigation }: any) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
 
-  const productsFilters = useMemo(() => {
-    const filters: any = {};
-    if (filter === "archived") {
-      filters.is_active = false;
-    } else {
-      filters.is_active = true;
+  // Fetch all products (both active and inactive so counts can be computed accurately)
+  const { products, loading, error, reload } = useProducts({});
+
+  // Compute counts for filter pills
+  const counts = useMemo(() => {
+    let all = 0;
+    let lowStock = 0;
+    let outOfStock = 0;
+    let archived = 0;
+
+    for (const p of products) {
+      if (!p.is_active) {
+        archived++;
+      } else {
+        all++;
+        if (p.stock_quantity === 0) {
+          outOfStock++;
+        } else if (p.stock_quantity <= p.minimum_stock_quantity) {
+          lowStock++;
+        }
+      }
     }
-    return filters;
-  }, [filter]);
 
-  const { products, loading, error, reload } = useProducts(productsFilters);
-
-  const totalInventoryValueCentimes = useMemo(() => {
-    return products.reduce((sum, p) => {
-      const price = p.cost_price_centimes > 0 ? p.cost_price_centimes : p.sale_price_centimes;
-      return sum + price * Math.max(0, p.stock_quantity);
-    }, 0);
+    return { all, lowStock, outOfStock, archived };
   }, [products]);
 
-  const lowStockCount = useMemo(() => {
-    return products.filter(
-      (p) => p.is_active && p.stock_quantity <= p.minimum_stock_quantity
-    ).length;
+  const totalInventoryValueCentimes = useMemo(() => {
+    return products
+      .filter((p) => p.is_active)
+      .reduce((sum, p) => {
+        const price = p.cost_price_centimes > 0 ? p.cost_price_centimes : p.sale_price_centimes;
+        return sum + price * Math.max(0, p.stock_quantity);
+      }, 0);
   }, [products]);
 
   const filteredProducts = useMemo(() => {
@@ -80,58 +90,96 @@ export function ProductListScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.mainContainer}>
+      {/* Top Header Bar matching Stitch */}
       <View style={styles.topBar}>
-        <View>
+        <View style={styles.topBarLeft}>
           <ThemedText style={styles.screenTitle}>{t("products:title")}</ThemedText>
-          <ThemedText style={styles.screenSubtitle}>{t("products:subtitle")}</ThemedText>
+          <ThemedText style={styles.screenSubtitle}>
+            {t("products:inventoryTracker")}
+          </ThemedText>
         </View>
         <TouchableOpacity
           style={styles.addButton}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
           onPress={() => router.push("/products/new" as any)}
+          accessibilityRole="button"
+          accessibilityLabel={t("products:newItem")}
         >
           <Ionicons name="add" size={20} color="#FFFFFF" />
-          <ThemedText style={styles.addButtonText}>{t("dashboard:quick:addProduct")}</ThemedText>
+          <ThemedText style={styles.addButtonText}>{t("products:newItem")}</ThemedText>
         </TouchableOpacity>
       </View>
 
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.textSecondary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.light.primary}
+          />
         }
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* Search Bar & Filter Tabs */}
         <View style={styles.headerSection}>
-          <ProductSearchBar onSearch={handleSearch} onClear={() => setSearchQuery("")} disabled={loading} />
-          <ProductFilterTabs activeFilter={filter} onFilterChange={handleFilterChange} />
+          <ProductSearchBar
+            onSearch={handleSearch}
+            onClear={() => setSearchQuery("")}
+            disabled={loading}
+          />
+          <ProductFilterTabs
+            activeFilter={filter}
+            onFilterChange={handleFilterChange}
+            counts={counts}
+          />
         </View>
 
+        {/* Summary Metric Strip - matches Stitch design */}
+        <View style={styles.summaryStrip}>
+          <View style={styles.summaryLeft}>
+            <View style={styles.summaryDot} />
+            <ThemedText style={styles.summaryItemsText}>
+              {filteredProducts.length} {t("products:items")}
+            </ThemedText>
+          </View>
+
+          <ThemedText style={styles.summaryDotSeparator}>•</ThemedText>
+
+          <View style={styles.summaryCenter}>
+            <ThemedText style={styles.summaryValueLabel}>
+              {t("products:value")}:{" "}
+              <ThemedText style={styles.summaryValueAmount}>
+                {formatCentimes(totalInventoryValueCentimes, i18n.language as any)}
+              </ThemedText>
+            </ThemedText>
+          </View>
+
+          {counts.lowStock > 0 && (
+            <>
+              <ThemedText style={styles.summaryDotSeparator}>•</ThemedText>
+              <View style={styles.badgeContainer}>
+                <Ionicons name="warning" size={12} color={Colors.light.secondary} />
+                <ThemedText style={styles.badgeText}>
+                  {counts.lowStock} {t("products:lowStock")}
+                </ThemedText>
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* Empty State */}
         {filteredProducts.length === 0 && !loading && !error && (
           <View style={styles.emptyState}>
-            <Ionicons name="cube-outline" size={48} color={Colors.light.textMuted} style={styles.emptyIcon} />
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="cube-outline" size={40} color={Colors.light.textMuted} />
+            </View>
             <ThemedText style={styles.emptyTitle}>{t("products:noProductsInList")}</ThemedText>
             <ThemedText style={styles.emptyDescription}>{t("products:description")}</ThemedText>
           </View>
         )}
 
-        {/* Summary Metric Strip - matches Stitch design */}
-        <View style={styles.summaryStrip}>
-          <View style={styles.summaryLeft}>
-            <ThemedText style={styles.summaryTitle}>{filteredProducts.length} {t("products:items")}</ThemedText>
-          </View>
-          <View style={styles.summaryCenter}>
-            <ThemedText style={styles.summaryValue}>{formatCentimes(totalInventoryValueCentimes, "fr-DZ")}</ThemedText>
-          </View>
-          <View style={styles.summaryRight}>
-            <View style={styles.badgeContainer}>
-              <ThemedText type="small" style={styles.badgeText}>
-                {lowStockCount} {t("products:lowStock")}
-              </ThemedText>
-            </View>
-          </View>
-        </View>
-
+        {/* Products List */}
         <View style={styles.listContainer}>
           {filteredProducts.map((product) => (
             <ProductListItem
@@ -164,6 +212,9 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
   },
+  topBarLeft: {
+    flex: 1,
+  },
   screenTitle: {
     ...Typography.heading1,
     color: Colors.light.textPrimary,
@@ -177,95 +228,105 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.light.primary,
-    height: 44,
-    paddingHorizontal: Spacing.md,
+    height: 40,
+    paddingHorizontal: 14,
     borderRadius: BorderRadius.button,
-    gap: Spacing.xs,
+    gap: 4,
     ...Shadows.sm,
   },
   addButtonText: {
     ...Typography.label,
     color: "#FFFFFF",
+    fontWeight: "600",
   },
   contentContainer: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: 80,
   },
   headerSection: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.xs,
   },
   summaryStrip: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.light.border,
-    ...Shadows.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: Colors.light.surfaceAlt,
+    borderRadius: BorderRadius.xl,
     marginBottom: Spacing.md,
+    gap: 8,
+    flexWrap: "wrap",
   },
   summaryLeft: {
-    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
-  summaryTitle: {
+  summaryDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.light.primary,
+  },
+  summaryItemsText: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
-    marginBottom: Spacing.xs,
+    fontWeight: "600",
+    color: Colors.light.textPrimary,
+  },
+  summaryDotSeparator: {
+    color: Colors.light.textMuted,
+    fontSize: 10,
   },
   summaryCenter: {
-    flex: 1,
-    textAlign: "center",
-    marginHorizontal: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  summaryValue: {
-    ...Typography.moneyDisplay,
-    color: Colors.light.primary,
-  },
-  summaryUnit: {
+  summaryValueLabel: {
     ...Typography.caption,
-    color: Colors.light.textMuted,
-    marginLeft: Spacing.xs,
+    color: Colors.light.textSecondary,
   },
-  summaryRight: {
-    flex: 1,
-    textAlign: "right",
+  summaryValueAmount: {
+    fontWeight: "700",
+    color: Colors.light.primary,
   },
   badgeContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.light.warningLight,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: BorderRadius.sm,
+    gap: 4,
   },
   badgeText: {
-    ...Typography.caption,
-    color: Colors.light.warning,
-    fontWeight: "600",
-    marginRight: Spacing.xs,
+    ...Typography.badge,
+    color: Colors.light.secondary,
   },
   emptyState: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 60,
   },
-  emptyIcon: {
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.light.surfaceAlt,
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: Spacing.md,
   },
   emptyTitle: {
     ...Typography.heading3,
-    color: Colors.light.textSecondary,
+    color: Colors.light.textPrimary,
     marginBottom: Spacing.xs,
     textAlign: "center",
   },
   emptyDescription: {
-    ...Typography.caption,
-    color: Colors.light.textMuted,
+    ...Typography.body,
+    color: Colors.light.textSecondary,
     textAlign: "center",
+    maxWidth: 280,
   },
   listContainer: {
     flex: 1,

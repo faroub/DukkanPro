@@ -1,11 +1,20 @@
+import React from "react";
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing, Typography, BorderRadius } from "@/constants/theme";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, ScrollView, View } from "react-native";
 
+interface FilterCounts {
+  all?: number;
+  lowStock?: number;
+  outOfStock?: number;
+  archived?: number;
+}
+
 interface ProductFilterTabsProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
+  counts?: FilterCounts;
 }
 
 const FILTER_OPTIONS = [
@@ -18,6 +27,7 @@ const FILTER_OPTIONS = [
 export function ProductFilterTabs({
   activeFilter,
   onFilterChange,
+  counts,
 }: ProductFilterTabsProps) {
   const { t } = useTranslation();
 
@@ -28,26 +38,26 @@ export function ProductFilterTabs({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {FILTER_OPTIONS.map((option) => (
-          <TouchableOpacity
-            key={option.key}
-            style={[
-              styles.tab,
-              activeFilter === option.key && styles.tabActive,
-            ]}
-            activeOpacity={0.7}
-            onPress={() => onFilterChange(option.key)}
-          >
-            <ThemedText
-              style={[
-                styles.tabText,
-                activeFilter === option.key && styles.tabTextActive,
-              ]}
+        {FILTER_OPTIONS.map((option) => {
+          const isActive = activeFilter === option.key;
+          const count = counts ? counts[option.key] : undefined;
+          const label = t(option.labelKey);
+
+          return (
+            <TouchableOpacity
+              key={option.key}
+              style={[styles.tab, isActive && styles.tabActive]}
+              activeOpacity={0.8}
+              onPress={() => onFilterChange(option.key)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
             >
-              {t(option.labelKey)}
-            </ThemedText>
-          </TouchableOpacity>
-        ))}
+              <ThemedText style={[styles.tabText, isActive && styles.tabTextActive]}>
+                {count !== undefined ? `${label} (${count})` : label}
+              </ThemedText>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -55,15 +65,15 @@ export function ProductFilterTabs({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   scrollContent: {
-    paddingRight: Spacing.lg,
+    paddingRight: Spacing.md,
     gap: Spacing.sm,
   },
   tab: {
-    paddingHorizontal: Spacing.lg,
-    height: 36,
+    paddingHorizontal: 14,
+    height: 34,
     borderRadius: BorderRadius.full,
     alignItems: "center",
     justifyContent: "center",
@@ -77,10 +87,13 @@ const styles = StyleSheet.create({
   },
   tabText: {
     ...Typography.label,
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.light.textSecondary,
+    fontWeight: "500",
   },
   tabTextActive: {
     color: "#FFFFFF",
+    fontWeight: "600",
   },
 });
+

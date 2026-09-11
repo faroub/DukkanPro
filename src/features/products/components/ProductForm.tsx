@@ -114,10 +114,10 @@ export function ProductForm({
 
   const marginHealth = useMemo(() => {
     if (saleDinars <= 0 && costDinars <= 0) return null;
-    if (profitDinars < 0) return { label: 'Loss', color: Colors.light.error, bg: Colors.light.errorLight };
-    if (marginPercentage < 15) return { label: 'Low Margin', color: Colors.light.secondary, bg: Colors.light.warningLight };
-    return { label: 'Healthy', color: Colors.light.primary, bg: Colors.light.primaryLight };
-  }, [saleDinars, costDinars, profitDinars, marginPercentage]);
+    if (profitDinars < 0) return { label: t('products:marginLoss', 'Loss'), color: Colors.light.error, bg: Colors.light.errorLight };
+    if (marginPercentage < 15) return { label: t('products:marginLow', 'Low Margin'), color: Colors.light.secondary, bg: Colors.light.warningLight };
+    return { label: t('products:marginHealthy', 'Healthy'), color: Colors.light.primary, bg: Colors.light.primaryLight };
+  }, [saleDinars, costDinars, profitDinars, marginPercentage, t]);
 
   const isNameValid = name.trim().length > 0;
 
@@ -237,7 +237,11 @@ export function ProductForm({
             </ThemedText>
             <View style={styles.badgeDraft}>
               <ThemedText style={styles.badgeDraftText}>
-                {mode === 'create' ? 'Active draft' : isActive ? 'Active' : 'Archived'}
+                {mode === 'create'
+                  ? t('products:activeDraft', 'Active draft')
+                  : isActive
+                  ? t('products:active', 'Active')
+                  : t('products:archivedBadge', 'Archived')}
               </ThemedText>
             </View>
           </View>
@@ -360,7 +364,9 @@ export function ProductForm({
               </ThemedText>
             </View>
             <View style={styles.badgeNeutral}>
-              <ThemedText style={styles.badgeNeutralText}>DZD Currency</ThemedText>
+              <ThemedText style={styles.badgeNeutralText}>
+                {t('products:dzdCurrency', 'DZD Currency')}
+              </ThemedText>
             </View>
           </View>
 
@@ -821,7 +827,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   badgeNeutral: {
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
@@ -916,7 +922,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: BorderRadius.full,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
   },
   categoryChipSelected: {
     backgroundColor: Colors.light.primary,
@@ -937,7 +943,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: BorderRadius.full,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
   },
   newCategoryChipText: {
     ...Typography.caption,
@@ -1013,7 +1019,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: BorderRadius.md,
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1052,7 +1058,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   currentStockCard: {
-    backgroundColor: '#F0F3FF',
+    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     gap: Spacing.sm,
