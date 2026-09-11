@@ -346,7 +346,7 @@ export default function ProductDetailScreen() {
           style={styles.adjustStockButton}
           onPress={() =>
             router.push({
-              pathname: '/products/stock-adjustment',
+              pathname: '/products/stock-adjustment' as any,
               params: {
                 productId: productId.toString(),
                 productName: product.name,
