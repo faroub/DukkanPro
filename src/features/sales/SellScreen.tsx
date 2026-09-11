@@ -313,12 +313,7 @@ export default function SellScreen() {
                       cartQty > 0 && styles.productCardInCart,
                     ]}
                   >
-                    <Pressable
-                      style={styles.productCardMainArea}
-                      onPress={() => addItemWithProduct(item, 1)}
-                      accessibilityLabel={`${item.name}, ${formatCentimes(item.sale_price_centimes)}`}
-                      accessibilityHint="Appuyer pour ajouter au panier"
-                    >
+                    <View style={styles.productCardMainArea}>
                       <View style={styles.productLeft}>
                         <View style={styles.productAvatar}>
                           <Text style={styles.productInitial}>
@@ -366,7 +361,7 @@ export default function SellScreen() {
                           )}
                         </View>
                       </View>
-                    </Pressable>
+                    </View>
 
                     <View style={styles.productRight}>
                       <Text style={styles.productPrice}>

@@ -1,336 +1,212 @@
-import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Colors, Spacing } from "@/constants/theme";
-import { exportCataloguePDF } from "@/services/catalogue/catalogueService";
-import { formatCentimes } from "@/utils/money";
-import * as Sharing from "expo-sharing";
-import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Colors } from "@/constants/theme";
+import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
+import { getAll as getAllProducts } from "@/database/repositories/productRepository";
+import { CataloguePreview } from "@/features/catalogue/components/CataloguePreview";
 import {
-    Alert,
-    FlatList,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
+    CatalogueSettings,
+    CatalogueSettingsData,
+} from "@/features/catalogue/components/CatalogueSettings";
+import {
+    ProductSelector,
+    SelectorProductItem,
+} from "@/features/catalogue/components/ProductSelector";
+import { CatalogueProduct } from "@/services/catalogue/catalogueService";
+import { useRouter } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
+import { StyleSheet } from "react-native";
+
+type CatalogueStep = "settings" | "selector" | "preview";
+
+const DEFAULT_SAMPLE_PRODUCTS: SelectorProductItem[] = [
+  {
+    id: 1,
+    name: "Lait Candia 1L",
+    category: "Dairy & Fresh",
+    price_centimes: 14000,
+    stock: 24,
+  },
+  {
+    id: 2,
+    name: "Café Moulu Familico 250g",
+    category: "Groceries",
+    price_centimes: 32000,
+    stock: 15,
+  },
+  {
+    id: 3,
+    name: "Huile Végétale Elio 2L",
+    category: "Cooking Oil",
+    price_centimes: 34000,
+    stock: 12,
+  },
+  {
+    id: 4,
+    name: "Couscous Dari 1kg",
+    category: "Pantry",
+    price_centimes: 14000,
+    stock: 30,
+  },
+  {
+    id: 5,
+    name: "Pain Baguette Blanche",
+    category: "Bakery",
+    price_centimes: 1500,
+    stock: 40,
+  },
+  {
+    id: 6,
+    name: "Eau Minérale Ifri 1.5L",
+    category: "Beverages",
+    price_centimes: 4500,
+    stock: 0,
+  },
+  {
+    id: 7,
+    name: "Sucre Blanc Cristallisé 1kg",
+    category: "Pantry",
+    price_centimes: 9500,
+    stock: 18,
+  },
+];
 
 export function CatalogueScreen() {
-  const { t } = useTranslation();
-  const [settings, setSettings] = useState({
+  const router = useRouter();
+  const [step, setStep] = useState<CatalogueStep>("settings");
+
+  const [settings, setSettings] = useState<CatalogueSettingsData>({
     showPrices: true,
     hideOutOfStock: true,
-    contact: "",
-    address: "",
+    shopName: "Supérette El-Amel",
+    contact: "+213 550 12 34 56",
+    address: "Rue Didouche Mourad, Alger Centre",
+    welcomeNote: "Commandes par WhatsApp acceptées • Retrait rapide au comptoir",
   });
-  const [products, setProducts] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sharing, setSharing] = useState(false);
 
-  const loadCatalogue = async () => {
-    // In a full implementation, this would load from database/settings
-    // For now, use default data
-    const defaultProducts = [
-      {
-        id: 1,
-        name: "Wheat Bread",
-        category: "Bakery",
-        price_centimes: 500,
-        stock: 10,
-      },
-      { id: 2, name: "Milk", category: "Dairy", price_centimes: 300, stock: 0 },
-      {
-        id: 3,
-        name: "Olive Oil",
-        category: "Oils",
-        price_centimes: 800,
-        stock: 5,
-      },
-    ];
-    setProducts(defaultProducts);
-  };
+  const [products, setProducts] = useState<SelectorProductItem[]>(DEFAULT_SAMPLE_PRODUCTS);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
+    new Set(DEFAULT_SAMPLE_PRODUCTS.map((p) => p.id)),
+  );
 
-  // Load products and settings on mount
+  // Load business profile and active products on mount
   useEffect(() => {
-    loadCatalogue();
+    let isMounted = true;
+
+    async function loadData() {
+      try {
+        // Load business profile if available
+        const profile = await getBusinessProfile();
+        if (isMounted && profile?.business_name) {
+          setSettings((prev) => ({
+            ...prev,
+            shopName: profile.business_name || prev.shopName,
+          }));
+        }
+
+        // Load active products from DB
+        const dbProducts = await getAllProducts({ is_active: true });
+        if (isMounted && dbProducts && dbProducts.length > 0) {
+          const mapped: SelectorProductItem[] = dbProducts.map((p) => ({
+            id: p.id,
+            name: p.name,
+            category: p.category || "Général",
+            price_centimes: p.sale_price_centimes,
+            stock: p.stock_quantity,
+          }));
+          setProducts(mapped);
+          setSelectedProductIds(new Set(mapped.map((p) => p.id)));
+        }
+      } catch {
+        // Keep default sample products if error occurs
+      }
+    }
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleSettingChange = (key: string, value: any) => {
-    setSettings({ ...settings, [key]: value });
+  const handleSettingChange = <K extends keyof CatalogueSettingsData>(
+    key: K,
+    value: CatalogueSettingsData[K],
+  ) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
+  const handleToggleProduct = (productId: number) => {
+    setSelectedProductIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(productId)) {
+        next.delete(productId);
+      } else {
+        next.add(productId);
+      }
+      return next;
+    });
   };
 
-  const captionColorShow = "#1B6B3A";
-  const captionColorHide = "#666";
-
-  const filteredProducts = products.filter((p: any) => {
-    const matchesSearch =
-      !searchQuery ||
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStock = !settings.hideOutOfStock || p.stock > 0;
-    return matchesSearch && matchesStock;
-  });
-
-  const handleShare = async () => {
-    try {
-      const result = await exportCataloguePDF(
-        {
-          showPrices: settings.showPrices,
-          hideOutOfStock: settings.hideOutOfStock,
-          contact: settings.contact,
-          address: settings.address,
-        },
-        t,
-      );
-      Alert.alert(t("catalogue.share"), result.text);
-      setSharing(false);
-    } catch (err) {
-      Alert.alert(t("common.error"), t("catalogue.share_failed"));
-      setSharing(false);
-    }
+  const handleSelectAll = () => {
+    setSelectedProductIds(new Set(products.map((p) => p.id)));
   };
+
+  const handleDeselectAll = () => {
+    setSelectedProductIds(new Set());
+  };
+
+  // Selected products for preview (strictly public data)
+  const selectedProductsForPreview: CatalogueProduct[] = useMemo(() => {
+    return products
+      .filter((p) => selectedProductIds.has(p.id))
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        price_centimes: p.price_centimes,
+        stock: p.stock,
+      }));
+  }, [products, selectedProductIds]);
 
   return (
-    <ScrollView
-      contentContainerStyle={{ padding: Spacing.lg, backgroundColor: Colors.light.background }}
-    >
-      <ThemedView type="background" style={{ marginBottom: 16 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <ThemedText type="heading" style={{ flex: 1 }}>
-            {t("catalogue.catalogue")}
-          </ThemedText>
-        </View>
-      </ThemedView>
-
-      {/* Settings Section */}
-      <ThemedView type="background" style={{ marginBottom: 16, padding: 12 }}>
-        <ThemedText type="heading" style={{ fontSize: 18, marginBottom: 12 }}>
-          {t("catalogue.settings")}
-        </ThemedText>
-
-        {/* Show prices toggle */}
-        <View style={{ marginBottom: 8 }}>
-          <ThemedText type="body" style={{ marginBottom: 4 }}>
-            {t("catalogue.show_prices")}
-          </ThemedText>
-          <TouchableOpacity
-            onPress={() =>
-              handleSettingChange("showPrices", !settings.showPrices)
-            }
-            style={[
-              styles.toggleButton,
-              settings.showPrices && styles.toggleButtonActive,
-            ]}
-          >
-            <ThemedText
-              type="body"
-              style={{ color: settings.showPrices ? Colors.light.primary : Colors.light.textSecondary }}
-            >
-              {t(settings.showPrices ? "yes" : "no")}
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-
-        {/* Hide out-of-stock toggle */}
-        <View style={{ marginBottom: 8 }}>
-          <ThemedText type="body" style={{ marginBottom: 4 }}>
-            {t("catalogue.hide_out_of_stock")}
-          </ThemedText>
-          <TouchableOpacity
-            onPress={() =>
-              handleSettingChange("hideOutOfStock", !settings.hideOutOfStock)
-            }
-            style={[
-              styles.toggleButton,
-              settings.hideOutOfStock && styles.toggleButtonActive,
-            ]}
-          >
-            <ThemedText
-              type="body"
-              style={{ color: settings.hideOutOfStock ? Colors.light.primary : Colors.light.textSecondary }}
-            >
-              {t(settings.hideOutOfStock ? "yes" : "no")}
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-
-        {/* Contact text */}
-        <View style={{ marginBottom: 8 }}>
-          <ThemedText type="body" style={{ marginBottom: 4 }}>
-            {t("catalogue.contact")}
-          </ThemedText>
-          <TextInput
-            placeholder={t("catalogue.enter_contact")}
-            value={settings.contact}
-            onChangeText={(text) => handleSettingChange("contact", text)}
-            style={styles.input}
-          />
-          {settings.contact && (
-            <ThemedText type="caption" style={{ color: Colors.light.textSecondary }}>
-              {settings.contact}
-            </ThemedText>
-          )}
-        </View>
-
-        {/* Address text */}
-        <View style={{ marginBottom: 8 }}>
-          <ThemedText type="body" style={{ marginBottom: 4 }}>
-            {t("catalogue.address")}
-          </ThemedText>
-          <TextInput
-            placeholder={t("catalogue.enter_address")}
-            value={settings.address}
-            onChangeText={(text) => handleSettingChange("address", text)}
-            style={styles.input}
-          />
-          {settings.address && (
-            <ThemedText type="caption" style={{ color: Colors.light.textSecondary }}>
-              {settings.address}
-            </ThemedText>
-          )}
-        </View>
-      </ThemedView>
-
-      {/* Product Selection Section */}
-      <ThemedView type="background" style={{ marginBottom: 16, padding: 12 }}>
-        <ThemedText type="heading" style={{ fontSize: 18, marginBottom: 12 }}>
-          {t("catalogue.select_products")}
-        </ThemedText>
-
-        <View style={{ marginBottom: 8 }}>
-          <TextInput
-            placeholder={t("catalogue.search_products")}
-            value={searchQuery}
-            onChangeText={handleSearch}
-            style={styles.input}
-          />
-        </View>
-
-        <FlatList
-          data={filteredProducts}
-          keyExtractor={(item: any) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                padding: 8,
-                marginBottom: 4,
-                backgroundColor: Colors.light.surface,
-                borderRadius: 8,
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <ThemedText type="body">
-                  {item.name} - {item.category}
-                </ThemedText>
-              </View>
-              <ThemedText
-                type="body"
-                style={{
-                  color:
-                    item.stock > 0 || !settings.hideOutOfStock
-                      ? "#1B6B3A"
-                      : "#666",
-                }}
-              >
-                {item.stock > 0
-                  ? t("catalogue.available")
-                  : t("catalogue.out_of_stock")}
-              </ThemedText>
-              {settings.showPrices && (
-                <ThemedText type="body" style={{ color: "#1B6B3A" }}>
-                  {formatCentimes(item.price_centimes)}
-                </ThemedText>
-              )}
-            </View>
-          )}
+    <ThemedView style={styles.screen} id="catalogue-root">
+      {step === "settings" && (
+        <CatalogueSettings
+          settings={settings}
+          onSettingChange={handleSettingChange}
+          onProceedToSelector={() => setStep("selector")}
+          onBack={() => router.back()}
         />
-
-        {/* Share button */}
-        <TouchableOpacity
-          onPress={() => setSharing(true)}
-          style={styles.shareButton}
-        >
-          <ThemedText type="body" style={{ color: "#1B6B3A" }}>
-            {t("catalogue.share")}
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-
-      {/* Share Modal */}
-      {sharing && (
-        <Modal visible={true} transparent={true}>
-          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}>
-            <View
-              style={{
-                margin: 20,
-                backgroundColor: Colors.light.surface,
-                borderRadius: 12,
-                padding: 20,
-              }}
-            >
-              <ThemedText
-                type="heading"
-                style={{ marginBottom: 12, textAlign: "center" }}
-              >
-                {t("catalogue.sharing")}
-              </ThemedText>
-              <ThemedText
-                type="body"
-                style={{ textAlign: "center", marginBottom: 12 }}
-              >
-                {t("catalogue.sharing_catalogue")}
-              </ThemedText>
-              <TouchableOpacity
-                onPress={() => setSharing(false)}
-                style={{ alignSelf: "flex-end", marginTop: 12 }}
-              >
-                <ThemedText type="body">{t("common.close")}</ThemedText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       )}
-    </ScrollView>
+
+      {step === "selector" && (
+        <ProductSelector
+          products={products}
+          selectedProductIds={selectedProductIds}
+          onToggleProduct={handleToggleProduct}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          showPrices={settings.showPrices}
+          hideOutOfStock={settings.hideOutOfStock}
+          onProceedToPreview={() => setStep("preview")}
+          onBack={() => setStep("settings")}
+        />
+      )}
+
+      {step === "preview" && (
+        <CataloguePreview
+          products={selectedProductsForPreview}
+          settings={settings}
+          onEditSelection={() => setStep("selector")}
+          onBack={() => setStep("selector")}
+        />
+      )}
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  toggleButton: {
-    padding: 6,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 20,
-    backgroundColor: Colors.light.surface,
-  },
-  toggleButtonActive: {
-    borderColor: Colors.light.primary,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
-  },
-  shareButton: {
-    padding: 12,
-    backgroundColor: "#1B6B3A",
-    borderRadius: 8,
-    marginTop: 8,
+  screen: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
   },
 });

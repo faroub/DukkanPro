@@ -2,8 +2,6 @@ import ar from '../ar';
 import en from '../en';
 import fr from '../fr';
 
-const CATALOGUE_SECTION = 'catalogue';
-
 describe('Catalogue Privacy', () => {
   // Verify that catalogue section exists in all languages (same as translations.test.ts)
   it('should have catalogue section in all languages', () => {
