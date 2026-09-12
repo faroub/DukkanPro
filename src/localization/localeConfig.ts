@@ -84,7 +84,7 @@ export function getCurrentDeviceLocale(): Locale {
  */
 export function getFormattedLocale(locale: Locale): string {
   const mapping: Record<Locale, string> = {
-    ar: "ar-DZ",
+    ar: "ar-DZ-u-nu-latn",
     fr: "fr-DZ",
     en: "en-DZ",
   };
@@ -133,12 +133,19 @@ export function parseStoredLocale(
 }
 
 /**
- * Store the selected locale in SQLite
+ * Store the selected locale in SQLite & localStorage
  * Used by the merchant to override device locale
  */
 export async function storeLocaleInAsyncStorage(
   locale: Locale,
 ): Promise<void> {
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.setItem("dukkan_locale", locale);
+    } catch (e) {
+      // Ignore
+    }
+  }
   try {
     await executeWrite(
       `INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
@@ -154,11 +161,21 @@ export async function storeLocaleInAsyncStorage(
 }
 
 /**
- * Read the selected locale from SQLite
+ * Read the selected locale from localStorage or SQLite
  * Used by the merchant to override device locale
  * Returns the default French locale if nothing is stored
  */
 export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      const stored = window.localStorage.getItem("dukkan_locale");
+      if (stored && isSupportedLocale(stored)) {
+        return stored as Locale;
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
   try {
     const rows: any[] = await executeRead(
       `SELECT value FROM app_settings WHERE key = ?`,

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -13,7 +13,8 @@ import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
-import { recordPayment } from "@/services/customers/customerBalanceService";
+import { recordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
+import { getById as getCustomerById } from "@/database/repositories/customerRepository";
 import { formatCentimes } from "@/utils/money";
 
 interface RecordPaymentScreenProps {
@@ -24,11 +25,28 @@ interface RecordPaymentScreenProps {
 
 export function RecordPaymentScreen({
   customerId,
-  customerName,
-  currentDebt,
+  customerName: initialCustomerName,
+  currentDebt: initialCurrentDebt,
 }: RecordPaymentScreenProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+
+  const [customerName, setCustomerName] = useState(initialCustomerName || "");
+  const [currentDebt, setCurrentDebt] = useState(initialCurrentDebt || 0);
+
+  useEffect(() => {
+    if (customerId && (!customerName || currentDebt === 0)) {
+      Promise.all([getCustomerById(customerId), getCustomerDebt(customerId)]).then(
+        ([cust, debt]) => {
+          if (cust) setCustomerName(cust.name);
+          if (debt !== undefined) {
+            setCurrentDebt(debt);
+            setAmountInput(String(Math.round(debt / 100)));
+          }
+        }
+      );
+    }
+  }, [customerId]);
 
   // Debt in Dinars (1 Dinar = 100 centimes)
   const debtDinars = Math.round(currentDebt / 100);

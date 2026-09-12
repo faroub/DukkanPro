@@ -22,36 +22,40 @@ interface ProductFormProps {
 export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, locale = "fr" }: ProductFormProps) {
   const { t } = useTranslation();
   const [form, setForm] = useState({
-    name: '',
-    sku: '',
-    category: '',
-    sale_price_centimes: 0,
-    cost_price_centimes: 0,
-    stock_quantity: mode === 'create' ? 0 : (initialProduct?.stock_quantity || 0),
-    minimum_stock_quantity: mode === 'create' ? 0 : (initialProduct?.minimum_stock_quantity || 0),
-    unit: 'pcs',
-    is_active: true,
+    name: initialProduct?.name || '',
+    sku: initialProduct?.sku || '',
+    category: initialProduct?.category || '',
+    sale_price_centimes: initialProduct?.sale_price_centimes || 0,
+    cost_price_centimes: initialProduct?.cost_price_centimes || 0,
+    stock_quantity: mode === 'create' ? (initialProduct?.stock_quantity || 0) : (initialProduct?.stock_quantity || 0),
+    minimum_stock_quantity: mode === 'create' ? (initialProduct?.minimum_stock_quantity || 0) : (initialProduct?.minimum_stock_quantity || 0),
+    unit: initialProduct?.unit || 'pcs',
+    is_active: initialProduct?.is_active ?? true,
     id: mode === 'edit' ? (initialProduct?.id || undefined) : undefined,
   });
   const [submitting, setSubmitting] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // For edit mode, load initial product data
+  // Load initial product data when provided asynchronously
   useEffect(() => {
-    if (mode === 'edit' && initialProduct) {
-      setForm({
-        name: initialProduct.name,
-        sku: initialProduct.sku || '',
-        category: initialProduct.category || '',
-        sale_price_centimes: initialProduct.sale_price_centimes,
-        cost_price_centimes: initialProduct.cost_price_centimes,
-        stock_quantity: initialProduct.stock_quantity,
-        minimum_stock_quantity: initialProduct.minimum_stock_quantity,
-        unit: initialProduct.unit || 'pcs',
-        is_active: initialProduct.is_active,
-        id: initialProduct.id,
-      });
+    if (initialProduct) {
+      const timer = setTimeout(() => {
+        setForm((prev) => ({
+          ...prev,
+          name: initialProduct.name ?? prev.name,
+          sku: initialProduct.sku ?? prev.sku,
+          category: initialProduct.category ?? prev.category,
+          sale_price_centimes: initialProduct.sale_price_centimes ?? prev.sale_price_centimes,
+          cost_price_centimes: initialProduct.cost_price_centimes ?? prev.cost_price_centimes,
+          stock_quantity: initialProduct.stock_quantity ?? prev.stock_quantity,
+          minimum_stock_quantity: initialProduct.minimum_stock_quantity ?? prev.minimum_stock_quantity,
+          unit: initialProduct.unit ?? prev.unit,
+          is_active: initialProduct.is_active ?? prev.is_active,
+          id: initialProduct.id ?? prev.id,
+        }));
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [mode, initialProduct]);
 

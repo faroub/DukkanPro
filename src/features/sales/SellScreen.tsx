@@ -32,9 +32,11 @@ import { useProducts } from "@/hooks/useProducts";
 import { useCartStoreHook } from "@/stores/cartStore";
 import { Product } from "@/types/entities";
 import { formatCentimes } from "@/utils/money";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 export default function SellScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { products, loading } = useProducts({ is_active: true });
   const {
@@ -94,13 +96,22 @@ export default function SellScreen() {
     return products.slice(0, 6);
   }, [products]);
 
-  const handleBarcodeScanned = (code: string) => {
-    setScannerVisible(false);
-    const match = products.find((p) => p.sku === code);
-    if (match) {
-      addItemWithProduct(match, 1);
+  const handleBarcodeScanned = (code: string, matchedProduct?: Product) => {
+    const cleanCode = code.trim();
+    const productToAdd =
+      matchedProduct ||
+      products.find((p) => {
+        if (!p.sku) return false;
+        const s = p.sku.trim().toLowerCase();
+        const c = cleanCode.toLowerCase();
+        return s === c || (s.replace(/^0+/, "") !== "" && s.replace(/^0+/, "") === c.replace(/^0+/, ""));
+      });
+
+    if (productToAdd) {
+      addItemWithProduct(productToAdd, 1);
     } else {
-      setSearchQuery(code);
+      setSearchQuery(cleanCode);
+      setScannerVisible(false);
     }
   };
 
@@ -597,8 +608,20 @@ export default function SellScreen() {
         {scannerVisible && (
           <BarcodeScannerModal
             visible={scannerVisible}
+            products={products}
             onScan={handleBarcodeScanned}
             onClose={() => setScannerVisible(false)}
+            onNavigateToCreateProduct={(sku) => {
+              setScannerVisible(false);
+              router.push({
+                pathname: "/products/new" as any,
+                params: { sku },
+              });
+            }}
+            onSearchInCatalog={(code) => {
+              setScannerVisible(false);
+              setSearchQuery(code);
+            }}
           />
         )}
       </ThemedView>

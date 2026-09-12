@@ -15,6 +15,7 @@ export interface ProductFormScreenProps {
   navigation?: any;
   onClose?: () => void;
   mode?: 'create' | 'edit';
+  productId?: number;
 }
 
 export function ProductFormScreen({
@@ -22,6 +23,7 @@ export function ProductFormScreen({
   navigation,
   onClose,
   mode: propMode,
+  productId: propProductId,
 }: ProductFormScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -31,7 +33,7 @@ export function ProductFormScreen({
   const params = route?.params ?? routerRoute?.params ?? localParams ?? {};
   const currentNavigation = navigation ?? defaultNavigation;
 
-  const productId = params?.id ? Number(params.id) : undefined;
+  const productId = propProductId ?? (params?.id ? Number(params.id) : undefined);
   const mode = propMode ?? (productId ? 'edit' : 'create');
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -158,6 +160,23 @@ export function ProductFormScreen({
     <ProductForm
       mode={mode}
       productId={productId}
+      initialProduct={
+        product
+          ? {
+              name: product.name,
+              sku: product.sku,
+              category: product.category,
+              sale_price_centimes: product.sale_price_centimes,
+              cost_price_centimes: product.cost_price_centimes,
+              stock_quantity: product.stock_quantity,
+              minimum_stock_quantity: product.minimum_stock_quantity,
+              unit: product.unit,
+              is_active: product.is_active,
+            }
+          : params?.sku
+            ? { sku: params.sku }
+            : undefined
+      }
       initialValues={
         product
           ? {
@@ -171,7 +190,9 @@ export function ProductFormScreen({
               unit: product.unit,
               is_active: product.is_active,
             }
-          : undefined
+          : params?.sku
+            ? { sku: params.sku }
+            : undefined
       }
       onSave={handleSave}
       onClose={handleClose}
