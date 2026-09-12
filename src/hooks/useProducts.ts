@@ -68,8 +68,43 @@ export function useProducts(filters: ProductsFilters = {}) {
   }, [loadProducts]);
 
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    let isMounted = true;
+
+    async function fetchInitialProducts() {
+      try {
+        let allProducts: Product[];
+
+        if (searchQuery) {
+          allProducts = await search(searchQuery, { is_active });
+        } else {
+          allProducts = await getAll({ is_active });
+        }
+
+        const transformed = allProducts.map((product) => ({
+          ...product,
+          lowStock: product.stock_quantity <= product.minimum_stock_quantity,
+          outOfStock: product.stock_quantity === 0,
+        }));
+
+        if (isMounted) {
+          setProducts(transformed);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : "Failed to load products");
+          setProducts([]);
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchInitialProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchQuery, is_active]);
 
   return {
     products,

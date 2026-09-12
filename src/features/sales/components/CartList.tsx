@@ -60,10 +60,12 @@ export function CartList({
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <ThemedText style={styles.headerTitle}>Panier actif</ThemedText>
+          <ThemedText style={styles.headerTitle}>
+            {t("sell.activeCart", { defaultValue: "Panier actif" })}
+          </ThemedText>
           <View style={styles.countBadge}>
             <Text style={styles.countBadgeText}>
-              {totalCount} {totalCount === 1 ? "article" : "articles"}
+              {totalCount} {t("products:items", { count: totalCount, defaultValue: totalCount === 1 ? "article" : "articles" })}
             </Text>
           </View>
         </View>
@@ -102,7 +104,9 @@ export function CartList({
             {/* Price Summary Card */}
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>Sous-total</ThemedText>
+                <ThemedText style={styles.summaryLabel}>
+                  {t("receipt.subtotal", { defaultValue: "Sous-total" })}
+                </ThemedText>
                 <ThemedText style={styles.summaryValue}>
                   {formatCentimes(subtotal)}
                 </ThemedText>
@@ -110,7 +114,9 @@ export function CartList({
 
               {discount > 0 && (
                 <View style={styles.summaryRow}>
-                  <ThemedText style={styles.summaryLabel}>Remise</ThemedText>
+                  <ThemedText style={styles.summaryLabel}>
+                    {t("receipt.discount", { defaultValue: "Remise" })}
+                  </ThemedText>
                   <ThemedText style={[styles.summaryValue, styles.discountText]}>
                     -{formatCentimes(discount)}
                   </ThemedText>
@@ -120,7 +126,9 @@ export function CartList({
               <View style={styles.divider} />
 
               <View style={[styles.summaryRow, styles.totalRow]}>
-                <ThemedText style={styles.totalLabel}>Total net à payer</ThemedText>
+                <ThemedText style={styles.totalLabel}>
+                  {t("receipt.grand_total", { defaultValue: "Total net à payer" })}
+                </ThemedText>
                 <ThemedText style={styles.totalValue}>
                   {formatCentimes(total)}
                 </ThemedText>
@@ -129,7 +137,9 @@ export function CartList({
 
             {/* Payment Method Selection */}
             <View style={styles.paymentMethodSection}>
-              <ThemedText style={styles.paymentLabel}>Mode de règlement</ThemedText>
+              <ThemedText style={styles.paymentLabel}>
+                {t("receipt.payment_method", { defaultValue: "Mode de règlement" })}
+              </ThemedText>
               <View style={styles.paymentGrid}>
                 {/* Cash option */}
                 <Pressable
@@ -155,8 +165,12 @@ export function CartList({
                     />
                   </View>
                   <View style={styles.paymentDetails}>
-                    <ThemedText style={styles.paymentLabelText}>Espèces</ThemedText>
-                    <ThemedText style={styles.paymentSubLabel}>Règlement direct au comptoir</ThemedText>
+                    <ThemedText style={styles.paymentLabelText}>
+                      {t("receipt.cash", { defaultValue: "Espèces" })}
+                    </ThemedText>
+                    <ThemedText style={styles.paymentSubLabel}>
+                      {t("sell.payment_cash", { defaultValue: "نقد / كاش" })}
+                    </ThemedText>
                   </View>
                   <View style={styles.paymentRadio}>
                     <SymbolView
@@ -195,8 +209,12 @@ export function CartList({
                     />
                   </View>
                   <View style={styles.paymentDetails}>
-                    <ThemedText style={styles.paymentLabelText}>Carte / CIB</ThemedText>
-                    <ThemedText style={styles.paymentSubLabel}>Terminal TPE ou code QR</ThemedText>
+                    <ThemedText style={styles.paymentLabelText}>
+                      {t("receipt.electronic", { defaultValue: "Carte / CIB" })}
+                    </ThemedText>
+                    <ThemedText style={styles.paymentSubLabel}>
+                      {t("sell.payment_electronic", { defaultValue: "بطاقة ذهبية / بنكية" })}
+                    </ThemedText>
                   </View>
                   <View style={styles.paymentRadio}>
                     <SymbolView
@@ -235,8 +253,12 @@ export function CartList({
                     />
                   </View>
                   <View style={styles.paymentDetails}>
-                    <ThemedText style={styles.paymentLabelText}>Dette (Carnet)</ThemedText>
-                    <ThemedText style={styles.paymentSubLabel}>Porté au solde du client</ThemedText>
+                    <ThemedText style={styles.paymentLabelText}>
+                      {t("receipt.credit", { defaultValue: "Dette (Carnet)" })}
+                    </ThemedText>
+                    <ThemedText style={styles.paymentSubLabel}>
+                      {t("sell.payment_credit", { defaultValue: "دفتر ديون" })}
+                    </ThemedText>
                   </View>
                   <View style={styles.paymentRadio}>
                     <SymbolView
@@ -257,7 +279,7 @@ export function CartList({
             <View style={styles.actionButtons}>
               {onCheckout && (
                 <PrimaryButton
-                  title={`Payer • ${formatCentimes(total)}`}
+                  title={`${t("sales:pay", { defaultValue: "Payer" })} • ${formatCentimes(total)}`}
                   onPress={onCheckout}
                 />
               )}
@@ -271,7 +293,7 @@ export function CartList({
                   }
                 }}
                 style={styles.clearBtn}
-                accessibilityLabel="Clear cart"
+                accessibilityLabel={t("sell.clearCart", { defaultValue: "Vider le panier" })}
               >
                 <SymbolView
                   name={{
@@ -282,7 +304,9 @@ export function CartList({
                   size={16}
                   tintColor={Colors.light.destructive}
                 />
-                <Text style={styles.clearBtnText}>Vider le panier</Text>
+                <Text style={styles.clearBtnText}>
+                  {t("sell.clearCart", { defaultValue: "Vider le panier" })}
+                </Text>
               </Pressable>
             </View>
           </View>

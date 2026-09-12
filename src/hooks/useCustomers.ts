@@ -8,10 +8,9 @@
  * - Loading and error state management
  * - Persisted via SQLite
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   getAll,
-  getById,
   search as customerSearch,
 } from "@/database/repositories/customerRepository";
 import { getCustomerDebt } from "@/services/customers/customerBalanceService";
@@ -138,6 +137,59 @@ export function useCustomers(filters: CustomersFilters = {}) {
   const reload = useCallback(() => {
     loadCustomers();
   }, [loadCustomers]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchInitialData() {
+      try {
+        let allCustomers: Customer[];
+        if (onlyActive) {
+          allCustomers = await getAll({ is_active: true });
+        } else {
+          allCustomers = await getAll({ is_active: undefined });
+        }
+
+        const transformed: CustomerListItem[] = await Promise.all(
+          allCustomers.map(async (customer) => {
+            try {
+              const debt = await getCustomerDebt(customer.id);
+              return {
+                ...customer,
+                hasDebt: debt > 0,
+                outstandingBalance: debt,
+              };
+            } catch {
+              return {
+                ...customer,
+                hasDebt: false,
+                outstandingBalance: 0,
+              };
+            }
+          }),
+        );
+
+        if (isMounted) {
+          setCustomers(transformed);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load customers",
+          );
+          setCustomers([]);
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchInitialData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [onlyActive]);
 
   return {
     customers,

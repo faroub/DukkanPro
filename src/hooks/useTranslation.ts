@@ -49,26 +49,14 @@ export interface UseTranslationReturn {
 export function useTranslation(): UseTranslationReturn {
   const { t, i18n: reactI18n, ready } = useReactTranslation();
 
-  const [locale, setLocale] = useState<Locale>("fr");
-
-  // Sync locale with i18n on mount and changes
-  useEffect(() => {
-    // Set the initial locale from i18n
-    const currentLng = i18n.language as Locale | null;
-    if (currentLng && currentLng !== "fr") {
-      setLocale(currentLng);
-    }
-  }, [i18n.language]);
+  const [locale, setLocale] = useState<Locale>(
+    (i18n.language as Locale) || "fr"
+  );
 
   // Update locale when i18n language changes
   useEffect(() => {
-    const handleLanguageChange = () => {
-      const lng = i18n.language as Locale | null;
-      if (lng && lng !== "fr") {
-        setLocale(lng);
-      } else {
-        setLocale("fr");
-      }
+    const handleLanguageChange = (lng: string) => {
+      setLocale((lng as Locale) || "fr");
     };
 
     // Subscribe to locale changes from the i18n instance
@@ -77,7 +65,7 @@ export function useTranslation(): UseTranslationReturn {
     return () => {
       i18n.off("languageChanged", handleLanguageChange);
     };
-  }, [i18n]);
+  }, []);
 
   /**
    * Typed t function that accepts a translation key and optional interpolation

@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -20,16 +20,15 @@ import {
   Spacing,
   Typography,
 } from "@/constants/theme";
-import i18n from "@/localization/i18n";
+import { changeLocale } from "@/localization/i18n";
 
 interface LanguageOption {
   code: "ar" | "fr" | "en";
   shortLabel: string;
   name: string;
   subname: string;
-  description: string;
-  isDefault?: boolean;
-  toastMsg: string;
+  descriptionKey: string;
+  toastMsgKey: string;
 }
 
 const LANGUAGES: LanguageOption[] = [
@@ -38,25 +37,24 @@ const LANGUAGES: LanguageOption[] = [
     shortLabel: "ع",
     name: "العربية",
     subname: "(Arabic)",
-    description: "العربية الفصحى (جزائر)",
-    toastMsg: "تم تحديث اللغة بنجاح",
+    descriptionKey: "settings.arabic",
+    toastMsgKey: "common.success",
   },
   {
     code: "fr",
     shortLabel: "FR",
     name: "Français",
     subname: "(French)",
-    description: "Français (Courant)",
-    isDefault: true,
-    toastMsg: "Langue mise à jour immédiatement",
+    descriptionKey: "settings.french",
+    toastMsgKey: "common.success",
   },
   {
     code: "en",
     shortLabel: "EN",
     name: "English",
-    subname: "(International)",
-    description: "English (International Standard)",
-    toastMsg: "Language updated successfully",
+    subname: "(English)",
+    descriptionKey: "settings.english",
+    toastMsgKey: "common.success",
   },
 ];
 
@@ -68,14 +66,32 @@ const LANGUAGES: LanguageOption[] = [
  * - Cultural framing card, zero-downtime card, and ergonomic counter usability explanation
  */
 export function LanguageSettingsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
-  const currentLanguage = i18n.language || "fr";
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language || "fr");
+
+  useEffect(() => {
+    const onLangChange = (lng: string) => {
+      setCurrentLanguage(lng);
+    };
+    setCurrentLanguage(i18n.language || "fr");
+    i18n.on("languageChanged", onLangChange);
+    return () => {
+      i18n.off("languageChanged", onLangChange);
+    };
+  }, [i18n]);
 
   const handleSelectLanguage = useCallback(
     (lang: LanguageOption) => {
-      i18n.changeLanguage(lang.code);
-      showToast(lang.toastMsg);
+      changeLocale(lang.code);
+      setCurrentLanguage(lang.code);
+      const toastText =
+        lang.code === "ar"
+          ? "تم تغيير لغة العرض إلى العربية بنجاح"
+          : lang.code === "fr"
+            ? "Langue changée en français avec succès"
+            : "Language changed to English successfully";
+      showToast(toastText);
     },
     []
   );
@@ -94,7 +110,7 @@ export function LanguageSettingsScreen() {
         >
           <MaterialIcons name="arrow-back" size={18} color={Colors.light.textSecondary} />
           <ThemedText style={styles.breadcrumbText}>
-            {t("navigation.back") || "Back to More"}
+            {t("navigation.back") || t("common.back") || "Back"}
           </ThemedText>
         </TouchableOpacity>
 
@@ -102,13 +118,16 @@ export function LanguageSettingsScreen() {
         <View style={styles.headerSection}>
           <View style={styles.badgeRow}>
             <MaterialIcons name="translate" size={18} color={Colors.light.primary} />
-            <ThemedText style={styles.badgeText}>Locale & Display</ThemedText>
+            <ThemedText style={styles.badgeText}>
+              {t("settings.localeAndDisplay") || "Locale & Display"}
+            </ThemedText>
           </View>
           <ThemedText style={styles.headingTitle}>
-            {"App Language / Langue de l'application"}
+            {t("settings.appLanguageTitle") || "App Language"}
           </ThemedText>
           <ThemedText style={styles.headingSubtitle}>
-            Choose the display language for Dukkan OS interface, cash-register screens, and printed customer receipts.
+            {t("settings.appLanguageSubtitle") ||
+              "Choose the display language for Dukkan OS interface, cash-register screens, and printed customer receipts."}
           </ThemedText>
         </View>
 
@@ -118,13 +137,18 @@ export function LanguageSettingsScreen() {
             <MaterialIcons name="receipt-long" size={24} color={Colors.light.primary} />
           </View>
           <View style={styles.framingContent}>
-            <ThemedText style={styles.framingTitle}>Fast Bilingual POS Sync</ThemedText>
+            <ThemedText style={styles.framingTitle}>
+              {t("settings.framingTitle") || "Fast Bilingual POS Sync"}
+            </ThemedText>
             <ThemedText style={styles.framingSubtitle}>
-              Thermal receipts render instant bilingual headers
+              {t("settings.framingSubtitle") ||
+                "Thermal receipts render instant bilingual headers"}
             </ThemedText>
           </View>
           <View style={styles.activePill}>
-            <ThemedText style={styles.activePillText}>Active</ThemedText>
+            <ThemedText style={styles.activePillText}>
+              {t("settings.active") || "Active"}
+            </ThemedText>
           </View>
         </View>
 
@@ -144,11 +168,13 @@ export function LanguageSettingsScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ checked: isSelected }}
               >
-                {/* Default badge for French */}
-                {item.isDefault && (
+                {/* Active badge for currently selected language */}
+                {isSelected && (
                   <View style={styles.defaultBadge}>
-                    <MaterialIcons name="star" size={12} color="#FFFFFF" />
-                    <ThemedText style={styles.defaultBadgeText}>Par défaut / Actuel</ThemedText>
+                    <MaterialIcons name="check-circle" size={12} color="#FFFFFF" />
+                    <ThemedText style={styles.defaultBadgeText}>
+                      {t("settings.currentLanguageBadge") || "Active"}
+                    </ThemedText>
                   </View>
                 )}
 
@@ -174,7 +200,7 @@ export function LanguageSettingsScreen() {
                       <ThemedText style={styles.optionSubname}>{item.subname}</ThemedText>
                     </View>
                     <ThemedText style={styles.optionDescription}>
-                      {item.description}
+                      {t(item.descriptionKey) || item.name}
                     </ThemedText>
                   </View>
                 </View>
@@ -201,9 +227,12 @@ export function LanguageSettingsScreen() {
             <MaterialIcons name="bolt" size={18} color={Colors.light.primary} />
           </View>
           <View style={styles.featureContent}>
-            <ThemedText style={styles.featureTitle}>Zero Downtime Switch</ThemedText>
+            <ThemedText style={styles.featureTitle}>
+              {t("settings.zeroDowntimeTitle") || "Zero Downtime Switch"}
+            </ThemedText>
             <ThemedText style={styles.featureSubtitle}>
-              Swapping languages requires no app restart. POS quick-keys, category shortcuts, and price barcodes stay precisely where your fingers expect them.
+              {t("settings.zeroDowntimeSubtitle") ||
+                "Swapping languages requires no app restart. POS quick-keys, category shortcuts, and price barcodes stay precisely where your fingers expect them."}
             </ThemedText>
           </View>
         </View>
@@ -214,9 +243,12 @@ export function LanguageSettingsScreen() {
             <MaterialIcons name="info" size={20} color={Colors.light.primary} />
           </View>
           <View style={styles.infoContent}>
-            <ThemedText style={styles.infoTitle}>Ergonomic Counter Usability (LTR)</ThemedText>
+            <ThemedText style={styles.infoTitle}>
+              {t("settings.ergonomicTitle") || "Ergonomic Counter Usability (LTR)"}
+            </ThemedText>
             <ThemedText style={styles.infoSubtitle}>
-              The app layout remains left-to-right (LTR) for all languages to ensure consistent counter usability. Text inside fields aligns naturally.
+              {t("settings.ergonomicSubtitle") ||
+                "The app layout remains left-to-right (LTR) for all languages to ensure consistent counter usability. Text inside fields aligns naturally."}
             </ThemedText>
           </View>
         </View>
@@ -226,11 +258,12 @@ export function LanguageSettingsScreen() {
           <View style={styles.versionRow}>
             <MaterialIcons name="verified" size={16} color={Colors.light.textMuted} />
             <ThemedText style={styles.versionTitle}>
-              Dukkan OS v2.4.1 • Multi-dialect Engine
+              {t("settings.versionTagline") || "Dukkan OS v2.4.1 • Multi-language Engine"}
             </ThemedText>
           </View>
           <ThemedText style={styles.versionSubtitle}>
-            Algerian Dinar (DZD) compliant localized registry
+            {t("settings.versionCompliance") ||
+              "Algerian Dinar (DZD) compliant localized registry"}
           </ThemedText>
         </View>
       </ThemedView>

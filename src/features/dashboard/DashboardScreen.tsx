@@ -266,7 +266,7 @@ export default function DashboardScreenDefault({
             <View style={styles.modalHeader}>
               <View>
                 <ThemedText style={styles.modalSubHeader}>
-                  {locale === "ar" ? "إعادة تموين سريعة" : "Quick Restock"}
+                  {locale === "ar" ? "إعادة تموين سريعة" : locale === "fr" ? "Réapprovisionnement rapide" : "Quick Restock"}
                 </ThemedText>
                 <ThemedText style={styles.modalProductTitle} numberOfLines={1}>
                   {selectedRestockProduct?.name}
@@ -286,18 +286,18 @@ export default function DashboardScreenDefault({
             {/* Current Level Box */}
             <View style={styles.modalCurrentLevelBox}>
               <ThemedText style={styles.modalCurrentLevelLabel}>
-                {locale === "ar" ? "المستوى الحالي" : "Current level"}
+                {locale === "ar" ? "المستوى الحالي" : locale === "fr" ? "Niveau actuel" : "Current level"}
               </ThemedText>
               <ThemedText style={styles.modalCurrentLevelValue}>
                 {selectedRestockProduct?.stock_quantity} / {selectedRestockProduct?.minimum_stock_quantity}{" "}
-                {selectedRestockProduct?.unit || "units"}
+                {selectedRestockProduct?.unit || (locale === "fr" ? "unités" : locale === "ar" ? "وحدات" : "units")}
               </ThemedText>
             </View>
 
             {/* Quantity Stepper */}
             <View style={styles.modalStepperRow}>
               <ThemedText style={styles.modalStepperLabel}>
-                {locale === "ar" ? "الكمية المستلمة:" : "Quantity to receive:"}
+                {locale === "ar" ? "الكمية المستلمة:" : locale === "fr" ? "Quantité à recevoir :" : "Quantity to receive:"}
               </ThemedText>
 
               <View style={styles.stepperContainer}>
@@ -334,7 +334,7 @@ export default function DashboardScreenDefault({
                 accessibilityLabel="Cancel"
               >
                 <ThemedText style={styles.modalCancelBtnText}>
-                  {locale === "ar" ? "إلغاء" : "Cancel"}
+                  {locale === "ar" ? "إلغاء" : locale === "fr" ? "Annuler" : "Cancel"}
                 </ThemedText>
               </TouchableOpacity>
 
@@ -346,7 +346,7 @@ export default function DashboardScreenDefault({
               >
                 <MaterialIcons name="check" size={20} color="#FFFFFF" />
                 <ThemedText style={styles.modalConfirmBtnText}>
-                  {locale === "ar" ? "استلام الوحدات" : "Receive Units"}
+                  {locale === "ar" ? "استلام الوحدات" : locale === "fr" ? "Réceptionner" : "Receive Units"}
                 </ThemedText>
               </TouchableOpacity>
             </View>
