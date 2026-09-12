@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -455,6 +456,9 @@ export function RecordPaymentScreen({
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ScrollView>
     </View>
   );

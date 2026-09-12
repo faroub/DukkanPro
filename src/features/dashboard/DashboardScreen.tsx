@@ -30,6 +30,7 @@ import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { GreetingCard } from "@/features/dashboard/components/GreetingCard";
 import { LowStockAlertBanner } from "@/features/dashboard/components/LowStockAlertBanner";
 import { LowStockList, LowStockProductItem } from "@/features/dashboard/components/LowStockList";
@@ -252,6 +253,9 @@ export default function DashboardScreenDefault({
             <MaterialIcons name="bolt" size={22} color={theme.primary} />
           </TouchableOpacity>
         </View>
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ScrollView>
 
       {/* Quick Action Bottom Sheet */}

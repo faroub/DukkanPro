@@ -9,6 +9,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
@@ -281,6 +282,7 @@ export function LanguageSettingsScreen() {
             {t("settings.versionCompliance") ||
               "Algerian Dinar (DZD) compliant localized registry"}
           </ThemedText>
+          <FooterTrademark />
         </View>
       </ThemedView>
     </ScrollView>

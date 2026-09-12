@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -475,6 +476,9 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
             </View>
           )}
         </View>
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ScrollView>
     </View>
   );

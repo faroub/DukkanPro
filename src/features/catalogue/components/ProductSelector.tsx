@@ -1,3 +1,4 @@
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { BorderRadius, Spacing, Typography } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
@@ -273,6 +274,7 @@ export function ProductSelector({
             </TouchableOpacity>
           );
         }}
+        ListFooterComponent={() => <FooterTrademark />}
       />
 
       {/* Bottom Action Dock */}

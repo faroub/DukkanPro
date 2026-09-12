@@ -11,6 +11,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import {
@@ -357,6 +358,7 @@ export function SalesHistoryScreen() {
               }}
             />
           )}
+          ListFooterComponent={() => <FooterTrademark />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIconCircle}>
