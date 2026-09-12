@@ -6,17 +6,20 @@ export default function PaymentReminderRoute() {
     customerId?: string;
     customerName?: string;
     currentDebt?: string;
+    customerPhone?: string;
   }>();
 
   const customerId = params.customerId ? Number(params.customerId) : 0;
   const customerName = params.customerName || "";
   const currentDebt = params.currentDebt ? Number(params.currentDebt) : 0;
+  const customerPhone = params.customerPhone || "";
 
   return (
     <PaymentReminderPreview
       customerId={customerId}
       customerName={customerName}
       currentDebt={currentDebt}
+      customerPhone={customerPhone}
     />
   );
 }

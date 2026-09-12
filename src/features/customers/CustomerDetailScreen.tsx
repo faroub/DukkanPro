@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
@@ -28,6 +28,8 @@ interface CustomerDetailScreenProps {
 export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const localParams = useLocalSearchParams<{ id?: string; customerId?: string }>();
+  const effectiveCustomerId = customerId ?? (localParams.customerId ? Number(localParams.customerId) : localParams.id ? Number(localParams.id) : undefined);
 
   const [loading, setLoading] = useState(true);
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -39,17 +41,17 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   >("credit-sales");
 
   const loadData = useCallback(async () => {
-    if (!customerId) {
+    if (!effectiveCustomerId) {
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
       const [cust, debt, customerSales, customerPayments] = await Promise.all([
-        getById(customerId),
-        getCustomerDebt(customerId),
-        getAllSales({ customerId }),
-        getCustomerPayments(customerId),
+        getById(effectiveCustomerId),
+        getCustomerDebt(effectiveCustomerId),
+        getAllSales({ customerId: effectiveCustomerId }),
+        getCustomerPayments(effectiveCustomerId),
       ]);
 
       setCustomer(cust);
@@ -61,7 +63,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
     } finally {
       setLoading(false);
     }
-  }, [customerId]);
+  }, [effectiveCustomerId]);
 
   useEffect(() => {
     loadData();

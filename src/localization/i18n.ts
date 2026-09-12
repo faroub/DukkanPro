@@ -5,13 +5,37 @@ import ar from "@/locales/ar.json";
 import en from "@/locales/en.json";
 import fr from "@/locales/fr.json";
 
+function buildResourceNamespaces(bundle: any) {
+  const namespaces: Record<string, any> = {
+    translation: bundle,
+  };
+  for (const key of Object.keys(bundle)) {
+    if (typeof bundle[key] === "object" && bundle[key] !== null) {
+      namespaces[key] = bundle[key];
+    }
+  }
+  return namespaces;
+}
+
+let initialLanguage = "fr";
+if (typeof window !== "undefined" && window.localStorage) {
+  try {
+    const stored = window.localStorage.getItem("dukkan_locale");
+    if (stored && ["ar", "fr", "en"].includes(stored)) {
+      initialLanguage = stored;
+    }
+  } catch (e) {
+    // Ignore localStorage access issues
+  }
+}
+
 i18n.use(initReactI18next).init({
   fallbackLng: "fr",
-  lng: "fr",
+  lng: initialLanguage,
   resources: {
-    ar: { translation: ar, onboarding: (ar as any).onboarding || ar },
-    en: { translation: en, onboarding: (en as any).onboarding || en },
-    fr: { translation: fr, onboarding: (fr as any).onboarding || fr },
+    ar: buildResourceNamespaces(ar),
+    en: buildResourceNamespaces(en),
+    fr: buildResourceNamespaces(fr),
   },
   defaultNS: "translation",
   debug: false,
@@ -25,4 +49,11 @@ export default i18n;
 // Export changeLocale utility for use by hooks and providers
 export function changeLocale(newLocale: string): void {
   i18n.changeLanguage(newLocale);
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.setItem("dukkan_locale", newLocale);
+    } catch (e) {
+      // Ignore
+    }
+  }
 }

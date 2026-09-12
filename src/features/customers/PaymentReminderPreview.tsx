@@ -18,12 +18,14 @@ interface PaymentReminderPreviewProps {
   customerId: number;
   customerName: string;
   currentDebt: number; // in centimes
+  customerPhone?: string;
 }
 
 export function PaymentReminderPreview({
   customerId,
   customerName,
   currentDebt,
+  customerPhone,
 }: PaymentReminderPreviewProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -56,8 +58,15 @@ export function PaymentReminderPreview({
   const handleSend = useCallback(async () => {
     const encodedText = encodeURIComponent(messageBody);
 
+    let formattedPhone = (customerPhone || "").replace(/\s+/g, "").replace(/[^0-9]/g, "");
+    if (formattedPhone.startsWith("0")) {
+      formattedPhone = "213" + formattedPhone.slice(1);
+    }
+
     if (channel === "whatsapp") {
-      const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+      const whatsappUrl = formattedPhone
+        ? `https://wa.me/${formattedPhone}?text=${encodedText}`
+        : `https://wa.me/?text=${encodedText}`;
       const canOpen = await Linking.canOpenURL(whatsappUrl);
       if (canOpen) {
         await Linking.openURL(whatsappUrl);
@@ -68,7 +77,9 @@ export function PaymentReminderPreview({
         );
       }
     } else {
-      const smsUrl = `sms:?body=${encodedText}`;
+      const smsUrl = formattedPhone
+        ? `sms:${formattedPhone}?body=${encodedText}`
+        : `sms:?body=${encodedText}`;
       const canOpen = await Linking.canOpenURL(smsUrl);
       if (canOpen) {
         await Linking.openURL(smsUrl);
@@ -79,7 +90,7 @@ export function PaymentReminderPreview({
         );
       }
     }
-  }, [channel, messageBody, t]);
+  }, [channel, messageBody, customerPhone, t]);
 
   return (
     <View style={styles.screen}>

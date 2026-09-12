@@ -18,10 +18,14 @@ import { getById, getInventoryHistory, archive, update } from '@/database/reposi
 import { Product, InventoryMovement } from '@/types/entities';
 import { formatCentimes } from '@/utils/money';
 
-export default function ProductDetailScreen() {
+interface ProductDetailScreenProps {
+  productId?: number;
+}
+
+export default function ProductDetailScreen({ productId: propProductId }: ProductDetailScreenProps = {}) {
   const localParams = useLocalSearchParams<{ id?: string }>();
   const route = useRoute() as { params?: { id?: string } };
-  const rawId = localParams?.id ?? route?.params?.id;
+  const rawId = propProductId ?? localParams?.id ?? route?.params?.id;
   const productId = Number(rawId);
   const { t, i18n } = useTranslation();
   const router = useRouter();

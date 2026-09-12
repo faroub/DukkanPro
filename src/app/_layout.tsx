@@ -29,8 +29,21 @@ export default function TabLayout() {
               <Stack.Screen name="products/new" options={{ headerShown: false }} />
               <Stack.Screen name="products/stock-adjustment" options={{ headerShown: false }} />
               <Stack.Screen name="products/edit/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="products/low-stock" options={{ headerShown: false }} />
               <Stack.Screen name="customers/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="customers/new" options={{ headerShown: false }} />
+              <Stack.Screen name="customers/edit/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="customers/record-payment" options={{ headerShown: false }} />
+              <Stack.Screen name="customers/reminder" options={{ headerShown: false }} />
+              <Stack.Screen name="sales/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="sales/history" options={{ headerShown: false }} />
+              <Stack.Screen name="settings/business" options={{ headerShown: false }} />
+              <Stack.Screen name="settings/language" options={{ headerShown: false }} />
+              <Stack.Screen name="settings/inventory" options={{ headerShown: false }} />
+              <Stack.Screen name="settings/catalogue" options={{ headerShown: false }} />
+              <Stack.Screen name="settings/export" options={{ headerShown: false }} />
+              <Stack.Screen name="settings/data-reset" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
             </Stack>
           </ThemeProvider>
         </SafeAreaProvider>

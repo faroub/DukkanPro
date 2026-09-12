@@ -8,96 +8,105 @@
  * arithmetic for monetary values (see: money safety rules).
  */
 
+import i18n from "@/localization/i18n";
+
 // Centimes-to-dinars conversion factor
 const CENTIMES_PER_DINAR = 100;
 
 /**
- * Arabic-Indic digit mapping for number conversion
+ * Western Arabic numerals: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+ * (Algerian standard as requested by user)
  */
-const ArabicIndicDigits: Record<string, string> = {
-  "0": "٠",
-  "1": "١",
-  "2": "٢",
-  "3": "٣",
-  "4": "٤",
-  "5": "٥",
-  "6": "٦",
-  "7": "٧",
-  "8": "٨",
-  "9": "٩",
-};
-
-/**
- * Get Arabic-Indic digit from Western digit
- */
-function toArabicIndicDigit(digit: string): string {
-  return ArabicIndicDigits[digit] || digit;
+export function toArabicNumerals(text: string): string {
+  const indicToWestern: Record<string, string> = {
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
+  };
+  return text.replace(/[٠-٩]/g, (digit) => indicToWestern[digit] || digit);
 }
 
 /**
- * Convert Western numeral string to Arabic-Indic numerals
+ * Compatibility alias: Arabic numbers are: 0, 1, 2, 3, 4, ...
  */
-function toArabicIndicNumerals(text: string): string {
-  return text.replace(/[0-9]/g, (digit) => toArabicIndicDigit(digit));
+export function toArabicIndicNumerals(text: string): string {
+  return toArabicNumerals(text);
 }
 
 /**
  * Format centimes amount to a DZD display string for the given locale.
+ * If locale is omitted, defaults to the active i18n language.
+ *
+ * Arabic numbers are: 0, 1, 2, 3, 4, ... (e.g. "140 دج")
  *
  * @param centimes - Amount in centimes (integer)
- * @param locale - Locale string (ar-DZ, fr-DZ, en-DZ)
- * @returns Formatted DZD string (e.g. "140 DZD", "١٤٠ دج")
+ * @param localeInput - Optional locale string (ar-DZ, fr-DZ, en-DZ, ar, fr, en)
+ * @returns Formatted DZD string (e.g. "140 DZD", "140 دج")
  */
 export function formatCentimes(
   centimes: number,
-  localeInput: "ar-DZ" | "fr-DZ" | "en-DZ" | "ar" | "fr" | "en" = "fr-DZ",
+  localeInput?: "ar-DZ" | "fr-DZ" | "en-DZ" | "ar" | "fr" | "en" | string,
 ): string {
   const dinars = centimes / CENTIMES_PER_DINAR;
-  const locale =
-    localeInput === "ar"
+  
+  let targetLocale = localeInput;
+  if (!targetLocale) {
+    const currentLang = i18n?.language || "fr";
+    targetLocale = currentLang.startsWith("ar")
       ? "ar-DZ"
-      : localeInput === "fr"
+      : currentLang.startsWith("en")
+        ? "en-DZ"
+        : "fr-DZ";
+  }
+
+  const locale =
+    targetLocale === "ar"
+      ? "ar-DZ"
+      : targetLocale === "fr"
         ? "fr-DZ"
-        : localeInput === "en"
+        : targetLocale === "en"
           ? "en-DZ"
-          : localeInput;
+          : targetLocale;
 
   switch (locale) {
-    case "ar-DZ":
-      // Arabic locale: Arabic-Indic numerals with "دج" suffix for Algerian Dinar
-      // DESIGN.md shows "{amount} دج" (e.g., "١٤٠ دج") - format: Arabic-Indic numerals + " دج"
-      const formatted = new Intl.NumberFormat("ar-DZ", {
-        style: "currency",
-        currency: "DZD",
+    case "ar-DZ": {
+      // Arabic numbers are: 0, 1, 2, 3, 4, ... with "دج" suffix for Algerian Dinar
+      const formattedAr = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
+        useGrouping: true,
       }).format(dinars);
-      // Convert Western numerals to Arabic-Indic, then replace Arabic currency symbol
-      return formatted
-        .replace(/[0-9]/g, (digit) => ArabicIndicDigits[digit] || digit)
-        .replace("د.ج", "دج");
+      return `${formattedAr} دج`;
+    }
 
-    case "fr-DZ":
+    case "fr-DZ": {
       // French locale: Western numerals with space + " DZD" suffix
-      // DESIGN.md shows "{amount} DZD" (e.g., "280 DZD") - format: Western numerals + " DZD"
       const formattedFr = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
         useGrouping: true,
       }).format(dinars);
       return `${formattedFr} DZD`;
+    }
 
-    case "en-DZ":
+    case "en-DZ": {
       // English locale: Western numerals with comma separator + " DZD" suffix
-      // DESIGN.md shows "{amount} DZD" (e.g., "123 DZD") - format: Western numerals with comma + " DZD"
       const formattedEn = new Intl.NumberFormat("en-DZ", {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
         useGrouping: true,
       }).format(dinars);
       return `${formattedEn} DZD`;
+    }
 
-    default:
+    default: {
       // Fallback to French locale format
       const formattedDefault = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
@@ -105,6 +114,7 @@ export function formatCentimes(
         useGrouping: true,
       }).format(dinars);
       return `${formattedDefault} DZD`;
+    }
   }
 }
 
