@@ -1,8 +1,8 @@
-import { StyleSheet, type ViewProps } from "react-native";
+import { StyleSheet, View, type ViewProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BorderRadius, Colors, Spacing } from "@/constants/theme";
+import { BorderRadius, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export type Status =
   | "paid"
@@ -31,27 +31,29 @@ export function StatusBadge({
   style,
   ...rest
 }: StatusBadgeProps) {
+  const theme = useTheme();
+
   const statusMap: Record<Status, { textColor: string; bg: string }> = {
-    paid: { textColor: Colors.light.positive, bg: Colors.light.primaryLight },
-    partial: { textColor: Colors.light.warning, bg: Colors.light.warningLight },
-    cancelled: { textColor: Colors.light.destructive, bg: Colors.light.errorLight },
-    returned: { textColor: Colors.light.destructive, bg: Colors.light.errorLight },
-    destructive: { textColor: Colors.light.destructive, bg: Colors.light.errorLight },
-    positive: { textColor: Colors.light.positive, bg: Colors.light.primaryLight },
-    warning: { textColor: Colors.light.warning, bg: Colors.light.warningLight },
-    neutral: { textColor: Colors.light.textSecondary, bg: Colors.light.backgroundElement },
+    paid: { textColor: theme.positive, bg: theme.primaryLight },
+    partial: { textColor: theme.warning, bg: theme.warningLight },
+    cancelled: { textColor: theme.destructive, bg: theme.errorLight },
+    returned: { textColor: theme.destructive, bg: theme.errorLight },
+    destructive: { textColor: theme.destructive, bg: theme.errorLight },
+    positive: { textColor: theme.positive, bg: theme.primaryLight },
+    warning: { textColor: theme.warning, bg: theme.warningLight },
+    neutral: { textColor: theme.textSecondary, bg: theme.backgroundElement },
   };
 
-  const mapped = statusMap[status];
+  const mapped = statusMap[status] || statusMap.neutral;
   const textColor = color ?? mapped.textColor;
   const bg = backgroundColor ?? mapped.bg;
 
   return (
-    <ThemedView style={[styles.badge, { backgroundColor: bg }, style]} {...rest}>
+    <View style={[styles.badge, { backgroundColor: bg }, style]} {...rest}>
       <ThemedText style={[styles.label, { color: textColor }]}>
         {label}
       </ThemedText>
-    </ThemedView>
+    </View>
   );
 }
 

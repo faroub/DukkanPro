@@ -1,5 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Spacing, Typography } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface SelectorProductItem {
   id: number;
@@ -44,6 +45,7 @@ export function ProductSelector({
   onBack,
 }: ProductSelectorProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter products based on search query and out-of-stock setting
@@ -78,26 +80,26 @@ export function ProductSelector({
   };
 
   return (
-    <View style={styles.container} id="product-selector-screen">
+    <View style={[styles.container, { backgroundColor: theme.background }]} id="product-selector-screen">
       {/* Top Bar */}
       <View style={styles.topBar} id="product-selector-topbar">
         <TouchableOpacity
           onPress={onBack}
-          style={styles.circleBackButton}
+          style={[styles.circleBackButton, { backgroundColor: theme.surface, borderColor: theme.borderLight }]}
           activeOpacity={0.7}
           id="product-selector-back-btn"
         >
           <MaterialIcons
             name="arrow-back"
             size={20}
-            color={Colors.light.textPrimary}
+            color={theme.textPrimary}
           />
         </TouchableOpacity>
         <View style={styles.titleColumn}>
-          <ThemedText style={styles.screenTitle}>
+          <ThemedText style={[styles.screenTitle, { color: theme.textPrimary }]}>
             {t("catalogue.selectProductsTitle")}
           </ThemedText>
-          <ThemedText style={styles.screenSubtitle}>
+          <ThemedText style={[styles.screenSubtitle, { color: theme.textSecondary }]}>
             {t("catalogue.selectProductsSubtitle")}
           </ThemedText>
         </View>
@@ -106,9 +108,9 @@ export function ProductSelector({
       {/* Control Bar (Counter, Select All/Deselect, Search) */}
       <View style={styles.controlBar} id="product-selector-control-bar">
         <View style={styles.counterRow}>
-          <View style={styles.counterBadge}>
-            <View style={styles.pulseDot} />
-            <ThemedText style={styles.counterText}>
+          <View style={[styles.counterBadge, { backgroundColor: theme.primaryLight }]}>
+            <View style={[styles.pulseDot, { backgroundColor: theme.primary }]} />
+            <ThemedText style={[styles.counterText, { color: theme.primary }]}>
               {selectedCount} {t("catalogue.productsSelected")}
             </ThemedText>
           </View>
@@ -119,17 +121,17 @@ export function ProductSelector({
               activeOpacity={0.7}
               id="btn-select-all"
             >
-              <ThemedText style={styles.bulkActionText}>
+              <ThemedText style={[styles.bulkActionText, { color: theme.primary }]}>
                 {t("catalogue.selectAll")}
               </ThemedText>
             </TouchableOpacity>
-            <ThemedText style={styles.bulkDot}>•</ThemedText>
+            <ThemedText style={{ color: theme.textMuted }}>•</ThemedText>
             <TouchableOpacity
               onPress={onDeselectAll}
               activeOpacity={0.7}
               id="btn-deselect-all"
             >
-              <ThemedText style={styles.bulkActionText}>
+              <ThemedText style={[styles.bulkActionText, { color: theme.primary }]}>
                 {t("catalogue.deselect")}
               </ThemedText>
             </TouchableOpacity>
@@ -137,17 +139,17 @@ export function ProductSelector({
         </View>
 
         {/* Search Bar */}
-        <View style={styles.searchContainer} id="product-search-container">
+        <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]} id="product-search-container">
           <MaterialIcons
             name="search"
             size={20}
-            color={Colors.light.textSecondary}
+            color={theme.textSecondary}
             style={styles.searchIcon}
           />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.textPrimary }]}
             placeholder={t("catalogue.searchPlaceholder")}
-            placeholderTextColor={Colors.light.textMuted}
+            placeholderTextColor={theme.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCorrect={false}
@@ -162,7 +164,7 @@ export function ProductSelector({
               <MaterialIcons
                 name="close"
                 size={18}
-                color={Colors.light.textSecondary}
+                color={theme.textSecondary}
               />
             </TouchableOpacity>
           )}
@@ -178,17 +180,17 @@ export function ProductSelector({
         id="product-selector-list"
         ListEmptyComponent={
           <View style={styles.emptyState} id="product-selector-empty">
-            <View style={styles.emptyIconCircle}>
+            <View style={[styles.emptyIconCircle, { backgroundColor: theme.surfaceAlt }]}>
               <MaterialIcons
                 name="search-off"
                 size={36}
-                color={Colors.light.textSecondary}
+                color={theme.textSecondary}
               />
             </View>
-            <ThemedText style={styles.emptyTitle}>
+            <ThemedText style={[styles.emptyTitle, { color: theme.textPrimary }]}>
               {t("catalogue.noProductsFound")}
             </ThemedText>
-            <ThemedText style={styles.emptyDesc}>
+            <ThemedText style={[styles.emptyDesc, { color: theme.textSecondary }]}>
               {t("catalogue.noProductsFoundDesc")}
             </ThemedText>
           </View>
@@ -201,7 +203,7 @@ export function ProductSelector({
             <TouchableOpacity
               style={[
                 styles.productCard,
-                isSelected && styles.productCardSelected,
+                { backgroundColor: theme.surface, borderColor: isSelected ? theme.primary : "transparent" },
               ]}
               onPress={() => onToggleProduct(item.id)}
               activeOpacity={0.75}
@@ -211,7 +213,7 @@ export function ProductSelector({
               <View
                 style={[
                   styles.checkbox,
-                  isSelected && styles.checkboxSelected,
+                  { backgroundColor: isSelected ? theme.primary : theme.surfaceAlt, borderColor: isSelected ? theme.primary : theme.border },
                 ]}
               >
                 {isSelected && (
@@ -220,45 +222,45 @@ export function ProductSelector({
               </View>
 
               {/* Product Thumbnail / Category Icon */}
-              <View style={styles.thumbnail}>
+              <View style={[styles.thumbnail, { backgroundColor: theme.surfaceAlt }]}>
                 <MaterialIcons
                   name={getCategoryIcon(item.category)}
                   size={24}
-                  color={Colors.light.primary}
+                  color={theme.primary}
                 />
               </View>
 
-              {/* Info Column (Only public data: Name, Price, Category, Availability) */}
+              {/* Info Column */}
               <View style={styles.infoCol}>
                 <View style={styles.infoTopRow}>
-                  <ThemedText style={styles.productName} numberOfLines={1}>
+                  <ThemedText style={[styles.productName, { color: theme.textPrimary }]} numberOfLines={1}>
                     {item.name}
                   </ThemedText>
                   {showPrices && (
-                    <ThemedText style={styles.productPrice}>
+                    <ThemedText style={[styles.productPrice, { color: theme.primary }]}>
                       {formatCentimes(item.price_centimes)}
                     </ThemedText>
                   )}
                 </View>
 
                 <View style={styles.infoBottomRow}>
-                  <ThemedText style={styles.productCategory}>
+                  <ThemedText style={[styles.productCategory, { color: theme.textSecondary }]}>
                     {item.category || "Général"}
                   </ThemedText>
                   <View
                     style={[
                       styles.availabilityBadge,
                       isAvailable
-                        ? styles.badgeAvailable
-                        : styles.badgeOutOfStock,
+                        ? { backgroundColor: theme.primaryLight }
+                        : { backgroundColor: theme.errorLight },
                     ]}
                   >
                     <ThemedText
                       style={[
                         styles.availabilityText,
                         isAvailable
-                          ? styles.textAvailable
-                          : styles.textOutOfStock,
+                          ? { color: theme.primary }
+                          : { color: theme.error },
                       ]}
                     >
                       {isAvailable
@@ -274,11 +276,11 @@ export function ProductSelector({
       />
 
       {/* Bottom Action Dock */}
-      <View style={styles.bottomDock} id="product-selector-bottom-dock">
+      <View style={[styles.bottomDock, { backgroundColor: theme.surface, borderTopColor: theme.borderLight }]} id="product-selector-bottom-dock">
         <TouchableOpacity
           style={[
             styles.previewButton,
-            selectedCount === 0 && styles.previewButtonDisabled,
+            { backgroundColor: selectedCount === 0 ? theme.disabledBackground : theme.primary },
           ]}
           onPress={onProceedToPreview}
           disabled={selectedCount === 0}
@@ -297,7 +299,7 @@ export function ProductSelector({
           activeOpacity={0.7}
           id="btn-back-to-settings"
         >
-          <ThemedText style={styles.backLinkText}>
+          <ThemedText style={[styles.backLinkText, { color: theme.textSecondary }]}>
             {t("catalogue.backToSettings")}
           </ThemedText>
         </TouchableOpacity>
@@ -309,7 +311,6 @@ export function ProductSelector({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   topBar: {
     flexDirection: "row",
@@ -323,22 +324,18 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.light.surface,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Colors.light.borderLight,
   },
   titleColumn: {
     flex: 1,
   },
   screenTitle: {
     ...Typography.heading2,
-    color: Colors.light.textPrimary,
   },
   screenSubtitle: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
   },
   controlBar: {
     paddingHorizontal: Spacing.lg,
@@ -354,7 +351,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: BorderRadius.pill,
@@ -363,11 +359,9 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.primary,
   },
   counterText: {
     ...Typography.badge,
-    color: Colors.light.primary,
   },
   bulkActions: {
     flexDirection: "row",
@@ -377,18 +371,12 @@ const styles = StyleSheet.create({
   bulkActionText: {
     ...Typography.caption,
     fontWeight: "600",
-    color: Colors.light.primary,
-  },
-  bulkDot: {
-    color: Colors.light.textMuted,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     paddingHorizontal: Spacing.md,
     height: 44,
   },
@@ -399,7 +387,6 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Typography.body,
     fontSize: 15,
-    color: Colors.light.textPrimary,
     height: "100%",
   },
   clearSearchButton: {
@@ -413,37 +400,24 @@ const styles = StyleSheet.create({
   productCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     borderWidth: 1.5,
-    borderColor: "transparent",
     gap: Spacing.md,
-  },
-  productCardSelected: {
-    borderColor: Colors.light.primary,
-    backgroundColor: "#FFFFFF",
   },
   checkbox: {
     width: 22,
     height: 22,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: Colors.light.border,
-    backgroundColor: Colors.light.surfaceAlt,
     justifyContent: "center",
     alignItems: "center",
-  },
-  checkboxSelected: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
   },
   thumbnail: {
     width: 46,
     height: 46,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -461,13 +435,11 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontSize: 15,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
     flex: 1,
     paddingRight: Spacing.sm,
   },
   productPrice: {
     ...Typography.moneySm,
-    color: Colors.light.primary,
     fontWeight: "700",
   },
   infoBottomRow: {
@@ -477,28 +449,15 @@ const styles = StyleSheet.create({
   },
   productCategory: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
   },
   availabilityBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: BorderRadius.pill,
   },
-  badgeAvailable: {
-    backgroundColor: Colors.light.primaryLight,
-  },
-  badgeOutOfStock: {
-    backgroundColor: Colors.light.errorLight,
-  },
   availabilityText: {
     fontSize: 11,
     fontWeight: "600",
-  },
-  textAvailable: {
-    color: Colors.light.primary,
-  },
-  textOutOfStock: {
-    color: Colors.light.error,
   },
   emptyState: {
     alignItems: "center",
@@ -509,19 +468,16 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.light.surfaceAlt,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: Spacing.md,
   },
   emptyTitle: {
     ...Typography.heading3,
-    color: Colors.light.textPrimary,
     marginBottom: 4,
   },
   emptyDesc: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     textAlign: "center",
     maxWidth: 260,
   },
@@ -530,25 +486,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.light.surface,
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.xl,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.borderLight,
     gap: Spacing.sm,
   },
   previewButton: {
     height: 50,
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.lg,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     gap: Spacing.sm,
-  },
-  previewButtonDisabled: {
-    backgroundColor: Colors.light.disabledBackground,
   },
   previewButtonText: {
     ...Typography.body,
@@ -562,7 +512,6 @@ const styles = StyleSheet.create({
   },
   backLinkText: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     fontWeight: "600",
   },
 });

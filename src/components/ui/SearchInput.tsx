@@ -8,14 +8,13 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { ThemedView } from "@/components/themed-view";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface SearchInputProps extends TextInputProps {
   placeholder: string;
@@ -32,10 +31,20 @@ export function SearchInput({
   style,
   ...rest
 }: SearchInputProps) {
+  const theme = useTheme();
   const isArabic = locale?.startsWith("ar");
 
   return (
-    <ThemedView style={[styles.container, containerStyle]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+        },
+        containerStyle,
+      ]}
+    >
       <View style={styles.iconWrapper}>
         <SymbolView
           name={{
@@ -44,21 +53,22 @@ export function SearchInput({
             web: "search",
           }}
           size={18}
-          tintColor={Colors.light.textSecondary}
+          tintColor={theme.textSecondary}
         />
       </View>
       <TextInput
         style={[
           styles.input,
+          { color: theme.textPrimary },
           isArabic && { textAlign: "right" },
           style,
         ]}
         placeholder={placeholder}
-        placeholderTextColor={Colors.light.textMuted}
+        placeholderTextColor={theme.textMuted}
         onSubmitEditing={onSearch}
         {...rest}
       />
-    </ThemedView>
+    </View>
   );
 }
 
@@ -66,10 +76,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.surface,
     height: ComponentDimensions.searchInputHeight,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
   },
@@ -82,7 +90,6 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Typography.body,
     fontSize: 15,
-    color: Colors.light.textPrimary,
     paddingVertical: 0,
   },
 });

@@ -1,6 +1,7 @@
 import React from "react";
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing, Typography, BorderRadius } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, ScrollView, View } from "react-native";
 
@@ -29,6 +30,7 @@ export function ProductFilterTabs({
   onFilterChange,
   counts,
 }: ProductFilterTabsProps) {
+  const theme = useTheme();
   const { t } = useTranslation();
 
   return (
@@ -46,13 +48,23 @@ export function ProductFilterTabs({
           return (
             <TouchableOpacity
               key={option.key}
-              style={[styles.tab, isActive && styles.tabActive]}
+              style={[
+                styles.tab,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                isActive && [styles.tabActive, { backgroundColor: theme.primary, borderColor: theme.primary }],
+              ]}
               activeOpacity={0.8}
               onPress={() => onFilterChange(option.key)}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
             >
-              <ThemedText style={[styles.tabText, isActive && styles.tabTextActive]}>
+              <ThemedText
+                style={[
+                  styles.tabText,
+                  { color: theme.textSecondary },
+                  isActive && [styles.tabTextActive, { color: "#FFFFFF" }],
+                ]}
+              >
                 {count !== undefined ? `${label} (${count})` : label}
               </ThemedText>
             </TouchableOpacity>

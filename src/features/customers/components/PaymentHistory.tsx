@@ -1,11 +1,12 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Typography, Colors, BorderRadius, Spacing } from "@/constants/theme";
+import { Typography, BorderRadius, Spacing } from "@/constants/theme";
 import { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import { formatCentimes } from "@/utils/money";
 import { getCustomerPayments } from "@/services/customers/customerBalanceService";
+import { useTheme } from "@/hooks/use-theme";
 
 interface PaymentHistoryProps {
   customerId: number;
@@ -14,6 +15,7 @@ interface PaymentHistoryProps {
 
 export function PaymentHistory({ customerId, customerName }: PaymentHistoryProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,8 +38,8 @@ export function PaymentHistory({ customerId, customerName }: PaymentHistoryProps
 
   if (loading) {
     return (
-      <ThemedView type="background" style={styles.container}>
-        <ThemedText type="small" style={styles.loadingText}>
+      <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
+        <ThemedText type="small" style={[styles.loadingText, { color: theme.textSecondary }]}>
           {t("common:loading")}
         </ThemedText>
       </ThemedView>
@@ -46,8 +48,8 @@ export function PaymentHistory({ customerId, customerName }: PaymentHistoryProps
 
   if (payments.length === 0) {
     return (
-      <ThemedView type="background" style={styles.container}>
-        <ThemedText type="caption" style={styles.noPayments}>
+      <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
+        <ThemedText type="caption" style={[styles.noPayments, { color: theme.textSecondary }]}>
           {t("customers:noPayments")}
         </ThemedText>
       </ThemedView>
@@ -55,23 +57,32 @@ export function PaymentHistory({ customerId, customerName }: PaymentHistoryProps
   }
 
   return (
-    <ThemedView type="background" style={styles.container}>
+    <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView style={styles.scrollView}>
         {payments.map((payment, index) => (
-          <View key={index} style={styles.paymentItem}>
-            <ThemedText type="body" style={styles.paymentMethod}>
+          <View
+            key={index}
+            style={[
+              styles.paymentItem,
+              {
+                backgroundColor: theme.surface,
+                borderColor: theme.border,
+              },
+            ]}
+          >
+            <ThemedText type="body" style={[styles.paymentMethod, { color: theme.primary }]}>
               {payment.payment_method === "cash"
                 ? t("sell:cash")
                 : t("sell:electronic")}
             </ThemedText>
-            <ThemedText type="caption" style={styles.paymentAmount}>
+            <ThemedText type="caption" style={[styles.paymentAmount, { color: theme.primary }]}>
               -{formatCentimes(payment.amount_centimes)}
             </ThemedText>
-            <ThemedText type="caption" style={styles.paymentDate}>
+            <ThemedText type="caption" style={[styles.paymentDate, { color: theme.textSecondary }]}>
               {new Date(payment.paid_at).toLocaleDateString()}
             </ThemedText>
             {payment.note && (
-              <ThemedText type="caption" style={styles.paymentNote}>
+              <ThemedText type="caption" style={[styles.paymentNote, { color: theme.textSecondary }]}>
                 {payment.note}
               </ThemedText>
             )}
@@ -84,7 +95,6 @@ export function PaymentHistory({ customerId, customerName }: PaymentHistoryProps
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.light.background,
     padding: 24,
   },
   scrollView: {
@@ -95,39 +105,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.md,
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.md,
+    borderWidth: 1,
   },
   paymentMethod: {
     fontSize: 14,
-    color: Colors.light.primary,
     fontWeight: '600',
   },
   paymentAmount: {
     fontSize: 14,
-    color: Colors.light.primary,
     marginHorizontal: 8,
   },
   paymentDate: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   paymentNote: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginHorizontal: 8,
   },
   loadingText: {
     ...Typography.body,
     fontSize: 14,
-    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginVertical: 20,
   },
   noPayments: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
     textAlign: 'center',
     marginVertical: 20,
   },

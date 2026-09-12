@@ -7,13 +7,14 @@ import {
     TabTriggerSlotProps,
 } from "expo-router/ui";
 import { SymbolView } from "expo-symbols";
-import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { ExternalLink } from "./external-link";
 import { ThemedText } from "./themed-text";
 import { ThemedView } from "./themed-view";
 
 import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function AppTabs() {
   return (
@@ -59,8 +60,8 @@ export function CustomTabList(props: TabListProps) {
   return (
     <View {...props} style={styles.tabListContainer}>
       <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          Expo Starter
+        <ThemedText style={[styles.brandText, { fontWeight: "800", fontSize: 16 }]}>
+          Dukkan<ThemedText style={{ color: colors.primary, fontWeight: "800" }}>Pro</ThemedText>
         </ThemedText>
 
         {props.children}

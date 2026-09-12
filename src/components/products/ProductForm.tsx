@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { FormField } from '@/components/ui/FormField';
 import { executeWrite, executeRead } from '@/database/database';
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 type ProductFormMode = 'create' | 'edit';
 
@@ -21,6 +21,7 @@ interface ProductFormProps {
 
 export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, locale = "fr" }: ProductFormProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [form, setForm] = useState({
     name: initialProduct?.name || '',
     sku: initialProduct?.sku || '',
@@ -37,7 +38,6 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Load initial product data when provided asynchronously
   useEffect(() => {
     if (initialProduct) {
       const timer = setTimeout(() => {
@@ -60,8 +60,8 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
   }, [mode, initialProduct]);
 
   const handleInputChange = useCallback((key: keyof typeof form, value: any) => {
-    setForm({ ...form, [key]: value });
-  }, [form]);
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     if (!form.name?.trim()) {
@@ -83,7 +83,6 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
       let result;
       if (mode === 'create') {
         result = await executeWrite(
-          // language=SQLite
           `INSERT INTO products
            (name, sku, category, sale_price_centimes, cost_price_centimes,
             stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at)
@@ -100,7 +99,6 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
             form.is_active ? 1 : 0,
           ],
         );
-        // Re-fetch the created product
         const rows: any[] = await executeRead(
           `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
                stock_quantity, minimum_stock_quantity, unit, is_active,
@@ -109,8 +107,6 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
         );
         result = rows[0];
       } else {
-        // Edit mode - use update
-        // First check SKU uniqueness (excluding current product)
         if (form.sku) {
           const rows: any[] = await executeRead(
             `SELECT id FROM products WHERE sku = ? AND id != ?`,
@@ -125,7 +121,6 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
         }
 
         await executeWrite(
-          // language=SQLite
           `UPDATE products
            SET name = ?,
                sku = ?,
@@ -168,9 +163,7 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
     if (mode === 'edit' && onArchive) {
       const confirmed = window.confirm(t('products:deleteConfirm'));
       if (confirmed) {
-        // Soft-delete: set is_active = false
         await executeWrite(
-          // language=SQLite
           `UPDATE products SET is_active = 0, updated_at = datetime('now') WHERE id = ?`,
           [form.id],
         );
@@ -178,18 +171,27 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
         onClose();
       }
     }
-  }, [mode, onArchive, form, t, initialProduct]);
+  }, [mode, onArchive, form, t]);
+
+  const inputStyle = [
+    styles.input,
+    {
+      borderColor: theme.border,
+      backgroundColor: theme.surface,
+      color: theme.textPrimary,
+    },
+  ];
 
   return (
-    <ThemedView type="background" style={styles.container}>
+    <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <ThemedView style={styles.form}>
-          <ThemedText type="title" style={styles.title}>
+        <ThemedView style={[styles.form, { backgroundColor: theme.surface }]}>
+          <ThemedText type="title" style={[styles.title, { color: theme.textPrimary }]}>
             {mode === 'create' ? t('products:formTitle') : t('products:formSubtitle')}
           </ThemedText>
 
           {mode === 'edit' && initialProduct && (
-            <ThemedText type="small" style={styles.subtitle}>
+            <ThemedText type="small" style={[styles.subtitle, { color: theme.textSecondary }]}>
               {t('products:editingProduct', { name: initialProduct.name })}
             </ThemedText>
           )}
@@ -199,8 +201,9 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
               value={form.name}
               onChangeText={value => handleInputChange('name', value)}
               placeholder={t('products:placeholder')}
+              placeholderTextColor={theme.textMuted}
               autoCapitalize="words"
-              style={styles.input}
+              style={inputStyle}
             />
           </FormField>
 
@@ -209,9 +212,10 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
               value={form.sku}
               onChangeText={value => handleInputChange('sku', value)}
               placeholder="FL-001, OI-001, etc."
+              placeholderTextColor={theme.textMuted}
               keyboardType="default"
               autoCapitalize="characters"
-              style={styles.input}
+              style={inputStyle}
             />
           </FormField>
 
@@ -220,7 +224,8 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
               value={form.category}
               onChangeText={value => handleInputChange('category', value)}
               placeholder="مخبوزات, مطبخ, etc."
-              style={styles.input}
+              placeholderTextColor={theme.textMuted}
+              style={inputStyle}
             />
           </FormField>
 
@@ -233,9 +238,10 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
               }}
               keyboardType="numeric"
               placeholder="1500 (15.00 DZD)"
-              style={styles.input}
+              placeholderTextColor={theme.textMuted}
+              style={inputStyle}
             />
-            <ThemedText type="small" style={styles.hint}>
+            <ThemedText type="small" style={[styles.hint, { color: theme.textSecondary }]}>
               {t('products:salePriceCentimes')}
             </ThemedText>
           </FormField>
@@ -249,9 +255,10 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
               }}
               keyboardType="numeric"
               placeholder="900 (9.00 DZD)"
-              style={styles.input}
+              placeholderTextColor={theme.textMuted}
+              style={inputStyle}
             />
-            <ThemedText type="small" style={styles.hint}>
+            <ThemedText type="small" style={[styles.hint, { color: theme.textSecondary }]}>
               {t('products:salePriceCentimes')}
             </ThemedText>
           </FormField>
@@ -265,7 +272,8 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
               }}
               keyboardType="numeric"
               placeholder="0"
-              style={styles.input}
+              placeholderTextColor={theme.textMuted}
+              style={inputStyle}
             />
           </FormField>
 
@@ -278,7 +286,8 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
               }}
               keyboardType="numeric"
               placeholder="0"
-              style={styles.input}
+              placeholderTextColor={theme.textMuted}
+              style={inputStyle}
             />
           </FormField>
 
@@ -286,17 +295,14 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
             <TextInput
               value={form.unit}
               onChangeText={value => handleInputChange('unit', value)}
-              style={styles.input}
-            >
-              <ThemedText type="small">
-                {t('products:unitPiece')} | {t('products:unitKg')} | {t('products:unitLiter')} | {t('products:unitPack')} | {t('products:unitBox')} | {t('products:unitOther')}
-              </ThemedText>
-            </TextInput>
+              placeholderTextColor={theme.textMuted}
+              style={inputStyle}
+            />
           </FormField>
 
           {showError && (
-            <ThemedView style={styles.errorBanner}>
-              <ThemedText style={styles.errorBannerText}>{errorMessage}</ThemedText>
+            <ThemedView style={[styles.errorBanner, { backgroundColor: theme.errorLight }]}>
+              <ThemedText style={{ color: theme.error, fontSize: 12 }}>{errorMessage}</ThemedText>
             </ThemedView>
           )}
 
@@ -309,14 +315,14 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
             />
 
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <ThemedText type="small" style={styles.cancelText}>
+              <ThemedText type="small" style={{ color: theme.textSecondary }}>
                 {t('products:formCancel')}
               </ThemedText>
             </TouchableOpacity>
 
             {mode === 'edit' && onArchive && (
               <TouchableOpacity style={styles.archiveButton} onPress={handleArchive}>
-                <ThemedText type="small" style={styles.archiveText}>
+                <ThemedText type="small" style={{ color: theme.error }}>
                   {form.is_active ? t('products:archive') : t('products:reactivate')}
                 </ThemedText>
               </TouchableOpacity>
@@ -331,7 +337,6 @@ export function ProductForm({ mode, initialProduct, onSave, onClose, onArchive, 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   scroll: {
     flexGrow: 1,
@@ -343,40 +348,31 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 600,
+    fontWeight: '600',
     marginBottom: 16,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
     marginBottom: 24,
     textAlign: 'center',
   },
   input: {
     height: 50,
-    borderColor: Colors.light.disabledBackground,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 14,
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   hint: {
     fontSize: 10,
-    color: Colors.light.textSecondary,
     marginTop: 4,
   },
   errorBanner: {
-    backgroundColor: Colors.light.warningLight,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
-  },
-  errorBannerText: {
-    color: Colors.light.destructive,
-    fontSize: 12,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -390,16 +386,10 @@ const styles = StyleSheet.create({
   archiveButton: {
     flex: 1,
   },
-  cancelText: {
-    color: Colors.light.textSecondary,
-  },
-  archiveText: {
-    color: Colors.light.destructive,
-  },
   form: {
     flex: 1,
     maxWidth: 400,
     padding: 20,
-    backgroundColor: 'white',
+    borderRadius: 12,
   },
 });

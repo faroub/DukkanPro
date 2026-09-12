@@ -12,8 +12,8 @@ import {
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
-import { formatCentimes } from '@/utils/money';
+import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export interface ProductFormData {
   name: string;
@@ -52,8 +52,12 @@ const DEFAULT_UNITS = [
   { value: 'Kilogram', label: 'Kilogram (kg)' },
   { value: 'Litre', label: 'Litre (L)' },
   { value: 'Box', label: 'Box (bx)' },
+  { value: 'Carton', label: 'Carton (ctn)' },
+  { value: 'Dozen', label: 'Dozen (dz)' },
   { value: 'Other', label: 'Other' },
 ];
+
+const THRESHOLD_PRESETS = [0, 3, 5, 10, 20, 50];
 
 export function ProductForm({
   productId,
@@ -65,6 +69,7 @@ export function ProductForm({
   mode,
 }: ProductFormProps) {
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
 
   const [name, setName] = useState(initialValues?.name || '');
   const [sku, setSku] = useState(initialValues?.sku || '');
@@ -87,7 +92,9 @@ export function ProductForm({
       ? initialValues.minimum_stock_quantity.toString()
       : '5'
   );
-  const [unit, setUnit] = useState(initialValues?.unit || 'Pack');
+  const [unit, setUnit] = useState(initialValues?.unit || 'Piece');
+  const [allowNegativeStock, setAllowNegativeStock] = useState(false);
+  const [targetRestockBatch, setTargetRestockBatch] = useState('12');
   const [isActive, setIsActive] = useState(initialValues?.is_active !== false);
 
   const [categoriesList, setCategoriesList] = useState<string[]>(() => {
@@ -114,10 +121,37 @@ export function ProductForm({
 
   const marginHealth = useMemo(() => {
     if (saleDinars <= 0 && costDinars <= 0) return null;
-    if (profitDinars < 0) return { label: t('products:marginLoss', 'Loss'), color: Colors.light.error, bg: Colors.light.errorLight };
-    if (marginPercentage < 15) return { label: t('products:marginLow', 'Low Margin'), color: Colors.light.secondary, bg: Colors.light.warningLight };
-    return { label: t('products:marginHealthy', 'Healthy'), color: Colors.light.primary, bg: Colors.light.primaryLight };
-  }, [saleDinars, costDinars, profitDinars, marginPercentage, t]);
+    if (profitDinars < 0) return { label: t('products:marginLoss', 'Loss'), color: theme.error, bg: theme.errorLight };
+    if (marginPercentage < 15) return { label: t('products:marginLow', 'Low Margin'), color: theme.secondary, bg: theme.warningLight };
+    return { label: t('products:marginHealthy', 'Healthy'), color: theme.primary, bg: theme.primaryLight };
+  }, [saleDinars, costDinars, profitDinars, marginPercentage, t, theme]);
+
+  // Stock status calculation based on current stock vs threshold
+  const currentMinThreshold = parseInt(minStockAlert, 10) || 0;
+  const stockHealthStatus = useMemo(() => {
+    if (stockQuantity <= 0) {
+      return {
+        label: t('products:stockStatusOut', 'Out of Stock'),
+        color: theme.error,
+        bg: theme.errorLight,
+        icon: 'alert-circle' as const,
+      };
+    }
+    if (stockQuantity <= currentMinThreshold) {
+      return {
+        label: t('products:stockStatusLow', 'Low Stock Warning'),
+        color: theme.warning || theme.secondary,
+        bg: theme.warningLight,
+        icon: 'warning' as const,
+      };
+    }
+    return {
+      label: t('products:stockStatusHealthy', 'Healthy Stock'),
+      color: theme.primary,
+      bg: theme.primaryLight,
+      icon: 'checkmark-circle' as const,
+    };
+  }, [stockQuantity, currentMinThreshold, t, theme]);
 
   const isNameValid = name.trim().length > 0;
 
@@ -144,10 +178,14 @@ export function ProductForm({
     setStockQuantity((prev) => Math.max(0, prev + delta));
   };
 
+  const handlePresetSelect = (presetVal: number) => {
+    setMinStockAlert(presetVal.toString());
+  };
+
   const handleSubmit = async () => {
     setNameTouched(true);
     if (!isNameValid) {
-      setErrorMsg(t('products:productNameRequired'));
+      setErrorMsg(t('products:productNameRequired', 'Product name is required'));
       return;
     }
 
@@ -171,36 +209,40 @@ export function ProductForm({
       });
       onClose();
     } catch (err: any) {
-      setErrorMsg(err?.message || t('common:error'));
+      setErrorMsg(err?.message || t('common:error', 'Error'));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <ThemedView type="background" style={styles.container}>
-      {/* Header bar */}
-      <View style={styles.header}>
+    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Top Header */}
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={[styles.backButton, { backgroundColor: theme.surfaceAlt }]}
             onPress={onClose}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Go back"
+            activeOpacity={0.7}
+            accessibilityLabel={t('common:close', 'Close')}
           >
-            <Ionicons name="arrow-back" size={24} color={Colors.light.textPrimary} />
+            <Ionicons name="close" size={22} color={theme.textPrimary} />
           </TouchableOpacity>
-          <ThemedText style={styles.headerTitle}>
-            {t(mode === 'create' ? 'products:addProduct' : 'products:editProduct')}
+          <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
+            {mode === 'create'
+              ? t('products:newProduct', 'New Product')
+              : t('products:editProduct', 'Edit Product')}
           </ThemedText>
         </View>
+
         <TouchableOpacity
-          style={styles.quickSaveButton}
+          style={[styles.quickSaveButton, { backgroundColor: theme.primaryLight }]}
           onPress={handleSubmit}
           disabled={submitting}
+          activeOpacity={0.8}
         >
-          <ThemedText style={styles.quickSaveText}>
-            {t('products:save')}
+          <ThemedText style={[styles.quickSaveText, { color: theme.primary }]}>
+            {t('common:save', 'Save')}
           </ThemedText>
         </TouchableOpacity>
       </View>
@@ -209,39 +251,30 @@ export function ProductForm({
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {/* Item Details section title */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionHeaderLeft}>
-            <View style={styles.sectionIconBadge}>
-              <Ionicons name="cube-outline" size={18} color={Colors.light.primary} />
-            </View>
-            <ThemedText style={styles.sectionHeaderTitle}>
-              {t('products:itemDetails')}
-            </ThemedText>
-          </View>
-        </View>
-
+        {/* Error Alert */}
         {errorMsg ? (
-          <View style={styles.errorAlert}>
-            <Ionicons name="alert-circle" size={18} color={Colors.light.error} />
-            <ThemedText style={styles.errorAlertText}>{errorMsg}</ThemedText>
+          <View style={[styles.errorAlert, { backgroundColor: theme.errorLight, borderColor: theme.error }]}>
+            <Ionicons name="alert-circle" size={20} color={theme.error} />
+            <ThemedText style={[styles.errorAlertText, { color: theme.error }]}>
+              {errorMsg}
+            </ThemedText>
           </View>
         ) : null}
 
         {/* Card 1: General Information */}
-        <ThemedView style={styles.card}>
+        <ThemedView style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderLight }]}>
           <View style={styles.cardHeader}>
-            <ThemedText style={styles.cardTitle}>
-              {t('products:generalInformation')}
-            </ThemedText>
-            <View style={styles.badgeDraft}>
-              <ThemedText style={styles.badgeDraftText}>
-                {mode === 'create'
-                  ? t('products:activeDraft', 'Active draft')
-                  : isActive
-                  ? t('products:active', 'Active')
-                  : t('products:archivedBadge', 'Archived')}
+            <View style={styles.cardHeaderLeftGroup}>
+              <Ionicons name="cube-outline" size={18} color={theme.primary} />
+              <ThemedText style={[styles.cardTitle, { color: theme.textPrimary }]}>
+                {t('products:generalInformation', 'General Information')}
+              </ThemedText>
+            </View>
+            <View style={[styles.badgeDraft, { backgroundColor: theme.primaryLight }]}>
+              <ThemedText style={[styles.badgeDraftText, { color: theme.primary }]}>
+                {mode === 'create' ? t('products:valid', 'New') : t('common:edit', 'Edit')}
               </ThemedText>
             </View>
           </View>
@@ -249,67 +282,81 @@ export function ProductForm({
           {/* Product Name */}
           <View style={styles.formGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={styles.label}>
-                {t('products:name')} <ThemedText style={styles.asterisk}>*</ThemedText>
+              <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+                {t('products:productName', 'Product Name')} <ThemedText style={[styles.asterisk, { color: theme.error }]}>*</ThemedText>
               </ThemedText>
-              {isNameValid ? (
+              {nameTouched && isNameValid && (
                 <View style={styles.validRow}>
-                  <Ionicons name="checkmark-circle" size={16} color={Colors.light.primary} />
-                  <ThemedText style={styles.validText}>{t('products:valid')}</ThemedText>
+                  <Ionicons name="checkmark-circle" size={16} color={theme.primary} />
+                  <ThemedText style={[styles.validText, { color: theme.primary }]}>
+                    {t('products:valid', 'Valid')}
+                  </ThemedText>
                 </View>
-              ) : null}
+              )}
             </View>
             <TextInput
               style={[
                 styles.textInput,
-                nameTouched && !isNameValid ? styles.textInputError : null,
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.borderLight,
+                  color: theme.textPrimary,
+                },
+                nameTouched && !isNameValid && [styles.textInputError, { borderColor: theme.error, backgroundColor: theme.errorLight }],
               ]}
               value={name}
               onChangeText={(text) => {
                 setName(text);
-                if (nameTouched) setErrorMsg('');
+                if (errorMsg) setErrorMsg('');
               }}
               onBlur={() => setNameTouched(true)}
-              placeholder="e.g., Lait Candia 1L, Café Moulu..."
-              placeholderTextColor={Colors.light.textMuted}
-              autoCapitalize="words"
+              placeholder="e.g., Lait Candia 1L, Couscous Sim 1kg"
+              placeholderTextColor={theme.textMuted}
             />
             {nameTouched && !isNameValid ? (
-              <ThemedText style={styles.fieldErrorText}>
-                {t('products:productNameRequired')}
+              <ThemedText style={[styles.fieldErrorText, { color: theme.error }]}>
+                {t('products:productNameRequired', 'Product name is required')}
               </ThemedText>
             ) : null}
           </View>
 
           {/* SKU / Barcode */}
           <View style={styles.formGroup}>
-            <ThemedText style={styles.label}>
-              {t('products:skuBarcodeOptional')}
+            <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+              {t('products:skuBarcodeOptional', 'SKU / Barcode (Optional)')}
             </ThemedText>
             <View style={styles.inputWithIconWrapper}>
               <TextInput
-                style={[styles.textInput, styles.inputWithIcon]}
+                style={[
+                  styles.textInput,
+                  styles.inputWithIcon,
+                  {
+                    backgroundColor: theme.surfaceAlt,
+                    borderColor: theme.borderLight,
+                    color: theme.textPrimary,
+                  },
+                ]}
                 value={sku}
                 onChangeText={setSku}
-                placeholder="e.g., SKU-44021 or scan barcode"
-                placeholderTextColor={Colors.light.textMuted}
+                placeholder="e.g., 6130123456789 or SKU-44021"
+                placeholderTextColor={theme.textMuted}
                 autoCapitalize="characters"
               />
               <TouchableOpacity
                 style={styles.inputIconRight}
                 onPress={() => {
-                  Alert.alert(t('products:scanBarcode'), 'Barcode scanner will read EAN-13 codes.');
+                  Alert.alert(t('products:scanBarcode', 'Scan Barcode'), 'Ready to scan EAN-13 barcodes.');
                 }}
               >
-                <Ionicons name="barcode-outline" size={22} color={Colors.light.primary} />
+                <Ionicons name="barcode-outline" size={22} color={theme.primary} />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Category */}
           <View style={styles.formGroup}>
-            <ThemedText style={styles.label}>
-              {t('products:categoryOptional')}
+            <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+              {t('products:categoryOptional', 'Category (Optional)')}
             </ThemedText>
             <View style={styles.categoryChipsWrap}>
               {categoriesList.map((cat) => {
@@ -317,7 +364,13 @@ export function ProductForm({
                 return (
                   <TouchableOpacity
                     key={cat}
-                    style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
+                    style={[
+                      styles.categoryChip,
+                      {
+                        backgroundColor: isSelected ? theme.primary : theme.surfaceAlt,
+                        borderColor: isSelected ? theme.primary : theme.borderLight,
+                      },
+                    ]}
                     onPress={() => handleSelectCategory(cat)}
                     activeOpacity={0.7}
                   >
@@ -332,7 +385,9 @@ export function ProductForm({
                     <ThemedText
                       style={[
                         styles.categoryChipText,
-                        isSelected && styles.categoryChipTextSelected,
+                        {
+                          color: isSelected ? '#FFFFFF' : theme.textSecondary,
+                        },
                       ]}
                     >
                       {cat}
@@ -341,13 +396,19 @@ export function ProductForm({
                 );
               })}
               <TouchableOpacity
-                style={styles.newCategoryChip}
+                style={[
+                  styles.newCategoryChip,
+                  {
+                    backgroundColor: theme.primaryLight,
+                    borderColor: theme.primaryLight,
+                  },
+                ]}
                 onPress={() => setIsNewCatModalVisible(true)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="add" size={16} color={Colors.light.primary} />
-                <ThemedText style={styles.newCategoryChipText}>
-                  {t('products:newCategory')}
+                <Ionicons name="add" size={16} color={theme.primary} />
+                <ThemedText style={[styles.newCategoryChipText, { color: theme.primary }]}>
+                  {t('products:newCategory', 'New Category')}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -355,16 +416,16 @@ export function ProductForm({
         </ThemedView>
 
         {/* Card 2: Pricing & Margins */}
-        <ThemedView style={styles.card}>
+        <ThemedView style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderLight }]}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderLeftGroup}>
-              <Ionicons name="cash-outline" size={18} color={Colors.light.primary} />
-              <ThemedText style={styles.cardTitle}>
-                {t('products:pricingAndMargins')}
+              <Ionicons name="cash-outline" size={18} color={theme.primary} />
+              <ThemedText style={[styles.cardTitle, { color: theme.textPrimary }]}>
+                {t('products:pricingAndMargins', 'Pricing & Margins')}
               </ThemedText>
             </View>
-            <View style={styles.badgeNeutral}>
-              <ThemedText style={styles.badgeNeutralText}>
+            <View style={[styles.badgeNeutral, { backgroundColor: theme.surfaceAlt }]}>
+              <ThemedText style={[styles.badgeNeutralText, { color: theme.textSecondary }]}>
                 {t('products:dzdCurrency', 'DZD Currency')}
               </ThemedText>
             </View>
@@ -373,50 +434,66 @@ export function ProductForm({
           <View style={styles.rowTwoCols}>
             {/* Sale Price */}
             <View style={styles.colHalf}>
-              <ThemedText style={styles.label}>
-                {t('products:salePrice')} <ThemedText style={styles.asterisk}>*</ThemedText>
+              <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+                {t('products:salePrice', 'Sale Price')} <ThemedText style={[styles.asterisk, { color: theme.error }]}>*</ThemedText>
               </ThemedText>
               <View style={styles.inputWithSuffixWrapper}>
                 <TextInput
-                  style={[styles.textInput, styles.inputWithSuffix]}
+                  style={[
+                    styles.textInput,
+                    styles.inputWithSuffix,
+                    {
+                      backgroundColor: theme.surfaceAlt,
+                      borderColor: theme.borderLight,
+                      color: theme.textPrimary,
+                    },
+                  ]}
                   value={salePriceDzd}
                   onChangeText={setSalePriceDzd}
                   placeholder="0"
-                  placeholderTextColor={Colors.light.textMuted}
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="decimal-pad"
                 />
-                <ThemedText style={styles.inputSuffix}>DZD</ThemedText>
+                <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>DZD</ThemedText>
               </View>
             </View>
 
             {/* Cost Price */}
             <View style={styles.colHalf}>
-              <ThemedText style={styles.label}>
-                {t('products:costPrice')}
+              <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+                {t('products:costPrice', 'Cost Price')}
               </ThemedText>
               <View style={styles.inputWithSuffixWrapper}>
                 <TextInput
-                  style={[styles.textInput, styles.inputWithSuffix]}
+                  style={[
+                    styles.textInput,
+                    styles.inputWithSuffix,
+                    {
+                      backgroundColor: theme.surfaceAlt,
+                      borderColor: theme.borderLight,
+                      color: theme.textPrimary,
+                    },
+                  ]}
                   value={costPriceDzd}
                   onChangeText={setCostPriceDzd}
                   placeholder="0"
-                  placeholderTextColor={Colors.light.textMuted}
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="decimal-pad"
                 />
-                <ThemedText style={styles.inputSuffix}>DZD</ThemedText>
+                <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>DZD</ThemedText>
               </View>
             </View>
           </View>
 
           {/* Live Profit Margin Card */}
-          <View style={styles.profitCard}>
+          <View style={[styles.profitCard, { backgroundColor: theme.primaryLight }]}>
             <View style={styles.profitLeft}>
-              <Ionicons name="trending-up" size={20} color={Colors.light.primary} />
+              <Ionicons name="trending-up" size={20} color={theme.primary} />
               <View>
-                <ThemedText style={styles.profitLabel}>
-                  {t('products:estimatedProfit')}
+                <ThemedText style={[styles.profitLabel, { color: theme.textSecondary }]}>
+                  {t('products:estimatedProfit', 'Estimated Profit')}
                 </ThemedText>
-                <ThemedText style={styles.profitAmount}>
+                <ThemedText style={[styles.profitAmount, { color: theme.primary }]}>
                   {profitDinars.toLocaleString()} DZD ({marginPercentage.toFixed(1)}%)
                 </ThemedText>
               </View>
@@ -431,38 +508,48 @@ export function ProductForm({
           </View>
         </ThemedView>
 
-        {/* Card 3: Stock Inventory */}
-        <ThemedView style={styles.card}>
+        {/* Card 3: Dedicated Product Inventory Rules & Stock Controls */}
+        <ThemedView style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderLight }]}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderLeftGroup}>
-              <Ionicons name="storefront-outline" size={18} color={Colors.light.primary} />
-              <ThemedText style={styles.cardTitle}>
-                {t('products:stockInventory')}
-              </ThemedText>
-            </View>
-            <View style={styles.badgeWarning}>
-              <ThemedText style={styles.badgeWarningText}>
-                {t('products:thresholdAlert', 'Threshold Alert')}
+              <Ionicons name="shield-checkmark-outline" size={18} color={theme.primary} />
+              <ThemedText style={[styles.cardTitle, { color: theme.textPrimary }]}>
+                {t('products:inventoryRulesTitle', 'Inventory Rules & Stock Controls')}
               </ThemedText>
             </View>
           </View>
 
+          {/* Live Stock Health Badge under section title */}
+          <View style={styles.healthBadgeContainer}>
+            <View style={[styles.healthBadge, { backgroundColor: stockHealthStatus.bg }]}>
+              <Ionicons name={stockHealthStatus.icon} size={13} color={stockHealthStatus.color} style={{ marginRight: 4 }} />
+              <ThemedText style={[styles.healthBadgeText, { color: stockHealthStatus.color }]}>
+                {stockHealthStatus.label}
+              </ThemedText>
+            </View>
+          </View>
+
+          <ThemedText style={[styles.sectionSubtitleText, { color: theme.textSecondary }]}>
+            {t('products:inventoryRulesSubtitle', 'Configure specific thresholds and selling rules for this product')}
+          </ThemedText>
+
+          {/* Stock on Hand & Unit Section */}
           {mode === 'create' ? (
             <View style={styles.rowTwoCols}>
               {/* Opening Stock Stepper */}
               <View style={styles.colHalf}>
-                <ThemedText style={styles.label}>
-                  {t('products:openingStock')} <ThemedText style={styles.asterisk}>*</ThemedText>
+                <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+                  {t('products:openingStock', 'Opening Stock')} <ThemedText style={[styles.asterisk, { color: theme.error }]}>*</ThemedText>
                 </ThemedText>
-                <View style={styles.stepperContainer}>
+                <View style={[styles.stepperContainer, { backgroundColor: theme.surfaceAlt, borderColor: theme.borderLight }]}>
                   <TouchableOpacity
-                    style={styles.stepperButton}
+                    style={[styles.stepperButton, { backgroundColor: theme.surface }]}
                     onPress={() => handleStockAdjust(-1)}
                   >
-                    <Ionicons name="remove" size={18} color={Colors.light.textPrimary} />
+                    <Ionicons name="remove" size={18} color={theme.textPrimary} />
                   </TouchableOpacity>
                   <TextInput
-                    style={styles.stepperInput}
+                    style={[styles.stepperInput, { color: theme.textPrimary }]}
                     value={stockQuantity.toString()}
                     onChangeText={(val) => {
                       const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
@@ -471,42 +558,42 @@ export function ProductForm({
                     keyboardType="number-pad"
                   />
                   <TouchableOpacity
-                    style={styles.stepperButton}
+                    style={[styles.stepperButton, { backgroundColor: theme.surface }]}
                     onPress={() => handleStockAdjust(1)}
                   >
-                    <Ionicons name="add" size={18} color={Colors.light.textPrimary} />
+                    <Ionicons name="add" size={18} color={theme.textPrimary} />
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* Unit selector */}
               <View style={styles.colHalf}>
-                <ThemedText style={styles.label}>
-                  {t('products:unit')} <ThemedText style={styles.asterisk}>*</ThemedText>
+                <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+                  {t('products:unit', 'Unit')} <ThemedText style={[styles.asterisk, { color: theme.error }]}>*</ThemedText>
                 </ThemedText>
                 <TouchableOpacity
-                  style={styles.unitDropdown}
+                  style={[styles.unitDropdown, { backgroundColor: theme.surfaceAlt, borderColor: theme.borderLight }]}
                   onPress={() => setIsUnitModalVisible(true)}
                   activeOpacity={0.8}
                 >
-                  <ThemedText style={styles.unitDropdownText}>{unit}</ThemedText>
-                  <Ionicons name="chevron-down" size={18} color={Colors.light.textSecondary} />
+                  <ThemedText style={[styles.unitDropdownText, { color: theme.textPrimary }]}>{unit}</ThemedText>
+                  <Ionicons name="chevron-down" size={18} color={theme.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
           ) : (
             // Edit Mode: Read-only Current in-stock with link to Stock Adjustment
-            <View style={styles.currentStockCard}>
+            <View style={[styles.currentStockCard, { backgroundColor: theme.surfaceAlt }]}>
               <View style={styles.currentStockTopRow}>
                 <View style={styles.currentStockLeft}>
-                  <Ionicons name="file-tray-stacked-outline" size={20} color={Colors.light.textSecondary} />
-                  <ThemedText style={styles.currentStockLabel}>
-                    {t('products:currentOnHand')}
+                  <Ionicons name="file-tray-stacked-outline" size={20} color={theme.textSecondary} />
+                  <ThemedText style={[styles.currentStockLabel, { color: theme.textPrimary }]}>
+                    {t('products:currentOnHand', 'Current On-Hand')}
                   </ThemedText>
                 </View>
                 <View style={styles.currentStockQtyRow}>
-                  <ThemedText style={styles.currentStockNumber}>{stockQuantity}</ThemedText>
-                  <ThemedText style={styles.currentStockUnit}>{unit}</ThemedText>
+                  <ThemedText style={[styles.currentStockNumber, { color: theme.textPrimary }]}>{stockQuantity}</ThemedText>
+                  <ThemedText style={[styles.currentStockUnit, { color: theme.textSecondary }]}>{unit}</ThemedText>
                 </View>
               </View>
               <TouchableOpacity
@@ -515,14 +602,14 @@ export function ProductForm({
                   if (onNavigateStockAdjustment) {
                     onNavigateStockAdjustment();
                   } else {
-                    Alert.alert(t('products:adjustStock'), 'Navigate to stock adjustment');
+                    Alert.alert(t('products:adjustStock', 'Adjust Stock'), 'Navigate to stock adjustment');
                   }
                 }}
               >
-                <ThemedText style={styles.adjustStockLinkText}>
-                  {t('products:adjustStock')}
+                <ThemedText style={[styles.adjustStockLinkText, { color: theme.primary }]}>
+                  {t('products:adjustStock', 'Adjust Stock')}
                 </ThemedText>
-                <Ionicons name="arrow-forward" size={16} color={Colors.light.primary} />
+                <Ionicons name="arrow-forward" size={16} color={theme.primary} />
               </TouchableOpacity>
             </View>
           )}
@@ -530,43 +617,159 @@ export function ProductForm({
           {/* Unit selector in Edit mode */}
           {mode === 'edit' && (
             <View style={styles.formGroup}>
-              <ThemedText style={styles.label}>{t('products:unit')}</ThemedText>
+              <ThemedText style={[styles.label, { color: theme.textPrimary }]}>{t('products:unit', 'Unit')}</ThemedText>
               <TouchableOpacity
-                style={styles.unitDropdown}
+                style={[styles.unitDropdown, { backgroundColor: theme.surfaceAlt, borderColor: theme.borderLight }]}
                 onPress={() => setIsUnitModalVisible(true)}
                 activeOpacity={0.8}
               >
-                <ThemedText style={styles.unitDropdownText}>{unit}</ThemedText>
-                <Ionicons name="chevron-down" size={18} color={Colors.light.textSecondary} />
+                <ThemedText style={[styles.unitDropdownText, { color: theme.textPrimary }]}>{unit}</ThemedText>
+                <Ionicons name="chevron-down" size={18} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
           )}
 
-          {/* Minimum Alert Threshold */}
+          {/* Product-Specific Rule 1: Minimum Low-Stock Alert Threshold */}
           <View style={styles.formGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={styles.label}>
-                {t('products:minAlertThreshold')} <ThemedText style={styles.asterisk}>*</ThemedText>
+              <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+                {t('products:minAlertThreshold', 'Minimum Alert Threshold')} <ThemedText style={[styles.asterisk, { color: theme.error }]}>*</ThemedText>
               </ThemedText>
-              <ThemedText style={styles.safeFloorText}>
-                {t('products:safeFloor')}
+              <ThemedText style={[styles.safeFloorText, { color: theme.textMuted }]}>
+                {t('products:safeFloor', 'Safe floor')}
               </ThemedText>
             </View>
+
             <View style={styles.inputWithSuffixWrapper}>
               <TextInput
-                style={[styles.textInput, styles.inputWithSuffix]}
+                style={[
+                  styles.textInput,
+                  styles.inputWithSuffix,
+                  {
+                    backgroundColor: theme.surfaceAlt,
+                    borderColor: theme.borderLight,
+                    color: theme.textPrimary,
+                  },
+                ]}
                 value={minStockAlert}
                 onChangeText={setMinStockAlert}
                 keyboardType="number-pad"
                 placeholder="5"
-                placeholderTextColor={Colors.light.textMuted}
+                placeholderTextColor={theme.textMuted}
               />
-              <ThemedText style={styles.inputSuffix}>
-                {t('products:units')}
+              <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>
+                {unit}
               </ThemedText>
             </View>
-            <ThemedText style={styles.captionHint}>
-              {t('products:alertsWhenLow')}
+            <ThemedText style={[styles.captionHint, { color: theme.textSecondary }]}>
+              {t('products:alertsWhenLow', 'Alerts you on the POS and dashboard when stock dips to or below this level')}
+            </ThemedText>
+          </View>
+
+          {/* Product-Specific Rule 2: Out of Stock Policy / Allow Negative Stock */}
+          <View style={styles.formGroup}>
+            <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+              {t('products:sellingPolicyLabel', 'Out-of-Stock Selling Policy')}
+            </ThemedText>
+
+            <View style={styles.policyChoicesContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.policyCard,
+                  {
+                    backgroundColor: !allowNegativeStock ? theme.primaryLight : theme.surfaceAlt,
+                    borderColor: !allowNegativeStock ? theme.primary : theme.borderLight,
+                  },
+                ]}
+                onPress={() => setAllowNegativeStock(false)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={!allowNegativeStock ? 'radio-button-on' : 'radio-button-off'}
+                  size={20}
+                  color={!allowNegativeStock ? theme.primary : theme.textMuted}
+                />
+                <View style={styles.policyTextContainer}>
+                  <ThemedText
+                    style={[
+                      styles.policyTitle,
+                      { color: !allowNegativeStock ? theme.primary : theme.textPrimary },
+                    ]}
+                  >
+                    {t('products:strictPolicy', 'Strict: Block sales when stock is 0')}
+                  </ThemedText>
+                  <ThemedText style={[styles.policyDesc, { color: theme.textSecondary }]}>
+                    {t('products:strictPolicyDesc', 'Guarantees physical inventory count accuracy at all times.')}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.policyCard,
+                  {
+                    backgroundColor: allowNegativeStock ? theme.primaryLight : theme.surfaceAlt,
+                    borderColor: allowNegativeStock ? theme.primary : theme.borderLight,
+                  },
+                ]}
+                onPress={() => setAllowNegativeStock(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={allowNegativeStock ? 'radio-button-on' : 'radio-button-off'}
+                  size={20}
+                  color={allowNegativeStock ? theme.primary : theme.textMuted}
+                />
+                <View style={styles.policyTextContainer}>
+                  <ThemedText
+                    style={[
+                      styles.policyTitle,
+                      { color: allowNegativeStock ? theme.primary : theme.textPrimary },
+                    ]}
+                  >
+                    {t('products:allowNegativePolicy', 'Allow Negative Stock (Sell even when 0)')}
+                  </ThemedText>
+                  <ThemedText style={[styles.policyDesc, { color: theme.textSecondary }]}>
+                    {t('products:allowNegativeDesc', 'Fast checkout for fast-moving items before supplier delivery is registered.')}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Product-Specific Rule 3: Target Restock Batch Size */}
+          <View style={styles.formGroup}>
+            <View style={styles.labelRow}>
+              <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
+                {t('products:targetRestockQty', 'Recommended Restock Batch')}
+              </ThemedText>
+              <ThemedText style={[styles.safeFloorText, { color: theme.textMuted }]}>
+                {t('common:optional', 'Optional')}
+              </ThemedText>
+            </View>
+            <View style={styles.inputWithSuffixWrapper}>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  styles.inputWithSuffix,
+                  {
+                    backgroundColor: theme.surfaceAlt,
+                    borderColor: theme.borderLight,
+                    color: theme.textPrimary,
+                  },
+                ]}
+                value={targetRestockBatch}
+                onChangeText={setTargetRestockBatch}
+                keyboardType="number-pad"
+                placeholder="12"
+                placeholderTextColor={theme.textMuted}
+              />
+              <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>
+                {unit}
+              </ThemedText>
+            </View>
+            <ThemedText style={[styles.captionHint, { color: theme.textSecondary }]}>
+              {t('products:targetRestockQtyOptional', 'Suggested order batch size when replenishing from wholesalers')}
             </ThemedText>
           </View>
         </ThemedView>
@@ -574,45 +777,45 @@ export function ProductForm({
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.primaryButton, { backgroundColor: theme.primary }]}
             onPress={handleSubmit}
             disabled={submitting}
             activeOpacity={0.8}
           >
             <Ionicons name="checkmark-outline" size={20} color="#FFFFFF" />
             <ThemedText style={styles.primaryButtonText}>
-              {t('products:saveProduct')}
+              {t('products:saveProduct', 'Save Product')}
             </ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.cancelButton}
+            style={[styles.cancelButton, { backgroundColor: theme.surfaceAlt }]}
             onPress={onClose}
             activeOpacity={0.7}
           >
-            <ThemedText style={styles.cancelButtonText}>
-              {t('products:cancel')}
+            <ThemedText style={[styles.cancelButtonText, { color: theme.textSecondary }]}>
+              {t('products:cancel', 'Cancel')}
             </ThemedText>
           </TouchableOpacity>
 
           {mode === 'edit' && onArchive && (
             <TouchableOpacity
-              style={styles.archiveButton}
+              style={[styles.archiveButton, { borderColor: theme.borderLight, backgroundColor: theme.surface }]}
               onPress={onArchive}
               activeOpacity={0.7}
             >
               <Ionicons
                 name={isActive ? 'archive-outline' : 'refresh-outline'}
                 size={18}
-                color={isActive ? Colors.light.error : Colors.light.primary}
+                color={isActive ? theme.error : theme.primary}
               />
               <ThemedText
                 style={[
                   styles.archiveButtonText,
-                  !isActive && { color: Colors.light.primary },
+                  { color: isActive ? theme.error : theme.primary },
                 ]}
               >
-                {isActive ? t('products:archiveProduct') : t('products:reactivateProduct')}
+                {isActive ? t('products:archiveProduct', 'Archive Product') : t('products:reactivateProduct', 'Reactivate Product')}
               </ThemedText>
             </TouchableOpacity>
           )}
@@ -627,16 +830,23 @@ export function ProductForm({
         onRequestClose={() => setIsNewCatModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <ThemedView style={styles.modalContent}>
-            <ThemedText style={styles.modalTitle}>
-              {t('products:newCategory')}
+          <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+            <ThemedText style={[styles.modalTitle, { color: theme.textPrimary }]}>
+              {t('products:newCategory', 'New Category')}
             </ThemedText>
             <TextInput
-              style={styles.textInput}
+              style={[
+                styles.textInput,
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.borderLight,
+                  color: theme.textPrimary,
+                },
+              ]}
               value={newCatName}
               onChangeText={setNewCatName}
-              placeholder={t('products:addCategoryPrompt')}
-              placeholderTextColor={Colors.light.textMuted}
+              placeholder={t('products:addCategoryPrompt', 'Enter new category name')}
+              placeholderTextColor={theme.textMuted}
               autoFocus
             />
             <View style={styles.modalActions}>
@@ -644,13 +854,15 @@ export function ProductForm({
                 style={styles.modalCancelBtn}
                 onPress={() => setIsNewCatModalVisible(false)}
               >
-                <ThemedText style={styles.modalCancelText}>{t('products:cancel')}</ThemedText>
+                <ThemedText style={[styles.modalCancelText, { color: theme.textSecondary }]}>
+                  {t('products:cancel', 'Cancel')}
+                </ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.modalConfirmBtn}
+                style={[styles.modalConfirmBtn, { backgroundColor: theme.primary }]}
                 onPress={handleAddNewCategory}
               >
-                <ThemedText style={styles.modalConfirmText}>{t('products:save')}</ThemedText>
+                <ThemedText style={styles.modalConfirmText}>{t('products:save', 'Save')}</ThemedText>
               </TouchableOpacity>
             </View>
           </ThemedView>
@@ -665,12 +877,16 @@ export function ProductForm({
         onRequestClose={() => setIsUnitModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <ThemedView style={styles.modalContent}>
-            <ThemedText style={styles.modalTitle}>{t('products:unit')}</ThemedText>
+          <ThemedView style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+            <ThemedText style={[styles.modalTitle, { color: theme.textPrimary }]}>{t('products:unit', 'Unit')}</ThemedText>
             {DEFAULT_UNITS.map((u) => (
               <TouchableOpacity
                 key={u.value}
-                style={[styles.unitOption, unit === u.value && styles.unitOptionSelected]}
+                style={[
+                  styles.unitOption,
+                  { borderBottomColor: theme.borderLight },
+                  unit === u.value && [styles.unitOptionSelected, { backgroundColor: theme.primaryLight }],
+                ]}
                 onPress={() => {
                   setUnit(u.value);
                   setIsUnitModalVisible(false);
@@ -679,13 +895,14 @@ export function ProductForm({
                 <ThemedText
                   style={[
                     styles.unitOptionText,
-                    unit === u.value && styles.unitOptionTextSelected,
+                    { color: theme.textPrimary },
+                    unit === u.value && { color: theme.primary, fontWeight: '600' },
                   ]}
                 >
                   {u.label}
                 </ThemedText>
                 {unit === u.value && (
-                  <Ionicons name="checkmark" size={18} color={Colors.light.primary} />
+                  <Ionicons name="checkmark" size={18} color={theme.primary} />
                 )}
               </TouchableOpacity>
             ))}
@@ -693,7 +910,7 @@ export function ProductForm({
               style={styles.modalCancelBtn}
               onPress={() => setIsUnitModalVisible(false)}
             >
-              <ThemedText style={styles.modalCancelText}>{t('products:cancel')}</ThemedText>
+              <ThemedText style={[styles.modalCancelText, { color: theme.textSecondary }]}>{t('products:cancel', 'Cancel')}</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </View>
@@ -705,7 +922,6 @@ export function ProductForm({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   header: {
     flexDirection: 'row',
@@ -713,9 +929,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.light.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -723,15 +937,15 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    ...Typography.heading3,
-    color: Colors.light.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
   },
   quickSaveButton: {
     paddingHorizontal: Spacing.md,
@@ -739,9 +953,8 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
   },
   quickSaveText: {
-    ...Typography.label,
-    color: Colors.light.primary,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
   },
   scroll: {
     flex: 1,
@@ -754,49 +967,24 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.xs,
-  },
-  sectionHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  sectionIconBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors.light.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sectionHeaderTitle: {
-    ...Typography.heading3,
-    color: Colors.light.textPrimary,
-  },
   errorAlert: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Colors.light.errorLight,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: '#FCA5A5',
   },
   errorAlertText: {
-    ...Typography.caption,
-    color: Colors.light.error,
+    fontSize: 13,
+    fontWeight: '500',
     flex: 1,
   },
   card: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     gap: Spacing.md,
+    borderWidth: 1,
     ...Shadows.sm,
   },
   cardHeader: {
@@ -810,44 +998,48 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   cardTitle: {
-    ...Typography.label,
-    color: Colors.light.textPrimary,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  sectionSubtitleText: {
+    fontSize: 12,
+    marginTop: -4,
+    marginBottom: 4,
+    lineHeight: 16,
   },
   badgeDraft: {
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
   },
   badgeDraftText: {
-    ...Typography.caption,
-    color: Colors.light.primary,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
   },
   badgeNeutral: {
-    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
   },
   badgeNeutralText: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: '500',
   },
-  badgeWarning: {
-    backgroundColor: Colors.light.warningLight,
+  healthBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
   },
-  badgeWarningText: {
-    ...Typography.caption,
-    color: Colors.light.secondary,
-    fontSize: 12,
-    fontWeight: '600',
+  healthBadgeContainer: {
+    flexDirection: 'row',
+    marginTop: 2,
+    marginBottom: 6,
+  },
+  healthBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   formGroup: {
     gap: 6,
@@ -858,12 +1050,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   label: {
-    ...Typography.label,
-    color: Colors.light.textPrimary,
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '600',
   },
   asterisk: {
-    color: Colors.light.error,
+    fontWeight: '700',
   },
   validRow: {
     flexDirection: 'row',
@@ -871,29 +1062,22 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   validText: {
-    ...Typography.caption,
-    color: Colors.light.primary,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   textInput: {
     height: 48,
     borderRadius: BorderRadius.lg,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: Colors.light.border,
     paddingHorizontal: Spacing.md,
     fontSize: 15,
-    color: Colors.light.textPrimary,
   },
   textInputError: {
-    borderColor: Colors.light.error,
-    backgroundColor: Colors.light.errorLight,
+    borderWidth: 1.5,
   },
   fieldErrorText: {
-    ...Typography.caption,
-    color: Colors.light.error,
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: '500',
   },
   inputWithIconWrapper: {
     position: 'relative',
@@ -922,19 +1106,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.surfaceAlt,
-  },
-  categoryChipSelected: {
-    backgroundColor: Colors.light.primary,
+    borderWidth: 1,
   },
   categoryChipText: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
+    fontSize: 12,
     fontWeight: '500',
-  },
-  categoryChipTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
   newCategoryChip: {
     flexDirection: 'row',
@@ -943,11 +1119,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.surfaceAlt,
+    borderWidth: 1,
   },
   newCategoryChipText: {
-    ...Typography.caption,
-    color: Colors.light.primary,
+    fontSize: 12,
     fontWeight: '600',
   },
   rowTwoCols: {
@@ -963,20 +1138,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inputWithSuffix: {
-    paddingRight: 50,
+    paddingRight: 56,
   },
   inputSuffix: {
     position: 'absolute',
     right: 12,
-    ...Typography.caption,
-    color: Colors.light.textMuted,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
   },
   profitCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.light.primaryLight,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
   },
@@ -986,13 +1159,11 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   profitLabel: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: '500',
   },
   profitAmount: {
-    ...Typography.label,
-    color: Colors.light.primary,
+    fontSize: 14,
     fontWeight: '700',
   },
   marginBadge: {
@@ -1001,7 +1172,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   marginBadgeText: {
-    ...Typography.caption,
     fontWeight: '600',
     fontSize: 12,
   },
@@ -1009,17 +1179,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 48,
-    backgroundColor: '#FFFFFF',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     paddingHorizontal: 4,
   },
   stepperButton: {
     width: 36,
     height: 36,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1028,37 +1195,69 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.light.textPrimary,
   },
   unitDropdown: {
     height: 48,
-    backgroundColor: '#FFFFFF',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     paddingHorizontal: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   unitDropdownText: {
-    ...Typography.body,
     fontSize: 14,
-    color: Colors.light.textPrimary,
+    fontWeight: '500',
   },
   safeFloorText: {
-    ...Typography.caption,
-    color: Colors.light.textMuted,
-    fontSize: 12,
+    fontSize: 11,
+  },
+  presetChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+    marginBottom: 4,
+  },
+  presetChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+  },
+  presetChipText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   captionHint: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
     marginTop: 2,
+    lineHeight: 15,
+  },
+  policyChoicesContainer: {
+    gap: Spacing.sm,
+    marginTop: 4,
+  },
+  policyCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.5,
+  },
+  policyTextContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  policyTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  policyDesc: {
+    fontSize: 11,
+    lineHeight: 15,
   },
   currentStockCard: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     gap: Spacing.sm,
@@ -1074,8 +1273,8 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   currentStockLabel: {
-    ...Typography.label,
-    color: Colors.light.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
   },
   currentStockQtyRow: {
     flexDirection: 'row',
@@ -1083,13 +1282,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   currentStockNumber: {
-    ...Typography.heading2,
-    color: Colors.light.textPrimary,
+    fontSize: 22,
     fontWeight: '700',
   },
   currentStockUnit: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
+    fontSize: 12,
   },
   adjustStockLink: {
     flexDirection: 'row',
@@ -1099,9 +1296,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   adjustStockLinkText: {
-    ...Typography.label,
-    color: Colors.light.primary,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '700',
     textDecorationLine: 'underline',
   },
   actionsContainer: {
@@ -1111,7 +1307,6 @@ const styles = StyleSheet.create({
   primaryButton: {
     height: 48,
     borderRadius: BorderRadius.xl,
-    backgroundColor: Colors.light.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1119,9 +1314,8 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   primaryButtonText: {
-    ...Typography.label,
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 15,
   },
   cancelButton: {
@@ -1131,8 +1325,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButtonText: {
-    ...Typography.label,
-    color: Colors.light.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   archiveButton: {
     height: 44,
@@ -1142,16 +1336,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.xs,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   archiveButtonText: {
-    ...Typography.caption,
-    color: Colors.light.error,
+    fontSize: 13,
     fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.lg,
@@ -1159,15 +1351,14 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     gap: Spacing.md,
     ...Shadows.md,
   },
   modalTitle: {
-    ...Typography.heading3,
-    color: Colors.light.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
   },
   modalActions: {
     flexDirection: 'row',
@@ -1180,19 +1371,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   modalCancelText: {
-    ...Typography.label,
-    color: Colors.light.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
   },
   modalConfirmBtn: {
-    backgroundColor: Colors.light.primary,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
   modalConfirmText: {
-    ...Typography.label,
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: 13,
   },
   unitOption: {
     flexDirection: 'row',
@@ -1200,19 +1390,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.light.border,
   },
   unitOptionSelected: {
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
   },
   unitOptionText: {
-    ...Typography.body,
-    color: Colors.light.textPrimary,
-  },
-  unitOptionTextSelected: {
-    color: Colors.light.primary,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

@@ -177,6 +177,17 @@ export default {
     reactivateProduct: "Reactivate Product",
     archiveConfirm: "Are you sure you want to archive this product?",
     copiedToClipboard: "Copied to clipboard",
+    inventoryRulesTitle: "Inventory Rules & Stock Controls",
+    inventoryRulesSubtitle: "Configure specific thresholds and selling rules for this product",
+    sellingPolicyLabel: "Out-of-Stock Selling Policy",
+    strictPolicy: "Strict: Block sales when stock is 0",
+    allowNegativePolicy: "Allow Negative Stock (Sell even when 0)",
+    presetThresholds: "Presets",
+    targetRestockQty: "Recommended Restock Batch",
+    targetRestockQtyOptional: "Recommended restock amount",
+    stockStatusHealthy: "Healthy Stock",
+    stockStatusLow: "Low Stock Warning",
+    stockStatusOut: "Out of Stock",
   },
 
   // 6. inventory — stock, movements
@@ -441,7 +452,16 @@ export default {
     languageArabic: "Arabic",
     languageFrench: "French",
     languageEnglish: "English",
-    default: "Default"
+    default: "Default",
+    theme: "Theme",
+    themeSubtitle: "Color scheme and dark mode override",
+    themeSystem: "System",
+    themeLight: "Light",
+    themeDark: "Dark",
+    themeSystemDesc: "Follow device appearance",
+    themeLightDesc: "Clean daylight appearance",
+    themeDarkDesc: "High-contrast dark mode",
+    themeUpdated: "Theme updated successfully"
   },
 
   // 14. voice — voice command messages

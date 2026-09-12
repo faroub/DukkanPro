@@ -12,7 +12,8 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { recordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { getById as getCustomerById } from "@/database/repositories/customerRepository";
 import { formatCentimes } from "@/utils/money";
@@ -30,6 +31,7 @@ export function RecordPaymentScreen({
 }: RecordPaymentScreenProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
 
   const [customerName, setCustomerName] = useState(initialCustomerName || "");
   const [currentDebt, setCurrentDebt] = useState(initialCurrentDebt || 0);
@@ -99,31 +101,31 @@ export function RecordPaymentScreen({
           }),
           [
             {
-              text: t("common:confirm"),
+              text: t("common:ok"),
               onPress: () => router.back(),
             },
           ]
         );
-      } else {
-        Alert.alert(t("common:error"), t("customers:paymentFailed"));
       }
-    } catch (err) {
-      Alert.alert(t("common:error"), t("customers:paymentFailed"));
+    } catch (err: any) {
+      Alert.alert(t("common:error"), err.message || t("common:unknownError"));
     } finally {
       setIsProcessing(false);
     }
   }, [
     customerId,
-    parsedDinars,
-    isOverpaying,
     parsedCentimes,
+    parsedDinars,
     method,
     note,
+    isOverpaying,
     customerName,
-    router,
     t,
     i18n.language,
+    router,
   ]);
+
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
     <View style={styles.screen}>
@@ -138,7 +140,7 @@ export function RecordPaymentScreen({
           <MaterialIcons
             name="arrow-back"
             size={24}
-            color={Colors.light.textPrimary}
+            color={theme.textPrimary}
           />
         </TouchableOpacity>
 
@@ -154,15 +156,14 @@ export function RecordPaymentScreen({
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Current Debt Card */}
+        {/* Outstanding Debt Info Card */}
         <View style={styles.debtCard}>
           <View style={styles.debtCardLeft}>
             <View style={styles.avatarCircle}>
               <ThemedText style={styles.avatarText}>
-                {customerName.charAt(0).toUpperCase()}
+                {customerName ? customerName.slice(0, 2).toUpperCase() : "CU"}
               </ThemedText>
             </View>
             <View>
@@ -177,77 +178,114 @@ export function RecordPaymentScreen({
           </ThemedText>
         </View>
 
-        {/* Amount Input Card */}
+        {/* Payment Amount Input Section */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
-            {t("customers:paymentAmount")}
+            {t("customers:paymentAmount")} (DZD)
           </ThemedText>
 
           <View style={styles.inputContainer}>
             <MaterialIcons
-              name="payments"
-              size={22}
-              color={Colors.light.textSecondary}
+              name="attach-money"
+              size={24}
+              color={theme.primary}
               style={styles.inputIcon}
             />
             <TextInput
               value={amountInput}
               onChangeText={setAmountInput}
               keyboardType="number-pad"
-              placeholder="0"
-              placeholderTextColor={Colors.light.textMuted}
               style={styles.largeInput}
+              placeholder="0"
+              placeholderTextColor={theme.textMuted}
             />
             <ThemedText style={styles.currencyBadge}>DZD</ThemedText>
           </View>
 
-          {/* Quick Fill Chips */}
+          {/* Quick Amount Chips */}
           <View style={styles.quickFillContainer}>
-            <TouchableOpacity
-              style={[
-                styles.quickFillChip,
-                parsedDinars === debtDinars && styles.quickFillChipActive,
-              ]}
-              onPress={() => handleQuickFill(debtDinars)}
-            >
-              <MaterialIcons
-                name="done-all"
-                size={16}
-                color={
-                  parsedDinars === debtDinars
-                    ? "#FFFFFF"
-                    : Colors.light.primary
-                }
-              />
-              <ThemedText
-                style={[
-                  styles.quickFillText,
-                  parsedDinars === debtDinars && styles.quickFillTextActive,
-                ]}
-              >
-                {t("customers:fullDebt")} ({debtDinars} DZD)
-              </ThemedText>
-            </TouchableOpacity>
-
-            {debtDinars > 100 && (
+            {debtDinars > 0 && (
               <TouchableOpacity
-                style={styles.quickFillChip}
-                onPress={() => handleQuickFill(Math.floor(debtDinars / 2))}
+                style={[
+                  styles.quickFillChip,
+                  parsedDinars === debtDinars && styles.quickFillChipActive,
+                ]}
+                onPress={() => handleQuickFill(debtDinars)}
               >
-                <ThemedText style={styles.quickFillText}>
-                  50% ({Math.floor(debtDinars / 2)} DZD)
+                <ThemedText
+                  style={[
+                    styles.quickFillText,
+                    parsedDinars === debtDinars && styles.quickFillTextActive,
+                  ]}
+                >
+                  {t("customers:fullAmount")} ({debtDinars} DZD)
                 </ThemedText>
               </TouchableOpacity>
             )}
+
+            {debtDinars >= 2000 && (
+              <TouchableOpacity
+                style={[
+                  styles.quickFillChip,
+                  parsedDinars === Math.round(debtDinars / 2) &&
+                    styles.quickFillChipActive,
+                ]}
+                onPress={() => handleQuickFill(Math.round(debtDinars / 2))}
+              >
+                <ThemedText
+                  style={[
+                    styles.quickFillText,
+                    parsedDinars === Math.round(debtDinars / 2) &&
+                      styles.quickFillTextActive,
+                  ]}
+                >
+                  50% ({Math.round(debtDinars / 2)} DZD)
+                </ThemedText>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={[
+                styles.quickFillChip,
+                parsedDinars === 1000 && styles.quickFillChipActive,
+              ]}
+              onPress={() => handleQuickFill(1000)}
+            >
+              <ThemedText
+                style={[
+                  styles.quickFillText,
+                  parsedDinars === 1000 && styles.quickFillTextActive,
+                ]}
+              >
+                1000 DZD
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.quickFillChip,
+                parsedDinars === 2000 && styles.quickFillChipActive,
+              ]}
+              onPress={() => handleQuickFill(2000)}
+            >
+              <ThemedText
+                style={[
+                  styles.quickFillText,
+                  parsedDinars === 2000 && styles.quickFillTextActive,
+                ]}
+              >
+                2000 DZD
+              </ThemedText>
+            </TouchableOpacity>
           </View>
 
-          {/* Overpayment Warning */}
+          {/* Overpaying warning */}
           {isOverpaying && (
             <View style={styles.warningBox}>
               <MaterialIcons
                 name="warning"
                 size={18}
-                color={Colors.light.destructive}
+                color={theme.error}
               />
               <ThemedText style={styles.warningText}>
                 {t("customers:overPaymentWarning")}
@@ -255,11 +293,11 @@ export function RecordPaymentScreen({
             </View>
           )}
 
-          {/* Balance Preview */}
+          {/* Remaining Debt Preview */}
           {!isOverpaying && parsedDinars > 0 && (
             <View style={styles.previewBox}>
               <ThemedText style={styles.previewLabel}>
-                {t("customers:newBalancePreview")}
+                {t("customers:remainingBalanceAfter")}
               </ThemedText>
               <ThemedText
                 style={[
@@ -269,15 +307,13 @@ export function RecordPaymentScreen({
                     : styles.previewValueDebt,
                 ]}
               >
-                {remainingDebtCentimes === 0
-                  ? t("customers:settled")
-                  : formatCentimes(remainingDebtCentimes, i18n.language as any)}
+                {formatCentimes(remainingDebtCentimes, i18n.language as any)}
               </ThemedText>
             </View>
           )}
         </View>
 
-        {/* Payment Method Selector */}
+        {/* Payment Method Selection */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
             {t("customers:paymentMethod")}
@@ -293,10 +329,10 @@ export function RecordPaymentScreen({
               activeOpacity={0.8}
             >
               <MaterialIcons
-                name="payments"
+                name="money"
                 size={22}
                 color={
-                  method === "cash" ? Colors.light.primary : Colors.light.textSecondary
+                  method === "cash" ? theme.primary : theme.textSecondary
                 }
               />
               <View style={styles.methodInfo}>
@@ -320,7 +356,7 @@ export function RecordPaymentScreen({
                 }
                 size={20}
                 color={
-                  method === "cash" ? Colors.light.primary : Colors.light.textSecondary
+                  method === "cash" ? theme.primary : theme.textSecondary
                 }
               />
             </TouchableOpacity>
@@ -338,8 +374,8 @@ export function RecordPaymentScreen({
                 size={22}
                 color={
                   method === "electronic"
-                    ? Colors.light.primary
-                    : Colors.light.textSecondary
+                    ? theme.primary
+                    : theme.textSecondary
                 }
               />
               <View style={styles.methodInfo}>
@@ -364,8 +400,8 @@ export function RecordPaymentScreen({
                 size={20}
                 color={
                   method === "electronic"
-                    ? Colors.light.primary
-                    : Colors.light.textSecondary
+                    ? theme.primary
+                    : theme.textSecondary
                 }
               />
             </TouchableOpacity>
@@ -381,7 +417,7 @@ export function RecordPaymentScreen({
             value={note}
             onChangeText={setNote}
             placeholder={t("customers:receiptNotePlaceholder")}
-            placeholderTextColor={Colors.light.textMuted}
+            placeholderTextColor={theme.textMuted}
             style={styles.noteInput}
           />
         </View>
@@ -424,268 +460,268 @@ export function RecordPaymentScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.borderLight,
-  },
-  iconButton: {
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  headerInfo: {
-    flex: 1,
-    marginHorizontal: Spacing.sm,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: Colors.light.textPrimary,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginTop: 1,
-  },
-  scrollContent: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxxxxx,
-  },
-  debtCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.light.surface,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.xxl,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-    marginBottom: Spacing.md,
-  },
-  debtCardLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-  },
-  avatarCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.errorLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.light.destructive,
-  },
-  customerName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-  },
-  debtCardLabel: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
-  },
-  debtAmountValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.light.destructive,
-  },
-  sectionCard: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.xxl,
-    padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.light.textPrimary,
-    marginBottom: Spacing.sm,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.light.surfaceAlt,
-    borderRadius: BorderRadius.xl,
-    paddingHorizontal: Spacing.md,
-    height: 56,
-  },
-  inputIcon: {
-    marginRight: Spacing.sm,
-  },
-  largeInput: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: "700",
-    color: Colors.light.textPrimary,
-    paddingVertical: 0,
-  },
-  currencyBadge: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.light.textSecondary,
-  },
-  quickFillContainer: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-    flexWrap: "wrap",
-  },
-  quickFillChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.primaryLight,
-  },
-  quickFillChipActive: {
-    backgroundColor: Colors.light.primary,
-  },
-  quickFillText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.light.primary,
-  },
-  quickFillTextActive: {
-    color: "#FFFFFF",
-  },
-  warningBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: Colors.light.errorLight,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    marginTop: Spacing.md,
-  },
-  warningText: {
-    fontSize: 12,
-    color: Colors.light.destructive,
-    flex: 1,
-  },
-  previewBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.light.surfaceAlt,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    marginTop: Spacing.md,
-  },
-  previewLabel: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-  },
-  previewValue: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  previewValueSettled: {
-    color: Colors.light.primary,
-  },
-  previewValueDebt: {
-    color: Colors.light.destructive,
-  },
-  methodRow: {
-    gap: Spacing.sm,
-  },
-  methodCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: Spacing.md,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-    backgroundColor: Colors.light.surface,
-  },
-  methodCardActive: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primaryLight,
-  },
-  methodInfo: {
-    flex: 1,
-    marginLeft: Spacing.md,
-  },
-  methodName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-  },
-  methodNameActive: {
-    color: Colors.light.primary,
-  },
-  methodDescription: {
-    fontSize: 11,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
-  },
-  noteInput: {
-    backgroundColor: Colors.light.surfaceAlt,
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: Colors.light.textPrimary,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: Spacing.md,
-    marginTop: Spacing.sm,
-  },
-  cancelBtn: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: BorderRadius.button,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  cancelBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.textSecondary,
-  },
-  confirmBtn: {
-    flex: 2,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: BorderRadius.button,
-    backgroundColor: Colors.light.primary,
-    shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  confirmBtnDisabled: {
-    opacity: 0.5,
-  },
-  confirmBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-});
+const createStyles = (theme: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    iconButton: {
+      padding: Spacing.sm,
+      borderRadius: BorderRadius.sm,
+    },
+    headerInfo: {
+      flex: 1,
+      marginHorizontal: Spacing.sm,
+    },
+    headerTitle: {
+      ...Typography.heading3,
+      color: theme.textPrimary,
+    },
+    headerSubtitle: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      marginTop: 1,
+    },
+    scrollContent: {
+      padding: Spacing.lg,
+      paddingBottom: 48,
+      maxWidth: 600,
+      alignSelf: "center",
+      width: "100%",
+    },
+    debtCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: theme.surface,
+      padding: Spacing.lg,
+      borderRadius: BorderRadius.xl,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: Spacing.md,
+      ...Shadows.sm,
+    },
+    debtCardLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.md,
+    },
+    avatarCircle: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: theme.errorLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: theme.error,
+    },
+    customerName: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textPrimary,
+    },
+    debtCardLabel: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      marginTop: 2,
+    },
+    debtAmountValue: {
+      ...Typography.heading3,
+      color: theme.error,
+    },
+    sectionCard: {
+      backgroundColor: theme.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: Spacing.md,
+      ...Shadows.sm,
+    },
+    sectionTitle: {
+      ...Typography.caption,
+      fontWeight: "700",
+      color: theme.textPrimary,
+      marginBottom: Spacing.sm,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: BorderRadius.lg,
+      paddingHorizontal: Spacing.md,
+      height: 56,
+    },
+    inputIcon: {
+      marginRight: Spacing.sm,
+    },
+    largeInput: {
+      flex: 1,
+      fontSize: 24,
+      fontWeight: "700",
+      color: theme.textPrimary,
+      paddingVertical: 0,
+    },
+    currencyBadge: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: theme.textSecondary,
+    },
+    quickFillContainer: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+      marginTop: Spacing.md,
+      flexWrap: "wrap",
+    },
+    quickFillChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingVertical: 7,
+      paddingHorizontal: 12,
+      borderRadius: BorderRadius.sm,
+      backgroundColor: theme.primaryLight,
+    },
+    quickFillChipActive: {
+      backgroundColor: theme.primary,
+    },
+    quickFillText: {
+      ...Typography.caption,
+      fontWeight: "600",
+      color: theme.primary,
+    },
+    quickFillTextActive: {
+      color: "#FFFFFF",
+    },
+    warningBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: theme.errorLight,
+      padding: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      marginTop: Spacing.md,
+    },
+    warningText: {
+      ...Typography.caption,
+      color: theme.error,
+      flex: 1,
+    },
+    previewBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: theme.surfaceAlt,
+      padding: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      marginTop: Spacing.md,
+    },
+    previewLabel: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+    },
+    previewValue: {
+      ...Typography.label,
+      fontWeight: "700",
+    },
+    previewValueSettled: {
+      color: theme.primary,
+    },
+    previewValueDebt: {
+      color: theme.error,
+    },
+    methodRow: {
+      gap: Spacing.sm,
+    },
+    methodCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      backgroundColor: theme.surface,
+    },
+    methodCardActive: {
+      borderColor: theme.primary,
+      backgroundColor: theme.primaryLight,
+    },
+    methodInfo: {
+      flex: 1,
+      marginLeft: Spacing.md,
+    },
+    methodName: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textPrimary,
+    },
+    methodNameActive: {
+      color: theme.primary,
+    },
+    methodDescription: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      marginTop: 2,
+    },
+    noteInput: {
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: BorderRadius.lg,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: theme.textPrimary,
+    },
+    actionsRow: {
+      flexDirection: "row",
+      gap: Spacing.md,
+      marginTop: Spacing.sm,
+    },
+    cancelBtn: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 14,
+      borderRadius: BorderRadius.xl,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    cancelBtnText: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textSecondary,
+    },
+    confirmBtn: {
+      flex: 2,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 14,
+      borderRadius: BorderRadius.xl,
+      backgroundColor: theme.primary,
+      ...Shadows.sm,
+    },
+    confirmBtnDisabled: {
+      opacity: 0.5,
+    },
+    confirmBtnText: {
+      ...Typography.label,
+      fontWeight: "700",
+      color: "#FFFFFF",
+    },
+  });

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { getInventoryHistory } from '@/database/repositories/productRepository';
-import { Colors, BorderRadius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 interface InventoryHistoryListProps {
   productId: number;
@@ -14,6 +15,7 @@ interface InventoryHistoryListProps {
 
 export function InventoryHistoryList({ productId, productName, locale = "fr" }: InventoryHistoryListProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [inventory, setInventory] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -45,10 +47,10 @@ export function InventoryHistoryList({ productId, productName, locale = "fr" }: 
 
   if (inventory.length === 0) {
     return (
-      <ThemedView type="background" style={styles.container}>
+      <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
         <ScrollView style={styles.scroll}>
           <ThemedView style={styles.emptyState}>
-            <ThemedText type="small" style={styles.emptyText}>
+            <ThemedText type="small" style={{ color: theme.textSecondary }}>
               {t('products:noInventoryHistory')}
             </ThemedText>
           </ThemedView>
@@ -58,7 +60,7 @@ export function InventoryHistoryList({ productId, productName, locale = "fr" }: 
   }
 
   return (
-    <ThemedView type="background" style={styles.container}>
+    <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -71,32 +73,32 @@ export function InventoryHistoryList({ productId, productName, locale = "fr" }: 
               };
               loadHistory();
             }}
-            tintColor={Colors.light.textSecondary}
+            tintColor={theme.textSecondary}
           />
         }
         style={styles.scroll}
       >
-        <ThemedView style={styles.header}>
-          <ThemedText type="subtitle" style={styles.headerTitle}>
+        <ThemedView style={[styles.header, { borderBottomColor: theme.border }]}>
+          <ThemedText type="subtitle" style={{ color: theme.textPrimary, fontSize: 18, fontWeight: '500' }}>
             {t('products:inventoryHistory')} ({inventory.length})
           </ThemedText>
         </ThemedView>
 
         {inventory.map((movement) => (
-          <ThemedView style={styles.row} key={movement.id}>
-            <ThemedText type="small" style={styles.typeLabel}>
-              {movement.movement_type}
+          <ThemedView style={[styles.row, { borderBottomColor: theme.border, backgroundColor: theme.surface }]} key={movement.id}>
+            <ThemedText type="small" style={{ fontSize: 12, color: theme.textSecondary, flex: 1 }}>
+              {movementTypeLabel(movement.movement_type)}
             </ThemedText>
 
-            <ThemedText type="small" style={styles.quantityLabel}>
+            <ThemedText type="small" style={{ fontSize: 12, color: theme.textPrimary, fontWeight: '500', flex: 0 }}>
               {movement.quantity_change > 0 ? `+${movement.quantity_change}` : movement.quantity_change}
             </ThemedText>
 
-            <ThemedText type="small" style={styles.noteLabel}>
+            <ThemedText type="small" style={{ fontSize: 12, color: theme.textSecondary, marginHorizontal: Spacing.xs, flex: 2 }}>
               {movement.note || t('common:noNote')}
             </ThemedText>
 
-            <ThemedText type="small" style={styles.dateLabel}>
+            <ThemedText type="small" style={{ fontSize: 10, color: theme.textMuted, flex: 1 }}>
               {new Date(movement.created_at).toLocaleDateString(locale)}
             </ThemedText>
           </ThemedView>
@@ -109,7 +111,6 @@ export function InventoryHistoryList({ productId, productName, locale = "fr" }: 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   scroll: {
     flexGrow: 1,
@@ -120,21 +121,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.xxl,
-    color: Colors.light.textSecondary,
-  },
-  emptyText: {
-    color: Colors.light.textSecondary,
   },
   header: {
     marginBottom: Spacing.lg,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.light.border,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 500,
-    color: Colors.light.textPrimary,
   },
   row: {
     flexDirection: 'row',
@@ -142,29 +133,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.light.border,
-    backgroundColor: Colors.light.surface,
-  },
-  typeLabel: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    flex: 1,
-  },
-  quantityLabel: {
-    fontSize: 12,
-    color: Colors.light.textPrimary,
-    fontWeight: 500,
-    flex: 0,
-  },
-  noteLabel: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginHorizontal: Spacing.xs,
-    flex: 2,
-  },
-  dateLabel: {
-    fontSize: 10,
-    color: Colors.light.textMuted,
-    flex: 1,
   },
 });

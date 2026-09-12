@@ -1,21 +1,18 @@
 import { useRouter, type Href } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Image, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors, Spacing, ComponentDimensions, Typography, BorderRadius } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { useTranslation } from "react-i18next";
-import { EmptyDashboardScreen } from "@/features/onboarding/EmptyDashboardScreen";
-import { SymbolView } from "expo-symbols";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function Root() {
-  const { t } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<
     boolean | null
   >(null);
@@ -43,28 +40,25 @@ export default function Root() {
 
   if (isOnboardingComplete === null) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </SafeAreaView>
     );
   }
 
-  // Determine the initial route based on onboarding completion:
-  // - Fresh app opens on onboarding
-  // - Restarting app with completed onboarding skips to tabs
   const shouldShowOnboarding = !isOnboardingComplete;
 
   if (shouldShowOnboarding) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <OnboardingScreen onComplete={() => setIsOnboardingComplete(true)} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ActivityIndicator size="large" color={Colors.light.primary} />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <ActivityIndicator size="large" color={theme.primary} />
     </SafeAreaView>
   );
 }
@@ -74,15 +68,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.light.background,
-  },
-  content: {
-    padding: Spacing.xl,
-    width: "100%",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: Colors.light.textSecondary,
-    marginBottom: Spacing.lg,
   },
 });

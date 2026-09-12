@@ -2,7 +2,8 @@ import { ActivityIndicator, StyleSheet, type ViewProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing, Colors } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface LoadingStateProps extends ViewProps {
   message?: string;
@@ -16,12 +17,14 @@ export function LoadingState({
   size = 24,
   ...rest
 }: LoadingStateProps) {
+  const theme = useTheme();
+
   return (
     <ThemedView type="background" style={styles.container} {...rest}>
       <ThemedView style={styles.content}>
-        <ActivityIndicator size={size} animating color={Colors.light.primary} />
+        <ActivityIndicator size={size} animating color={theme.primary} />
         {message && (
-          <ThemedText style={[styles.message, { marginTop: Spacing.xs }]}>
+          <ThemedText style={[styles.message, { color: theme.textPrimary, marginTop: Spacing.xs }]}>
             {message}
           </ThemedText>
         )}
@@ -42,7 +45,6 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 14,
-    color: Colors.light.textPrimary,
-    fontWeight: 500,
+    fontWeight: "500",
   },
 });

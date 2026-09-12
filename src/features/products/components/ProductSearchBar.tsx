@@ -1,5 +1,6 @@
 import { Colors, Spacing, Shadows, BorderRadius } from "@/constants/theme";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useTheme } from "@/hooks/use-theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +19,7 @@ export function ProductSearchBar({
   initialQuery = "",
   disabled = false,
 }: ProductSearchBarProps) {
+  const theme = useTheme();
   const { t } = useTranslation();
   const [query, setQuery] = useState(initialQuery);
 
@@ -30,17 +32,22 @@ export function ProductSearchBar({
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
+      <View
+        style={[
+          styles.searchContainer,
+          { backgroundColor: theme.surface, borderColor: theme.border },
+        ]}
+      >
         <Ionicons
           name="search-outline"
           size={20}
-          color={Colors.light.textMuted}
+          color={theme.textMuted}
           style={styles.searchIcon}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.textPrimary }]}
           placeholder={t("products:placeholder")}
-          placeholderTextColor={Colors.light.textMuted}
+          placeholderTextColor={theme.textMuted}
           value={query}
           onChangeText={(text: string) => setQuery(text)}
           returnKeyType="search"
@@ -57,19 +64,22 @@ export function ProductSearchBar({
             <Ionicons
               name="close-circle"
               size={18}
-              color={Colors.light.textMuted}
+              color={theme.textMuted}
             />
           </TouchableOpacity>
         )}
       </View>
       <TouchableOpacity
-        style={styles.scanButton}
+        style={[
+          styles.scanButton,
+          { backgroundColor: theme.surface, borderColor: theme.border },
+        ]}
         activeOpacity={0.7}
         onPress={() => {
           /* Barcode scanner not implemented in MVP tasks but UI present */
         }}
       >
-        <Ionicons name="barcode-outline" size={24} color={Colors.light.primary} />
+        <Ionicons name="barcode-outline" size={24} color={theme.primary} />
       </TouchableOpacity>
     </View>
   );

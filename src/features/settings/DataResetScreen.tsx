@@ -16,12 +16,12 @@ import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Shadows,
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 const expectedBusinessName = "Supérette El-Amel";
 
@@ -32,11 +32,13 @@ const expectedBusinessName = "Supérette El-Amel";
  * - Soft reset (Clear demo data only)
  * - Hard reset (Factory wipe) protected by typing the exact business name
  * - Confirmation alert before destructive execution
+ * - Dynamic theme response (Light / Dark) via useTheme()
  * - Strictly LTR layout across all languages
  */
 export function DataResetScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
 
   const [businessNameInput, setBusinessNameInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -94,9 +96,10 @@ export function DataResetScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.scrollContainer}
+      contentContainerStyle={[styles.scrollContainer, { backgroundColor: theme.background }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      id="data-reset-screen"
     >
       <ThemedView style={styles.container}>
         {/* Breadcrumb Context */}
@@ -104,123 +107,125 @@ export function DataResetScreen() {
           style={styles.breadcrumb}
           onPress={() => router.back()}
           activeOpacity={0.7}
+          id="btn-data-reset-back"
         >
-          <MaterialIcons name="arrow-back" size={18} color={Colors.light.textSecondary} />
-          <ThemedText style={styles.breadcrumbText}>
+          <MaterialIcons name="arrow-back" size={18} color={theme.textSecondary} />
+          <ThemedText style={[styles.breadcrumbText, { color: theme.textSecondary }]}>
             {t("navigation.back") || "Back to More"}
           </ThemedText>
         </TouchableOpacity>
 
         {/* Screen Header */}
         <View style={styles.headerSection}>
-          <ThemedText style={styles.headingTitle}>
+          <ThemedText style={[styles.headingTitle, { color: theme.textPrimary }]}>
             {t("settings.resetApp") || "Data Reset & Factory Wipe"}
           </ThemedText>
-          <ThemedText style={styles.headingSubtitle}>
-            Supérette El-Amel • Dukkan OS
+          <ThemedText style={[styles.headingSubtitle, { color: theme.textSecondary }]}>
+            Supérette El-Amel • <ThemedText style={{ fontWeight: "800" }}>Dukkan<ThemedText style={{ color: theme.primary, fontWeight: "800" }}>Pro</ThemedText></ThemedText>
           </ThemedText>
         </View>
 
         {/* Critical Warning Callout */}
-        <View style={styles.criticalCallout}>
-          <View style={styles.criticalIconContainer}>
-            <MaterialIcons name="warning" size={24} color={Colors.light.error} />
+        <View style={[styles.criticalCallout, { backgroundColor: theme.errorLight, borderColor: theme.error }]}>
+          <View style={[styles.criticalIconContainer, { backgroundColor: theme.surface }]}>
+            <MaterialIcons name="warning" size={24} color={theme.error} />
           </View>
           <View style={styles.criticalContent}>
             <View style={styles.criticalHeaderRow}>
-              <ThemedText style={styles.criticalBadgeText}>Critical Precaution</ThemedText>
-              <View style={styles.criticalPulseDot} />
+              <ThemedText style={[styles.criticalBadgeText, { color: theme.error }]}>Critical Precaution</ThemedText>
+              <View style={[styles.criticalPulseDot, { backgroundColor: theme.error }]} />
             </View>
-            <ThemedText style={styles.criticalMessage}>
+            <ThemedText style={[styles.criticalMessage, { color: theme.error }]}>
               Permanent Action: This will permanently delete ALL business data including products, customers, sales, and payments. This action CANNOT be undone.
             </ThemedText>
           </View>
         </View>
 
         {/* Section 1: Soft Reset (Demo Scrub) */}
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.sectionHeaderRow}>
             <View style={styles.sectionHeaderLeft}>
-              <View style={styles.softIconContainer}>
-                <MaterialIcons name="cleaning-services" size={20} color={Colors.light.primary} />
+              <View style={[styles.softIconContainer, { backgroundColor: theme.primaryLight }]}>
+                <MaterialIcons name="cleaning-services" size={20} color={theme.primary} />
               </View>
               <View>
-                <ThemedText style={styles.sectionTitle}>Clear Demo Data</ThemedText>
-                <ThemedText style={styles.sectionSubtitle}>Selective catalog reset</ThemedText>
+                <ThemedText style={[styles.sectionTitle, { color: theme.textPrimary }]}>Clear Demo Data</ThemedText>
+                <ThemedText style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>Selective catalog reset</ThemedText>
               </View>
             </View>
-            <View style={styles.safePill}>
-              <ThemedText style={styles.safePillText}>Safe Option</ThemedText>
+            <View style={[styles.safePill, { backgroundColor: theme.surfaceAlt }]}>
+              <ThemedText style={[styles.safePillText, { color: theme.textSecondary }]}>Safe Option</ThemedText>
             </View>
           </View>
 
-          <ThemedText style={styles.sectionDescription}>
+          <ThemedText style={[styles.sectionDescription, { color: theme.textSecondary }]}>
             Removes pre-loaded demo catalog, fictional transactions, and sample ledger entries while preserving your store settings, receipt headers, and staff accounts.
           </ThemedText>
 
           {/* Data Impact Chips */}
           <View style={styles.chipsRow}>
-            <View style={styles.chip}>
-              <MaterialIcons name="inventory-2" size={14} color={Colors.light.textSecondary} />
-              <ThemedText style={styles.chipText}>48 Demo Items</ThemedText>
+            <View style={[styles.chip, { backgroundColor: theme.surfaceAlt }]}>
+              <MaterialIcons name="inventory-2" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.chipText, { color: theme.textSecondary }]}>48 Demo Items</ThemedText>
             </View>
-            <View style={styles.chip}>
-              <MaterialIcons name="receipt-long" size={14} color={Colors.light.textSecondary} />
-              <ThemedText style={styles.chipText}>12 Sample Orders</ThemedText>
+            <View style={[styles.chip, { backgroundColor: theme.surfaceAlt }]}>
+              <MaterialIcons name="receipt-long" size={14} color={theme.textSecondary} />
+              <ThemedText style={[styles.chipText, { color: theme.textSecondary }]}>12 Sample Orders</ThemedText>
             </View>
-            <View style={styles.chip}>
-              <MaterialIcons name="tune" size={14} color={Colors.light.primary} />
-              <ThemedText style={[styles.chipText, { color: Colors.light.primary }]}>
+            <View style={[styles.chip, { backgroundColor: theme.surfaceAlt }]}>
+              <MaterialIcons name="tune" size={14} color={theme.primary} />
+              <ThemedText style={[styles.chipText, { color: theme.primary }]}>
                 Keep Store Setup
               </ThemedText>
             </View>
           </View>
 
           <TouchableOpacity
-            style={styles.softResetButton}
+            style={[styles.softResetButton, { backgroundColor: theme.surfaceAlt }]}
             onPress={handleSoftReset}
             activeOpacity={0.8}
+            id="btn-clear-demo-data"
           >
-            <MaterialIcons name="auto-fix-high" size={20} color={Colors.light.primary} />
-            <ThemedText style={styles.softResetButtonText}>Clear Demo Data Only</ThemedText>
+            <MaterialIcons name="auto-fix-high" size={20} color={theme.primary} />
+            <ThemedText style={[styles.softResetButtonText, { color: theme.primary }]}>Clear Demo Data Only</ThemedText>
           </TouchableOpacity>
         </View>
 
         {/* Divider / Zone Break */}
         <View style={styles.zoneDivider}>
-          <View style={styles.dividerLine} />
-          <View style={styles.dangerZonePill}>
-            <MaterialIcons name="dangerous" size={16} color={Colors.light.error} />
-            <ThemedText style={styles.dangerZoneText}>OR / DANGER ZONE</ThemedText>
+          <View style={[styles.dividerLine, { backgroundColor: theme.borderLight }]} />
+          <View style={[styles.dangerZonePill, { backgroundColor: theme.surfaceAlt }]}>
+            <MaterialIcons name="dangerous" size={16} color={theme.error} />
+            <ThemedText style={[styles.dangerZoneText, { color: theme.textSecondary }]}>OR / DANGER ZONE</ThemedText>
           </View>
-          <View style={styles.dividerLine} />
+          <View style={[styles.dividerLine, { backgroundColor: theme.borderLight }]} />
         </View>
 
         {/* Section 2: Hard Reset / Factory Wipe */}
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.sectionHeaderLeft}>
-            <View style={styles.hardIconContainer}>
-              <MaterialIcons name="delete-forever" size={20} color={Colors.light.error} />
+            <View style={[styles.hardIconContainer, { backgroundColor: theme.errorLight }]}>
+              <MaterialIcons name="delete-forever" size={20} color={theme.error} />
             </View>
             <View>
-              <ThemedText style={styles.sectionTitle}>
+              <ThemedText style={[styles.sectionTitle, { color: theme.textPrimary }]}>
                 Delete All Data & Factory Reset
               </ThemedText>
-              <ThemedText style={[styles.sectionSubtitle, { color: Colors.light.error }]}>
+              <ThemedText style={[styles.sectionSubtitle, { color: theme.error }]}>
                 Irreversible database erasure
               </ThemedText>
             </View>
           </View>
 
           {/* Target Phrase Box */}
-          <View style={styles.targetPhraseBox}>
-            <ThemedText style={styles.targetPhrasePrompt}>
+          <View style={[styles.targetPhraseBox, { backgroundColor: theme.surfaceAlt }]}>
+            <ThemedText style={[styles.targetPhrasePrompt, { color: theme.textSecondary }]}>
               To prevent accidental erasure, type the exact business name below to confirm:
             </ThemedText>
             <View style={styles.targetCodeRow}>
-              <ThemedText style={styles.targetLabel}>Target phrase:</ThemedText>
-              <View style={styles.codeBadge}>
-                <ThemedText style={styles.codeText}>{expectedBusinessName}</ThemedText>
+              <ThemedText style={[styles.targetLabel, { color: theme.textMuted }]}>Target phrase:</ThemedText>
+              <View style={[styles.codeBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <ThemedText style={[styles.codeText, { color: theme.textPrimary }]}>{expectedBusinessName}</ThemedText>
               </View>
             </View>
           </View>
@@ -228,52 +233,53 @@ export function DataResetScreen() {
           {/* Verification Input */}
           <View style={styles.verificationContainer}>
             <View style={styles.matchStatusRow}>
-              <ThemedText style={styles.inputLabel}>Confirmation Match</ThemedText>
+              <ThemedText style={[styles.inputLabel, { color: theme.textPrimary }]}>Confirmation Match</ThemedText>
               {isMatched ? (
                 <View style={styles.statusRow}>
-                  <MaterialIcons name="check-circle" size={16} color={Colors.light.primary} />
-                  <ThemedText style={styles.matchedText}>Phrase matched</ThemedText>
+                  <MaterialIcons name="check-circle" size={16} color={theme.primary} />
+                  <ThemedText style={[styles.matchedText, { color: theme.primary }]}>Phrase matched</ThemedText>
                 </View>
               ) : businessNameInput.length > 0 ? (
                 <View style={styles.statusRow}>
-                  <MaterialIcons name="cancel" size={16} color={Colors.light.error} />
-                  <ThemedText style={styles.unmatchedText}>Does not match</ThemedText>
+                  <MaterialIcons name="cancel" size={16} color={theme.error} />
+                  <ThemedText style={[styles.unmatchedText, { color: theme.error }]}>Does not match</ThemedText>
                 </View>
               ) : null}
             </View>
 
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { color: theme.textPrimary }]}
                 value={businessNameInput}
                 onChangeText={setBusinessNameInput}
                 placeholder={`Type '${expectedBusinessName}'`}
-                placeholderTextColor={Colors.light.textMuted}
+                placeholderTextColor={theme.textMuted}
                 autoCapitalize="none"
+                id="input-business-name-confirm"
               />
               {isMatched && (
-                <MaterialIcons name="check-circle" size={20} color={Colors.light.primary} />
+                <MaterialIcons name="check-circle" size={20} color={theme.primary} />
               )}
             </View>
           </View>
 
           {/* Danger Checklist Snapshot */}
           <View style={styles.checklistGrid}>
-            <View style={styles.checklistItem}>
-              <MaterialIcons name="remove-circle" size={16} color={Colors.light.error} />
-              <ThemedText style={styles.checklistText}>All Customers & Debts</ThemedText>
+            <View style={[styles.checklistItem, { backgroundColor: theme.surfaceAlt }]}>
+              <MaterialIcons name="remove-circle" size={16} color={theme.error} />
+              <ThemedText style={[styles.checklistText, { color: theme.textSecondary }]}>All Customers & Debts</ThemedText>
             </View>
-            <View style={styles.checklistItem}>
-              <MaterialIcons name="remove-circle" size={16} color={Colors.light.error} />
-              <ThemedText style={styles.checklistText}>Inventory & Barcodes</ThemedText>
+            <View style={[styles.checklistItem, { backgroundColor: theme.surfaceAlt }]}>
+              <MaterialIcons name="remove-circle" size={16} color={theme.error} />
+              <ThemedText style={[styles.checklistText, { color: theme.textSecondary }]}>Inventory & Barcodes</ThemedText>
             </View>
-            <View style={styles.checklistItem}>
-              <MaterialIcons name="remove-circle" size={16} color={Colors.light.error} />
-              <ThemedText style={styles.checklistText}>Sales & Tax Ledgers</ThemedText>
+            <View style={[styles.checklistItem, { backgroundColor: theme.surfaceAlt }]}>
+              <MaterialIcons name="remove-circle" size={16} color={theme.error} />
+              <ThemedText style={[styles.checklistText, { color: theme.textSecondary }]}>Sales & Tax Ledgers</ThemedText>
             </View>
-            <View style={styles.checklistItem}>
-              <MaterialIcons name="remove-circle" size={16} color={Colors.light.error} />
-              <ThemedText style={styles.checklistText}>Hardware Integrations</ThemedText>
+            <View style={[styles.checklistItem, { backgroundColor: theme.surfaceAlt }]}>
+              <MaterialIcons name="remove-circle" size={16} color={theme.error} />
+              <ThemedText style={[styles.checklistText, { color: theme.textSecondary }]}>Hardware Integrations</ThemedText>
             </View>
           </View>
 
@@ -282,21 +288,22 @@ export function DataResetScreen() {
             <TouchableOpacity
               style={[
                 styles.hardResetButton,
-                (!isMatched || isLoading) && styles.hardResetButtonDisabled,
+                { backgroundColor: isMatched && !isLoading ? theme.error : theme.disabledBackground },
               ]}
               onPress={handleHardReset}
               disabled={!isMatched || isLoading}
               activeOpacity={0.8}
+              id="btn-delete-all-data"
             >
               <MaterialIcons
                 name="delete-forever"
                 size={20}
-                color={isMatched ? "#FFFFFF" : Colors.light.textSecondary}
+                color={isMatched ? "#FFFFFF" : theme.textSecondary}
               />
               <ThemedText
                 style={[
                   styles.hardResetButtonText,
-                  !isMatched && styles.hardResetButtonTextDisabled,
+                  { color: isMatched ? "#FFFFFF" : theme.textSecondary },
                 ]}
               >
                 {isLoading ? "Purging data..." : "Delete All Data"}
@@ -306,21 +313,22 @@ export function DataResetScreen() {
             <TouchableOpacity
               style={[
                 styles.factoryWipeButton,
-                (!isMatched || isLoading) && styles.factoryWipeButtonDisabled,
+                { backgroundColor: isMatched && !isLoading ? theme.textPrimary : theme.disabledBackground },
               ]}
               onPress={handleHardReset}
               disabled={!isMatched || isLoading}
               activeOpacity={0.8}
+              id="btn-factory-wipe"
             >
               <MaterialIcons
                 name="restart-alt"
                 size={20}
-                color={isMatched ? "#FFFFFF" : Colors.light.textSecondary}
+                color={isMatched ? theme.surface : theme.textSecondary}
               />
               <ThemedText
                 style={[
                   styles.factoryWipeButtonText,
-                  !isMatched && styles.factoryWipeButtonTextDisabled,
+                  { color: isMatched ? theme.surface : theme.textSecondary },
                 ]}
               >
                 Reset and Return to Onboarding
@@ -329,9 +337,9 @@ export function DataResetScreen() {
           </View>
 
           {/* Reassurance Footer Note */}
-          <View style={styles.reassuranceNote}>
-            <MaterialIcons name="info" size={18} color={Colors.light.textMuted} />
-            <ThemedText style={styles.reassuranceText}>
+          <View style={[styles.reassuranceNote, { backgroundColor: theme.surfaceAlt }]}>
+            <MaterialIcons name="info" size={18} color={theme.textMuted} />
+            <ThemedText style={[styles.reassuranceText, { color: theme.textSecondary }]}>
               After reset: Locale returns to French, database is cleared, and app returns to the initial onboarding setup screen.
             </ThemedText>
           </View>
@@ -347,7 +355,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: ComponentDimensions.screenPadding,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xxl,
-    backgroundColor: Colors.light.background,
   },
   container: {
     width: "100%",
@@ -366,34 +373,28 @@ const styles = StyleSheet.create({
   breadcrumbText: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   headerSection: {
     gap: Spacing.xs,
   },
   headingTitle: {
     ...Typography.heading2,
-    color: Colors.light.textPrimary,
   },
   headingSubtitle: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
   },
   criticalCallout: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.md,
-    backgroundColor: Colors.light.errorLight,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: "#FECACA",
   },
   criticalIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#FEE2E2",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 2,
@@ -410,7 +411,6 @@ const styles = StyleSheet.create({
   criticalBadgeText: {
     fontSize: 12,
     fontWeight: "700",
-    color: Colors.light.error,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -418,20 +418,16 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.error,
   },
   criticalMessage: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.error,
     lineHeight: 20,
   },
   sectionCard: {
-    backgroundColor: Colors.light.surface,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     gap: Spacing.md,
     ...Shadows.sm,
   },
@@ -449,7 +445,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -457,22 +452,18 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.light.errorLight,
     alignItems: "center",
     justifyContent: "center",
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   safePill: {
-    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: BorderRadius.sm,
@@ -480,11 +471,9 @@ const styles = StyleSheet.create({
   safePillText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   sectionDescription: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
     lineHeight: 19,
   },
   chipsRow: {
@@ -496,7 +485,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 6,
@@ -504,7 +492,6 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 12,
     fontWeight: "500",
-    color: Colors.light.textSecondary,
   },
   softResetButton: {
     flexDirection: "row",
@@ -512,13 +499,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     height: 48,
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.button,
   },
   softResetButtonText: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   zoneDivider: {
     flexDirection: "row",
@@ -528,7 +513,6 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: Colors.light.borderLight,
   },
   dangerZonePill: {
     flexDirection: "row",
@@ -536,25 +520,21 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.full,
     marginHorizontal: 8,
   },
   dangerZoneText: {
     fontSize: 11,
     fontWeight: "700",
-    color: Colors.light.textSecondary,
     letterSpacing: 0.8,
   },
   targetPhraseBox: {
-    backgroundColor: Colors.light.surfaceAlt,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.md,
     gap: 6,
   },
   targetPhrasePrompt: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
     lineHeight: 18,
   },
   targetCodeRow: {
@@ -565,20 +545,16 @@ const styles = StyleSheet.create({
   },
   targetLabel: {
     fontSize: 12,
-    color: Colors.light.textMuted,
   },
   codeBadge: {
-    backgroundColor: Colors.light.surface,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   codeText: {
     fontSize: 13,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   verificationContainer: {
     gap: 6,
@@ -591,7 +567,6 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   statusRow: {
     flexDirection: "row",
@@ -601,20 +576,16 @@ const styles = StyleSheet.create({
   matchedText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   unmatchedText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.error,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
     height: 48,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     borderRadius: BorderRadius.button,
     paddingHorizontal: 12,
   },
@@ -622,7 +593,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: "100%",
     fontSize: 15,
-    color: Colors.light.textPrimary,
   },
   checklistGrid: {
     flexDirection: "row",
@@ -634,13 +604,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: Colors.light.surfaceAlt,
     padding: 8,
     borderRadius: 6,
   },
   checklistText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     flex: 1,
   },
   hardActionButtons: {
@@ -653,21 +621,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     height: 48,
-    backgroundColor: Colors.light.error,
     borderRadius: BorderRadius.button,
     ...Shadows.sm,
-  },
-  hardResetButtonDisabled: {
-    backgroundColor: Colors.light.disabledBackground,
-    shadowOpacity: 0,
   },
   hardResetButtonText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  hardResetButtonTextDisabled: {
-    color: Colors.light.textSecondary,
   },
   factoryWipeButton: {
     flexDirection: "row",
@@ -675,32 +634,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     height: 48,
-    backgroundColor: Colors.light.textPrimary,
     borderRadius: BorderRadius.button,
-  },
-  factoryWipeButtonDisabled: {
-    backgroundColor: Colors.light.disabledBackground,
   },
   factoryWipeButtonText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  factoryWipeButtonTextDisabled: {
-    color: Colors.light.textSecondary,
   },
   reassuranceNote: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
-    backgroundColor: Colors.light.surfaceAlt,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.md,
     marginTop: 2,
   },
   reassuranceText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     lineHeight: 16,
     flex: 1,
   },

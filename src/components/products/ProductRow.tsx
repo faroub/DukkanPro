@@ -2,7 +2,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { useTranslation } from 'react-i18next';
-import { Colors, BorderRadius, Spacing } from '@/constants/theme';
+import { BorderRadius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 interface ProductRowProps {
   product: {
@@ -21,50 +22,51 @@ interface ProductRowProps {
 
 export function ProductRow({ product }: ProductRowProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const priceDzd = product.sale_price_centimes / 100;
   const isLowStock = product.lowStock ?? product.stock_quantity <= product.minimum_stock_quantity;
   const isOutOfStock = product.outOfStock ?? product.stock_quantity === 0;
 
   return (
-    <ThemedView style={styles.row} testID={`product-row-${product.id}`}>
-      <ThemedView style={styles.leftCell}>
+    <View style={[styles.row, { borderBottomColor: theme.border, backgroundColor: theme.surface }]} testID={`product-row-${product.id}`}>
+      <View style={styles.leftCell}>
         <ThemedText type="subtitle" style={styles.text}>
           {product.name}
         </ThemedText>
-        <ThemedText type="small" style={styles.caption}>
+        <ThemedText type="small" style={[styles.caption, { color: theme.textSecondary }]}>
           {product.sku ?? t("common:unknown")}
         </ThemedText>
-      </ThemedView>
+      </View>
 
-      <ThemedView style={styles.centerCell}>
+      <View style={styles.centerCell}>
         <ThemedText type="small" style={styles.text}>
           {priceDzd} {t("appText:money")}
         </ThemedText>
-      </ThemedView>
+      </View>
 
-      <ThemedView style={styles.rightCell}>
-        <ThemedText type="small" style={styles.caption}>
+      <View style={styles.rightCell}>
+        <ThemedText type="small" style={[styles.caption, { color: theme.textSecondary }]}>
           {product.stock_quantity} {product.unit}
         </ThemedText>
 
         {isOutOfStock && (
-          <ThemedView style={styles.outOfStockBadge}>
-            <ThemedText type="small" style={styles.badge}>
+          <View style={[styles.outOfStockBadge, { backgroundColor: theme.errorLight }]}>
+            <ThemedText type="small" style={[styles.badge, { backgroundColor: theme.backgroundElement }]}>
               {t("products:outOfStock")}
             </ThemedText>
-          </ThemedView>
+          </View>
         )}
 
         {isLowStock && !isOutOfStock && (
-          <ThemedView style={styles.lowStockBadge}>
-            <ThemedText type="small" style={styles.badge}>
+          <View style={[styles.lowStockBadge, { backgroundColor: theme.warningLight }]}>
+            <ThemedText type="small" style={[styles.badge, { backgroundColor: theme.backgroundElement }]}>
               {t("products:lowStock")}
             </ThemedText>
-          </ThemedView>
+          </View>
         )}
-      </ThemedView>
-    </ThemedView>
+      </View>
+    </View>
   );
 }
 
@@ -74,8 +76,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.light.border,
-    backgroundColor: Colors.light.surface,
   },
   leftCell: {
     flex: 1,
@@ -97,10 +97,8 @@ const styles = StyleSheet.create({
   },
   caption: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   badge: {
-    backgroundColor: Colors.light.backgroundElement,
     paddingHorizontal: Spacing.xs,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.sm,
@@ -108,9 +106,7 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.xs,
   },
   outOfStockBadge: {
-    backgroundColor: Colors.light.errorLight,
   },
   lowStockBadge: {
-    backgroundColor: Colors.light.warningLight,
   },
 });

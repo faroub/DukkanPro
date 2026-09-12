@@ -29,7 +29,7 @@ import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { GreetingCard } from "@/features/dashboard/components/GreetingCard";
 import { LowStockList, LowStockProductItem } from "@/features/dashboard/components/LowStockList";
 import { QuickActionSheet } from "@/features/dashboard/components/QuickActionSheet";
@@ -39,6 +39,7 @@ import { SummaryCards } from "@/features/dashboard/components/SummaryCards";
 import { EmptyDashboardScreen } from "@/features/onboarding/EmptyDashboardScreen";
 import { update as updateProductStock } from "@/database/repositories/productRepository";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useTheme } from "@/hooks/use-theme";
 import { getTextAlignment } from "@/utils/text";
 
 interface DashboardScreenProps {
@@ -51,6 +52,7 @@ export default function DashboardScreenDefault({
   locale,
 }: DashboardScreenProps) {
   const router = useRouter();
+  const theme = useTheme();
   const {
     greeting,
     todayDate,
@@ -208,7 +210,7 @@ export default function DashboardScreenDefault({
         {/* 6. Primary Action Buttons at Bottom */}
         <View style={styles.actionTriggersRow}>
           <TouchableOpacity
-            style={styles.primarySaleButton}
+            style={[styles.primarySaleButton, { backgroundColor: theme.primary }]}
             onPress={handleNewSale}
             activeOpacity={0.8}
             accessibilityRole="button"
@@ -225,13 +227,13 @@ export default function DashboardScreenDefault({
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.quickActionsTrigger}
+            style={[styles.quickActionsTrigger, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={() => setQuickActionVisible(true)}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Open Quick Actions menu"
           >
-            <MaterialIcons name="bolt" size={22} color={Colors.light.primary} />
+            <MaterialIcons name="bolt" size={22} color={theme.primary} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -260,35 +262,35 @@ export default function DashboardScreenDefault({
             onPress={() => setRestockModalVisible(false)}
           />
 
-          <View style={styles.modalSheet}>
-            <View style={styles.sheetHandle} />
+          <View style={[styles.modalSheet, { backgroundColor: theme.surface }]}>
+            <View style={[styles.sheetHandle, { backgroundColor: theme.border }]} />
 
             <View style={styles.modalHeader}>
               <View>
-                <ThemedText style={styles.modalSubHeader}>
+                <ThemedText style={[styles.modalSubHeader, { color: theme.textSecondary }]}>
                   {locale === "ar" ? "إعادة تموين سريعة" : locale === "fr" ? "Réapprovisionnement rapide" : "Quick Restock"}
                 </ThemedText>
-                <ThemedText style={styles.modalProductTitle} numberOfLines={1}>
+                <ThemedText style={[styles.modalProductTitle, { color: theme.textPrimary }]} numberOfLines={1}>
                   {selectedRestockProduct?.name}
                 </ThemedText>
               </View>
 
               <TouchableOpacity
-                style={styles.modalCloseBtn}
+                style={[styles.modalCloseBtn, { backgroundColor: theme.surfaceAlt }]}
                 onPress={() => setRestockModalVisible(false)}
                 accessibilityRole="button"
                 accessibilityLabel="Close restock modal"
               >
-                <MaterialIcons name="close" size={18} color={Colors.light.textSecondary} />
+                <MaterialIcons name="close" size={18} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* Current Level Box */}
-            <View style={styles.modalCurrentLevelBox}>
-              <ThemedText style={styles.modalCurrentLevelLabel}>
+            <View style={[styles.modalCurrentLevelBox, { backgroundColor: theme.surfaceAlt }]}>
+              <ThemedText style={[styles.modalCurrentLevelLabel, { color: theme.textSecondary }]}>
                 {locale === "ar" ? "المستوى الحالي" : locale === "fr" ? "Niveau actuel" : "Current level"}
               </ThemedText>
-              <ThemedText style={styles.modalCurrentLevelValue}>
+              <ThemedText style={[styles.modalCurrentLevelValue, { color: theme.textPrimary }]}>
                 {selectedRestockProduct?.stock_quantity} / {selectedRestockProduct?.minimum_stock_quantity}{" "}
                 {selectedRestockProduct?.unit || (locale === "fr" ? "unités" : locale === "ar" ? "وحدات" : "units")}
               </ThemedText>
@@ -296,31 +298,31 @@ export default function DashboardScreenDefault({
 
             {/* Quantity Stepper */}
             <View style={styles.modalStepperRow}>
-              <ThemedText style={styles.modalStepperLabel}>
+              <ThemedText style={[styles.modalStepperLabel, { color: theme.textPrimary }]}>
                 {locale === "ar" ? "الكمية المستلمة:" : locale === "fr" ? "Quantité à recevoir :" : "Quantity to receive:"}
               </ThemedText>
 
-              <View style={styles.stepperContainer}>
+              <View style={[styles.stepperContainer, { backgroundColor: theme.surfaceAlt }]}>
                 <TouchableOpacity
-                  style={styles.stepperButton}
+                  style={[styles.stepperButton, { backgroundColor: theme.surface }]}
                   onPress={() => setRestockAmount((q) => Math.max(1, q - 1))}
                   accessibilityRole="button"
                   accessibilityLabel="Decrease quantity"
                 >
-                  <MaterialIcons name="remove" size={18} color={Colors.light.textPrimary} />
+                  <MaterialIcons name="remove" size={18} color={theme.textPrimary} />
                 </TouchableOpacity>
 
-                <ThemedText style={styles.stepperValueText}>
+                <ThemedText style={[styles.stepperValueText, { color: theme.textPrimary }]}>
                   {restockAmount}
                 </ThemedText>
 
                 <TouchableOpacity
-                  style={styles.stepperButton}
+                  style={[styles.stepperButton, { backgroundColor: theme.surface }]}
                   onPress={() => setRestockAmount((q) => q + 1)}
                   accessibilityRole="button"
                   accessibilityLabel="Increase quantity"
                 >
-                  <MaterialIcons name="add" size={18} color={Colors.light.textPrimary} />
+                  <MaterialIcons name="add" size={18} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -328,18 +330,18 @@ export default function DashboardScreenDefault({
             {/* Modal Actions */}
             <View style={styles.modalButtonsRow}>
               <TouchableOpacity
-                style={styles.modalCancelBtn}
+                style={[styles.modalCancelBtn, { backgroundColor: theme.surfaceAlt }]}
                 onPress={() => setRestockModalVisible(false)}
                 accessibilityRole="button"
                 accessibilityLabel="Cancel"
               >
-                <ThemedText style={styles.modalCancelBtnText}>
+                <ThemedText style={[styles.modalCancelBtnText, { color: theme.textSecondary }]}>
                   {locale === "ar" ? "إلغاء" : locale === "fr" ? "Annuler" : "Cancel"}
                 </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.modalConfirmBtn}
+                style={[styles.modalConfirmBtn, { backgroundColor: theme.primary }]}
                 onPress={handleConfirmRestock}
                 accessibilityRole="button"
                 accessibilityLabel="Receive Units"
@@ -360,7 +362,6 @@ export default function DashboardScreenDefault({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   scrollContent: {
     padding: Spacing.md,
@@ -375,7 +376,6 @@ const styles = StyleSheet.create({
   primarySaleButton: {
     flex: 1,
     height: 50,
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.lg,
     flexDirection: "row",
     alignItems: "center",
@@ -393,9 +393,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     alignItems: "center",
     justifyContent: "center",
     ...Shadows.sm,
@@ -409,7 +407,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
   },
   modalSheet: {
-    backgroundColor: Colors.light.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
@@ -420,7 +417,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.light.border,
     alignSelf: "center",
     marginTop: -4,
   },
@@ -432,25 +428,21 @@ const styles = StyleSheet.create({
   modalSubHeader: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   modalProductTitle: {
     ...Typography.heading3,
     fontSize: 17,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
     marginTop: 2,
   },
   modalCloseBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
   modalCurrentLevelBox: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.md,
     padding: 12,
     flexDirection: "row",
@@ -460,13 +452,11 @@ const styles = StyleSheet.create({
   modalCurrentLevelLabel: {
     ...Typography.caption,
     fontSize: 13,
-    color: Colors.light.textSecondary,
   },
   modalCurrentLevelValue: {
     ...Typography.label,
     fontSize: 14,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   modalStepperRow: {
     flexDirection: "row",
@@ -478,12 +468,10 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontSize: 15,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   stepperContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.md,
     padding: 4,
     gap: 8,
@@ -492,7 +480,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: Colors.light.surface,
     alignItems: "center",
     justifyContent: "center",
     ...Shadows.sm,
@@ -501,7 +488,6 @@ const styles = StyleSheet.create({
     ...Typography.heading3,
     fontSize: 16,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
     minWidth: 32,
     textAlign: "center",
   },
@@ -514,7 +500,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -522,13 +507,11 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   modalConfirmBtn: {
     flex: 1.2,
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

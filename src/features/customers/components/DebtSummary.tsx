@@ -1,13 +1,12 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { useState, useEffect } from 'react';
-import { Pressable } from 'react-native';
 import { useTranslation } from "react-i18next";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import { formatCentimes } from "@/utils/money";
-import { getCustomerDebt, getCustomerBalanceSummary } from "@/services/customers/customerBalanceService";
-import { useRoute } from "expo-router";
-import { Typography, Colors } from "@/constants/theme";
+import { getCustomerBalanceSummary } from "@/services/customers/customerBalanceService";
+import { Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 interface DebtSummaryProps {
   customerId: number;
@@ -18,6 +17,7 @@ interface DebtSummaryProps {
 
 export function DebtSummary({ customerId, customerName, showDetails = false, onPaymentRequested }: DebtSummaryProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +38,6 @@ export function DebtSummary({ customerId, customerName, showDetails = false, onP
   }, [customerId]);
 
   const debt = summary?.debt_centimes || 0;
-  const totalPaid = summary?.total_paid_centime || 0;
   const paymentCount = summary?.paymentCount || 0;
 
   const handleRecordPayment = () => {
@@ -49,8 +48,8 @@ export function DebtSummary({ customerId, customerName, showDetails = false, onP
 
   if (loading) {
     return (
-      <ThemedView type="background" style={styles.container}>
-        <ThemedText type="small" style={styles.loadingText}>
+      <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
+        <ThemedText type="small" style={[styles.loadingText, { color: theme.textSecondary }]}>
           {t("common:loading")}
         </ThemedText>
       </ThemedView>
@@ -59,8 +58,8 @@ export function DebtSummary({ customerId, customerName, showDetails = false, onP
 
   if (!summary) {
     return (
-      <ThemedView type="background" style={styles.container}>
-        <ThemedText type="small" style={styles.errorText}>
+      <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
+        <ThemedText type="small" style={[styles.errorText, { color: theme.error }]}>
           {t("common:error")}
         </ThemedText>
       </ThemedView>
@@ -68,37 +67,41 @@ export function DebtSummary({ customerId, customerName, showDetails = false, onP
   }
 
   return (
-    <ThemedView type="background" style={styles.container}>
+    <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.summarySection}>
-        <ThemedText type="body" style={styles.label}>
+        <ThemedText type="body" style={[styles.label, { color: theme.textSecondary }]}>
           {t("customers:currentDebt")}
         </ThemedText>
 
-        <ThemedText type="title" style={styles.debtAmount}>
+        <ThemedText type="title" style={[styles.debtAmount, { color: theme.primary }]}>
           {formatCentimes(debt)}
         </ThemedText>
 
         {!debt && (
-          <ThemedText type="caption" style={styles.noDebt}>
+          <ThemedText type="caption" style={[styles.noDebt, { color: theme.textSecondary }]}>
             {t("customers:noDebt")}
           </ThemedText>
         )}
       </View>
 
       {showDetails && paymentCount > 0 && (
-        <View style={styles.paymentHistorySection}>
-          <ThemedText type="body" style={styles.sectionLabel}>
+        <View style={[styles.paymentHistorySection, { borderColor: theme.border }]}>
+          <ThemedText type="body" style={[styles.sectionLabel, { color: theme.textSecondary }]}>
             {t("customers:paymentHistory")}
           </ThemedText>
 
-          <ThemedText type="caption" style={styles.paymentInfo}>
+          <ThemedText type="caption" style={[styles.paymentInfo, { color: theme.textSecondary }]}>
             {t("customers:paymentsMade", { count: paymentCount })}
           </ThemedText>
         </View>
       )}
 
       <View style={styles.actions}>
-        <Pressable style={styles.paymentButton} onPress={handleRecordPayment} disabled={debt <= 0}>
+        <Pressable
+          style={[styles.paymentButton, { backgroundColor: theme.primary }]}
+          onPress={handleRecordPayment}
+          disabled={debt <= 0}
+        >
           <ThemedText type="body" style={styles.paymentButtonText}>
             {t("customers:addPayment")}
           </ThemedText>
@@ -110,7 +113,6 @@ export function DebtSummary({ customerId, customerName, showDetails = false, onP
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.light.background,
     padding: 24,
   },
   summarySection: {
@@ -118,34 +120,28 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   debtAmount: {
     fontSize: 32,
     fontWeight: '600',
-    color: Colors.light.primary,
     marginBottom: 4,
   },
   noDebt: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 4,
   },
   paymentHistorySection: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderColor: Colors.light.border,
   },
   sectionLabel: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   paymentInfo: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginBottom: 4,
   },
   actions: {
@@ -156,23 +152,21 @@ const styles = StyleSheet.create({
   paymentButton: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: Colors.light.primary,
     minWidth: 120,
+    alignItems: 'center',
   },
   paymentButtonText: {
-    color: Colors.light.textPrimary,
+    color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 14,
   },
   loadingText: {
     ...Typography.body,
     fontSize: 14,
-    color: Colors.light.textSecondary,
   },
   errorText: {
     ...Typography.body,
     fontSize: 14,
-    color: '#B91C1C',
     marginBottom: 8,
     textAlign: 'center',
   },

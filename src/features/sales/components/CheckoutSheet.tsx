@@ -21,6 +21,7 @@ import {
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { useCustomers } from "@/hooks/useCustomers";
@@ -53,6 +54,7 @@ export function CheckoutSheet({
   isSaving,
   error,
 }: CheckoutSheetProps) {
+  const theme = useTheme();
   const { t, i18n } = useTranslation();
   const [paymentMethod, setPaymentMethod] = useState<
     "cash" | "electronic" | "credit" | "partial"
@@ -98,13 +100,13 @@ export function CheckoutSheet({
       onRequestClose={onRequestClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.sheetContainer}>
+        <View style={[styles.sheetContainer, { backgroundColor: theme.surface }]}>
           {/* Header Bar */}
           <View style={styles.topBar}>
-            <View style={styles.grabHandle} />
+            <View style={[styles.grabHandle, { backgroundColor: theme.border }]} />
             <Pressable
               onPress={onRequestClose}
-              style={styles.closeBtn}
+              style={[styles.closeBtn, { backgroundColor: theme.backgroundElement }]}
               hitSlop={8}
             >
               <SymbolView
@@ -114,7 +116,7 @@ export function CheckoutSheet({
                   web: "close" as any,
                 }}
                 size={18}
-                tintColor={Colors.light.textSecondary}
+                tintColor={theme.textSecondary}
               />
             </Pressable>
           </View>
@@ -124,24 +126,24 @@ export function CheckoutSheet({
             contentContainerStyle={styles.scrollContent}
           >
             {/* Total Due Green Card */}
-            <View style={styles.totalCard}>
+            <View style={[styles.totalCard, { backgroundColor: theme.primaryLight }]}>
               <View style={styles.totalCardLeft}>
-                <Text style={styles.totalCardLabel}>
+                <Text style={[styles.totalCardLabel, { color: theme.primary }]}>
                   {t("sales:totalToPay", { defaultValue: "Montant total à payer" })}
                 </Text>
-                <Text style={styles.totalCardAmount}>
+                <Text style={[styles.totalCardAmount, { color: theme.textPrimary }]}>
                   {formatCentimes(cartTotal)}
                 </Text>
               </View>
-              <View style={styles.totalCardBadge}>
-                <Text style={styles.totalCardBadgeText}>
+              <View style={[styles.totalCardBadge, { backgroundColor: theme.primary }]}>
+                <Text style={[styles.totalCardBadgeText, { color: "#FFFFFF" }]}>
                   {t("sales:cartValidated", { defaultValue: "Panier validé" })}
                 </Text>
               </View>
             </View>
 
             {/* Customer Ledger Association Card */}
-            <View style={styles.customerCard}>
+            <View style={[styles.customerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <View style={styles.customerHeader}>
                 <View style={styles.customerHeaderLeft}>
                   <SymbolView
@@ -151,17 +153,17 @@ export function CheckoutSheet({
                       web: "person" as any,
                     }}
                     size={16}
-                    tintColor={Colors.light.textSecondary}
+                    tintColor={theme.textSecondary}
                   />
-                  <ThemedText style={styles.customerCardTitle}>
+                  <ThemedText style={[styles.customerCardTitle, { color: theme.textSecondary }]}>
                     {t("customers:carnetDette", { defaultValue: "Client / Carnet Dette" })}
                   </ThemedText>
                 </View>
                 <Pressable
                   onPress={() => setShowCustomerPicker((prev) => !prev)}
-                  style={styles.changeCustomerBtn}
+                  style={[styles.changeCustomerBtn, { backgroundColor: theme.backgroundElement }]}
                 >
-                  <Text style={styles.changeCustomerBtnText}>
+                  <Text style={[styles.changeCustomerBtnText, { color: theme.primary }]}>
                     {selectedCustomer
                       ? t("common:edit", { defaultValue: "Changer" })
                       : t("common:select", { defaultValue: "Sélectionner" })}
@@ -169,19 +171,19 @@ export function CheckoutSheet({
                 </Pressable>
               </View>
 
-              <View style={styles.customerSelectedRow}>
-                <View style={styles.customerAvatar}>
-                  <Text style={styles.customerAvatarText}>
+              <View style={[styles.customerSelectedRow, { backgroundColor: theme.backgroundElement }]}>
+                <View style={[styles.customerAvatar, { backgroundColor: theme.primaryLight }]}>
+                  <Text style={[styles.customerAvatarText, { color: theme.primary }]}>
                     {selectedCustomer ? selectedCustomer.name[0] : "P"}
                   </Text>
                 </View>
                 <View style={styles.customerInfo}>
-                  <ThemedText style={styles.customerName}>
+                  <ThemedText style={[styles.customerName, { color: theme.textPrimary }]}>
                     {selectedCustomer
                       ? selectedCustomer.name
                       : t("sales:walkInCustomer", { defaultValue: "Client au comptoir (Passant)" })}
                   </ThemedText>
-                  <ThemedText style={styles.customerDebt}>
+                  <ThemedText style={[styles.customerDebt, { color: theme.textSecondary }]}>
                     {selectedCustomer
                       ? `${t("customers:debtBalance", { defaultValue: "Solde carnet" })}: ${formatCentimes(selectedCustomer.outstandingBalance || 0)}`
                       : t("sales:directPayment", { defaultValue: "Paiement direct sans carnet" })}
@@ -191,7 +193,7 @@ export function CheckoutSheet({
 
               {/* Customer Selector Dropdown if active */}
               {showCustomerPicker && (
-                <View style={styles.customerPickerList}>
+                <View style={[styles.customerPickerList, { borderTopColor: theme.borderLight }]}>
                   <Pressable
                     style={styles.customerPickerItem}
                     onPress={() => {
@@ -199,7 +201,7 @@ export function CheckoutSheet({
                       setShowCustomerPicker(false);
                     }}
                   >
-                    <ThemedText style={styles.customerPickerName}>
+                    <ThemedText style={[styles.customerPickerName, { color: theme.textPrimary }]}>
                       {t("sales:walkInCustomer", { defaultValue: "Passant (Sans carnet)" })}
                     </ThemedText>
                   </Pressable>
@@ -212,10 +214,10 @@ export function CheckoutSheet({
                         setShowCustomerPicker(false);
                       }}
                     >
-                      <ThemedText style={styles.customerPickerName}>
+                      <ThemedText style={[styles.customerPickerName, { color: theme.textPrimary }]}>
                         {c.name}
                       </ThemedText>
-                      <ThemedText style={styles.customerPickerDebt}>
+                      <ThemedText style={[styles.customerPickerDebt, { color: theme.warning }]}>
                         {formatCentimes(c.outstandingBalance || 0)}
                       </ThemedText>
                     </Pressable>
@@ -226,7 +228,7 @@ export function CheckoutSheet({
 
             {/* Payment Method Selector with Cards matching Stitch design */}
             <View style={styles.methodSection}>
-              <ThemedText style={styles.sectionTitle}>
+              <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>
                 {t("receipt:payment_method", { defaultValue: "Mode de règlement" })}
               </ThemedText>
 
@@ -236,10 +238,11 @@ export function CheckoutSheet({
                   onPress={() => setPaymentMethod("cash")}
                   style={[
                     styles.methodBtn,
-                    paymentMethod === "cash" && styles.methodBtnSelected,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    paymentMethod === "cash" && [styles.methodBtnSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }],
                   ]}
                 >
-                  <View style={styles.paymentIcon}>
+                  <View style={[styles.paymentIcon, { backgroundColor: theme.primaryLight }]}>
                     <SymbolView
                       name={{
                         ios: "banknote" as any,
@@ -249,16 +252,16 @@ export function CheckoutSheet({
                       size={22}
                       tintColor={
                         paymentMethod === "cash"
-                          ? Colors.light.primary
-                          : Colors.light.textSecondary
+                          ? theme.primary
+                          : theme.textSecondary
                       }
                     />
                   </View>
                   <View style={styles.paymentText}>
-                    <ThemedText style={styles.methodBtnText}>
+                    <ThemedText style={[styles.methodBtnText, { color: theme.textPrimary }, paymentMethod === "cash" && [styles.methodBtnTextSelected, { color: theme.primary }]]}>
                       {t("receipt:cash", { defaultValue: "Espèces" })}
                     </ThemedText>
-                    <ThemedText style={styles.methodSubLabel}>
+                    <ThemedText style={[styles.methodSubLabel, { color: theme.textSecondary }]}>
                       {t("sell.payment_cash", { defaultValue: "نقداً" })}
                     </ThemedText>
                   </View>
@@ -269,10 +272,11 @@ export function CheckoutSheet({
                   onPress={() => setPaymentMethod("electronic")}
                   style={[
                     styles.methodBtn,
-                    paymentMethod === "electronic" && styles.methodBtnSelected,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    paymentMethod === "electronic" && [styles.methodBtnSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }],
                   ]}
                 >
-                  <View style={styles.paymentIcon}>
+                  <View style={[styles.paymentIcon, { backgroundColor: theme.primaryLight }]}>
                     <SymbolView
                       name={{
                         ios: "creditcard" as any,
@@ -282,16 +286,16 @@ export function CheckoutSheet({
                       size={22}
                       tintColor={
                         paymentMethod === "electronic"
-                          ? Colors.light.primary
-                          : Colors.light.textSecondary
+                          ? theme.primary
+                          : theme.textSecondary
                       }
                     />
                   </View>
                   <View style={styles.paymentText}>
-                    <ThemedText style={styles.methodBtnText}>
+                    <ThemedText style={[styles.methodBtnText, { color: theme.textPrimary }, paymentMethod === "electronic" && [styles.methodBtnTextSelected, { color: theme.primary }]]}>
                       {t("receipt:electronic", { defaultValue: "Carte / CIB" })}
                     </ThemedText>
-                    <ThemedText style={styles.methodSubLabel}>
+                    <ThemedText style={[styles.methodSubLabel, { color: theme.textSecondary }]}>
                       {t("sell.payment_electronic", { defaultValue: "إلكتروني" })}
                     </ThemedText>
                   </View>
@@ -302,10 +306,11 @@ export function CheckoutSheet({
                   onPress={() => setPaymentMethod("credit")}
                   style={[
                     styles.methodBtn,
-                    paymentMethod === "credit" && styles.methodBtnSelected,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    paymentMethod === "credit" && [styles.methodBtnSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }],
                   ]}
                 >
-                  <View style={styles.paymentIcon}>
+                  <View style={[styles.paymentIcon, { backgroundColor: theme.primaryLight }]}>
                     <SymbolView
                       name={{
                         ios: "book.closed" as any,
@@ -315,16 +320,16 @@ export function CheckoutSheet({
                       size={22}
                       tintColor={
                         paymentMethod === "credit"
-                          ? Colors.light.primary
-                          : Colors.light.textSecondary
+                          ? theme.primary
+                          : theme.textSecondary
                       }
                     />
                   </View>
                   <View style={styles.paymentText}>
-                    <ThemedText style={styles.methodBtnText}>
+                    <ThemedText style={[styles.methodBtnText, { color: theme.textPrimary }, paymentMethod === "credit" && [styles.methodBtnTextSelected, { color: theme.primary }]]}>
                       {t("receipt:credit", { defaultValue: "Dette (Carnet)" })}
                     </ThemedText>
-                    <ThemedText style={styles.methodSubLabel}>
+                    <ThemedText style={[styles.methodSubLabel, { color: theme.textSecondary }]}>
                       {t("sell.payment_credit", { defaultValue: "دفتر ديون" })}
                     </ThemedText>
                   </View>
@@ -335,10 +340,11 @@ export function CheckoutSheet({
                   onPress={() => setPaymentMethod("partial")}
                   style={[
                     styles.methodBtn,
-                    paymentMethod === "partial" && styles.methodBtnSelected,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    paymentMethod === "partial" && [styles.methodBtnSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }],
                   ]}
                 >
-                  <View style={styles.paymentIcon}>
+                  <View style={[styles.paymentIcon, { backgroundColor: theme.primaryLight }]}>
                     <SymbolView
                       name={{
                         ios: "price_change" as any,
@@ -348,16 +354,16 @@ export function CheckoutSheet({
                       size={22}
                       tintColor={
                         paymentMethod === "partial"
-                          ? Colors.light.primary
-                          : Colors.light.textSecondary
+                          ? theme.primary
+                          : theme.textSecondary
                       }
                     />
                   </View>
                   <View style={styles.paymentText}>
-                    <ThemedText style={styles.methodBtnText}>
+                    <ThemedText style={[styles.methodBtnText, { color: theme.textPrimary }, paymentMethod === "partial" && [styles.methodBtnTextSelected, { color: theme.primary }]]}>
                       {t("receipt:partial", { defaultValue: "Versement partiel" })}
                     </ThemedText>
-                    <ThemedText style={styles.methodSubLabel}>
+                    <ThemedText style={[styles.methodSubLabel, { color: theme.textSecondary }]}>
                       {t("sell.payment_partial", { defaultValue: "دفع جزئي" })}
                     </ThemedText>
                   </View>
@@ -367,14 +373,14 @@ export function CheckoutSheet({
 
             {/* Cash Calculator (Shown when payment is cash) */}
             {paymentMethod === "cash" && (
-              <View style={styles.cashCalculatorCard}>
+              <View style={[styles.cashCalculatorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={styles.cashInputRow}>
-                  <ThemedText style={styles.cashInputLabel}>
+                  <ThemedText style={[styles.cashInputLabel, { color: theme.textPrimary }]}>
                     {t("sales:amountReceived", { defaultValue: "Montant reçu" })}
                   </ThemedText>
-                  <View style={styles.cashInputWrapper}>
+                  <View style={[styles.cashInputWrapper, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
                     <TextInput
-                      style={styles.cashTextInput}
+                      style={[styles.cashTextInput, { color: theme.textPrimary }]}
                       value={(amountReceived / 100).toString()}
                       onChangeText={(val) => {
                         const num = parseFloat(val.replace(/[^0-9.]/g, "")) || 0;
@@ -382,46 +388,46 @@ export function CheckoutSheet({
                       }}
                       keyboardType="decimal-pad"
                     />
-                    <Text style={styles.currencySuffix}>DZD</Text>
+                    <Text style={[styles.currencySuffix, { color: theme.textSecondary }]}>DZD</Text>
                   </View>
                 </View>
 
                 {/* Quick bill chips */}
                 <View style={styles.chipsRow}>
                   <Pressable
-                    style={styles.quickChip}
+                    style={[styles.quickChip, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
                     onPress={handleExactCash}
                   >
-                    <Text style={styles.quickChipText}>
+                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>
                       {t("sales:exactAmount", { defaultValue: "Compte juste" })}
                     </Text>
                   </Pressable>
                   <Pressable
-                    style={styles.quickChip}
+                    style={[styles.quickChip, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
                     onPress={() => handleQuickAddCash(50000)}
                   >
-                    <Text style={styles.quickChipText}>+500 DZD</Text>
+                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+500 DZD</Text>
                   </Pressable>
                   <Pressable
-                    style={styles.quickChip}
+                    style={[styles.quickChip, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
                     onPress={() => handleQuickAddCash(100000)}
                   >
-                    <Text style={styles.quickChipText}>+1,000 DZD</Text>
+                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+1,000 DZD</Text>
                   </Pressable>
                   <Pressable
-                    style={styles.quickChip}
+                    style={[styles.quickChip, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
                     onPress={() => handleQuickAddCash(200000)}
                   >
-                    <Text style={styles.quickChipText}>+2,000 DZD</Text>
+                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+2,000 DZD</Text>
                   </Pressable>
                 </View>
 
                 {/* Change Due Display */}
-                <View style={styles.changeDueRow}>
-                  <ThemedText style={styles.changeDueLabel}>
+                <View style={[styles.changeDueRow, { backgroundColor: theme.surface, borderColor: theme.primaryLight }]}>
+                  <ThemedText style={[styles.changeDueLabel, { color: theme.primary }]}>
                     {t("receipt:change_due", { defaultValue: "Monnaie à rendre" })}
                   </ThemedText>
-                  <Text style={styles.changeDueAmount}>
+                  <Text style={[styles.changeDueAmount, { color: theme.primary }]}>
                     {formatCentimes(changeDue)}
                   </Text>
                 </View>

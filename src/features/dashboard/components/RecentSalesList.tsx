@@ -4,7 +4,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
 
 export interface SaleItemData {
@@ -38,6 +39,7 @@ export function RecentSalesList({
   onSelectSale,
 }: RecentSalesListProps) {
   const router = useRouter();
+  const theme = useTheme();
 
   // Provide fallback sample data matching Stitch if none yet recorded
   const displaySales: SaleItemData[] =
@@ -110,11 +112,11 @@ export function RecentSalesList({
       {/* Section Header */}
       <View style={styles.headerRow}>
         <View style={styles.titleWithBadge}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText style={[styles.sectionTitle, { color: theme.textPrimary }]}>
             {recentSalesHeader}
           </ThemedText>
-          <View style={styles.newBadge}>
-            <ThemedText style={styles.newBadgeText}>
+          <View style={[styles.newBadge, { backgroundColor: theme.primaryLight }]}>
+            <ThemedText style={[styles.newBadgeText, { color: theme.primary }]}>
               {locale === "ar"
                 ? `${displaySales.length} جديد`
                 : `${displaySales.length} new`}
@@ -128,13 +130,13 @@ export function RecentSalesList({
           accessibilityRole="button"
           accessibilityLabel="See all recent sales"
         >
-          <ThemedText style={styles.seeAllText}>
+          <ThemedText style={[styles.seeAllText, { color: theme.primary }]}>
             {locale === "ar" ? "عرض الكل" : locale === "fr" ? "Voir tout" : "See all"}
           </ThemedText>
           <MaterialIcons
             name="chevron-right"
             size={18}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
         </TouchableOpacity>
       </View>
@@ -150,22 +152,22 @@ export function RecentSalesList({
           const isCancelled = sale.status === "cancelled";
 
           const amountColor = isCancelled
-            ? Colors.light.error
+            ? theme.error
             : isPartialOrCredit
-            ? Colors.light.secondary
-            : Colors.light.textPrimary;
+            ? theme.secondary
+            : theme.textPrimary;
 
           const badgeBg = isCancelled
-            ? Colors.light.errorLight
+            ? theme.errorLight
             : isPartialOrCredit
-            ? Colors.light.warningLight
-            : Colors.light.primaryLight;
+            ? theme.warningLight
+            : theme.primaryLight;
 
           const badgeTextColor = isCancelled
-            ? Colors.light.error
+            ? theme.error
             : isPartialOrCredit
-            ? Colors.light.secondary
-            : Colors.light.primary;
+            ? theme.secondary
+            : theme.primary;
 
           const badgeLabel = isCancelled
             ? locale === "ar"
@@ -186,7 +188,7 @@ export function RecentSalesList({
           return (
             <TouchableOpacity
               key={sale.id}
-              style={styles.saleCard}
+              style={[styles.saleCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => handleSalePress(sale.id)}
               activeOpacity={0.7}
               accessibilityRole="button"
@@ -194,25 +196,25 @@ export function RecentSalesList({
             >
               {/* Left Side: Avatar & Customer info */}
               <View style={styles.cardLeft}>
-                <View style={styles.avatarCircle}>
+                <View style={[styles.avatarCircle, { backgroundColor: theme.surfaceAlt }]}>
                   {isCash ? (
                     <MaterialIcons
                       name="shopping-bag"
                       size={20}
-                      color={Colors.light.textSecondary}
+                      color={theme.textSecondary}
                     />
                   ) : (
-                    <ThemedText style={styles.initialsText}>
+                    <ThemedText style={[styles.initialsText, { color: theme.textPrimary }]}>
                       {sale.customerInitials}
                     </ThemedText>
                   )}
                 </View>
 
                 <View style={styles.customerInfo}>
-                  <ThemedText style={styles.customerName} numberOfLines={1}>
+                  <ThemedText style={[styles.customerName, { color: theme.textPrimary }]} numberOfLines={1}>
                     {sale.customerName}
                   </ThemedText>
-                  <ThemedText style={styles.timeAndItems}>
+                  <ThemedText style={[styles.timeAndItems, { color: theme.textSecondary }]}>
                     {formatTime(sale.sold_at)} •{" "}
                     {locale === "ar"
                       ? `${sale.itemsCount || 1} منتجات`
@@ -261,10 +263,8 @@ const styles = StyleSheet.create({
     ...Typography.heading3,
     fontSize: 17,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   newBadge: {
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: BorderRadius.pill,
@@ -273,7 +273,6 @@ const styles = StyleSheet.create({
     ...Typography.badge,
     fontSize: 11,
     fontWeight: "700",
-    color: Colors.light.primary,
   },
   seeAllButton: {
     flexDirection: "row",
@@ -284,17 +283,14 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 13,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   list: {
     gap: 8,
   },
   saleCard: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.sm + 4,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -310,14 +306,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
   initialsText: {
     fontSize: 14,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   customerInfo: {
     flex: 1,
@@ -327,12 +321,10 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   timeAndItems: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   cardRight: {

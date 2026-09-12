@@ -11,7 +11,8 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
 
 interface PaymentReminderPreviewProps {
@@ -29,6 +30,7 @@ export function PaymentReminderPreview({
 }: PaymentReminderPreviewProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
 
   const [lang, setLang] = useState<"fr" | "ar" | "en">(
     i18n.language.startsWith("ar")
@@ -92,6 +94,8 @@ export function PaymentReminderPreview({
     }
   }, [channel, messageBody, customerPhone, t]);
 
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   return (
     <View style={styles.screen}>
       {/* Top Header */}
@@ -105,13 +109,13 @@ export function PaymentReminderPreview({
           <MaterialIcons
             name="arrow-back"
             size={24}
-            color={Colors.light.textPrimary}
+            color={theme.textPrimary}
           />
         </TouchableOpacity>
 
         <View style={styles.headerInfo}>
           <ThemedText style={styles.headerTitle}>
-            {t("customers:paymentReminderPreview")}
+            {t("customers:shareReminder")}
           </ThemedText>
           <ThemedText style={styles.headerSubtitle} numberOfLines={1}>
             {customerName}
@@ -123,18 +127,18 @@ export function PaymentReminderPreview({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Customer Profile & Debt Summary */}
+        {/* Profile / Balance Summary Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileLeft}>
             <View style={styles.avatar}>
               <ThemedText style={styles.avatarText}>
-                {customerName.charAt(0).toUpperCase()}
+                {customerName ? customerName.slice(0, 2).toUpperCase() : "CU"}
               </ThemedText>
             </View>
             <View>
               <ThemedText style={styles.customerName}>{customerName}</ThemedText>
               <ThemedText style={styles.clientTag}>
-                {t("customers:client")} #{customerId}
+                {customerPhone || t("customers:customer")}
               </ThemedText>
             </View>
           </View>
@@ -149,45 +153,72 @@ export function PaymentReminderPreview({
           </View>
         </View>
 
-        {/* Language Selector */}
+        {/* Message Language Selection */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
-            {t("customers:selectLanguage")}
+            {t("customers:messageLanguage")}
           </ThemedText>
+
           <View style={styles.languageRow}>
-            {(
-              [
-                { key: "fr", label: "Français" },
-                { key: "ar", label: "العربية" },
-                { key: "en", label: "English" },
-              ] as const
-            ).map((item) => (
-              <TouchableOpacity
-                key={item.key}
+            <TouchableOpacity
+              style={[
+                styles.languageChip,
+                lang === "fr" && styles.languageChipActive,
+              ]}
+              onPress={() => setLang("fr")}
+            >
+              <ThemedText
                 style={[
-                  styles.languageChip,
-                  lang === item.key && styles.languageChipActive,
+                  styles.languageChipText,
+                  lang === "fr" && styles.languageChipTextActive,
                 ]}
-                onPress={() => setLang(item.key)}
               >
-                <ThemedText
-                  style={[
-                    styles.languageChipText,
-                    lang === item.key && styles.languageChipTextActive,
-                  ]}
-                >
-                  {item.label}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
+                Français
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.languageChip,
+                lang === "ar" && styles.languageChipActive,
+              ]}
+              onPress={() => setLang("ar")}
+            >
+              <ThemedText
+                style={[
+                  styles.languageChipText,
+                  lang === "ar" && styles.languageChipTextActive,
+                ]}
+              >
+                العربية
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.languageChip,
+                lang === "en" && styles.languageChipActive,
+              ]}
+              onPress={() => setLang("en")}
+            >
+              <ThemedText
+                style={[
+                  styles.languageChipText,
+                  lang === "en" && styles.languageChipTextActive,
+                ]}
+              >
+                English
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Message Preview Box */}
+        {/* Message Preview */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
             {t("customers:messagePreview")}
           </ThemedText>
+
           <View style={styles.messageBubble}>
             <ThemedText
               style={[
@@ -203,8 +234,9 @@ export function PaymentReminderPreview({
         {/* Channel Selection */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
-            {t("customers:sendingChannel")}
+            {t("customers:sendChannel")}
           </ThemedText>
+
           <View style={styles.channelsRow}>
             <TouchableOpacity
               style={[
@@ -216,8 +248,8 @@ export function PaymentReminderPreview({
             >
               <FontAwesome
                 name="whatsapp"
-                size={24}
-                color={channel === "whatsapp" ? "#25D366" : Colors.light.textSecondary}
+                size={22}
+                color={channel === "whatsapp" ? "#25D366" : theme.textSecondary}
               />
               <View style={styles.channelInfo}>
                 <ThemedText
@@ -240,9 +272,7 @@ export function PaymentReminderPreview({
                 }
                 size={20}
                 color={
-                  channel === "whatsapp"
-                    ? Colors.light.primary
-                    : Colors.light.textSecondary
+                  channel === "whatsapp" ? theme.primary : theme.textSecondary
                 }
               />
             </TouchableOpacity>
@@ -256,12 +286,10 @@ export function PaymentReminderPreview({
               activeOpacity={0.8}
             >
               <MaterialIcons
-                name="sms"
-                size={24}
+                name="textsms"
+                size={22}
                 color={
-                  channel === "sms"
-                    ? Colors.light.primary
-                    : Colors.light.textSecondary
+                  channel === "sms" ? theme.primary : theme.textSecondary
                 }
               />
               <View style={styles.channelInfo}>
@@ -271,10 +299,10 @@ export function PaymentReminderPreview({
                     channel === "sms" && styles.channelNameActive,
                   ]}
                 >
-                  SMS Direct
+                  SMS
                 </ThemedText>
                 <ThemedText style={styles.channelDescription}>
-                  {t("customers:smsDescription")}
+                  {t("customers:standardSms")}
                 </ThemedText>
               </View>
               <MaterialIcons
@@ -285,9 +313,7 @@ export function PaymentReminderPreview({
                 }
                 size={20}
                 color={
-                  channel === "sms"
-                    ? Colors.light.primary
-                    : Colors.light.textSecondary
+                  channel === "sms" ? theme.primary : theme.textSecondary
                 }
               />
             </TouchableOpacity>
@@ -305,7 +331,13 @@ export function PaymentReminderPreview({
             </ThemedText>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
+          <TouchableOpacity
+            style={[
+              styles.sendBtn,
+              channel === "whatsapp" ? styles.sendBtnWhatsapp : styles.sendBtnSms,
+            ]}
+            onPress={handleSend}
+          >
             {channel === "whatsapp" ? (
               <FontAwesome name="whatsapp" size={20} color="#FFFFFF" />
             ) : (
@@ -323,220 +355,225 @@ export function PaymentReminderPreview({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.borderLight,
-  },
-  iconButton: {
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  headerInfo: {
-    flex: 1,
-    marginHorizontal: Spacing.sm,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: Colors.light.textPrimary,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginTop: 1,
-  },
-  scrollContent: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxxxxx,
-  },
-  profileCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.light.surface,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.xxl,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-    marginBottom: Spacing.md,
-  },
-  profileLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-  },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.light.primary,
-  },
-  customerName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-  },
-  clientTag: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
-  },
-  debtInfo: {
-    alignItems: "flex-end",
-  },
-  debtLabel: {
-    fontSize: 11,
-    color: Colors.light.textSecondary,
-  },
-  debtAmount: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.light.destructive, // Debt in red
-    marginTop: 2,
-  },
-  sectionCard: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.xxl,
-    padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.light.textPrimary,
-    marginBottom: Spacing.sm,
-  },
-  languageRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-  },
-  languageChip: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.surfaceAlt,
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-  languageChipActive: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
-  },
-  languageChipText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.light.textSecondary,
-  },
-  languageChipTextActive: {
-    color: "#FFFFFF",
-  },
-  messageBubble: {
-    backgroundColor: Colors.light.surfaceAlt,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.md,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.light.primary,
-  },
-  messageText: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: Colors.light.textPrimary,
-  },
-  messageTextArabic: {
-    textAlign: "right",
-  },
-  channelsRow: {
-    gap: Spacing.sm,
-  },
-  channelCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: Spacing.md,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-    backgroundColor: Colors.light.surface,
-  },
-  channelCardActive: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primaryLight,
-  },
-  channelInfo: {
-    flex: 1,
-    marginLeft: Spacing.md,
-  },
-  channelName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-  },
-  channelNameActive: {
-    color: Colors.light.primary,
-  },
-  channelDescription: {
-    fontSize: 11,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: Spacing.md,
-    marginTop: Spacing.sm,
-  },
-  cancelBtn: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: BorderRadius.button,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  cancelBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.textSecondary,
-  },
-  sendBtn: {
-    flex: 2,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: BorderRadius.button,
-    backgroundColor: "#25D366", // WhatsApp brand green
-    shadowColor: "#25D366",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  sendBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-});
+const createStyles = (theme: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    iconButton: {
+      padding: Spacing.sm,
+      borderRadius: BorderRadius.sm,
+    },
+    headerInfo: {
+      flex: 1,
+      marginHorizontal: Spacing.sm,
+    },
+    headerTitle: {
+      ...Typography.heading3,
+      color: theme.textPrimary,
+    },
+    headerSubtitle: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      marginTop: 1,
+    },
+    scrollContent: {
+      padding: Spacing.lg,
+      paddingBottom: 48,
+      maxWidth: 600,
+      alignSelf: "center",
+      width: "100%",
+    },
+    profileCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: theme.surface,
+      padding: Spacing.lg,
+      borderRadius: BorderRadius.xl,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: Spacing.md,
+      ...Shadows.sm,
+    },
+    profileLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.md,
+    },
+    avatar: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: theme.primaryLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: theme.primary,
+    },
+    customerName: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textPrimary,
+    },
+    clientTag: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      marginTop: 2,
+    },
+    debtInfo: {
+      alignItems: "flex-end",
+    },
+    debtLabel: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+    },
+    debtAmount: {
+      ...Typography.heading3,
+      color: theme.error,
+      marginTop: 2,
+    },
+    sectionCard: {
+      backgroundColor: theme.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: Spacing.md,
+      ...Shadows.sm,
+    },
+    sectionTitle: {
+      ...Typography.caption,
+      fontWeight: "700",
+      color: theme.textPrimary,
+      marginBottom: Spacing.sm,
+    },
+    languageRow: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+    },
+    languageChip: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 8,
+      borderRadius: BorderRadius.sm,
+      backgroundColor: theme.surfaceAlt,
+      borderWidth: 1,
+      borderColor: "transparent",
+    },
+    languageChipActive: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    languageChipText: {
+      ...Typography.caption,
+      fontWeight: "600",
+      color: theme.textSecondary,
+    },
+    languageChipTextActive: {
+      color: "#FFFFFF",
+    },
+    messageBubble: {
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.md,
+      borderLeftWidth: 4,
+      borderLeftColor: theme.primary,
+    },
+    messageText: {
+      ...Typography.body,
+      lineHeight: 22,
+      color: theme.textPrimary,
+    },
+    messageTextArabic: {
+      textAlign: "right",
+    },
+    channelsRow: {
+      gap: Spacing.sm,
+    },
+    channelCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      backgroundColor: theme.surface,
+    },
+    channelCardActive: {
+      borderColor: theme.primary,
+      backgroundColor: theme.primaryLight,
+    },
+    channelInfo: {
+      flex: 1,
+      marginLeft: Spacing.md,
+    },
+    channelName: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textPrimary,
+    },
+    channelNameActive: {
+      color: theme.primary,
+    },
+    channelDescription: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      marginTop: 2,
+    },
+    actionsRow: {
+      flexDirection: "row",
+      gap: Spacing.md,
+      marginTop: Spacing.sm,
+    },
+    cancelBtn: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 14,
+      borderRadius: BorderRadius.xl,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    cancelBtnText: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textSecondary,
+    },
+    sendBtn: {
+      flex: 2,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 14,
+      borderRadius: BorderRadius.xl,
+      ...Shadows.sm,
+    },
+    sendBtnWhatsapp: {
+      backgroundColor: "#25D366",
+    },
+    sendBtnSms: {
+      backgroundColor: theme.primary,
+    },
+    sendBtnText: {
+      ...Typography.label,
+      fontWeight: "700",
+      color: "#FFFFFF",
+    },
+  });

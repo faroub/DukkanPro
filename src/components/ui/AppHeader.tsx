@@ -1,10 +1,10 @@
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Colors, ComponentDimensions, Spacing, Typography } from "@/constants/theme";
+import { ComponentDimensions, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface AppHeaderProps {
   title: string;
@@ -26,6 +26,7 @@ export function AppHeader({
   locale = "fr",
 }: AppHeaderProps) {
   const router = useRouter();
+  const theme = useTheme();
 
   const handleBack = () => {
     if (onBackPress) {
@@ -36,8 +37,16 @@ export function AppHeader({
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.leftSection}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.surface,
+          borderBottomColor: theme.border,
+        },
+      ]}
+    >
+      <View style={styles.leftSection}>
         {backButton && (
           <Pressable
             style={styles.backButton}
@@ -52,14 +61,14 @@ export function AppHeader({
                 web: "chevron_left",
               }}
               size={22}
-              tintColor={Colors.light.textPrimary}
+              tintColor={theme.textPrimary}
             />
           </Pressable>
         )}
-        <ThemedText style={styles.title} numberOfLines={1}>
+        <ThemedText style={[styles.title, { color: theme.textPrimary }]} numberOfLines={1}>
           {title}
         </ThemedText>
-      </ThemedView>
+      </View>
 
       {rightAction && (
         <Pressable
@@ -68,12 +77,12 @@ export function AppHeader({
           accessibilityLabel={rightAction.accessibleLabel || rightAction.label}
           style={styles.rightActionButton}
         >
-          <ThemedText style={styles.rightAction}>
+          <ThemedText style={[styles.rightAction, { color: theme.primary }]}>
             {rightAction.label}
           </ThemedText>
         </Pressable>
       )}
-    </ThemedView>
+    </View>
   );
 }
 
@@ -81,9 +90,7 @@ const styles = StyleSheet.create({
   container: {
     height: ComponentDimensions.headerHeight,
     paddingHorizontal: Spacing.lg,
-    backgroundColor: Colors.light.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -96,7 +103,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.heading2,
-    color: Colors.light.textPrimary,
     marginLeft: Spacing.sm,
     flexShrink: 1,
   },
@@ -114,6 +120,5 @@ const styles = StyleSheet.create({
   },
   rightAction: {
     ...Typography.label,
-    color: Colors.light.primary,
   },
 });

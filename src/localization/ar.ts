@@ -177,6 +177,17 @@ export default {
     reactivateProduct: "إعادة تفعيل المنتج",
     archiveConfirm: "هل أنت متأكد من أرشفة هذا المنتج؟",
     copiedToClipboard: "تم النسخ إلى الحافظة",
+    inventoryRulesTitle: "قواعد المخزون والتحكم بالمنتج",
+    inventoryRulesSubtitle: "تحديد عتبات التنبيه وقواعد البيع الخاصة بهذا المنتج",
+    sellingPolicyLabel: "سياسة البيع عند نفاد المخزون",
+    strictPolicy: "صارم: منع البيع عند نفاد المخزون (0)",
+    allowNegativePolicy: "السماح بالمخزون السالب (مواصلة البيع)",
+    presetThresholds: "خيارات سريعة",
+    targetRestockQty: "كمية التزويد الموصى بها",
+    targetRestockQtyOptional: "حجم الطلبية المفضل عند الشراء من المورد",
+    stockStatusHealthy: "مخزون كافٍ",
+    stockStatusLow: "تنبيه انخفاض المخزون",
+    stockStatusOut: "نفد المخزون",
   },
 
   // 6. inventory — stock, movements
@@ -442,6 +453,15 @@ export default {
     languageFrench: "Français",
     languageEnglish: "English",
     default: "افتراضي",
+    theme: "المظهر",
+    themeSubtitle: "الوضع الفاتح، الداكن، أو حسب إعدادات الجهاز",
+    themeSystem: "تلقائي",
+    themeLight: "فاتح",
+    themeDark: "داكن",
+    themeSystemDesc: "مطابقة المظهر مع إعدادات نظام الهاتف",
+    themeLightDesc: "مظهر نهاري ناصع ومريح",
+    themeDarkDesc: "مظهر ليلي داكن ومريح للعين",
+    themeUpdated: "تم تحديث مظهر التطبيق بنجاح",
   },
 
   // 14. voice — voice command messages

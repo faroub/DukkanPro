@@ -4,8 +4,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 interface GreetingCardProps {
   greeting?: string;
@@ -24,6 +24,7 @@ export function GreetingCard({
   onProfilePress,
 }: GreetingCardProps) {
   const router = useRouter();
+  const theme = useTheme();
 
   const handleProfile = () => {
     if (onProfilePress) {
@@ -40,35 +41,41 @@ export function GreetingCard({
       <View style={styles.topRow}>
         <View style={styles.titleColumn}>
           <View style={styles.storeNameRow}>
-            <ThemedText style={styles.storeName} numberOfLines={1}>
+            <ThemedText style={[styles.storeName, { color: theme.textPrimary }]} numberOfLines={1}>
               {displayName}
             </ThemedText>
-            <View style={styles.livePulseDot} />
+            <View style={[styles.livePulseDot, { backgroundColor: theme.primary }]} />
           </View>
-          <ThemedText style={styles.dateText} numberOfLines={1}>
+          <ThemedText style={[styles.dateText, { color: theme.textSecondary }]} numberOfLines={1}>
             {todayDate}
           </ThemedText>
         </View>
 
         <View style={styles.rightActions}>
-          <View style={styles.statusPill}>
+          <View style={[styles.statusPill, { backgroundColor: theme.primaryLight }]}>
             <MaterialIcons
               name="wifi"
               size={13}
-              color={Colors.light.primary}
+              color={theme.primary}
             />
-            <ThemedText style={styles.statusPillText}>
+            <ThemedText style={[styles.statusPillText, { color: theme.primary }]}>
               {locale === "ar" ? "جاهز" : locale === "fr" ? "Prêt" : "Online"}
             </ThemedText>
           </View>
 
           <TouchableOpacity
-            style={styles.profileButton}
+            style={[
+              styles.profileButton,
+              {
+                backgroundColor: theme.backgroundElement,
+                borderColor: theme.border,
+              },
+            ]}
             onPress={handleProfile}
             accessibilityRole="button"
             accessibilityLabel="Store settings and profile"
           >
-            <ThemedText style={styles.profileAvatarText}>
+            <ThemedText style={[styles.profileAvatarText, { color: theme.textPrimary }]}>
               {displayName.charAt(0).toUpperCase()}
             </ThemedText>
           </TouchableOpacity>
@@ -102,18 +109,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 26,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   livePulseDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.light.primary,
   },
   dateText: {
     ...Typography.caption,
     fontSize: 13,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   rightActions: {
@@ -125,7 +129,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: BorderRadius.pill,
@@ -134,21 +137,17 @@ const styles = StyleSheet.create({
     ...Typography.badge,
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   profileButton: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: Colors.light.backgroundElement,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     alignItems: "center",
     justifyContent: "center",
   },
   profileAvatarText: {
     fontSize: 14,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
 });

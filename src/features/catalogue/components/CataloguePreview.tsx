@@ -1,5 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Spacing, Typography } from "@/constants/theme";
 import {
     CatalogueProduct,
     shareCataloguePDF,
@@ -17,6 +17,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface CataloguePreviewSettings {
   showPrices: boolean;
@@ -41,6 +42,7 @@ export function CataloguePreview({
   onBack,
 }: CataloguePreviewProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [sharingPDF, setSharingPDF] = useState(false);
   const [sharingText, setSharingText] = useState(false);
 
@@ -81,7 +83,7 @@ export function CataloguePreview({
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
       id="catalogue-preview-screen"
@@ -97,16 +99,16 @@ export function CataloguePreview({
           <MaterialIcons
             name="arrow-back"
             size={20}
-            color={Colors.light.textPrimary}
+            color={theme.textPrimary}
           />
-          <ThemedText style={styles.backButtonText}>
+          <ThemedText style={[styles.backButtonText, { color: theme.textPrimary }]}>
             {t("catalogue.selectProductsTitle")}
           </ThemedText>
         </TouchableOpacity>
 
-        <View style={styles.brochureBadge} id="catalogue-brochure-badge">
-          <View style={styles.pulseDot} />
-          <ThemedText style={styles.brochureBadgeText}>
+        <View style={[styles.brochureBadge, { backgroundColor: theme.primaryLight }]} id="catalogue-brochure-badge">
+          <View style={[styles.pulseDot, { backgroundColor: theme.primary }]} />
+          <ThemedText style={[styles.brochureBadgeText, { color: theme.primary }]}>
             {t("catalogue.previewSubtitle")}
           </ThemedText>
         </View>
@@ -114,56 +116,56 @@ export function CataloguePreview({
 
       {/* Screen Title */}
       <View style={styles.titleBlock} id="catalogue-preview-title">
-        <ThemedText style={styles.title}>
+        <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
           {t("catalogue.previewTitle")}
         </ThemedText>
-        <ThemedText style={styles.subtitle}>
+        <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
           Aperçu Client • Public Brochure
         </ThemedText>
       </View>
 
       {/* Privacy Guarantee Banner */}
-      <View style={styles.privacyBanner} id="catalogue-preview-privacy-banner">
-        <View style={styles.privacyIconContainer}>
+      <View style={[styles.privacyBanner, { backgroundColor: theme.surface, borderColor: theme.borderLight }]} id="catalogue-preview-privacy-banner">
+        <View style={[styles.privacyIconContainer, { backgroundColor: theme.primaryLight }]}>
           <MaterialIcons
             name="verified-user"
             size={22}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
         </View>
         <View style={styles.privacyContent}>
-          <ThemedText style={styles.privacyTitle}>
+          <ThemedText style={[styles.privacyTitle, { color: theme.textPrimary }]}>
             {t("catalogue.publicDocument")}
           </ThemedText>
-          <ThemedText style={styles.privacyDesc}>
+          <ThemedText style={[styles.privacyDesc, { color: theme.textSecondary }]}>
             {t("catalogue.publicDocNotice")}
           </ThemedText>
         </View>
-        <View style={styles.itemsPill}>
-          <ThemedText style={styles.itemsPillText}>
+        <View style={[styles.itemsPill, { backgroundColor: theme.surfaceAlt }]}>
+          <ThemedText style={[styles.itemsPillText, { color: theme.textPrimary }]}>
             {displayProducts.length} {t("catalogue.itemsCount")}
           </ThemedText>
         </View>
       </View>
 
       {/* The Printable Brochure Sheet Card */}
-      <View style={styles.sheetCard} id="catalogue-sheet-document">
+      <View style={[styles.sheetCard, { backgroundColor: theme.surface, borderColor: theme.border }]} id="catalogue-sheet-document">
         {/* Top Green Accent Line */}
-        <View style={styles.accentLine} />
+        <View style={[styles.accentLine, { backgroundColor: theme.primary }]} />
 
         {/* Store Header */}
         <View style={styles.sheetHeader}>
-          <View style={styles.storeIconCircle}>
+          <View style={[styles.storeIconCircle, { backgroundColor: theme.surfaceAlt }]}>
             <MaterialIcons
               name="storefront"
               size={28}
-              color={Colors.light.primary}
+              color={theme.primary}
             />
           </View>
-          <ThemedText style={styles.storeTitle}>
+          <ThemedText style={[styles.storeTitle, { color: theme.textPrimary }]}>
             {settings.shopName || "Supérette El-Amel"}
           </ThemedText>
-          <ThemedText style={styles.storeCategory}>
+          <ThemedText style={[styles.storeCategory, { color: theme.textSecondary }]}>
             Alimentation Générale & Produits Frais
           </ThemedText>
 
@@ -174,9 +176,9 @@ export function CataloguePreview({
                 <MaterialIcons
                   name="place"
                   size={14}
-                  color={Colors.light.textSecondary}
+                  color={theme.textSecondary}
                 />
-                <ThemedText style={styles.contactText}>
+                <ThemedText style={[styles.contactText, { color: theme.textSecondary }]}>
                   {settings.address}
                 </ThemedText>
               </View>
@@ -186,9 +188,9 @@ export function CataloguePreview({
                 <MaterialIcons
                   name="chat"
                   size={14}
-                  color={Colors.light.primary}
+                  color={theme.primary}
                 />
-                <ThemedText style={[styles.contactText, { color: Colors.light.primary, fontWeight: "600" }]}>
+                <ThemedText style={[styles.contactText, { color: theme.primary, fontWeight: "600" }]}>
                   {settings.contact}
                 </ThemedText>
               </View>
@@ -197,15 +199,15 @@ export function CataloguePreview({
 
           {/* Welcome Note Pill */}
           {settings.welcomeNote ? (
-            <View style={styles.welcomePill}>
-              <ThemedText style={styles.welcomePillText}>
+            <View style={[styles.welcomePill, { backgroundColor: theme.primaryLight }]}>
+              <ThemedText style={[styles.welcomePillText, { color: theme.primary }]}>
                 {settings.welcomeNote}
               </ThemedText>
             </View>
           ) : null}
         </View>
 
-        <View style={styles.sheetDivider} />
+        <View style={[styles.sheetDivider, { backgroundColor: theme.borderLight }]} />
 
         {/* Product Items Table/List */}
         <View style={styles.productsList} id="brochure-products-list">
@@ -214,18 +216,18 @@ export function CataloguePreview({
             return (
               <View
                 key={product.id}
-                style={styles.sheetProductRow}
+                style={[styles.sheetProductRow, { borderBottomColor: theme.surfaceAlt }]}
                 id={`brochure-item-${product.id}`}
               >
-                <ThemedText style={styles.itemIndex}>
+                <ThemedText style={[styles.itemIndex, { color: theme.textMuted }]}>
                   {index + 1}.
                 </ThemedText>
                 <View style={styles.itemDetails}>
-                  <ThemedText style={styles.itemName} numberOfLines={1}>
+                  <ThemedText style={[styles.itemName, { color: theme.textPrimary }]} numberOfLines={1}>
                     {product.name}
                   </ThemedText>
                   {product.category ? (
-                    <ThemedText style={styles.itemCategory}>
+                    <ThemedText style={[styles.itemCategory, { color: theme.textSecondary }]}>
                       {product.category}
                     </ThemedText>
                   ) : null}
@@ -233,20 +235,20 @@ export function CataloguePreview({
 
                 <View style={styles.itemRight}>
                   {settings.showPrices && (
-                    <ThemedText style={styles.itemPrice}>
+                    <ThemedText style={[styles.itemPrice, { color: theme.primary }]}>
                       {formatCentimes(product.price_centimes)}
                     </ThemedText>
                   )}
                   <View
                     style={[
                       styles.statusBadge,
-                      isAvailable ? styles.statusAvail : styles.statusOut,
+                      isAvailable ? { backgroundColor: theme.primaryLight } : { backgroundColor: theme.errorLight },
                     ]}
                   >
                     <ThemedText
                       style={[
                         styles.statusText,
-                        isAvailable ? styles.statusTextAvail : styles.statusTextOut,
+                        isAvailable ? { color: theme.primary } : { color: theme.error },
                       ]}
                     >
                       {isAvailable
@@ -260,20 +262,20 @@ export function CataloguePreview({
           })}
         </View>
 
-        <View style={styles.sheetDivider} />
+        <View style={[styles.sheetDivider, { backgroundColor: theme.borderLight }]} />
 
         {/* Sheet Footer */}
         <View style={styles.sheetFooter}>
-          <ThemedText style={styles.thanksText}>
+          <ThemedText style={[styles.thanksText, { color: theme.textPrimary }]}>
             {t("catalogue.thanksMessage")}
           </ThemedText>
           <View style={styles.footerMetaRow}>
             <MaterialIcons
               name="calendar-today"
               size={12}
-              color={Colors.light.textSecondary}
+              color={theme.textSecondary}
             />
-            <ThemedText style={styles.footerMetaText}>
+            <ThemedText style={[styles.footerMetaText, { color: theme.textSecondary }]}>
               {t("catalogue.validNotice")} • {new Date().toLocaleDateString()}
             </ThemedText>
           </View>
@@ -284,7 +286,7 @@ export function CataloguePreview({
       <View style={styles.actionsContainer} id="catalogue-share-actions">
         {/* Share PDF Button */}
         <TouchableOpacity
-          style={styles.pdfShareButton}
+          style={[styles.pdfShareButton, { backgroundColor: theme.primary }]}
           onPress={handleSharePDF}
           disabled={sharingPDF}
           activeOpacity={0.8}
@@ -304,18 +306,18 @@ export function CataloguePreview({
 
         {/* Share WhatsApp / Text Button */}
         <TouchableOpacity
-          style={styles.textShareButton}
+          style={[styles.textShareButton, { backgroundColor: theme.surface, borderColor: theme.primary }]}
           onPress={handleShareText}
           disabled={sharingText}
           activeOpacity={0.8}
           id="btn-share-text"
         >
           {sharingText ? (
-            <ActivityIndicator color={Colors.light.primary} size="small" />
+            <ActivityIndicator color={theme.primary} size="small" />
           ) : (
             <>
-              <MaterialIcons name="send" size={18} color={Colors.light.primary} />
-              <ThemedText style={styles.textShareButtonText}>
+              <MaterialIcons name="send" size={18} color={theme.primary} />
+              <ThemedText style={[styles.textShareButtonText, { color: theme.primary }]}>
                 {t("catalogue.shareAsWhatsApp")}
               </ThemedText>
             </>
@@ -332,9 +334,9 @@ export function CataloguePreview({
           <MaterialIcons
             name="edit"
             size={16}
-            color={Colors.light.textSecondary}
+            color={theme.textSecondary}
           />
-          <ThemedText style={styles.editLinkText}>
+          <ThemedText style={[styles.editLinkText, { color: theme.textSecondary }]}>
             {t("catalogue.editSelection")}
           </ThemedText>
         </TouchableOpacity>
@@ -346,7 +348,6 @@ export function CataloguePreview({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   contentContainer: {
     padding: Spacing.lg,
@@ -368,13 +369,11 @@ const styles = StyleSheet.create({
   backButtonText: {
     ...Typography.body,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   brochureBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: BorderRadius.pill,
@@ -383,40 +382,33 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.primary,
   },
   brochureBadgeText: {
     ...Typography.badge,
-    color: Colors.light.primary,
   },
   titleBlock: {
     marginBottom: Spacing.lg,
   },
   title: {
     ...Typography.heading1,
-    color: Colors.light.textPrimary,
     marginBottom: 4,
   },
   subtitle: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
   },
   privacyBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surface,
     padding: Spacing.md,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
-    borderColor: Colors.light.borderLight,
     marginBottom: Spacing.lg,
   },
   privacyIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -427,35 +419,28 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontSize: 14,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   privacyDesc: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   itemsPill: {
-    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: BorderRadius.pill,
   },
   itemsPillText: {
     ...Typography.badge,
-    color: Colors.light.textPrimary,
     fontSize: 11,
   },
   sheetCard: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     overflow: "hidden",
     marginBottom: Spacing.xl,
   },
   accentLine: {
     height: 6,
-    backgroundColor: Colors.light.primary,
   },
   sheetHeader: {
     padding: Spacing.lg,
@@ -465,7 +450,6 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: Colors.light.surfaceAlt,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: Spacing.sm,
@@ -473,13 +457,11 @@ const styles = StyleSheet.create({
   storeTitle: {
     ...Typography.heading2,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
     marginBottom: 2,
     textAlign: "center",
   },
   storeCategory: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     marginBottom: Spacing.sm,
   },
   contactRow: {
@@ -496,10 +478,8 @@ const styles = StyleSheet.create({
   },
   contactText: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
   },
   welcomePill: {
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: BorderRadius.pill,
@@ -508,12 +488,10 @@ const styles = StyleSheet.create({
   welcomePillText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.primary,
     textAlign: "center",
   },
   sheetDivider: {
     height: 1,
-    backgroundColor: Colors.light.borderLight,
     marginHorizontal: Spacing.lg,
   },
   productsList: {
@@ -524,12 +502,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.surfaceAlt,
   },
   itemIndex: {
     ...Typography.body,
     fontWeight: "600",
-    color: Colors.light.textMuted,
     width: 24,
   },
   itemDetails: {
@@ -540,11 +516,9 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontSize: 15,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   itemCategory: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     fontSize: 12,
   },
   itemRight: {
@@ -554,28 +528,15 @@ const styles = StyleSheet.create({
   itemPrice: {
     ...Typography.moneySm,
     fontWeight: "700",
-    color: Colors.light.primary,
   },
   statusBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: BorderRadius.pill,
   },
-  statusAvail: {
-    backgroundColor: Colors.light.primaryLight,
-  },
-  statusOut: {
-    backgroundColor: Colors.light.errorLight,
-  },
   statusText: {
     fontSize: 10,
     fontWeight: "600",
-  },
-  statusTextAvail: {
-    color: Colors.light.primary,
-  },
-  statusTextOut: {
-    color: Colors.light.error,
   },
   sheetFooter: {
     padding: Spacing.lg,
@@ -586,7 +547,6 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
     textAlign: "center",
   },
   footerMetaRow: {
@@ -597,14 +557,12 @@ const styles = StyleSheet.create({
   footerMetaText: {
     ...Typography.caption,
     fontSize: 11,
-    color: Colors.light.textSecondary,
   },
   actionsContainer: {
     gap: Spacing.md,
   },
   pdfShareButton: {
     height: 52,
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.lg,
     flexDirection: "row",
     justifyContent: "center",
@@ -617,11 +575,9 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   textShareButton: {
-    height: 48,
-    backgroundColor: Colors.light.surface,
+    height: 52,
     borderRadius: BorderRadius.lg,
-    borderWidth: 1.5,
-    borderColor: Colors.light.primary,
+    borderWidth: 1,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -629,19 +585,16 @@ const styles = StyleSheet.create({
   },
   textShareButtonText: {
     ...Typography.body,
-    fontWeight: "600",
-    color: Colors.light.primary,
+    fontWeight: "700",
   },
   editLink: {
-    height: 40,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     gap: 6,
+    paddingVertical: Spacing.sm,
   },
   editLinkText: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
-    fontWeight: "600",
+    ...Typography.body,
   },
 });

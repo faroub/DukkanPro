@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 interface CustomerSearchBarProps {
   onSearch: (query: string) => void;
@@ -16,6 +17,7 @@ export function CustomerSearchBar({
   disabled,
 }: CustomerSearchBarProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [query, setQuery] = useState("");
 
   const handleChangeText = (text: string) => {
@@ -29,23 +31,35 @@ export function CustomerSearchBar({
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.surfaceAlt,
+          borderColor: theme.borderLight,
+        },
+      ]}
+    >
       <View style={styles.iconContainer}>
         <MaterialIcons
           name="search"
           size={20}
-          color={Colors.light.textSecondary}
+          color={theme.textSecondary}
         />
       </View>
       <TextInput
         value={query}
         onChangeText={handleChangeText}
         placeholder={t("customers:searchPlaceholder")}
-        placeholderTextColor={Colors.light.textMuted}
+        placeholderTextColor={theme.textMuted}
         editable={!disabled}
         autoCapitalize="none"
         autoCorrect={false}
-        style={[styles.input, disabled && styles.inputDisabled]}
+        style={[
+          styles.input,
+          { color: theme.textPrimary },
+          disabled && styles.inputDisabled,
+        ]}
       />
       {query.length > 0 && (
         <TouchableOpacity
@@ -57,7 +71,7 @@ export function CustomerSearchBar({
           <MaterialIcons
             name="close"
             size={18}
-            color={Colors.light.textSecondary}
+            color={theme.textSecondary}
           />
         </TouchableOpacity>
       )}
@@ -69,11 +83,11 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.lg,
     paddingHorizontal: Spacing.md,
     height: 48,
     marginBottom: Spacing.md,
+    borderWidth: 1,
   },
   iconContainer: {
     marginRight: Spacing.sm,
@@ -81,7 +95,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: Colors.light.textPrimary,
     paddingVertical: 0,
   },
   inputDisabled: {

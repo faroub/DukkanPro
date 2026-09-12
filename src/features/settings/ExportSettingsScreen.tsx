@@ -15,12 +15,12 @@ import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Shadows,
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export type ExportTableId =
   | "products"
@@ -85,16 +85,12 @@ const TABLE_OPTIONS: TableOption[] = [
 
 /**
  * ExportSettingsScreen - Screen for downloading local backup files in CSV format.
- * Sourced directly from Stitch design `4._data_export`.
- * - Multi-table checkbox selection with select all / deselect all
- * - Dynamic byte/size estimation
- * - Confirmation alert before exporting
- * - Never uploads automatically; stays local to device
- * - Strictly LTR layout across all languages
+ * Fully theme-sensitive supporting system, light, and dark modes.
  */
 export function ExportSettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
 
   const [selectedTables, setSelectedTables] = useState<ExportTableId[]>([
     "products",
@@ -161,7 +157,10 @@ export function ExportSettingsScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.scrollContainer}
+      contentContainerStyle={[
+        styles.scrollContainer,
+        { backgroundColor: theme.background },
+      ]}
       showsVerticalScrollIndicator={false}
     >
       <ThemedView style={styles.container}>
@@ -171,44 +170,70 @@ export function ExportSettingsScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="arrow-back" size={18} color={Colors.light.textSecondary} />
-          <ThemedText style={styles.breadcrumbText}>
+          <MaterialIcons name="arrow-back" size={18} color={theme.textSecondary} />
+          <ThemedText style={[styles.breadcrumbText, { color: theme.textSecondary }]}>
             {t("navigation.back") || "Back to More"}
           </ThemedText>
         </TouchableOpacity>
 
-        {/* Friendly Delight Header Banner */}
-        <View style={styles.heroBanner}>
-          <View style={styles.heroIconContainer}>
-            <MaterialIcons name="cloud-download" size={28} color={Colors.light.primary} />
+        {/* Friendly Header Banner */}
+        <View
+          style={[
+            styles.heroBanner,
+            { backgroundColor: theme.surfaceAlt, borderColor: theme.border },
+          ]}
+        >
+          <View
+            style={[
+              styles.heroIconContainer,
+              { backgroundColor: theme.primaryLight },
+            ]}
+          >
+            <MaterialIcons name="cloud-download" size={28} color={theme.primary} />
           </View>
           <View style={styles.heroContent}>
-            <ThemedText style={styles.heroTitle}>Export Store Records</ThemedText>
-            <ThemedText style={styles.heroSubtitle}>
+            <ThemedText style={[styles.heroTitle, { color: theme.textPrimary }]}>
+              Export Store Records
+            </ThemedText>
+            <ThemedText style={[styles.heroSubtitle, { color: theme.textSecondary }]}>
               Download local backup files directly to your device storage in standard CSV format.
             </ThemedText>
           </View>
         </View>
 
         {/* Format & Selection Toolbar */}
-        <View style={styles.toolbarCard}>
+        <View
+          style={[
+            styles.toolbarCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
           <View style={styles.formatRow}>
             <View style={styles.formatLeft}>
-              <MaterialIcons name="format-list-bulleted" size={20} color={Colors.light.primary} />
-              <ThemedText style={styles.formatLabel}>File Format</ThemedText>
+              <MaterialIcons name="format-list-bulleted" size={20} color={theme.primary} />
+              <ThemedText style={[styles.formatLabel, { color: theme.textPrimary }]}>
+                File Format
+              </ThemedText>
             </View>
-            <View style={styles.formatBadge}>
-              <View style={styles.pulseDot} />
-              <ThemedText style={styles.formatBadgeText}>CSV (UTF-8, Standard)</ThemedText>
+            <View
+              style={[
+                styles.formatBadge,
+                { backgroundColor: theme.primaryLight },
+              ]}
+            >
+              <View style={[styles.pulseDot, { backgroundColor: theme.primary }]} />
+              <ThemedText style={[styles.formatBadgeText, { color: theme.primary }]}>
+                CSV (UTF-8, Standard)
+              </ThemedText>
             </View>
           </View>
 
           <View style={styles.selectionRow}>
-            <ThemedText style={styles.selectionSummary}>
+            <ThemedText style={[styles.selectionSummary, { color: theme.textSecondary }]}>
               {selectedTables.length} of {TABLE_OPTIONS.length} tables selected ({totalKb} KB)
             </ThemedText>
             <TouchableOpacity onPress={handleToggleAll} activeOpacity={0.7}>
-              <ThemedText style={styles.toggleAllButton}>
+              <ThemedText style={[styles.toggleAllButton, { color: theme.primary }]}>
                 {isAllSelected ? "Deselect All" : "Select All"}
               </ThemedText>
             </TouchableOpacity>
@@ -216,10 +241,22 @@ export function ExportSettingsScreen() {
         </View>
 
         {/* Available Store Ledgers Checklist Card */}
-        <View style={styles.ledgersCard}>
-          <View style={styles.ledgersHeader}>
-            <MaterialIcons name="storage" size={18} color={Colors.light.textSecondary} />
-            <ThemedText style={styles.ledgersHeaderTitle}>Available Store Ledgers</ThemedText>
+        <View
+          style={[
+            styles.ledgersCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
+          <View
+            style={[
+              styles.ledgersHeader,
+              { backgroundColor: theme.surfaceAlt, borderBottomColor: theme.border },
+            ]}
+          >
+            <MaterialIcons name="storage" size={18} color={theme.textSecondary} />
+            <ThemedText style={[styles.ledgersHeaderTitle, { color: theme.textPrimary }]}>
+              Available Store Ledgers
+            </ThemedText>
           </View>
 
           <View style={styles.checklist}>
@@ -227,7 +264,9 @@ export function ExportSettingsScreen() {
               const isChecked = selectedTables.includes(item.id);
               return (
                 <React.Fragment key={item.id}>
-                  {index > 0 && <View style={styles.itemDivider} />}
+                  {index > 0 && (
+                    <View style={[styles.itemDivider, { backgroundColor: theme.borderLight }]} />
+                  )}
                   <TouchableOpacity
                     style={styles.checkRow}
                     onPress={() => handleToggleTable(item.id)}
@@ -236,19 +275,37 @@ export function ExportSettingsScreen() {
                     accessibilityState={{ checked: isChecked }}
                   >
                     <View style={styles.checkRowLeft}>
-                      <View style={styles.itemIconContainer}>
-                        <MaterialIcons name={item.icon} size={20} color={Colors.light.primary} />
+                      <View
+                        style={[
+                          styles.itemIconContainer,
+                          { backgroundColor: theme.surfaceAlt },
+                        ]}
+                      >
+                        <MaterialIcons name={item.icon} size={20} color={theme.primary} />
                       </View>
                       <View style={styles.itemInfo}>
-                        <ThemedText style={styles.itemTitle}>{item.title}</ThemedText>
-                        <ThemedText style={styles.itemDescription} numberOfLines={1}>
+                        <ThemedText style={[styles.itemTitle, { color: theme.textPrimary }]}>
+                          {item.title}
+                        </ThemedText>
+                        <ThemedText
+                          style={[styles.itemDescription, { color: theme.textSecondary }]}
+                          numberOfLines={1}
+                        >
                           {item.description}
                         </ThemedText>
                       </View>
                     </View>
 
                     {/* Checkbox */}
-                    <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
+                    <View
+                      style={[
+                        styles.checkbox,
+                        {
+                          borderColor: isChecked ? theme.primary : theme.border,
+                          backgroundColor: isChecked ? theme.primary : theme.surface,
+                        },
+                      ]}
+                    >
                       {isChecked && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
                     </View>
                   </TouchableOpacity>
@@ -259,37 +316,56 @@ export function ExportSettingsScreen() {
         </View>
 
         {/* Note Card with Privacy & Locale info */}
-        <View style={styles.privacyCard}>
-          <View style={styles.lockIconContainer}>
-            <MaterialIcons name="lock" size={20} color={Colors.light.warning} />
+        <View
+          style={[
+            styles.privacyCard,
+            { backgroundColor: theme.warningLight, borderColor: theme.border },
+          ]}
+        >
+          <View style={[styles.lockIconContainer, { backgroundColor: theme.surface }]}>
+            <MaterialIcons name="lock" size={20} color={theme.warning} />
           </View>
           <View style={styles.privacyContent}>
-            <ThemedText style={styles.privacyTitle}>Local & Private Storage</ThemedText>
-            <ThemedText style={styles.privacySubtitle}>
+            <ThemedText style={[styles.privacyTitle, { color: theme.textPrimary }]}>
+              Local & Private Storage
+            </ThemedText>
+            <ThemedText style={[styles.privacySubtitle, { color: theme.textSecondary }]}>
               CSV headers will use the selected language (Français). Data stays strictly on your device — nothing is uploaded to third-party servers.
             </ThemedText>
           </View>
         </View>
 
         {/* Inline Status Card */}
-        <View style={styles.statusCard}>
-          <View style={styles.statusIconContainer}>
+        <View
+          style={[
+            styles.statusCard,
+            { backgroundColor: theme.surfaceAlt, borderColor: theme.border },
+          ]}
+        >
+          <View
+            style={[
+              styles.statusIconContainer,
+              { backgroundColor: theme.primaryLight },
+            ]}
+          >
             <MaterialIcons
               name={selectedTables.length > 0 ? "check-circle" : "info"}
               size={20}
-              color={Colors.light.primary}
+              color={theme.primary}
             />
           </View>
           <View style={styles.statusContent}>
             <View style={styles.statusHeaderRow}>
-              <ThemedText style={styles.statusTitle}>
+              <ThemedText style={[styles.statusTitle, { color: theme.textPrimary }]}>
                 {selectedTables.length > 0 ? "Ready to Export" : "No Tables Selected"}
               </ThemedText>
-              <View style={styles.versionTag}>
-                <ThemedText style={styles.versionTagText}>v1.2.4</ThemedText>
+              <View style={[styles.versionTag, { backgroundColor: theme.surface }]}>
+                <ThemedText style={[styles.versionTagText, { color: theme.textSecondary }]}>
+                  v1.2.4
+                </ThemedText>
               </View>
             </View>
-            <ThemedText style={styles.statusSubtitle}>
+            <ThemedText style={[styles.statusSubtitle, { color: theme.textSecondary }]}>
               {selectedTables.length > 0
                 ? `Ready to export ${selectedTables.length} CSV files (approx ${totalKb} KB). Tap confirm below to save to Downloads.`
                 : "Select one or more tables from the list above to proceed."}
@@ -301,7 +377,12 @@ export function ExportSettingsScreen() {
         <TouchableOpacity
           style={[
             styles.actionButton,
-            selectedTables.length === 0 && styles.actionButtonDisabled,
+            {
+              backgroundColor:
+                selectedTables.length === 0
+                  ? theme.disabledBackground
+                  : theme.primary,
+            },
           ]}
           onPress={handleConfirmExport}
           activeOpacity={0.8}
@@ -310,12 +391,15 @@ export function ExportSettingsScreen() {
           <MaterialIcons
             name="download"
             size={22}
-            color={selectedTables.length === 0 ? Colors.light.textSecondary : "#FFFFFF"}
+            color={selectedTables.length === 0 ? theme.textSecondary : "#FFFFFF"}
           />
           <ThemedText
             style={[
               styles.actionButtonText,
-              selectedTables.length === 0 && styles.actionButtonTextDisabled,
+              {
+                color:
+                  selectedTables.length === 0 ? theme.textSecondary : "#FFFFFF",
+              },
             ]}
           >
             {isExporting
@@ -336,7 +420,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: ComponentDimensions.screenPadding,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xxl,
-    backgroundColor: Colors.light.background,
   },
   container: {
     width: "100%",
@@ -355,23 +438,19 @@ const styles = StyleSheet.create({
   breadcrumbText: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   heroBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surfaceAlt,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   heroIconContainer: {
     width: 48,
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -380,20 +459,16 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     ...Typography.heading3,
-    color: Colors.light.textPrimary,
   },
   heroSubtitle: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     marginTop: 4,
     lineHeight: 18,
   },
   toolbarCard: {
-    backgroundColor: Colors.light.surface,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     gap: Spacing.sm,
     ...Shadows.sm,
   },
@@ -410,13 +485,11 @@ const styles = StyleSheet.create({
   formatLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   formatBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: BorderRadius.full,
@@ -425,12 +498,10 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.primary,
   },
   formatBadgeText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   selectionRow: {
     flexDirection: "row",
@@ -440,19 +511,15 @@ const styles = StyleSheet.create({
   },
   selectionSummary: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
   },
   toggleAllButton: {
     fontSize: 13,
     fontWeight: "600",
-    color: Colors.light.primary,
     textDecorationLine: "underline",
   },
   ledgersCard: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     overflow: "hidden",
     ...Shadows.sm,
   },
@@ -462,14 +529,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: ComponentDimensions.cardPadding,
     paddingVertical: 12,
-    backgroundColor: Colors.light.surfaceAlt,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
   },
   ledgersHeaderTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   checklist: {
     paddingVertical: 2,
@@ -494,7 +558,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -505,11 +568,9 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   itemDescription: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   checkbox: {
@@ -517,35 +578,25 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: Colors.light.border,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.light.surface,
-  },
-  checkboxChecked: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
   },
   itemDivider: {
     height: 1,
-    backgroundColor: Colors.light.borderLight,
     marginHorizontal: ComponentDimensions.cardPadding,
   },
   privacyCard: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.md,
-    backgroundColor: Colors.light.warningLight,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: "#FDE68A",
   },
   lockIconContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#FEF3C7",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 2,
@@ -556,11 +607,9 @@ const styles = StyleSheet.create({
   privacyTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   privacySubtitle: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 3,
     lineHeight: 18,
   },
@@ -568,17 +617,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surfaceAlt,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   statusIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 2,
@@ -594,10 +640,8 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   versionTag: {
-    backgroundColor: Colors.light.surface,
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 4,
@@ -605,11 +649,9 @@ const styles = StyleSheet.create({
   versionTagText: {
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   statusSubtitle: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 4,
     lineHeight: 16,
   },
@@ -619,20 +661,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     height: 48,
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.button,
     ...Shadows.sm,
-  },
-  actionButtonDisabled: {
-    backgroundColor: Colors.light.disabledBackground,
-    shadowOpacity: 0,
   },
   actionButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  actionButtonTextDisabled: {
-    color: Colors.light.textSecondary,
   },
 });

@@ -9,7 +9,8 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 interface QuickActionSheetProps {
   visible: boolean;
@@ -30,6 +31,8 @@ export function QuickActionSheet({
   onRecordPayment,
   locale = "fr",
 }: QuickActionSheetProps) {
+  const theme = useTheme();
+
   const actions = [
     {
       id: "sale",
@@ -103,30 +106,30 @@ export function QuickActionSheet({
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
 
-        <View style={styles.sheetContainer}>
+        <View style={[styles.sheetContainer, { backgroundColor: theme.surface }]}>
           {/* Grab Handle */}
-          <View style={styles.handleBar} />
+          <View style={[styles.handleBar, { backgroundColor: theme.border }]} />
 
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
-              <ThemedText style={styles.headerTitle}>
+              <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
                 {locale === "ar" ? "إجراءات سريعة" : locale === "fr" ? "Raccourcis rapides" : "Quick Actions"}
               </ThemedText>
-              <View style={styles.shortcutsBadge}>
-                <ThemedText style={styles.shortcutsBadgeText}>
+              <View style={[styles.shortcutsBadge, { backgroundColor: theme.primaryLight }]}>
+                <ThemedText style={[styles.shortcutsBadgeText, { color: theme.primary }]}>
                   {locale === "ar" ? "اختصارات" : "Shortcuts"}
                 </ThemedText>
               </View>
             </View>
 
             <TouchableOpacity
-              style={styles.closeButton}
+              style={[styles.closeButton, { backgroundColor: theme.surfaceAlt }]}
               onPress={onClose}
               accessibilityRole="button"
               accessibilityLabel="Close quick actions"
             >
-              <MaterialIcons name="close" size={18} color={Colors.light.textSecondary} />
+              <MaterialIcons name="close" size={18} color={theme.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -135,26 +138,32 @@ export function QuickActionSheet({
             {actions.map((action) => (
               <TouchableOpacity
                 key={action.id}
-                style={styles.actionButton}
+                style={[
+                  styles.actionButton,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.border,
+                  },
+                ]}
                 onPress={action.onPress}
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel={`${action.title}: ${action.subtitle}`}
               >
                 <View style={styles.buttonLeft}>
-                  <View style={styles.iconCircle}>
+                  <View style={[styles.iconCircle, { backgroundColor: theme.primaryLight }]}>
                     <MaterialIcons
                       name={action.icon}
                       size={22}
-                      color={Colors.light.primary}
+                      color={theme.primary}
                     />
                   </View>
 
                   <View style={styles.buttonTextWrap}>
-                    <ThemedText style={styles.actionTitle}>
+                    <ThemedText style={[styles.actionTitle, { color: theme.textPrimary }]}>
                       {action.title}
                     </ThemedText>
-                    <ThemedText style={styles.actionSubtitle}>
+                    <ThemedText style={[styles.actionSubtitle, { color: theme.textSecondary }]}>
                       {action.subtitle}
                     </ThemedText>
                   </View>
@@ -163,7 +172,7 @@ export function QuickActionSheet({
                 <MaterialIcons
                   name="chevron-right"
                   size={22}
-                  color={Colors.light.textMuted}
+                  color={theme.textMuted}
                 />
               </TouchableOpacity>
             ))}
@@ -171,13 +180,13 @@ export function QuickActionSheet({
 
           {/* Dismiss Button */}
           <TouchableOpacity
-            style={styles.dismissButton}
+            style={[styles.dismissButton, { backgroundColor: theme.surfaceAlt }]}
             onPress={onClose}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Cancel"
           >
-            <ThemedText style={styles.dismissButtonText}>
+            <ThemedText style={[styles.dismissButtonText, { color: theme.textSecondary }]}>
               {locale === "ar" ? "إلغاء" : locale === "fr" ? "Annuler" : "Cancel"}
             </ThemedText>
           </TouchableOpacity>
@@ -197,7 +206,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
   },
   sheetContainer: {
-    backgroundColor: Colors.light.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
@@ -209,7 +217,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.light.border,
     alignSelf: "center",
     marginTop: -4,
   },
@@ -227,25 +234,21 @@ const styles = StyleSheet.create({
     ...Typography.heading2,
     fontSize: 18,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   shortcutsBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.light.primaryLight,
   },
   shortcutsBadgeText: {
     ...Typography.badge,
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -256,9 +259,7 @@ const styles = StyleSheet.create({
     minHeight: 60,
     padding: 12,
     borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -274,7 +275,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -285,18 +285,15 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 15,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   actionSubtitle: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   dismissButton: {
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 4,
@@ -305,6 +302,5 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
 });

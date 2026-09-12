@@ -1,6 +1,6 @@
 import type { AvailableProduct } from "@/services/voice/voiceSaleParser";
 import { parseSaleCommand } from "@/services/voice/voiceSaleParser";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
 import {
@@ -30,33 +30,15 @@ export function ReviewSheet({
   commandText,
 }: ReviewSheetProps) {
   const { t } = useTranslation();
-  const [editableText, setEditableText] = useState(commandText);
-  const [parsed, setParsed] = useState<any | null>(null);
-  const [showAmbiguityChoices, setShowAmbiguityChoices] = useState(false);
-  const [ambiguousChoices, setAmbiguousChoices] = useState<any[]>([]);
+  const [customText, setCustomText] = useState<string | null>(null);
 
-  useEffect(() => {
-    setEditableText(commandText);
-  }, [commandText]);
+  const textToParse = customText !== null ? customText : commandText;
+  const parsed = useMemo(() => {
+    return parseSaleCommand(textToParse, availableProducts);
+  }, [textToParse, availableProducts]);
 
-  // Parse the command when text changes or sheet opens
-  useEffect(() => {
-    const textToParse = editableText || commandText;
-    const result = parseSaleCommand(textToParse, availableProducts);
-    if (result) {
-      setParsed(result);
-      // Check if ambiguous and show choices
-      if (result.matchType === "ambiguous") {
-        setShowAmbiguityChoices(true);
-        setAmbiguousChoices(result.productMatchResult?.choices || []);
-      } else {
-        setShowAmbiguityChoices(false);
-      }
-    } else {
-      setParsed(null);
-      setShowAmbiguityChoices(false);
-    }
-  }, [editableText, commandText, availableProducts]);
+  const showAmbiguityChoices = parsed?.matchType === "ambiguous";
+  const ambiguousChoices = parsed?.productMatchResult?.choices || [];
 
   if (!isVisible || !parsed) {
     return null;
@@ -184,8 +166,8 @@ export function ReviewSheet({
           <Text style={styles.inputLabel}>{t("voice.subtitle", "Command Text")}</Text>
           <TextInput
             style={styles.commandInput}
-            value={editableText}
-            onChangeText={setEditableText}
+            value={textToParse}
+            onChangeText={setCustomText}
             placeholder={t("voice.sayProductName", "Voice command...")}
             placeholderTextColor="#999"
           />
