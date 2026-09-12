@@ -120,11 +120,12 @@ export async function fetchDashboardData(
     const products: any[] = await db.getAllAsync(
       "SELECT * FROM products WHERE is_active = 1",
     );
-    const stockThreshold = 5;
-    lowStockProducts = (products || []).filter(
-      (p: any) =>
-        (p.stock_quantity || 0) <= stockThreshold && p.stock_quantity > 0,
-    );
+    lowStockProducts = (products || []).filter((p: any) => {
+      const minThreshold = p.minimum_stock_quantity !== undefined && p.minimum_stock_quantity !== null
+        ? p.minimum_stock_quantity
+        : 5;
+      return (p.stock_quantity || 0) <= minThreshold;
+    });
     lowStockCount = lowStockProducts.length;
   } catch (e) {
     // If DB query fails, keep defaults
