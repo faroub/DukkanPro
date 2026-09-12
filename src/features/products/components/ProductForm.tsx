@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
 } from 'react-native';
+import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -819,6 +820,9 @@ export function ProductForm({
               </ThemedText>
             </TouchableOpacity>
           )}
+
+          {/* Footer Trademark */}
+          <FooterTrademark />
         </View>
       </ScrollView>
 

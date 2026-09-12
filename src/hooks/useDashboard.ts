@@ -127,7 +127,7 @@ export async function fetchDashboardData(
       return (p.stock_quantity || 0) <= minThreshold;
     });
     lowStockCount = lowStockProducts.length;
-  } catch (e) {
+  } catch (_err) {
     // If DB query fails, keep defaults
   }
 

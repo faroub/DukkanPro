@@ -11,6 +11,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { getSaleById } from '@/database/repositories/saleRepository';
@@ -622,6 +623,9 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
             </View>
           </View>
         )}
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ScrollView>
 
       {/* 7. Dialog Modals */}

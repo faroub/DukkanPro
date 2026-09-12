@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -452,6 +453,7 @@ export default function SellScreen() {
                   </View>
                 );
               }}
+              ListFooterComponent={() => <FooterTrademark style={{ paddingBottom: 60 }} />}
             />
           )}
         </View>

@@ -1,3 +1,4 @@
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText, ThemedView, showToast } from "@/components";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -112,6 +113,9 @@ export function InventorySettingsScreen() {
             </TouchableOpacity>
           </ThemedView>
         </ThemedView>
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ThemedView>
     </ScrollView>
   );

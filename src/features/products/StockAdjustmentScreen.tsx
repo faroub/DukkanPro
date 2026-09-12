@@ -10,9 +10,11 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
 import { getById, adjustStock } from '@/database/repositories/productRepository';
 import { Product } from '@/types/entities';
@@ -74,6 +76,7 @@ const REASONS: ReasonOption[] = [
 ];
 
 export function StockAdjustmentScreen() {
+  const theme = useTheme();
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const route = useRoute();
@@ -210,8 +213,8 @@ export function StockAdjustmentScreen() {
   if (loading) {
     return (
       <ThemedView type="background" style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.light.primary} />
-        <ThemedText style={styles.loadingText}>{t('common:loading')}</ThemedText>
+        <ActivityIndicator size="large" color={theme.primary} />
+        <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>{t('common:loading')}</ThemedText>
       </ThemedView>
     );
   }
@@ -219,18 +222,18 @@ export function StockAdjustmentScreen() {
   const isLowStock = currentStock <= minStock;
 
   return (
-    <ThemedView type="background" style={styles.container}>
+    <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header bar */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityLabel="Go back"
         >
-          <Ionicons name="arrow-back" size={24} color={Colors.light.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
-        <ThemedText style={styles.headerTitle}>
+        <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
           {t('products:adjustStock')}
         </ThemedText>
         <View style={{ width: 40 }} />
@@ -238,30 +241,30 @@ export function StockAdjustmentScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Visual Header Summary Card */}
-        <ThemedView style={styles.summaryCard}>
+        <ThemedView style={[styles.summaryCard, { backgroundColor: theme.surface }]}>
           <View style={styles.summaryTopRow}>
             <View style={styles.productInfoLeft}>
-              <View style={styles.productIconContainer}>
-                <Ionicons name="cube" size={24} color={Colors.light.primary} />
+              <View style={[styles.productIconContainer, { backgroundColor: theme.primary + '15' }]}>
+                <Ionicons name="cube" size={24} color={theme.primary} />
               </View>
               <View style={styles.productTextWrap}>
-                <ThemedText style={styles.productName} numberOfLines={1}>
+                <ThemedText style={[styles.productName, { color: theme.textPrimary }]} numberOfLines={1}>
                   {product?.name || params.productName || 'Product'}
                 </ThemedText>
-                <ThemedText style={styles.productMeta}>
+                <ThemedText style={[styles.productMeta, { color: theme.textSecondary }]}>
                   {product?.sku ? `${product.sku} • ` : ''}
                   {t('products:unit')}: {unitLabel}
                 </ThemedText>
               </View>
             </View>
             {isLowStock ? (
-              <View style={styles.lowStockBadge}>
-                <Ionicons name="warning" size={14} color={Colors.light.secondary} />
-                <ThemedText style={styles.lowStockBadgeText}>
+              <View style={[styles.lowStockBadge, { backgroundColor: '#FEF3C7' }]}>
+                <Ionicons name="warning" size={14} color="#D97706" />
+                <ThemedText style={[styles.lowStockBadgeText, { color: '#D97706' }]}>
                   {t('products:lowStock')}
                 </ThemedText>
               </View>
@@ -269,20 +272,20 @@ export function StockAdjustmentScreen() {
           </View>
 
           {/* Stock Status Ribbon */}
-          <View style={styles.stockRibbon}>
+          <View style={[styles.stockRibbon, { backgroundColor: theme.surfaceAlt }]}>
             <View>
-              <ThemedText style={styles.ribbonLabel}>
+              <ThemedText style={[styles.ribbonLabel, { color: theme.textSecondary }]}>
                 {t('products:currentOnHand')}
               </ThemedText>
-              <ThemedText style={styles.ribbonValue}>
-                {currentStock} <ThemedText style={styles.ribbonUnit}>{unitLabel}</ThemedText>
+              <ThemedText style={[styles.ribbonValue, { color: theme.textPrimary }]}>
+                {currentStock} <ThemedText style={[styles.ribbonUnit, { color: theme.textSecondary }]}>{unitLabel}</ThemedText>
               </ThemedText>
             </View>
             <View style={styles.ribbonRight}>
-              <ThemedText style={styles.ribbonLabel}>
+              <ThemedText style={[styles.ribbonLabel, { color: theme.textSecondary }]}>
                 {t('products:minThreshold')}
               </ThemedText>
-              <ThemedText style={styles.ribbonThreshold}>
+              <ThemedText style={[styles.ribbonThreshold, { color: theme.textSecondary }]}>
                 Min: {minStock} {unitLabel}
               </ThemedText>
             </View>
@@ -290,42 +293,42 @@ export function StockAdjustmentScreen() {
         </ThemedView>
 
         {/* Adjustment Form Card */}
-        <ThemedView style={styles.card}>
+        <ThemedView style={[styles.card, { backgroundColor: theme.surface }]}>
           {/* Mode Selection Pills */}
           <View style={styles.formSection}>
-            <ThemedText style={styles.sectionLabel}>
+            <ThemedText style={[styles.sectionLabel, { color: theme.textPrimary }]}>
               {t('products:adjustmentMethod')}
             </ThemedText>
-            <View style={styles.modeSelectorContainer}>
+            <View style={[styles.modeSelectorContainer, { backgroundColor: theme.surfaceAlt }]}>
               <TouchableOpacity
-                style={[styles.modeButton, mode === 'set' && styles.modeButtonActive]}
+                style={[styles.modeButton, mode === 'set' && [styles.modeButtonActive, { backgroundColor: theme.surface }]]}
                 onPress={() => handleSwitchMode('set')}
                 activeOpacity={0.8}
               >
                 <Ionicons
                   name="pin-outline"
                   size={16}
-                  color={mode === 'set' ? Colors.light.primary : Colors.light.textSecondary}
+                  color={mode === 'set' ? theme.primary : theme.textSecondary}
                 />
                 <ThemedText
-                  style={[styles.modeButtonText, mode === 'set' && styles.modeButtonTextActive]}
+                  style={[styles.modeButtonText, { color: theme.textSecondary }, mode === 'set' && [styles.modeButtonTextActive, { color: theme.primary }]]}
                 >
                   {t('products:setNewTotal')}
                 </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modeButton, mode === 'delta' && styles.modeButtonActive]}
+                style={[styles.modeButton, mode === 'delta' && [styles.modeButtonActive, { backgroundColor: theme.surface }]]}
                 onPress={() => handleSwitchMode('delta')}
                 activeOpacity={0.8}
               >
                 <Ionicons
                   name="swap-vertical-outline"
                   size={16}
-                  color={mode === 'delta' ? Colors.light.primary : Colors.light.textSecondary}
+                  color={mode === 'delta' ? theme.primary : theme.textSecondary}
                 />
                 <ThemedText
-                  style={[styles.modeButtonText, mode === 'delta' && styles.modeButtonTextActive]}
+                  style={[styles.modeButtonText, { color: theme.textSecondary }, mode === 'delta' && [styles.modeButtonTextActive, { color: theme.primary }]]}
                 >
                   {t('products:addRemove')}
                 </ThemedText>
@@ -336,27 +339,27 @@ export function StockAdjustmentScreen() {
           {/* Stepper Quantity Input Section */}
           <View style={styles.formSection}>
             <View style={styles.quantityHeaderRow}>
-              <ThemedText style={styles.sectionLabel}>
+              <ThemedText style={[styles.sectionLabel, { color: theme.textPrimary }]}>
                 {mode === 'set'
                   ? t('products:newTotalQuantity')
                   : t('products:adjustmentQuantity')}
               </ThemedText>
-              <ThemedText style={styles.currentQtyHint}>
+              <ThemedText style={[styles.currentQtyHint, { color: theme.textSecondary }]}>
                 {t('products:currentOnHand')}: {currentStock}
               </ThemedText>
             </View>
 
             <View style={styles.stepperRow}>
               <TouchableOpacity
-                style={styles.stepperActionBtn}
+                style={[styles.stepperActionBtn, { backgroundColor: theme.surfaceAlt }]}
                 onPress={() => handleStep(-1)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="remove" size={24} color={Colors.light.textPrimary} />
+                <Ionicons name="remove" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
 
               <TextInput
-                style={styles.stepperDisplayInput}
+                style={[styles.stepperDisplayInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.textPrimary }]}
                 value={value.toString()}
                 onChangeText={(text) => {
                   if (mode === 'set') {
@@ -373,33 +376,33 @@ export function StockAdjustmentScreen() {
               />
 
               <TouchableOpacity
-                style={styles.stepperActionBtn}
+                style={[styles.stepperActionBtn, { backgroundColor: theme.surfaceAlt }]}
                 onPress={() => handleStep(1)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="add" size={24} color={Colors.light.textPrimary} />
+                <Ionicons name="add" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
 
             {/* Live Stock Change Dynamic Badge */}
             <View style={styles.diffBadgeWrap}>
               {delta > 0 ? (
-                <View style={[styles.diffBadge, styles.diffBadgePositive]}>
-                  <Ionicons name="trending-up" size={16} color={Colors.light.primary} />
-                  <ThemedText style={styles.diffBadgeTextPositive}>
+                <View style={[styles.diffBadge, { backgroundColor: theme.primary + '15' }]}>
+                  <Ionicons name="trending-up" size={16} color={theme.primary} />
+                  <ThemedText style={[styles.diffBadgeTextPositive, { color: theme.primary }]}>
                     {t('products:willBeAdded', { count: delta, unit: unitLabel })}
                   </ThemedText>
                 </View>
               ) : delta < 0 ? (
-                <View style={[styles.diffBadge, styles.diffBadgeNegative]}>
-                  <Ionicons name="trending-down" size={16} color={Colors.light.error} />
-                  <ThemedText style={styles.diffBadgeTextNegative}>
+                <View style={[styles.diffBadge, { backgroundColor: (theme.error || '#DC2626') + '15' }]}>
+                  <Ionicons name="trending-down" size={16} color={theme.error || '#DC2626'} />
+                  <ThemedText style={[styles.diffBadgeTextNegative, { color: theme.error || '#DC2626' }]}>
                     {t('products:willBeRemoved', { count: Math.abs(delta), unit: unitLabel })}
                   </ThemedText>
                 </View>
               ) : (
-                <View style={[styles.diffBadge, styles.diffBadgeNeutral]}>
-                  <ThemedText style={styles.diffBadgeTextNeutral}>
+                <View style={[styles.diffBadge, { backgroundColor: theme.surfaceAlt }]}>
+                  <ThemedText style={[styles.diffBadgeTextNeutral, { color: theme.textSecondary }]}>
                     {t('products:noInventoryChange')}
                   </ThemedText>
                 </View>
@@ -410,7 +413,7 @@ export function StockAdjustmentScreen() {
           {/* Reason for Adjustment */}
           <View style={styles.formSection}>
             <View style={styles.reasonHeaderRow}>
-              <ThemedText style={styles.sectionLabel}>
+              <ThemedText style={[styles.sectionLabel, { color: theme.textPrimary }]}>
                 {t('products:adjustmentReason')}{' '}
                 <ThemedText style={styles.asterisk}>*</ThemedText>
               </ThemedText>
@@ -425,7 +428,11 @@ export function StockAdjustmentScreen() {
                 return (
                   <TouchableOpacity
                     key={r.key}
-                    style={[styles.reasonCard, isSelected && styles.reasonCardSelected]}
+                    style={[
+                      styles.reasonCard,
+                      { backgroundColor: theme.surfaceAlt, borderColor: 'transparent' },
+                      isSelected && [styles.reasonCardSelected, { backgroundColor: theme.primary + '15', borderColor: theme.primary }]
+                    ]}
                     onPress={() => setReason(r.key)}
                     activeOpacity={0.8}
                   >
@@ -433,12 +440,13 @@ export function StockAdjustmentScreen() {
                       <Ionicons
                         name={r.icon}
                         size={20}
-                        color={isSelected ? Colors.light.primary : r.color}
+                        color={isSelected ? theme.primary : (r.key === 'delivery' ? theme.primary : r.color)}
                       />
                       <ThemedText
                         style={[
                           styles.reasonLabel,
-                          isSelected && styles.reasonLabelSelected,
+                          { color: theme.textPrimary },
+                          isSelected && [styles.reasonLabelSelected, { color: theme.primary }],
                         ]}
                       >
                         {t(r.labelKey, r.defaultLabel)}
@@ -447,10 +455,11 @@ export function StockAdjustmentScreen() {
                     <View
                       style={[
                         styles.radioCircle,
-                        isSelected && styles.radioCircleSelected,
+                        { borderColor: theme.textMuted },
+                        isSelected && [styles.radioCircleSelected, { borderColor: theme.primary }],
                       ]}
                     >
-                      {isSelected && <View style={styles.radioDot} />}
+                      {isSelected && <View style={[styles.radioDot, { backgroundColor: theme.primary }]} />}
                     </View>
                   </TouchableOpacity>
                 );
@@ -461,19 +470,19 @@ export function StockAdjustmentScreen() {
           {/* Optional Reference Note */}
           <View style={styles.formSection}>
             <View style={styles.reasonHeaderRow}>
-              <ThemedText style={styles.sectionLabel}>
+              <ThemedText style={[styles.sectionLabel, { color: theme.textPrimary }]}>
                 {t('products:referenceNote')}
               </ThemedText>
-              <ThemedText style={styles.optionalCaption}>
+              <ThemedText style={[styles.optionalCaption, { color: theme.textMuted }]}>
                 {t('products:referenceNoteOptional')}
               </ThemedText>
             </View>
             <TextInput
-              style={styles.noteInput}
+              style={[styles.noteInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.textPrimary }]}
               value={note}
               onChangeText={setNote}
               placeholder={t('products:referenceNotePlaceholder')}
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={theme.textMuted}
               multiline
               numberOfLines={2}
             />
@@ -481,32 +490,34 @@ export function StockAdjustmentScreen() {
         </ThemedView>
 
         {/* Summary Impact Highlight Box */}
-        <ThemedView style={styles.impactCard}>
+        <ThemedView style={[styles.impactCard, { backgroundColor: theme.primary + '15' }]}>
           <View style={styles.impactHeader}>
-            <Ionicons name="shield-checkmark-outline" size={20} color={Colors.light.primary} />
-            <ThemedText style={styles.impactTitle}>
+            <Ionicons name="shield-checkmark-outline" size={20} color={theme.primary} />
+            <ThemedText style={[styles.impactTitle, { color: theme.primary }]}>
               {t('products:impactSummary')}
             </ThemedText>
           </View>
 
           <View style={styles.impactRow}>
-            <ThemedText style={styles.impactRowLabel}>
+            <ThemedText style={[styles.impactRowLabel, { color: theme.textSecondary }]}>
               {t('products:newInventoryBalance')}
             </ThemedText>
             <View style={styles.impactBalanceGroup}>
-              <ThemedText style={styles.impactBalanceValue}>
+              <ThemedText style={[styles.impactBalanceValue, { color: theme.primary }]}>
                 {newTotal} {unitLabel}
               </ThemedText>
               <View
                 style={[
                   styles.impactStatusBadge,
-                  newTotal < minStock && styles.impactStatusBadgeWarning,
+                  { backgroundColor: theme.surface },
+                  newTotal < minStock && [styles.impactStatusBadgeWarning, { backgroundColor: '#FEE2E2' }],
                 ]}
               >
                 <ThemedText
                   style={[
                     styles.impactStatusBadgeText,
-                    newTotal < minStock && styles.impactStatusBadgeTextWarning,
+                    { color: theme.primary },
+                    newTotal < minStock && [styles.impactStatusBadgeTextWarning, { color: '#EF4444' }],
                   ]}
                 >
                   {newTotal >= minStock
@@ -518,13 +529,13 @@ export function StockAdjustmentScreen() {
           </View>
 
           <View style={styles.impactRow}>
-            <ThemedText style={styles.impactRowLabel}>
+            <ThemedText style={[styles.impactRowLabel, { color: theme.textSecondary }]}>
               {t('products:inventoryValueChange')}
             </ThemedText>
-            <ThemedText style={styles.impactCostChange}>
+            <ThemedText style={[styles.impactCostChange, { color: theme.primary }]}>
               {delta >= 0 ? '+' : ''}
               {formatCentimes(valueChangeCentimes, i18n.language as any)}{' '}
-              <ThemedText style={styles.atCostText}>
+              <ThemedText style={[styles.atCostText, { color: theme.textSecondary }]}>
                 ({t('products:atCost')})
               </ThemedText>
             </ThemedText>
@@ -534,7 +545,7 @@ export function StockAdjustmentScreen() {
         {/* Actions */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
-            style={styles.confirmButton}
+            style={[styles.confirmButton, { backgroundColor: theme.primary }]}
             onPress={handleConfirm}
             disabled={submitting}
             activeOpacity={0.8}
@@ -550,11 +561,14 @@ export function StockAdjustmentScreen() {
             onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <ThemedText style={styles.cancelButtonText}>
+            <ThemedText style={[styles.cancelButtonText, { color: theme.textSecondary }]}>
               {t('products:cancel')}
             </ThemedText>
           </TouchableOpacity>
         </View>
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ScrollView>
     </ThemedView>
   );

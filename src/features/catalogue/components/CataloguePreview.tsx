@@ -1,3 +1,4 @@
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { BorderRadius, Spacing, Typography } from "@/constants/theme";
 import {
@@ -341,6 +342,9 @@ export function CataloguePreview({
           </ThemedText>
         </TouchableOpacity>
       </View>
+
+      {/* Footer Trademark */}
+      <FooterTrademark />
     </ScrollView>
   );
 }

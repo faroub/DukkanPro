@@ -9,6 +9,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
@@ -467,9 +468,7 @@ export function MoreScreen() {
 
         {/* Subtle Footer Signature */}
         <View style={styles.footer}>
-          <ThemedText style={[styles.footerText, { color: theme.textMuted }]}>
-            {t("settings.footerSignature") || "Conçu avec fierté pour le commerce de proximité • 2026"}
-          </ThemedText>
+          <FooterTrademark />
         </View>
       </ThemedView>
     </ScrollView>

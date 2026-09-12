@@ -1,3 +1,4 @@
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -196,6 +197,9 @@ export function ProductListScreen({ route, navigation }: any) {
             />
           ))}
         </View>
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ScrollView>
     </View>
   );

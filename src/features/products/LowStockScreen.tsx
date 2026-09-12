@@ -13,6 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
 import { getLowStockProducts } from "@/database/repositories/dashboardRepository";
@@ -478,6 +479,9 @@ export function LowStockScreen() {
             </ThemedText>
           </View>
         </TouchableOpacity>
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ScrollView>
 
       {/* Quick Restock Modal Sheet */}

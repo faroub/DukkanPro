@@ -9,6 +9,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
@@ -387,6 +388,9 @@ export function ThemeSettingsScreen() {
             </View>
           </View>
         </View>
+
+        {/* Footer Trademark */}
+        <FooterTrademark />
       </ThemedView>
     </ScrollView>
   );
