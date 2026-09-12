@@ -13,7 +13,9 @@ interface GreetingCardProps {
   todayDate: string;
   locale: "ar" | "fr" | "en";
   textAlignment?: "left" | "right";
+  lowStockCount?: number;
   onProfilePress?: () => void;
+  onOpenNotifications?: () => void;
 }
 
 export function GreetingCard({
@@ -21,7 +23,9 @@ export function GreetingCard({
   storeName = "Supérette El-Amel",
   todayDate,
   locale,
+  lowStockCount = 0,
   onProfilePress,
+  onOpenNotifications,
 }: GreetingCardProps) {
   const router = useRouter();
   const theme = useTheme();
@@ -62,6 +66,34 @@ export function GreetingCard({
               {locale === "ar" ? "جاهز" : locale === "fr" ? "Prêt" : "Online"}
             </ThemedText>
           </View>
+
+          {/* Notification Bell Button with Red Badge */}
+          <TouchableOpacity
+            style={[
+              styles.notificationButton,
+              {
+                backgroundColor: theme.backgroundElement,
+                borderColor: theme.border,
+              },
+            ]}
+            onPress={onOpenNotifications}
+            accessibilityRole="button"
+            accessibilityLabel="Stock Alerts & Notifications"
+            id="btn-greeting-notifications"
+          >
+            <MaterialIcons
+              name={lowStockCount > 0 ? "notifications-active" : "notifications"}
+              size={20}
+              color={lowStockCount > 0 ? theme.warning : theme.textSecondary}
+            />
+            {lowStockCount > 0 && (
+              <View style={[styles.notificationBadge, { backgroundColor: theme.error }]}>
+                <ThemedText style={styles.notificationBadgeText}>
+                  {lowStockCount > 99 ? "99+" : lowStockCount}
+                </ThemedText>
+              </View>
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[
@@ -145,6 +177,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  notificationButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 3,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  notificationBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
   },
   profileAvatarText: {
     fontSize: 14,

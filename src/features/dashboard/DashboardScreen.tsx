@@ -31,7 +31,9 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { GreetingCard } from "@/features/dashboard/components/GreetingCard";
+import { LowStockAlertBanner } from "@/features/dashboard/components/LowStockAlertBanner";
 import { LowStockList, LowStockProductItem } from "@/features/dashboard/components/LowStockList";
+import { LowStockNotificationModal } from "@/features/dashboard/components/LowStockNotificationModal";
 import { QuickActionSheet } from "@/features/dashboard/components/QuickActionSheet";
 import { RecentSalesList } from "@/features/dashboard/components/RecentSalesList";
 import { SalesChart } from "@/features/dashboard/components/SalesChart";
@@ -70,6 +72,9 @@ export default function DashboardScreenDefault({
 
   // Quick Action Sheet state
   const [quickActionVisible, setQuickActionVisible] = useState(false);
+
+  // Notification Modal state
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
 
   // Quick Restock Modal state
   const [restockModalVisible, setRestockModalVisible] = useState(false);
@@ -154,7 +159,18 @@ export default function DashboardScreenDefault({
           todayDate={todayDate}
           locale={todayLocale}
           textAlignment={alignment}
+          lowStockCount={lowStockCount}
           onProfilePress={() => router.push("/(tabs)/more" as any)}
+          onOpenNotifications={() => setNotificationModalVisible(true)}
+        />
+
+        {/* 1.5. Prominent Low-Stock Home Screen Alert Banner */}
+        <LowStockAlertBanner
+          lowStockProducts={lowStockProducts}
+          locale={locale}
+          onRestockProduct={handleRestockProduct}
+          onOpenNotificationModal={() => setNotificationModalVisible(true)}
+          onViewAll={handleViewAllLowStock}
         />
 
         {/* 2. 2x2 Bento Summary Cards */}
@@ -355,6 +371,15 @@ export default function DashboardScreenDefault({
           </View>
         </View>
       </Modal>
+
+      {/* Low Stock Alert Center & Push Notification Center Modal */}
+      <LowStockNotificationModal
+        visible={notificationModalVisible}
+        onClose={() => setNotificationModalVisible(false)}
+        lowStockProducts={lowStockProducts}
+        locale={locale}
+        onRestockProduct={handleRestockProduct}
+      />
     </ThemedView>
   );
 }
