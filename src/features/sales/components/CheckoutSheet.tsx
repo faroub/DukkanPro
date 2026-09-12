@@ -23,6 +23,7 @@ import {
 } from "@/constants/theme";
 import { formatCentimes } from "@/utils/money";
 import { useTranslation } from "react-i18next";
+import { useCustomers } from "@/hooks/useCustomers";
 
 interface CheckoutSheetProps {
   visible: boolean;
@@ -52,7 +53,7 @@ export function CheckoutSheet({
   isSaving,
   error,
 }: CheckoutSheetProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [paymentMethod, setPaymentMethod] = useState<
     "cash" | "electronic" | "credit" | "partial"
   >("cash");
@@ -61,14 +62,8 @@ export function CheckoutSheet({
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
 
-  // Sample customers list for debt / ledger assignment
-  const [customers] = useState<
-    Array<{ id: number; name: string; debtCentimes: number }>
-  >([
-    { id: 1, name: "Amine Kaci", debtCentimes: 11500 },
-    { id: 2, name: "Ali Ramdani", debtCentimes: 45000 },
-    { id: 3, name: "Fatima Zohra", debtCentimes: 0 },
-  ]);
+  // Fetch real customers from SQLite
+  const { customers } = useCustomers({ onlyActive: true });
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
   const changeDue = Math.max(0, amountReceived - cartTotal);
@@ -131,13 +126,17 @@ export function CheckoutSheet({
             {/* Total Due Green Card */}
             <View style={styles.totalCard}>
               <View style={styles.totalCardLeft}>
-                <Text style={styles.totalCardLabel}>Montant total à payer</Text>
+                <Text style={styles.totalCardLabel}>
+                  {t("sales:totalToPay", { defaultValue: "Montant total à payer" })}
+                </Text>
                 <Text style={styles.totalCardAmount}>
                   {formatCentimes(cartTotal)}
                 </Text>
               </View>
               <View style={styles.totalCardBadge}>
-                <Text style={styles.totalCardBadgeText}>Panier validé</Text>
+                <Text style={styles.totalCardBadgeText}>
+                  {t("sales:cartValidated", { defaultValue: "Panier validé" })}
+                </Text>
               </View>
             </View>
 
@@ -155,7 +154,7 @@ export function CheckoutSheet({
                     tintColor={Colors.light.textSecondary}
                   />
                   <ThemedText style={styles.customerCardTitle}>
-                    Client / Carnet Dette
+                    {t("customers:carnetDette", { defaultValue: "Client / Carnet Dette" })}
                   </ThemedText>
                 </View>
                 <Pressable
@@ -163,7 +162,9 @@ export function CheckoutSheet({
                   style={styles.changeCustomerBtn}
                 >
                   <Text style={styles.changeCustomerBtnText}>
-                    {selectedCustomer ? "Changer" : "Sélectionner"}
+                    {selectedCustomer
+                      ? t("common:edit", { defaultValue: "Changer" })
+                      : t("common:select", { defaultValue: "Sélectionner" })}
                   </Text>
                 </Pressable>
               </View>
@@ -178,12 +179,12 @@ export function CheckoutSheet({
                   <ThemedText style={styles.customerName}>
                     {selectedCustomer
                       ? selectedCustomer.name
-                      : "Client au comptoir (Passant)"}
+                      : t("sales:walkInCustomer", { defaultValue: "Client au comptoir (Passant)" })}
                   </ThemedText>
                   <ThemedText style={styles.customerDebt}>
                     {selectedCustomer
-                      ? `Solde carnet: ${formatCentimes(selectedCustomer.debtCentimes)}`
-                      : "Paiement direct sans carnet"}
+                      ? `${t("customers:debtBalance", { defaultValue: "Solde carnet" })}: ${formatCentimes(selectedCustomer.outstandingBalance || 0)}`
+                      : t("sales:directPayment", { defaultValue: "Paiement direct sans carnet" })}
                   </ThemedText>
                 </View>
               </View>
@@ -199,7 +200,7 @@ export function CheckoutSheet({
                     }}
                   >
                     <ThemedText style={styles.customerPickerName}>
-                      Passant (Sans carnet)
+                      {t("sales:walkInCustomer", { defaultValue: "Passant (Sans carnet)" })}
                     </ThemedText>
                   </Pressable>
                   {customers.map((c) => (
@@ -215,7 +216,7 @@ export function CheckoutSheet({
                         {c.name}
                       </ThemedText>
                       <ThemedText style={styles.customerPickerDebt}>
-                        {formatCentimes(c.debtCentimes)}
+                        {formatCentimes(c.outstandingBalance || 0)}
                       </ThemedText>
                     </Pressable>
                   ))}
@@ -226,7 +227,7 @@ export function CheckoutSheet({
             {/* Payment Method Selector with Cards matching Stitch design */}
             <View style={styles.methodSection}>
               <ThemedText style={styles.sectionTitle}>
-                Mode de règlement
+                {t("receipt:payment_method", { defaultValue: "Mode de règlement" })}
               </ThemedText>
 
               <View style={styles.methodGrid}>
@@ -255,10 +256,10 @@ export function CheckoutSheet({
                   </View>
                   <View style={styles.paymentText}>
                     <ThemedText style={styles.methodBtnText}>
-                      Espèces
+                      {t("receipt:cash", { defaultValue: "Espèces" })}
                     </ThemedText>
-                    <ThemedText style={styles.methodSubLabel} dir="rtl">
-                      نقد
+                    <ThemedText style={styles.methodSubLabel}>
+                      {t("sell.payment_cash", { defaultValue: "نقداً" })}
                     </ThemedText>
                   </View>
                 </Pressable>
@@ -288,10 +289,10 @@ export function CheckoutSheet({
                   </View>
                   <View style={styles.paymentText}>
                     <ThemedText style={styles.methodBtnText}>
-                      Carte / CIB
+                      {t("receipt:electronic", { defaultValue: "Carte / CIB" })}
                     </ThemedText>
-                    <ThemedText style={styles.methodSubLabel} dir="rtl">
-                      بطاقة ذهبية / بنكية
+                    <ThemedText style={styles.methodSubLabel}>
+                      {t("sell.payment_electronic", { defaultValue: "إلكتروني" })}
                     </ThemedText>
                   </View>
                 </Pressable>
@@ -321,10 +322,10 @@ export function CheckoutSheet({
                   </View>
                   <View style={styles.paymentText}>
                     <ThemedText style={styles.methodBtnText}>
-                      Dette (Carnet)
+                      {t("receipt:credit", { defaultValue: "Dette (Carnet)" })}
                     </ThemedText>
-                    <ThemedText style={styles.methodSubLabel} dir="rtl">
-                      دفتر ديون
+                    <ThemedText style={styles.methodSubLabel}>
+                      {t("sell.payment_credit", { defaultValue: "دفتر ديون" })}
                     </ThemedText>
                   </View>
                 </Pressable>
@@ -354,10 +355,10 @@ export function CheckoutSheet({
                   </View>
                   <View style={styles.paymentText}>
                     <ThemedText style={styles.methodBtnText}>
-                      Versement partiel
+                      {t("receipt:partial", { defaultValue: "Versement partiel" })}
                     </ThemedText>
-                    <ThemedText style={styles.methodSubLabel} dir="rtl">
-                      دفع جزئي
+                    <ThemedText style={styles.methodSubLabel}>
+                      {t("sell.payment_partial", { defaultValue: "دفع جزئي" })}
                     </ThemedText>
                   </View>
                 </Pressable>
@@ -369,7 +370,7 @@ export function CheckoutSheet({
               <View style={styles.cashCalculatorCard}>
                 <View style={styles.cashInputRow}>
                   <ThemedText style={styles.cashInputLabel}>
-                    Montant reçu
+                    {t("sales:amountReceived", { defaultValue: "Montant reçu" })}
                   </ThemedText>
                   <View style={styles.cashInputWrapper}>
                     <TextInput
@@ -391,7 +392,9 @@ export function CheckoutSheet({
                     style={styles.quickChip}
                     onPress={handleExactCash}
                   >
-                    <Text style={styles.quickChipText}>Compte juste</Text>
+                    <Text style={styles.quickChipText}>
+                      {t("sales:exactAmount", { defaultValue: "Compte juste" })}
+                    </Text>
                   </Pressable>
                   <Pressable
                     style={styles.quickChip}
@@ -416,7 +419,7 @@ export function CheckoutSheet({
                 {/* Change Due Display */}
                 <View style={styles.changeDueRow}>
                   <ThemedText style={styles.changeDueLabel}>
-                    Monnaie à rendre
+                    {t("receipt:change_due", { defaultValue: "Monnaie à rendre" })}
                   </ThemedText>
                   <Text style={styles.changeDueAmount}>
                     {formatCentimes(changeDue)}
@@ -428,7 +431,7 @@ export function CheckoutSheet({
             {/* Confirm CTA */}
             <View style={styles.ctaWrapper}>
               <PrimaryButton
-                title={isSaving ? "Enregistrement..." : "Valider la vente"}
+                title={isSaving ? t("common:loading", { defaultValue: "Enregistrement..." }) : t("sales:confirmSale", { defaultValue: "Valider la vente" })}
                 onPress={handleConfirm}
                 disabled={isSaving}
               />

@@ -37,7 +37,7 @@ import { useTranslation } from "react-i18next";
 
 export default function SellScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { products, loading } = useProducts({ is_active: true });
   const {
     items,
@@ -168,6 +168,8 @@ export default function SellScreen() {
     return item ? item.quantity : 0;
   };
 
+  const isArabic = i18n.language?.startsWith("ar");
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <ThemedView style={styles.container}>
@@ -176,16 +178,17 @@ export default function SellScreen() {
           <View style={styles.searchRow}>
             <View style={styles.searchInputWrapper}>
               <SearchInput
-                placeholder="Rechercher produit ou code..."
+                placeholder={t("products:searchPlaceholder", { defaultValue: "Rechercher produit ou code..." })}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
+                locale={isArabic ? "ar" : "fr"}
               />
             </View>
 
             <Pressable
               onPress={() => setScannerVisible(true)}
               style={styles.scannerBtn}
-              accessibilityLabel="Scanner un code-barres"
+              accessibilityLabel={t("sell.scanBarcode", { defaultValue: "Scanner un code-barres" })}
             >
               <SymbolView
                 name={{
@@ -223,7 +226,7 @@ export default function SellScreen() {
                         isSelected && styles.chipTextSelected,
                       ]}
                     >
-                      {cat === "all" ? "Tous les articles" : cat}
+                      {cat === "all" ? t("sell.allProducts", { defaultValue: "Tous les articles" }) : cat}
                     </Text>
                   </Pressable>
                 );
@@ -237,7 +240,7 @@ export default function SellScreen() {
           <View style={styles.frequentSection}>
             <View style={styles.sectionHeader}>
               <ThemedText style={styles.sectionTitle}>
-                Articles Fréquents
+                {t("sell.frequentItems", { defaultValue: "Articles Fréquents" })}
               </ThemedText>
             </View>
             <ScrollView
@@ -294,12 +297,12 @@ export default function SellScreen() {
                 tintColor={Colors.light.textMuted}
               />
               <ThemedText style={styles.emptyTitle}>
-                {searchQuery ? "Aucun produit trouvé" : "Catalogue vide"}
+                {searchQuery ? t("products:noProductsInList", { defaultValue: "Aucun produit trouvé" }) : t("products:noProductsInList", { defaultValue: "Catalogue vide" })}
               </ThemedText>
               <ThemedText style={styles.emptySubtitle}>
                 {searchQuery
-                  ? `Aucun résultat pour "${searchQuery}"`
-                  : "Ajoutez des produits dans l'onglet Catalogue"}
+                  ? `${t("common:search", { defaultValue: "Recherche" })}: "${searchQuery}"`
+                  : t("products:subtitle", { defaultValue: "Ajoutez des produits dans l'onglet Catalogue" })}
               </ThemedText>
             </View>
           ) : (
@@ -366,7 +369,7 @@ export default function SellScreen() {
                                   isLowStock && styles.stockBadgeTextLow,
                                 ]}
                               >
-                                Stock: {item.stock_quantity}
+                                {t("products:stockLabel", { defaultValue: "Stock" })}: {item.stock_quantity}
                               </Text>
                             </View>
                           )}
@@ -384,7 +387,7 @@ export default function SellScreen() {
                           onPress={() => addItemWithProduct(item, 1)}
                           style={styles.addBtn}
                           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                          accessibilityLabel={`Ajouter ${item.name} au panier`}
+                          accessibilityLabel={`${t("sell.add", { defaultValue: "Ajouter" })} ${item.name}`}
                         >
                           <SymbolView
                             name={{
@@ -405,7 +408,7 @@ export default function SellScreen() {
                             onPress={() => subtractItem(item.id)}
                             style={styles.stepperBtnMinus}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 6 }}
-                            accessibilityLabel={`Retirer ${item.name} du panier`}
+                            accessibilityLabel={`-`}
                           >
                             <SymbolView
                               name={{
@@ -424,7 +427,7 @@ export default function SellScreen() {
                             onPress={() => addItemWithProduct(item, 1)}
                             style={styles.stepperBtnPlus}
                             hitSlop={{ top: 8, bottom: 8, left: 6, right: 8 }}
-                            accessibilityLabel={`Ajouter ${item.name} au panier`}
+                            accessibilityLabel={`+`}
                           >
                             <SymbolView
                               name={{
@@ -492,7 +495,7 @@ export default function SellScreen() {
                   ]}
                   numberOfLines={1}
                 >
-                  Panier
+                  {t("nav.sell", { defaultValue: "Panier" })}
                 </Text>
                 <Text
                   style={[

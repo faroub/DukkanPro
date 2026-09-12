@@ -32,6 +32,8 @@ export function SearchInput({
   style,
   ...rest
 }: SearchInputProps) {
+  const isArabic = locale?.startsWith("ar");
+
   return (
     <ThemedView style={[styles.container, containerStyle]}>
       <View style={styles.iconWrapper}>
@@ -46,7 +48,11 @@ export function SearchInput({
         />
       </View>
       <TextInput
-        style={[styles.input, style]}
+        style={[
+          styles.input,
+          isArabic && { textAlign: "right" },
+          style,
+        ]}
         placeholder={placeholder}
         placeholderTextColor={Colors.light.textMuted}
         onSubmitEditing={onSearch}

@@ -30,7 +30,7 @@ import {
  * - Layout remains strictly LTR across all locales
  */
 export function MoreScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
 
   const handleNavigate = useCallback(
@@ -40,6 +40,16 @@ export function MoreScreen() {
     [router]
   );
 
+  const isArabic = i18n.language?.startsWith("ar");
+  const currentLang = (i18n.language || "fr").substring(0, 2).toUpperCase();
+  const currentLangDesc = isArabic
+    ? "العربية (نشطة) • الفرنسية متوفرة"
+    : i18n.language?.startsWith("en")
+      ? "English (Active) • Arabic & French available"
+      : "Français (Actif) • Arabe disponible";
+
+  const textAlignStyle = isArabic ? styles.textRight : styles.textLeft;
+
   return (
     <ScrollView
       contentContainerStyle={styles.scrollContainer}
@@ -48,15 +58,19 @@ export function MoreScreen() {
       <ThemedView style={styles.container}>
         {/* Top Section Header */}
         <View style={styles.topHeader}>
-          <View style={styles.titleColumn}>
-            <ThemedText style={styles.screenTitle}>{t("settings.title") || "More"}</ThemedText>
-            <ThemedText style={styles.screenSubtitle}>
-              Supérette El-Amel • {t("settings.subtitle") || "Paramètres"}
+          <View style={[styles.titleColumn, isArabic && styles.alignEnd]}>
+            <ThemedText style={[styles.screenTitle, textAlignStyle]}>
+              {t("settings.title") || "More"}
+            </ThemedText>
+            <ThemedText style={[styles.screenSubtitle, textAlignStyle]}>
+              {t("onboarding.businessName.defaultShopName") || "Supérette El-Amel"} • {t("settings.subtitle") || "Paramètres"}
             </ThemedText>
           </View>
           <View style={styles.syncBadge}>
             <View style={styles.syncDot} />
-            <ThemedText style={styles.syncBadgeText}>Local Sync On</ThemedText>
+            <ThemedText style={styles.syncBadgeText}>
+              {t("settings.localSyncOn") || "Local Sync On"}
+            </ThemedText>
           </View>
         </View>
 
@@ -65,18 +79,20 @@ export function MoreScreen() {
           <View style={styles.storeIconContainer}>
             <MaterialIcons name="storefront" size={28} color={Colors.light.primary} />
           </View>
-          <View style={styles.storeInfo}>
-            <View style={styles.storeNameRow}>
-              <ThemedText style={styles.storeName}>Supérette El-Amel</ThemedText>
+          <View style={[styles.storeInfo, isArabic && styles.alignEnd]}>
+            <View style={[styles.storeNameRow, isArabic && styles.rowReverse]}>
+              <ThemedText style={[styles.storeName, textAlignStyle]}>
+                {t("onboarding.businessName.defaultShopName") || "Supérette El-Amel"}
+              </ThemedText>
               <MaterialIcons name="verified" size={18} color={Colors.light.primary} />
             </View>
-            <ThemedText style={styles.storeCategory}>
-              Alimentation Générale • Alger Centre
+            <ThemedText style={[styles.storeCategory, textAlignStyle]}>
+              {t("onboarding.businessType.grocerySub") || "Alimentation Générale • Alger Centre"}
             </ThemedText>
-            <View style={styles.storeStatusPill}>
+            <View style={[styles.storeStatusPill, isArabic && styles.rowReverse, isArabic && styles.selfEnd]}>
               <MaterialIcons name="cloud-done" size={13} color={Colors.light.primary} />
               <ThemedText style={styles.storeStatusText}>
-                Dukkan OS v1.4.2 (Offline Ready)
+                {t("settings.versionTagline") || "Dukkan OS"} ({t("settings.offlineReady") || "Offline Ready"})
               </ThemedText>
             </View>
           </View>
@@ -85,15 +101,25 @@ export function MoreScreen() {
         {/* Operational Quick Metrics Micro-Strip */}
         <View style={styles.metricsStrip}>
           <View style={styles.metricCard}>
-            <ThemedText style={styles.metricLabel}>Today Cash</ThemedText>
-            <ThemedText style={styles.metricValuePrimary}>48,250 DA</ThemedText>
+            <ThemedText style={styles.metricLabel}>
+              {t("settings.todayCash") || "Today Cash"}
+            </ThemedText>
+            <ThemedText style={styles.metricValuePrimary}>
+              {isArabic ? "48 250 دج" : "48 250 DZD"}
+            </ThemedText>
           </View>
           <View style={styles.metricCard}>
-            <ThemedText style={styles.metricLabel}>Pending Sync</ThemedText>
-            <ThemedText style={styles.metricValue}>0 Ops</ThemedText>
+            <ThemedText style={styles.metricLabel}>
+              {t("settings.pendingSync") || "Pending Sync"}
+            </ThemedText>
+            <ThemedText style={styles.metricValue}>
+              {isArabic ? "0 عمليات" : "0 Ops"}
+            </ThemedText>
           </View>
           <View style={styles.metricCard}>
-            <ThemedText style={styles.metricLabel}>Terminal</ThemedText>
+            <ThemedText style={styles.metricLabel}>
+              {t("settings.terminal") || "Terminal"}
+            </ThemedText>
             <ThemedText style={styles.metricValue}>POS #01</ThemedText>
           </View>
         </View>
@@ -110,11 +136,11 @@ export function MoreScreen() {
               <MaterialIcons name="store" size={22} color={Colors.light.primary} />
             </View>
             <View style={styles.menuRowContent}>
-              <ThemedText style={styles.menuRowTitle}>
+              <ThemedText style={[styles.menuRowTitle, textAlignStyle]}>
                 {t("settings.businessProfile") || "Business Profile"}
               </ThemedText>
-              <ThemedText style={styles.menuRowSubtitle} numberOfLines={1}>
-                Supérette El-Amel, Alger Centre
+              <ThemedText style={[styles.menuRowSubtitle, textAlignStyle]} numberOfLines={1}>
+                {t("settings.storeProfileSubtitle") || "Supérette El-Amel, Alger Centre"}
               </ThemedText>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.light.textMuted} />
@@ -132,16 +158,23 @@ export function MoreScreen() {
               <MaterialIcons name="language" size={22} color={Colors.light.textPrimary} />
             </View>
             <View style={styles.menuRowContent}>
-              <View style={styles.rowTitleWithBadge}>
-                <ThemedText style={styles.menuRowTitle}>
+              <View style={[styles.rowTitleWithBadge, isArabic && styles.justifyEnd]}>
+                {isArabic && (
+                  <View style={styles.languagePill}>
+                    <ThemedText style={styles.languagePillText}>{currentLang}</ThemedText>
+                  </View>
+                )}
+                <ThemedText style={[styles.menuRowTitle, textAlignStyle]}>
                   {t("settings.language") || "Language"}
                 </ThemedText>
-                <View style={styles.languagePill}>
-                  <ThemedText style={styles.languagePillText}>FR</ThemedText>
-                </View>
+                {!isArabic && (
+                  <View style={styles.languagePill}>
+                    <ThemedText style={styles.languagePillText}>{currentLang}</ThemedText>
+                  </View>
+                )}
               </View>
-              <ThemedText style={styles.menuRowSubtitle} numberOfLines={1}>
-                Français (Actif) • Arabe disponible
+              <ThemedText style={[styles.menuRowSubtitle, textAlignStyle]} numberOfLines={1}>
+                {currentLangDesc}
               </ThemedText>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.light.textMuted} />
@@ -159,9 +192,11 @@ export function MoreScreen() {
               <MaterialIcons name="inventory-2" size={22} color={Colors.light.textPrimary} />
             </View>
             <View style={styles.menuRowContent}>
-              <ThemedText style={styles.menuRowTitle}>Inventory Rules</ThemedText>
-              <ThemedText style={styles.menuRowSubtitle} numberOfLines={1}>
-                Alert thresholds, low stock alerts
+              <ThemedText style={[styles.menuRowTitle, textAlignStyle]}>
+                {t("settings.inventoryRules") || "Inventory Rules"}
+              </ThemedText>
+              <ThemedText style={[styles.menuRowSubtitle, textAlignStyle]} numberOfLines={1}>
+                {t("settings.inventoryRulesSubtitle") || "Alert thresholds, low stock alerts"}
               </ThemedText>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.light.textMuted} />
@@ -179,9 +214,11 @@ export function MoreScreen() {
               <MaterialIcons name="share" size={22} color={Colors.light.primary} />
             </View>
             <View style={styles.menuRowContent}>
-              <ThemedText style={styles.menuRowTitle}>Catalogue</ThemedText>
-              <ThemedText style={styles.menuRowSubtitle} numberOfLines={1}>
-                Online link, shareable product list
+              <ThemedText style={[styles.menuRowTitle, textAlignStyle]}>
+                {t("settings.catalogue") || "Catalogue"}
+              </ThemedText>
+              <ThemedText style={[styles.menuRowSubtitle, textAlignStyle]} numberOfLines={1}>
+                {t("settings.catalogueSubtitle") || "Online link, shareable product list"}
               </ThemedText>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.light.textMuted} />
@@ -199,11 +236,11 @@ export function MoreScreen() {
               <MaterialIcons name="file-download" size={22} color={Colors.light.textPrimary} />
             </View>
             <View style={styles.menuRowContent}>
-              <ThemedText style={styles.menuRowTitle}>
-                {t("exports.title") || "Data Export"}
+              <ThemedText style={[styles.menuRowTitle, textAlignStyle]}>
+                {t("settings.dataExport") || t("exports.title") || "Data Export"}
               </ThemedText>
-              <ThemedText style={styles.menuRowSubtitle} numberOfLines={1}>
-                Backup sales, inventory, customers
+              <ThemedText style={[styles.menuRowSubtitle, textAlignStyle]} numberOfLines={1}>
+                {t("settings.dataExportSubtitle") || "Backup sales, inventory, customers"}
               </ThemedText>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.light.textMuted} />
@@ -221,11 +258,11 @@ export function MoreScreen() {
               <MaterialIcons name="warning" size={22} color={Colors.light.error} />
             </View>
             <View style={styles.menuRowContent}>
-              <ThemedText style={[styles.menuRowTitle, { color: Colors.light.error }]}>
-                {t("settings.resetApp") || "Data Reset"}
+              <ThemedText style={[styles.menuRowTitle, textAlignStyle, { color: Colors.light.error }]}>
+                {t("settings.dataReset") || t("settings.resetApp") || "Data Reset"}
               </ThemedText>
-              <ThemedText style={[styles.menuRowSubtitle, { color: Colors.light.error, opacity: 0.8 }]} numberOfLines={1}>
-                Reset database or clear demo data
+              <ThemedText style={[styles.menuRowSubtitle, textAlignStyle, { color: Colors.light.error, opacity: 0.8 }]} numberOfLines={1}>
+                {t("settings.dataResetSubtitle") || "Reset database or clear demo data"}
               </ThemedText>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.light.error} />
@@ -239,11 +276,11 @@ export function MoreScreen() {
               <MaterialIcons name="info" size={22} color={Colors.light.textPrimary} />
             </View>
             <View style={styles.menuRowContent}>
-              <ThemedText style={styles.menuRowTitle}>
+              <ThemedText style={[styles.menuRowTitle, textAlignStyle]}>
                 {t("settings.about") || "About"}
               </ThemedText>
-              <ThemedText style={styles.menuRowSubtitle} numberOfLines={1}>
-                Dukkan OS, open retail software for Algerian merchants
+              <ThemedText style={[styles.menuRowSubtitle, textAlignStyle]} numberOfLines={1}>
+                {t("settings.aboutSubtitle") || "Dukkan OS, open retail software for Algerian merchants"}
               </ThemedText>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={Colors.light.textMuted} />
@@ -255,10 +292,12 @@ export function MoreScreen() {
           <View style={styles.supportIconContainer}>
             <MaterialIcons name="headset-mic" size={22} color={Colors.light.primary} />
           </View>
-          <View style={styles.supportContent}>
-            <ThemedText style={styles.supportTitle}>Need merchant support?</ThemedText>
-            <ThemedText style={styles.supportSubtitle}>
-              Direct WhatsApp line open Sunday to Thursday 08:00 - 19:00.
+          <View style={[styles.supportContent, isArabic && styles.alignEnd]}>
+            <ThemedText style={[styles.supportTitle, textAlignStyle]}>
+              {t("settings.supportTitle") || "Need merchant support?"}
+            </ThemedText>
+            <ThemedText style={[styles.supportSubtitle, textAlignStyle]}>
+              {t("settings.supportSubtitle") || "Direct WhatsApp line open Sunday to Thursday 08:00 - 19:00."}
             </ThemedText>
           </View>
         </View>
@@ -266,7 +305,7 @@ export function MoreScreen() {
         {/* Subtle Footer Signature */}
         <View style={styles.footer}>
           <ThemedText style={styles.footerText}>
-            Conçu avec fierté pour le commerce de proximité • 2025
+            {t("settings.footerSignature") || "Conçu avec fierté pour le commerce de proximité • 2026"}
           </ThemedText>
         </View>
       </ThemedView>
@@ -512,5 +551,23 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.light.textMuted,
     textAlign: "center",
+  },
+  textRight: {
+    textAlign: "right",
+  },
+  textLeft: {
+    textAlign: "left",
+  },
+  alignEnd: {
+    alignItems: "flex-end",
+  },
+  justifyEnd: {
+    justifyContent: "flex-end",
+  },
+  selfEnd: {
+    alignSelf: "flex-end",
+  },
+  rowReverse: {
+    flexDirection: "row-reverse",
   },
 });

@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { I18nManager } from "react-native";
 
 import ar from "@/locales/ar.json";
 import en from "@/locales/en.json";
@@ -17,6 +18,22 @@ function buildResourceNamespaces(bundle: any) {
   return namespaces;
 }
 
+export function updateLayoutDirection(locale: string): void {
+  if (typeof document !== "undefined" && document.documentElement) {
+    document.documentElement.dir = "ltr";
+    document.documentElement.lang = locale;
+    if (document.body) {
+      document.body.dir = "ltr";
+    }
+  }
+  try {
+    I18nManager.allowRTL(false);
+    I18nManager.forceRTL(false);
+  } catch (e) {
+    // Ignore
+  }
+}
+
 let initialLanguage = "fr";
 if (typeof window !== "undefined" && window.localStorage) {
   try {
@@ -28,6 +45,8 @@ if (typeof window !== "undefined" && window.localStorage) {
     // Ignore localStorage access issues
   }
 }
+
+updateLayoutDirection(initialLanguage);
 
 i18n.use(initReactI18next).init({
   fallbackLng: "fr",
@@ -49,6 +68,7 @@ export default i18n;
 // Export changeLocale utility for use by hooks and providers
 export function changeLocale(newLocale: string): void {
   i18n.changeLanguage(newLocale);
+  updateLayoutDirection(newLocale);
   if (typeof window !== "undefined" && window.localStorage) {
     try {
       window.localStorage.setItem("dukkan_locale", newLocale);
@@ -57,3 +77,4 @@ export function changeLocale(newLocale: string): void {
     }
   }
 }
+

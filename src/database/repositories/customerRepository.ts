@@ -72,11 +72,21 @@ export async function getById(id: number): Promise<Customer | null> {
 }
 
 /**
- - Search customers by name substring.
+ - Search customers by name or phone substring.
  */
-export async function search(query: string): Promise<Customer[]> {
-  let sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE name LIKE ? ORDER BY name ASC`;
-  const params: unknown[] = [`%${query}%`];
+export async function search(
+  query: string,
+  filters: CustomerFilters = {},
+): Promise<Customer[]> {
+  const { is_active } = filters;
+  let sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE (name LIKE ? OR phone LIKE ?)`;
+  const params: unknown[] = [`%${query}%`, `%${query}%`];
+
+  if (is_active !== undefined) {
+    sql += ` AND is_active = ?`;
+    params.push(is_active ? 1 : 0);
+  }
+  sql += ` ORDER BY name ASC`;
 
   const rows: any[] = await executeAll(sql, params);
   return rows.map((r) => ({
