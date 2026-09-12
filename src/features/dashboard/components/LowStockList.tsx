@@ -4,7 +4,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface LowStockProductItem {
   id: number;
@@ -38,6 +39,7 @@ export function LowStockList({
   onRestockProduct,
 }: LowStockListProps) {
   const router = useRouter();
+  const theme = useTheme();
 
   // Fallback sample data matching Stitch if none currently below threshold
   const displayProducts: LowStockProductItem[] =
@@ -95,8 +97,8 @@ export function LowStockList({
       {/* Section Header */}
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
-          <View style={styles.amberDot} />
-          <ThemedText style={styles.sectionTitle}>
+          <View style={[styles.amberDot, { backgroundColor: theme.secondary }]} />
+          <ThemedText style={[styles.sectionTitle, { color: theme.textPrimary }]}>
             {lowStockTitle}
           </ThemedText>
         </View>
@@ -107,13 +109,13 @@ export function LowStockList({
           accessibilityRole="button"
           accessibilityLabel="View all low stock products"
         >
-          <ThemedText style={styles.viewAllText}>
+          <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
             {locale === "ar" ? "عرض الكل" : locale === "fr" ? "Voir tout" : "View all"}
           </ThemedText>
           <MaterialIcons
             name="chevron-right"
             size={18}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
         </TouchableOpacity>
       </View>
@@ -129,28 +131,28 @@ export function LowStockList({
               ? "Critique"
               : "Critical"
             : locale === "ar"
-            ? "منخفض"
-            : locale === "fr"
-            ? "Faible"
-            : "Low Stock";
+              ? "منخفض"
+              : locale === "fr"
+              ? "Faible"
+              : "Low Stock";
 
-          const subTextColor = isCritical ? Colors.light.error : Colors.light.secondary;
-          const badgeBg = isCritical ? Colors.light.errorLight : Colors.light.warningLight;
-          const badgeColor = isCritical ? Colors.light.error : Colors.light.secondary;
+          const subTextColor = isCritical ? theme.error : theme.secondary;
+          const badgeBg = isCritical ? theme.errorLight : theme.warningLight;
+          const badgeColor = isCritical ? theme.error : theme.secondary;
 
           return (
-            <View key={product.id} style={styles.card}>
+            <View key={product.id} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <View style={styles.cardLeft}>
-                <View style={styles.iconContainer}>
+                <View style={[styles.iconContainer, { backgroundColor: theme.surfaceAlt }]}>
                   <MaterialIcons
                     name={getProductIcon(product.category, product.name) as any}
                     size={22}
-                    color={Colors.light.textSecondary}
+                    color={theme.textSecondary}
                   />
                 </View>
 
                 <View style={styles.productInfo}>
-                  <ThemedText style={styles.productName} numberOfLines={1}>
+                  <ThemedText style={[styles.productName, { color: theme.textPrimary }]} numberOfLines={1}>
                     {product.name}
                   </ThemedText>
                   <ThemedText
@@ -176,7 +178,7 @@ export function LowStockList({
                 </View>
 
                 <TouchableOpacity
-                  style={styles.addStockButton}
+                  style={[styles.addStockButton, { backgroundColor: theme.surfaceAlt }]}
                   onPress={() => onRestockProduct && onRestockProduct(product)}
                   accessibilityRole="button"
                   accessibilityLabel={`Add stock for ${product.name}`}
@@ -184,7 +186,7 @@ export function LowStockList({
                   <MaterialIcons
                     name="add"
                     size={18}
-                    color={Colors.light.primary}
+                    color={theme.primary}
                   />
                 </TouchableOpacity>
               </View>
@@ -215,13 +217,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.light.secondary,
   },
   sectionTitle: {
     ...Typography.heading3,
     fontSize: 17,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   viewAllButton: {
     flexDirection: "row",
@@ -232,17 +232,14 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 13,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   list: {
     gap: 8,
   },
   card: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.sm + 4,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -258,7 +255,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -270,7 +266,6 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   stockAlertText: {
     ...Typography.caption,
@@ -296,7 +291,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },

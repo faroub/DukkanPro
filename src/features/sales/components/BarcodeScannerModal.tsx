@@ -646,7 +646,7 @@ export function BarcodeScannerModal({
                       web: "check_circle" as any,
                     }}
                     size={18}
-                    tintColor={Colors.light.success}
+                    tintColor={Colors.light.positive}
                   />
                   <View style={{ flex: 1 }}>
                     <ThemedText style={styles.floatingToastTitle} numberOfLines={1}>
@@ -672,7 +672,7 @@ export function BarcodeScannerModal({
                         web: "check" as any,
                       }}
                       size={14}
-                      tintColor={Colors.light.success}
+                      tintColor={Colors.light.positive}
                     />
                     <ThemedText style={styles.successBadgeText}>
                       Produit identifié
@@ -950,12 +950,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.successLight,
+    backgroundColor: Colors.light.primaryLight,
   },
   countBadgeText: {
     ...Typography.caption,
     fontWeight: "700",
-    color: Colors.light.success,
+    color: Colors.light.positive,
   },
   scrollContent: {
     gap: Spacing.md,
@@ -974,7 +974,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   reticleOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1058,7 +1058,7 @@ const styles = StyleSheet.create({
     borderColor: "#FACC15",
   },
   cameraFallback: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.light.surface,
     justifyContent: "center",
     alignItems: "center",
@@ -1070,7 +1070,7 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
   fallbackTitle: {
-    ...Typography.heading4,
+    ...Typography.heading3,
     color: Colors.light.textPrimary,
     textAlign: "center",
     marginTop: 4,
@@ -1089,7 +1089,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
   },
   retryBtnText: {
-    ...Typography.bodySmall,
+    ...Typography.label,
     fontWeight: "600",
     color: "#FFFFFF",
   },
@@ -1106,10 +1106,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     borderWidth: 1,
-    borderColor: Colors.light.success,
+    borderColor: Colors.light.positive,
   },
   floatingToastTitle: {
-    ...Typography.bodySmall,
+    ...Typography.label,
     fontWeight: "700",
     color: "#FFFFFF",
   },
@@ -1134,7 +1134,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.successLight,
+    backgroundColor: Colors.light.primaryLight,
     paddingVertical: 2,
     paddingHorizontal: 8,
     borderRadius: BorderRadius.full,
@@ -1142,7 +1142,7 @@ const styles = StyleSheet.create({
   successBadgeText: {
     ...Typography.caption,
     fontWeight: "700",
-    color: Colors.light.success,
+    color: Colors.light.positive,
     fontSize: 11,
   },
   skuTag: {
@@ -1188,7 +1188,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   scanAgainText: {
-    ...Typography.bodySmall,
+    ...Typography.label,
     color: Colors.light.primary,
     fontWeight: "600",
   },
@@ -1230,7 +1230,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   createProductBtnText: {
-    ...Typography.bodySmall,
+    ...Typography.label,
     fontWeight: "700",
     color: "#FFFFFF",
   },
@@ -1243,7 +1243,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.border,
   },
   searchCatalogText: {
-    ...Typography.bodySmall,
+    ...Typography.label,
     fontWeight: "600",
     color: Colors.light.textPrimary,
   },
@@ -1291,7 +1291,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   validateBtnText: {
-    ...Typography.bodySmall,
+    ...Typography.label,
     fontWeight: "700",
     color: "#FFFFFF",
   },

@@ -14,7 +14,7 @@ export function AppProviders({ children }: AppProvidersProps) {
   const theme = useTheme();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <DatabaseProvider>
         <LocaleProvider>{children}</LocaleProvider>
       </DatabaseProvider>
@@ -25,6 +25,5 @@ export function AppProviders({ children }: AppProvidersProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
 });

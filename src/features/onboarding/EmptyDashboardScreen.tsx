@@ -108,7 +108,9 @@ export function EmptyDashboardScreen({
             />
           </View>
           <View style={styles.brandTextWrapper}>
-            <ThemedText style={styles.brandTitle}>Dukkan OS</ThemedText>
+            <ThemedText style={styles.brandTitle}>
+              Dukkan<ThemedText style={[styles.brandTitle, { color: Colors.light.primary }]}>Pro</ThemedText>
+            </ThemedText>
             <ThemedText style={styles.brandSubtitle}>
               {t("onboarding.emptyDashboard.brandSubtitle", {
                 defaultValue: "Empty Dashboard",

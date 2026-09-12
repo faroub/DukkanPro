@@ -1,13 +1,12 @@
-import { Pressable, StyleSheet, type PressableProps } from "react-native";
+import { Pressable, StyleSheet, View, type PressableProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import {
-    Colors,
-    ComponentDimensions,
-    Spacing,
-    Typography,
+  ComponentDimensions,
+  Spacing,
+  Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface PrimaryButtonProps extends PressableProps {
   title: string;
@@ -26,33 +25,38 @@ export function PrimaryButton({
   endIcon,
   onPress,
   locale = "fr",
+  style,
   ...rest
 }: PrimaryButtonProps) {
+  const theme = useTheme();
+
   return (
     <Pressable
       style={[
         styles.button,
-        disabled && styles.buttonDisabled,
+        { backgroundColor: theme.primary },
+        disabled && [styles.buttonDisabled, { backgroundColor: theme.disabledBackground }],
         loading && styles.buttonLoading,
+        style as any,
       ]}
       onPress={disabled || loading ? undefined : onPress}
       disabled={disabled || loading}
       {...rest}
     >
-      <ThemedView style={styles.buttonInner}>
+      <View style={styles.buttonInner}>
         {startIcon && (
-          <ThemedView style={styles.iconContainer}>{startIcon}</ThemedView>
+          <View style={styles.iconContainer}>{startIcon}</View>
         )}
 
         <ThemedText
           style={[
             styles.buttonText,
-            disabled && styles.buttonTextDisabled,
-            loading && styles.buttonTextLoading,
+            disabled && [styles.buttonTextDisabled, { color: theme.textMuted }],
+            loading && [styles.buttonTextLoading, { color: theme.textMuted }],
           ]}
         >
           {loading ? (
-            <ThemedText type="small" style={styles.buttonTextLoading}>
+            <ThemedText type="small" style={[styles.buttonTextLoading, { color: theme.textMuted }]}>
               {locale === "ar"
                 ? "جاري التحميل"
                 : locale === "fr"
@@ -65,16 +69,15 @@ export function PrimaryButton({
         </ThemedText>
 
         {endIcon && (
-          <ThemedView style={styles.iconContainer}>{endIcon}</ThemedView>
+          <View style={styles.iconContainer}>{endIcon}</View>
         )}
-      </ThemedView>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: Colors.light.primary,
     minHeight: ComponentDimensions.primaryButtonHeight,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.xl,
@@ -83,7 +86,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonDisabled: {
-    backgroundColor: Colors.light.disabledBackground,
+    opacity: 0.7,
   },
   buttonLoading: {
     opacity: 0.7,
@@ -98,14 +101,10 @@ const styles = StyleSheet.create({
     height: Spacing.xs,
   },
   buttonText: {
-    color: Colors.light.surface,
+    color: "#FFFFFF",
     ...Typography.body,
     fontWeight: 600,
   },
-  buttonTextDisabled: {
-    color: Colors.light.textMuted,
-  },
-  buttonTextLoading: {
-    color: Colors.light.textMuted,
-  },
+  buttonTextDisabled: {},
+  buttonTextLoading: {},
 });

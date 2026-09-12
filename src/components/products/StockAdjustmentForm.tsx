@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { FormField } from '@/components/ui/FormField';
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, Spacing } from '@/constants/theme';
 import { executeWrite, executeRead } from '@/database/database';
 import type { Product } from '@/types/entities';
+import { useTheme } from '@/hooks/use-theme';
 
 export interface StockAdjustmentFormProps {
   productId: number;
@@ -18,6 +19,7 @@ export interface StockAdjustmentFormProps {
 
 export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustmentComplete, locale = "fr" }: StockAdjustmentFormProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [form, setForm] = useState({
     quantityChange: initialQuantity,
     reason: '',
@@ -27,7 +29,6 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Fetch product data
   const [product, setProduct] = useState<Product | null>(null);
   const [stockDisplay, setStockDisplay] = useState(0);
 
@@ -35,7 +36,6 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
     ;(async () => {
       try {
         const rows: any[] = await executeRead(
-          // language=SQLite
           `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
                stock_quantity, minimum_stock_quantity, unit, is_active,
                created_at, updated_at
@@ -54,8 +54,8 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
   }, [productId]);
 
   const handleInputChange = useCallback((key: keyof typeof form, value: any) => {
-    setForm({ ...form, [key]: value });
-  }, [form]);
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     if (!form.reason?.trim()) {
@@ -68,11 +68,9 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
     setShowError(false);
 
     try {
-      // Update product stock quantity
       const newStock = Math.max(0, stockDisplay + form.quantityChange);
 
       await executeWrite(
-        // language=SQLite
         `UPDATE products
          SET stock_quantity = ?,
              updated_at = datetime('now')
@@ -80,9 +78,7 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
         [newStock, productId],
       );
 
-      // Create inventory movement record
       await executeWrite(
-        // language=SQLite
         `INSERT INTO inventory_movements
          (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`,
@@ -109,16 +105,25 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
     }
   }, [form, productId, stockDisplay, t, onAdjustmentComplete]);
 
+  const inputStyle = [
+    styles.input,
+    {
+      borderColor: theme.border,
+      backgroundColor: theme.surface,
+      color: theme.textPrimary,
+    },
+  ];
+
   return (
-    <ThemedView type="background" style={styles.container}>
+    <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <ThemedView style={styles.form}>
-          <ThemedText type="title" style={styles.title}>
+        <ThemedView style={[styles.form, { backgroundColor: theme.surface }]}>
+          <ThemedText type="title" style={[styles.title, { color: theme.textPrimary }]}>
             {t('products:adjustmentTitle')}
           </ThemedText>
 
           {product && (
-            <ThemedText type="small" style={styles.currentStock}>
+            <ThemedText type="small" style={[styles.currentStock, { color: theme.textSecondary }]}>
               {t('products:currentStock')}: {stockDisplay} {product.unit}
             </ThemedText>
           )}
@@ -128,9 +133,10 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
               value={form.reason}
               onChangeText={value => handleInputChange('reason', value)}
               placeholder={t('products:adjustmentReason')}
+              placeholderTextColor={theme.textMuted}
               multiline
               numberOfLines={3}
-              style={styles.input}
+              style={[inputStyle, { height: 80 }]}
             />
           </FormField>
 
@@ -143,22 +149,23 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
               }}
               keyboardType="numeric"
               placeholder="Positive = add stock, Negative = remove stock"
-              style={styles.input}
+              placeholderTextColor={theme.textMuted}
+              style={inputStyle}
             />
-            <ThemedText type="small" style={styles.hint}>
+            <ThemedText type="small" style={[styles.hint, { color: theme.textSecondary }]}>
               {t('products:adjustmentPositive')} (positive) / {t('products:adjustmentNegative')} (negative)
             </ThemedText>
           </FormField>
 
           {showError && (
-            <ThemedView style={styles.errorBanner}>
-              <ThemedText style={styles.errorBannerText}>{errorMessage}</ThemedText>
+            <ThemedView style={[styles.errorBanner, { backgroundColor: theme.errorLight }]}>
+              <ThemedText style={{ color: theme.error, fontSize: 12 }}>{errorMessage}</ThemedText>
             </ThemedView>
           )}
 
           {showSuccess && (
-            <ThemedView style={styles.successBanner}>
-              <ThemedText style={styles.successBannerText}>
+            <ThemedView style={[styles.successBanner, { backgroundColor: theme.successLight }]}>
+              <ThemedText style={{ color: theme.success, fontSize: 12 }}>
                 {t('products:adjustmentSuccess')}
               </ThemedText>
             </ThemedView>
@@ -179,25 +186,23 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
-  } as Record<string, unknown>,
+  },
   scroll: {
     flexGrow: 1,
     padding: Spacing.lg,
-  } as Record<string, unknown>,
+  },
   content: {
     maxWidth: 400,
     width: '100%',
-  } as Record<string, unknown>,
+  },
   title: {
     fontSize: 24,
-    fontWeight: 600,
+    fontWeight: '600',
     marginBottom: Spacing.lg,
     textAlign: 'center',
   },
   currentStock: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
     marginBottom: Spacing.md,
   },
   input: {
@@ -207,37 +212,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     fontSize: 14,
     marginBottom: Spacing.md,
-    backgroundColor: Colors.light.surface,
   },
   hint: {
     fontSize: 10,
-    color: Colors.light.textSecondary,
     marginTop: Spacing.xs,
   },
   errorBanner: {
-    backgroundColor: Colors.light.errorLight,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.md,
-  },
-  errorBannerText: {
-    color: Colors.light.destructive,
-    fontSize: 12,
   },
   successBanner: {
-    backgroundColor: Colors.light.warningLight,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.md,
-  },
-  successBannerText: {
-    color: Colors.light.warning,
-    fontSize: 12,
   },
   form: {
     flex: 1,
     maxWidth: 400,
     padding: Spacing.lg,
-    backgroundColor: Colors.light.surface,
-  } as Record<string, unknown>,
+    borderRadius: BorderRadius.lg,
+  },
 });

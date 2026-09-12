@@ -2,7 +2,8 @@ import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Colors, ComponentDimensions } from "@/constants/theme";
+import { ComponentDimensions } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "react-i18next";
 
 export interface AppTabBarProps {
@@ -57,6 +58,7 @@ const TABS: TabItemDef[] = [
 
 export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -64,6 +66,8 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
       style={[
         styles.container,
         {
+          backgroundColor: theme.surface,
+          borderTopColor: theme.border,
           paddingBottom: Math.max(insets.bottom, 4),
           height: ComponentDimensions.tabBarHeight + Math.max(insets.bottom, 0),
         },
@@ -72,7 +76,7 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
       {TABS.map((tab) => {
         const routeIndex = state.routes.findIndex((r: { name: string }) => r.name === tab.routeName);
         const isFocused = state.index === routeIndex;
-        const color = isFocused ? Colors.light.primary : Colors.light.textSecondary;
+        const color = isFocused ? theme.primary : theme.textSecondary;
 
         const onPress = () => {
           const event = navigation.emit({
@@ -124,9 +128,7 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    backgroundColor: Colors.light.surface,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
     alignItems: "center",
     justifyContent: "space-around",
   },

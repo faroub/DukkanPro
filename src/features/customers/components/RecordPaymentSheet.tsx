@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
-import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
+import { View, StyleSheet, TextInput, Pressable } from 'react-native';
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import { formatCentimes } from "@/utils/money";
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { recordPayment, canRecordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
 
 interface RecordPaymentSheetProps {
@@ -16,6 +16,7 @@ interface RecordPaymentSheetProps {
 
 export function RecordPaymentSheet({ customerId, customerName, onClose, onPaymentRecorded }: RecordPaymentSheetProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [amount, setAmount] = useState<string>("");
   const [selectedMethod, setSelectedMethod] = useState<"cash" | "electronic">("cash");
   const [note, setNote] = useState<string>("");
@@ -68,77 +69,103 @@ export function RecordPaymentSheet({ customerId, customerName, onClose, onPaymen
 
   return (
     <ThemedView type="background">
-      <View style={styles.container}>
-        <ThemedText type="title" style={styles.title}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <ThemedText type="title" style={[styles.title, { color: theme.textPrimary }]}>
           {t("customers:recordPayment")}
         </ThemedText>
 
-        <ThemedText type="body" style={styles.label}>
+        <ThemedText type="body" style={[styles.label, { color: theme.textSecondary }]}>
           {t("customers:customerName")}: {customerName}
         </ThemedText>
 
-        <ThemedText type="body" style={styles.label}>
+        <ThemedText type="body" style={[styles.label, { color: theme.textSecondary }]}>
           {t("customers:amount")} *:
         </ThemedText>
         <TextInput
           value={amount}
           onChangeText={handleInputChange}
           placeholder={t("customers:amountPlaceholder")}
+          placeholderTextColor={theme.textMuted}
           keyboardType="number-pad"
           autoCapitalize="none"
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              color: theme.textPrimary,
+            },
+          ]}
         />
-        <ThemedText type="caption" style={styles.errorText}>
-          {error}
-        </ThemedText>
+        {error ? (
+          <ThemedText type="caption" style={[styles.errorText, { color: theme.error }]}>
+            {error}
+          </ThemedText>
+        ) : null}
 
-        <ThemedText type="body" style={{ ...styles.label, marginTop: 16 }}>
+        <ThemedText type="body" style={[styles.label, { marginTop: 16, color: theme.textSecondary }]}>
           {t("customers:paymentMethod")}:
         </ThemedText>
-        <View style={styles.methodOptions}>
+        <View style={[styles.methodOptions, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Pressable
             style={[
               styles.methodButton,
-              selectedMethod === "cash" ? styles.methodActive : styles.methodInactive,
+              {
+                backgroundColor: selectedMethod === "cash" ? theme.primary : theme.borderLight,
+              },
             ]}
             onPress={() => handleMethodChange("cash")}
           >
-            <ThemedText type="caption" style={selectedMethod === "cash" ? styles.methodActiveText : styles.methodInactiveText}>
-                {t("sell:cash")}
+            <ThemedText type="caption" style={{ color: selectedMethod === "cash" ? "#FFFFFF" : theme.textSecondary }}>
+              {t("sell:cash")}
             </ThemedText>
           </Pressable>
 
           <Pressable
             style={[
               styles.methodButton,
-              selectedMethod === "electronic" ? styles.methodActive : styles.methodInactive,
+              {
+                backgroundColor: selectedMethod === "electronic" ? theme.primary : theme.borderLight,
+              },
             ]}
             onPress={() => handleMethodChange("electronic")}
           >
-            <ThemedText type="caption" style={selectedMethod === "electronic" ? styles.methodActiveText : styles.methodInactiveText}>
-                {t("sell:electronic")}
+            <ThemedText type="caption" style={{ color: selectedMethod === "electronic" ? "#FFFFFF" : theme.textSecondary }}>
+              {t("sell:electronic")}
             </ThemedText>
           </Pressable>
         </View>
 
         {note !== '' && (
           <View style={styles.noteSection}>
-            <ThemedText type="body" style={styles.label}>
+            <ThemedText type="body" style={[styles.label, { color: theme.textSecondary }]}>
               {t("customers:note")}
             </ThemedText>
             <TextInput
               value={note}
               onChangeText={(text) => setNote(text)}
               placeholder={t("customers:notePlaceholder")}
+              placeholderTextColor={theme.textMuted}
               multiline
               numberOfLines={2}
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
+                  color: theme.textPrimary,
+                },
+              ]}
             />
           </View>
         )}
 
         <View style={styles.actions}>
-          <Pressable onPress={handleRecordPayment} style={styles.button}>
+          <Pressable
+            onPress={handleRecordPayment}
+            style={[styles.button, { backgroundColor: theme.primary }]}
+            disabled={isSaving}
+          >
             <ThemedText type="body" style={styles.buttonText}>
               {t("customers:recordPayment")}
             </ThemedText>
@@ -155,28 +182,24 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 600,
+    fontWeight: "600",
     textAlign: 'center',
     marginBottom: 32,
   },
   label: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   input: {
     width: '100%',
     height: 52,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 16,
     marginBottom: 16,
   },
   errorText: {
-    color: '#B91C1C',
     fontSize: 12,
     marginBottom: 12,
     marginTop: 4,
@@ -186,31 +209,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 12,
     padding: 12,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
   },
   methodButton: {
     padding: 8,
     minWidth: 100,
-  },
-  methodActive: {
-    backgroundColor: '#1B6B3A',
-  },
-  methodInactive: {
-    backgroundColor: Colors.light.borderLight,
-  },
-  methodText: {
-    fontSize: 12,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  methodActiveText: {
-    color: Colors.light.textPrimary,
-  },
-  methodInactiveText: {
-    color: Colors.light.textSecondary,
+    borderRadius: 6,
+    alignItems: 'center',
   },
   noteSection: {
     marginTop: 12,
@@ -218,13 +224,12 @@ const styles = StyleSheet.create({
   button: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#1B6B3A',
     alignItems: 'center',
     marginTop: 32,
     width: '100%',
   },
   buttonText: {
-    color: Colors.light.textPrimary,
+    color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 18,
   },

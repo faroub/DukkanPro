@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, type PressableProps } from "react-native";
 
 import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
-import { Colors, BorderRadius } from "@/constants/theme";
+import { BorderRadius } from "@/constants/theme";
 
 export type IconButtonIcon =
   | "chevron-left"
@@ -37,7 +37,7 @@ export function IconButton({
 
   return (
     <Pressable
-      style={styles.button}
+      style={[styles.button, { backgroundColor: theme.surface }]}
       onPress={onPress}
       accessibilityLabel={accessibleLabel}
       {...rest}
@@ -47,7 +47,7 @@ export function IconButton({
           name={getIconName(icon) as never}
           size={size}
           weight="bold"
-          tintColor={theme.text}
+          tintColor={theme.textPrimary}
         />
       </ThemedView>
     </Pressable>
@@ -95,10 +95,10 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.light.surface,
   },
   iconContainer: {
     width: 24,
     height: 24,
+    backgroundColor: "transparent",
   },
 });

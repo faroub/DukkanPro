@@ -3,7 +3,8 @@ import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
 
 export interface CustomerRowData {
@@ -24,6 +25,7 @@ interface CustomerRowProps {
 export function CustomerRow({ customer, onPress }: CustomerRowProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
 
   const handlePress = () => {
     if (onPress) {
@@ -41,7 +43,7 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
         .map((part) => part.charAt(0).toUpperCase())
         .slice(0, 2)
         .join("")
-    : "??";
+        : "??";
 
   // Subtitle line (phone or note)
   const subtitle = customer.phone
@@ -52,7 +54,13 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.borderLight,
+        },
+      ]}
       onPress={handlePress}
       activeOpacity={0.7}
       accessibilityRole="button"
@@ -66,13 +74,21 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
         <View
           style={[
             styles.avatar,
-            customer.hasDebt ? styles.avatarDebt : styles.avatarSettled,
+            {
+              backgroundColor: customer.hasDebt
+                ? theme.errorLight
+                : theme.primaryLight,
+            },
           ]}
         >
           <ThemedText
             style={[
               styles.avatarText,
-              customer.hasDebt ? styles.avatarTextDebt : styles.avatarTextSettled,
+              {
+                color: customer.hasDebt
+                  ? theme.error || theme.destructive
+                  : theme.primary,
+              },
             ]}
           >
             {initials}
@@ -80,11 +96,17 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
         </View>
 
         <View style={styles.infoSection}>
-          <ThemedText style={styles.name} numberOfLines={1}>
+          <ThemedText
+            style={[styles.name, { color: theme.textPrimary }]}
+            numberOfLines={1}
+          >
             {customer.name}
           </ThemedText>
           {subtitle.length > 0 ? (
-            <ThemedText style={styles.subtitle} numberOfLines={1}>
+            <ThemedText
+              style={[styles.subtitle, { color: theme.textSecondary }]}
+              numberOfLines={1}
+            >
               {subtitle}
             </ThemedText>
           ) : null}
@@ -94,22 +116,46 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
       <View style={styles.rightSection}>
         {customer.hasDebt ? (
           <>
-            <ThemedText style={styles.debtAmount}>
+            <ThemedText
+              style={[
+                styles.debtAmount,
+                { color: theme.error || theme.destructive },
+              ]}
+            >
               {formatCentimes(customer.outstandingBalance, i18n.language as any)}
             </ThemedText>
-            <View style={styles.debtBadge}>
-              <ThemedText style={styles.debtBadgeText}>
+            <View
+              style={[
+                styles.debtBadge,
+                { backgroundColor: theme.errorLight },
+              ]}
+            >
+              <ThemedText
+                style={[
+                  styles.debtBadgeText,
+                  { color: theme.error || theme.destructive },
+                ]}
+              >
                 {t("customers:hasDebt")}
               </ThemedText>
             </View>
           </>
         ) : (
           <>
-            <ThemedText style={styles.settledAmount}>
+            <ThemedText
+              style={[styles.settledAmount, { color: theme.textSecondary }]}
+            >
               0 DZD
             </ThemedText>
-            <View style={styles.settledBadge}>
-              <ThemedText style={styles.settledBadgeText}>
+            <View
+              style={[
+                styles.settledBadge,
+                { backgroundColor: theme.primaryLight },
+              ]}
+            >
+              <ThemedText
+                style={[styles.settledBadgeText, { color: theme.primary }]}
+              >
                 {t("customers:settled")}
               </ThemedText>
             </View>
@@ -127,11 +173,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.light.borderLight,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -154,21 +198,9 @@ const styles = StyleSheet.create({
     marginRight: Spacing.md,
     flexShrink: 0,
   },
-  avatarDebt: {
-    backgroundColor: Colors.light.errorLight,
-  },
-  avatarSettled: {
-    backgroundColor: Colors.light.primaryLight,
-  },
   avatarText: {
     fontSize: 15,
     fontWeight: "700",
-  },
-  avatarTextDebt: {
-    color: Colors.light.destructive,
-  },
-  avatarTextSettled: {
-    color: Colors.light.primary,
   },
   infoSection: {
     flex: 1,
@@ -177,11 +209,9 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   subtitle: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   rightSection: {
@@ -191,15 +221,12 @@ const styles = StyleSheet.create({
   debtAmount: {
     fontSize: 16,
     fontWeight: "700",
-    color: Colors.light.destructive, // Red color for debt amounts per Stitch design
   },
   settledAmount: {
     fontSize: 15,
     fontWeight: "500",
-    color: Colors.light.textSecondary,
   },
   debtBadge: {
-    backgroundColor: Colors.light.errorLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: BorderRadius.full,
@@ -208,10 +235,8 @@ const styles = StyleSheet.create({
   debtBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: Colors.light.destructive,
   },
   settledBadge: {
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: BorderRadius.full,
@@ -220,6 +245,5 @@ const styles = StyleSheet.create({
   settledBadgeText: {
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
 });

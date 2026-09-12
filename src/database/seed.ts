@@ -15,6 +15,18 @@
 import { executeAll, executeWrite } from "./query";
 
 export async function seed(db: any): Promise<void> {
+  // -- 0. Migration/update: Convert legacy Arabic seed records to English if present --
+  try {
+    await executeWrite(db, "UPDATE products SET name = 'Flour (1kg)', category = 'Bakery', unit = 'kg' WHERE name = 'طحين'");
+    await executeWrite(db, "UPDATE products SET name = 'Cooking Oil (1L)', category = 'Pantry', unit = 'L' WHERE name = 'زيت'");
+    await executeWrite(db, "UPDATE products SET name = 'White Sugar (1kg)', category = 'Bakery', unit = 'kg' WHERE name = 'سكر'");
+    await executeWrite(db, "UPDATE products SET name = 'Pure Olive Oil (1L)', category = 'Pantry', unit = 'bottle' WHERE name LIKE '%Pure Olive Oil' OR name = 'طحين'");
+    await executeWrite(db, "UPDATE customers SET name = 'Ali Ramadan', note = 'Weekly regular purchaser' WHERE name = 'علي رمضان'");
+    await executeWrite(db, "UPDATE customers SET name = 'Souad Ahmed', note = 'Outstanding balance carried forward' WHERE name = 'سعاد أحمد'");
+  } catch (err) {
+    console.warn("Legacy seed migration skipped or non-fatal:", err);
+  }
+
   // -- 1. Business profile (idempotent: upsert by checking existence) --
   const existingBusiness: any[] = await executeAll(
     db,
@@ -26,7 +38,7 @@ export async function seed(db: any): Promise<void> {
       `INSERT INTO business_profiles
        (business_name, owner_name, business_type, currency, selected_locale, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-      ["Dukan Grocery", "محمد العلوي", "grocery", "DZD", "fr"],
+      ["Dukan Grocery", "Mohamed Al-Alawi", "grocery", "DZD", "en"],
     );
   }
 
@@ -36,50 +48,50 @@ export async function seed(db: any): Promise<void> {
     "SELECT id FROM products",
   );
   if (existingProducts.length === 0) {
-    // Sample products for a grocery/shop
+    // Sample products for a grocery/shop in English
     const sampleProducts = [
       {
-        name: "طحين",
+        name: "Flour (1kg)",
         sku: "FL-001",
-        category: "مخبوزات",
+        category: "Bakery",
         sale_price_centimes: 1500, // 15.00 DZD
         cost_price_centimes: 900, // 9.00 DZD
         stock_quantity: 42,
         minimum_stock_quantity: 10,
-        unit: "كغ",
+        unit: "kg",
         is_active: true,
       },
       {
-        name: "زيت",
+        name: "Cooking Oil (1L)",
         sku: "OI-001",
-        category: "مطبخ",
+        category: "Pantry",
         sale_price_centimes: 2500, // 25.00 DZD
         cost_price_centimes: 1800, // 18.00 DZD
         stock_quantity: 15,
         minimum_stock_quantity: 5,
-        unit: "لتر",
+        unit: "L",
         is_active: true,
       },
       {
-        name: "سكر",
+        name: "White Sugar (1kg)",
         sku: "SU-001",
-        category: "مخبوزات",
+        category: "Bakery",
         sale_price_centimes: 1200, // 12.00 DZD
         cost_price_centimes: 800, // 8.00 DZD
         stock_quantity: 30,
         minimum_stock_quantity: 8,
-        unit: "كغ",
+        unit: "kg",
         is_active: true,
       },
       {
-        name: "فوPure Olive Oil",
+        name: "Pure Olive Oil (1L)",
         sku: "OL-001",
-        category: "مطبخ",
+        category: "Pantry",
         sale_price_centimes: 3000, // 30.00 DZD
         cost_price_centimes: 2400, // 24.00 DZD
         stock_quantity: 8,
         minimum_stock_quantity: 3,
-        unit: "زجاجة",
+        unit: "bottle",
         is_active: true,
       },
     ];
@@ -114,15 +126,15 @@ export async function seed(db: any): Promise<void> {
   if (existingCustomers.length === 0) {
     const sampleCustomers = [
       {
-        name: "علي رمضان",
+        name: "Ali Ramadan",
         phone: "0551234567",
-        note: "شراء دوري أسبوعي",
+        note: "Weekly regular purchaser",
         is_active: true,
       },
       {
-        name: "سعاد أحمد",
+        name: "Souad Ahmed",
         phone: "0557654321",
-        note: "مبيّن رصيد قديم",
+        note: "Outstanding balance carried forward",
         is_active: true,
       },
     ];
@@ -203,7 +215,7 @@ export async function seed(db: any): Promise<void> {
         amount_paid_1,
         remaining1,
         "cash",
-        "مبيعة نقدية",
+        "Cash sale",
       ],
     );
 

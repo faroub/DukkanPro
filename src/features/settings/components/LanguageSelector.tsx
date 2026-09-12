@@ -1,5 +1,6 @@
 import { ThemedText, ThemedView } from "@/components";
-import { BorderRadius, Spacing, Colors } from "@/constants/theme";
+import { BorderRadius, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { changeLocale } from "@/localization/i18n";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,11 +9,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 /**
  * LanguageSelector - A language selection component for settings.
- * - Uses radio-style toggle buttons, not I18nManager
+ * - Uses radio-style toggle buttons
  * - Switching language applies immediately without reloading
  * - Layout direction remains LTR in all languages
- * - Arabic text may use right alignment inside individual text blocks
- * - Does not show Darija
+ * - Respects active theme palette
  */
 export function LanguageSelector({
   defaultLanguage = "fr",
@@ -22,13 +22,13 @@ export function LanguageSelector({
   onLanguageChange?: (language: string) => void;
 }) {
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || defaultLanguage);
 
   useEffect(() => {
     const onLangChange = (lng: string) => {
       setCurrentLanguage(lng);
     };
-    setCurrentLanguage(i18n.language || defaultLanguage);
     i18n.on("languageChanged", onLangChange);
     return () => {
       i18n.off("languageChanged", onLangChange);
@@ -51,10 +51,10 @@ export function LanguageSelector({
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText style={styles.title}>
+      <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
         {t("settings.languageTitle") || t("settings.language") || "Language"}
       </ThemedText>
-      <ThemedText style={styles.description}>
+      <ThemedText style={[styles.description, { color: theme.textSecondary }]}>
         {t("settings.languageDescription") ||
           "Sélectionnez votre langue d'affichage préférée"}
       </ThemedText>
@@ -67,7 +67,10 @@ export function LanguageSelector({
             key={lang.code}
             style={[
               styles.languageOptionContainer,
-              isSelected && styles.languageOptionSelected,
+              {
+                backgroundColor: isSelected ? theme.primaryLight : theme.surface,
+                borderColor: isSelected ? theme.primary : theme.border,
+              },
             ]}
             onPress={() => handleLanguageSelect(lang.code)}
             accessibilityRole="radio"
@@ -75,14 +78,17 @@ export function LanguageSelector({
             accessibilityState={isSelected ? { checked: true } : undefined}
           >
             <View style={styles.optionInner}>
-              <ThemedText style={optionLabelStyle(lang.code)}>
+              <ThemedText style={[optionLabelStyle(lang.code), { color: theme.textPrimary }]}>
                 {lang.label}
               </ThemedText>
             </View>
             <View
               style={[
                 styles.optionCheck,
-                isSelected && styles.optionCheckActive,
+                {
+                  borderColor: isSelected ? theme.primary : theme.border,
+                  backgroundColor: isSelected ? theme.primary : "transparent",
+                },
               ]}
             >
               {isSelected && (
@@ -115,7 +121,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
     marginBottom: Spacing.md,
   },
   languageOptionContainer: {
@@ -124,40 +129,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: Spacing.md,
     minHeight: 48,
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  languageOptionSelected: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primaryLight,
   },
   optionInner: {
     flex: 1,
-  },
-  optionLabel: {
-    fontSize: 15,
   },
   optionCheck: {
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderColor: Colors.light.border,
     borderRadius: BorderRadius.sm,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: Spacing.sm,
-  },
-  optionCheckActive: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primary,
-  },
-  optionCheckText: {
-    fontSize: 12,
-    color: "#FFFFFF",
-    fontWeight: "bold",
   },
 });
 

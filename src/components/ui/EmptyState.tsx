@@ -3,7 +3,8 @@ import { StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing, Colors } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface EmptyStateProps {
   icon?: string | React.ReactNode;
@@ -19,6 +20,8 @@ export function EmptyState({
   locale = "fr",
   ...rest
 }: EmptyStateProps) {
+  const theme = useTheme();
+
   return (
     <ThemedView type="background" style={styles.container} {...rest}>
       <ThemedView style={styles.content}>
@@ -27,12 +30,12 @@ export function EmptyState({
         ) : (
           IconProp
         )}
-        <ThemedText type="subtitle" style={styles.title}>
+        <ThemedText type="subtitle" style={[styles.title, { color: theme.textPrimary }]}>
           {title}
         </ThemedText>
 
         {subtitle && (
-          <ThemedText type="small" style={styles.subtitle}>
+          <ThemedText type="small" style={[styles.subtitle, { color: theme.textSecondary }]}>
             {subtitle}
           </ThemedText>
         )}
@@ -60,13 +63,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 500,
+    fontWeight: "500",
     marginBottom: Spacing.xs,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
     textAlign: "center",
   },
 });

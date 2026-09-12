@@ -1,5 +1,5 @@
 {
-  "name": "DukkanOS",
+  "name": "DukkanPro",
   "description": "Point of sale and inventory management application for Algerian micro-businesses",
   "requestFramePermissions": [
     "camera"

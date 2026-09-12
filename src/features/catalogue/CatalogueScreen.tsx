@@ -1,5 +1,4 @@
 import { ThemedView } from "@/components/themed-view";
-import { Colors } from "@/constants/theme";
 import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
 import { getAll as getAllProducts } from "@/database/repositories/productRepository";
 import { CataloguePreview } from "@/features/catalogue/components/CataloguePreview";
@@ -11,6 +10,7 @@ import {
     ProductSelector,
     SelectorProductItem,
 } from "@/features/catalogue/components/ProductSelector";
+import { useTheme } from "@/hooks/use-theme";
 import { CatalogueProduct } from "@/services/catalogue/catalogueService";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -72,6 +72,7 @@ const DEFAULT_SAMPLE_PRODUCTS: SelectorProductItem[] = [
 
 export function CatalogueScreen() {
   const router = useRouter();
+  const theme = useTheme();
   const [step, setStep] = useState<CatalogueStep>("settings");
 
   const [settings, setSettings] = useState<CatalogueSettingsData>({
@@ -168,7 +169,7 @@ export function CatalogueScreen() {
   }, [products, selectedProductIds]);
 
   return (
-    <ThemedView style={styles.screen} id="catalogue-root">
+    <ThemedView style={[styles.screen, { backgroundColor: theme.background }]} id="catalogue-root">
       {step === "settings" && (
         <CatalogueSettings
           settings={settings}
@@ -207,6 +208,5 @@ export function CatalogueScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
 });

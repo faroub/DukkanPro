@@ -10,6 +10,7 @@ import {
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
 
 interface CartItemProps {
@@ -25,13 +26,14 @@ export function CartItem({
   onRemove,
   onUpdateQuantity,
 }: CartItemProps) {
+  const theme = useTheme();
   const lineTotal = product.sale_price_centimes * quantity;
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       {/* Product Info Row */}
       <View style={styles.topRow}>
-        <View style={styles.iconBox}>
+        <View style={[styles.iconBox, { backgroundColor: theme.primaryLight }]}>
           <SymbolView
             name={{
               ios: "bag.fill" as any,
@@ -39,15 +41,15 @@ export function CartItem({
               web: "shopping_bag" as any,
             }}
             size={20}
-            tintColor={Colors.light.primary}
+            tintColor={theme.primary}
           />
         </View>
 
         <View style={styles.infoCol}>
-          <ThemedText style={styles.productName} numberOfLines={1}>
+          <ThemedText style={[styles.productName, { color: theme.textPrimary }]} numberOfLines={1}>
             {product.name}
           </ThemedText>
-          <ThemedText style={styles.unitPrice}>
+          <ThemedText style={[styles.unitPrice, { color: theme.textSecondary }]}>
             Unit: {formatCentimes(product.sale_price_centimes)}
             {product.unit ? ` • ${product.unit}` : ""}
           </ThemedText>
@@ -55,7 +57,7 @@ export function CartItem({
 
         <Pressable
           onPress={() => onRemove(product.id)}
-          style={styles.removeBtn}
+          style={[styles.removeBtn, { backgroundColor: theme.backgroundElement }]}
           accessibilityLabel="Remove item from cart"
           hitSlop={8}
         >
@@ -66,14 +68,14 @@ export function CartItem({
               web: "close" as any,
             }}
             size={16}
-            tintColor={Colors.light.textMuted}
+            tintColor={theme.textMuted}
           />
         </Pressable>
       </View>
 
       {/* Stepper and Line Total Row with 48px touch targets per Stitch design */}
-      <View style={styles.bottomRow}>
-        <View style={styles.stepperContainer}>
+      <View style={[styles.bottomRow, { borderTopColor: theme.borderLight }]}>
+        <View style={[styles.stepperContainer, { backgroundColor: theme.backgroundElement }]}>
           <Pressable
             onPress={() => {
               if (quantity > 1) {
@@ -82,7 +84,7 @@ export function CartItem({
                 onRemove(product.id);
               }
             }}
-            style={styles.stepBtn}
+            style={[styles.stepBtn, { backgroundColor: theme.surface }]}
             accessibilityLabel="Decrease quantity"
           >
             <SymbolView
@@ -92,17 +94,17 @@ export function CartItem({
                 web: "remove" as any,
               }}
               size={24}
-              tintColor={Colors.light.textPrimary}
+              tintColor={theme.textPrimary}
             />
           </Pressable>
 
           <View style={styles.qtyBox}>
-            <Text style={styles.qtyText}>{quantity}</Text>
+            <Text style={[styles.qtyText, { color: theme.textPrimary }]}>{quantity}</Text>
           </View>
 
           <Pressable
             onPress={() => onUpdateQuantity(product.id, quantity + 1)}
-            style={[styles.stepBtn, styles.stepBtnAdd]}
+            style={[styles.stepBtn, styles.stepBtnAdd, { backgroundColor: theme.primaryLight }]}
             accessibilityLabel="Increase quantity"
           >
             <SymbolView
@@ -112,13 +114,13 @@ export function CartItem({
                 web: "add" as any,
               }}
               size={24}
-              tintColor={Colors.light.primary}
+              tintColor={theme.primary}
             />
           </Pressable>
         </View>
 
         <View style={styles.totalCol}>
-          <Text style={styles.lineTotal}>{formatCentimes(lineTotal)}</Text>
+          <Text style={[styles.lineTotal, { color: theme.primary }]}>{formatCentimes(lineTotal)}</Text>
         </View>
       </View>
     </View>

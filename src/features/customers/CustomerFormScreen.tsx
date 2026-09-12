@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -12,7 +12,8 @@ import { useTranslation } from "react-i18next";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import {
   getById,
   create,
@@ -26,6 +27,7 @@ interface CustomerFormScreenProps {
 export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
   const params = useLocalSearchParams<{ id?: string; customerId?: string }>();
 
   const resolvedId = customerId || (params.id ? Number(params.id) : params.customerId ? Number(params.customerId) : undefined);
@@ -92,10 +94,12 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
     }
   }, [name, phone, note, isEditing, resolvedId, router, t]);
 
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.light.primary} />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -113,101 +117,116 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
           <MaterialIcons
             name="arrow-back"
             size={24}
-            color={Colors.light.textPrimary}
+            color={theme.textPrimary}
           />
         </TouchableOpacity>
 
         <View style={styles.headerInfo}>
           <ThemedText style={styles.headerTitle}>
-            {isEditing ? t("customers:editCustomer") : t("customers:newCustomer")}
+            {isEditing
+              ? t("customers:editCustomer")
+              : t("customers:addCustomer")}
           </ThemedText>
           <ThemedText style={styles.headerSubtitle}>
-            {t("customers:carnetDette")}
+            {isEditing
+              ? t("customers:updateInfoSubtitle")
+              : t("customers:newCustomerSubtitle")}
           </ThemedText>
         </View>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Main Form Card */}
         <View style={styles.card}>
-          <ThemedText style={styles.cardSectionTitle}>
-            {t("customers:identityAndContact")}
-          </ThemedText>
-
-          {/* Customer Name Field */}
+          {/* Customer Name Input */}
           <View style={styles.fieldGroup}>
-            <View style={styles.labelRow}>
-              <ThemedText style={styles.fieldLabel}>
-                {t("customers:customerName")}
-              </ThemedText>
-              <ThemedText style={styles.requiredAsterisk}>*</ThemedText>
+            <ThemedText style={styles.fieldLabel}>
+              {t("customers:nameRequired")}
+            </ThemedText>
+            <View
+              style={[
+                styles.inputWrapper,
+                nameError && styles.inputWrapperError,
+              ]}
+            >
+              <MaterialIcons
+                name="person"
+                size={20}
+                color={theme.textSecondary}
+                style={styles.fieldIcon}
+              />
+              <TextInput
+                value={name}
+                onChangeText={(text) => {
+                  setName(text);
+                  if (nameError && text.trim()) setNameError(false);
+                }}
+                placeholder={t("customers:namePlaceholder")}
+                placeholderTextColor={theme.textMuted}
+                style={styles.textInput}
+              />
             </View>
-            <TextInput
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                if (nameError && text.trim()) setNameError(false);
-              }}
-              placeholder={t("customers:customerNamePlaceholder")}
-              placeholderTextColor={Colors.light.textMuted}
-              autoCapitalize="words"
-              style={[styles.input, nameError && styles.inputError]}
-            />
             {nameError && (
               <ThemedText style={styles.errorText}>
-                {t("customers:nameRequired")}
+                {t("customers:nameRequiredError")}
               </ThemedText>
             )}
-            <ThemedText style={styles.fieldHint}>
-              {t("customers:nameHelp")}
+          </View>
+
+          {/* Phone Number Input */}
+          <View style={styles.fieldGroup}>
+            <ThemedText style={styles.fieldLabel}>
+              {t("customers:phone")} ({t("common:optional")})
+            </ThemedText>
+            <View style={styles.inputWrapper}>
+              <MaterialIcons
+                name="phone"
+                size={20}
+                color={theme.textSecondary}
+                style={styles.fieldIcon}
+              />
+              <TextInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder={t("customers:phonePlaceholder")}
+                placeholderTextColor={theme.textMuted}
+                keyboardType="phone-pad"
+                style={styles.textInput}
+              />
+            </View>
+            <ThemedText style={styles.helperText}>
+              {t("customers:phoneHelperText")}
             </ThemedText>
           </View>
 
-          {/* Phone Number Field */}
+          {/* Notes Input */}
           <View style={styles.fieldGroup}>
             <ThemedText style={styles.fieldLabel}>
-              {t("customers:phone")}
+              {t("customers:note")} ({t("common:optional")})
             </ThemedText>
-            <TextInput
-              value={phone}
-              onChangeText={setPhone}
-              placeholder={t("customers:phonePlaceholder")}
-              placeholderTextColor={Colors.light.textMuted}
-              keyboardType="phone-pad"
-              autoCapitalize="none"
-              style={styles.input}
-            />
-            <ThemedText style={styles.fieldHint}>
-              {t("customers:phoneHelp")}
-            </ThemedText>
-          </View>
-
-          {/* Merchant Note Field */}
-          <View style={styles.fieldGroup}>
-            <ThemedText style={styles.fieldLabel}>
-              {t("customers:merchantNote")}
-            </ThemedText>
-            <TextInput
-              value={note}
-              onChangeText={setNote}
-              placeholder={t("customers:notePlaceholder")}
-              placeholderTextColor={Colors.light.textMuted}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              style={[styles.input, styles.textArea]}
-            />
-            <ThemedText style={styles.fieldHint}>
-              {t("customers:noteHelp")}
-            </ThemedText>
+            <View style={[styles.inputWrapper, styles.textAreaWrapper]}>
+              <MaterialIcons
+                name="notes"
+                size={20}
+                color={theme.textSecondary}
+                style={[styles.fieldIcon, { marginTop: 2 }]}
+              />
+              <TextInput
+                value={note}
+                onChangeText={setNote}
+                placeholder={t("customers:notePlaceholder")}
+                placeholderTextColor={theme.textMuted}
+                multiline
+                numberOfLines={3}
+                style={[styles.textInput, styles.textAreaInput]}
+              />
+            </View>
           </View>
         </View>
 
-        {/* Action Buttons */}
+        {/* Form Actions */}
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={styles.cancelBtn}
@@ -230,9 +249,7 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
               <>
                 <MaterialIcons name="check" size={20} color="#FFFFFF" />
                 <ThemedText style={styles.saveBtnText}>
-                  {isEditing
-                    ? t("customers:saveChanges")
-                    : t("customers:createCustomer")}
+                  {isEditing ? t("common:save") : t("customers:createCustomer")}
                 </ThemedText>
               </>
             )}
@@ -243,153 +260,147 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  centerContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.light.background,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.borderLight,
-  },
-  iconButton: {
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  headerInfo: {
-    flex: 1,
-    marginHorizontal: Spacing.sm,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: Colors.light.textPrimary,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginTop: 1,
-  },
-  scrollContent: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxxxxx,
-  },
-  card: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.xxl,
-    padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
-    marginBottom: Spacing.lg,
-  },
-  cardSectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.light.textPrimary,
-    marginBottom: Spacing.md,
-  },
-  fieldGroup: {
-    marginBottom: Spacing.md,
-  },
-  labelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  fieldLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-    marginBottom: 6,
-  },
-  requiredAsterisk: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.light.destructive,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: Colors.light.surfaceAlt,
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: Colors.light.textPrimary,
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-  inputError: {
-    borderColor: Colors.light.destructive,
-  },
-  textArea: {
-    minHeight: 80,
-  },
-  errorText: {
-    fontSize: 12,
-    color: Colors.light.destructive,
-    marginTop: 4,
-  },
-  fieldHint: {
-    fontSize: 11,
-    color: Colors.light.textSecondary,
-    marginTop: 4,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: Spacing.md,
-  },
-  cancelBtn: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: BorderRadius.button,
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  cancelBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.textSecondary,
-  },
-  saveBtn: {
-    flex: 2,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: BorderRadius.button,
-    backgroundColor: Colors.light.primary,
-    shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  saveBtnDisabled: {
-    opacity: 0.6,
-  },
-  saveBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-});
+const createStyles = (theme: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    centerContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.background,
+    },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    iconButton: {
+      padding: Spacing.sm,
+      borderRadius: BorderRadius.sm,
+    },
+    headerInfo: {
+      flex: 1,
+      marginHorizontal: Spacing.sm,
+    },
+    headerTitle: {
+      ...Typography.heading3,
+      color: theme.textPrimary,
+    },
+    headerSubtitle: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      marginTop: 1,
+    },
+    scrollContent: {
+      padding: Spacing.lg,
+      paddingBottom: 48,
+      maxWidth: 600,
+      alignSelf: "center",
+      width: "100%",
+    },
+    card: {
+      backgroundColor: theme.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.lg,
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: Spacing.lg,
+      marginBottom: Spacing.lg,
+      ...Shadows.sm,
+    },
+    fieldGroup: {
+      gap: Spacing.xs,
+    },
+    fieldLabel: {
+      ...Typography.caption,
+      fontWeight: "700",
+      color: theme.textPrimary,
+    },
+    inputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: BorderRadius.lg,
+      paddingHorizontal: Spacing.md,
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: "transparent",
+    },
+    inputWrapperError: {
+      borderColor: theme.error,
+      backgroundColor: theme.errorLight,
+    },
+    fieldIcon: {
+      marginRight: Spacing.sm,
+    },
+    textInput: {
+      flex: 1,
+      fontSize: 15,
+      color: theme.textPrimary,
+      paddingVertical: Spacing.sm,
+    },
+    textAreaWrapper: {
+      alignItems: "flex-start",
+      paddingVertical: Spacing.sm,
+    },
+    textAreaInput: {
+      minHeight: 70,
+      textAlignVertical: "top",
+    },
+    errorText: {
+      ...Typography.caption,
+      color: theme.error,
+      marginTop: 2,
+    },
+    helperText: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    actionsRow: {
+      flexDirection: "row",
+      gap: Spacing.md,
+    },
+    cancelBtn: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 14,
+      borderRadius: BorderRadius.xl,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    cancelBtnText: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textSecondary,
+    },
+    saveBtn: {
+      flex: 2,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 14,
+      borderRadius: BorderRadius.xl,
+      backgroundColor: theme.primary,
+      ...Shadows.sm,
+    },
+    saveBtnDisabled: {
+      opacity: 0.5,
+    },
+    saveBtnText: {
+      ...Typography.label,
+      fontWeight: "700",
+      color: "#FFFFFF",
+    },
+  });

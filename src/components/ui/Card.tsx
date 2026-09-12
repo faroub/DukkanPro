@@ -1,7 +1,7 @@
 import { StyleSheet, View, type ViewProps } from "react-native";
 
-import { ThemedView } from "@/components/themed-view";
-import { BorderRadius, Colors, Shadows, Spacing } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface CardProps extends ViewProps {
   children: React.ReactNode;
@@ -13,22 +13,33 @@ export interface CardProps extends ViewProps {
 export function Card({
   children,
   elevation = "md",
-  borderColor = Colors.light.border,
+  borderColor,
   shadow = "md",
+  style,
   ...rest
 }: CardProps) {
-  const shadowStyle = Shadows[elevation] || Shadows.md;
+  const theme = useTheme();
+  const border = borderColor ?? theme.border;
 
   return (
-    <ThemedView style={[styles.container, { borderColor }]} {...rest}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.surface,
+          borderColor: border,
+        },
+        style,
+      ]}
+      {...rest}
+    >
       <View style={styles.content}>{children}</View>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderRadius: BorderRadius.lg,
     ...Shadows.sm,

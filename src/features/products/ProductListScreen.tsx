@@ -1,5 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
 import { ProductFilterTabs } from "@/features/products/components/ProductFilterTabs";
 import { ProductSearchBar } from "@/features/products/components/ProductSearchBar";
@@ -13,6 +14,7 @@ import { useRouter } from "expo-router";
 
 export function ProductListScreen({ route, navigation }: any) {
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
   const router = useRouter();
   const [filter, setFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -89,17 +91,17 @@ export function ProductListScreen({ route, navigation }: any) {
   }, [reload]);
 
   return (
-    <View style={styles.mainContainer}>
+    <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Top Header Bar matching Stitch */}
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
-          <ThemedText style={styles.screenTitle}>{t("products:title")}</ThemedText>
-          <ThemedText style={styles.screenSubtitle}>
+          <ThemedText style={[styles.screenTitle, { color: theme.textPrimary }]}>{t("products:title")}</ThemedText>
+          <ThemedText style={[styles.screenSubtitle, { color: theme.textSecondary }]}>
             {t("products:inventoryTracker")}
           </ThemedText>
         </View>
         <TouchableOpacity
-          style={styles.addButton}
+          style={[styles.addButton, { backgroundColor: theme.primary }]}
           activeOpacity={0.85}
           onPress={() => router.push("/products/new" as any)}
           accessibilityRole="button"
@@ -115,7 +117,7 @@ export function ProductListScreen({ route, navigation }: any) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Colors.light.primary}
+            tintColor={theme.primary}
           />
         }
         contentContainerStyle={styles.contentContainer}
@@ -136,20 +138,20 @@ export function ProductListScreen({ route, navigation }: any) {
         </View>
 
         {/* Summary Metric Strip - matches Stitch design */}
-        <View style={styles.summaryStrip}>
+        <View style={[styles.summaryStrip, { backgroundColor: theme.surfaceAlt }]}>
           <View style={styles.summaryLeft}>
-            <View style={styles.summaryDot} />
-            <ThemedText style={styles.summaryItemsText}>
+            <View style={[styles.summaryDot, { backgroundColor: theme.primary }]} />
+            <ThemedText style={[styles.summaryItemsText, { color: theme.textPrimary }]}>
               {filteredProducts.length} {t("products:items")}
             </ThemedText>
           </View>
 
-          <ThemedText style={styles.summaryDotSeparator}>•</ThemedText>
+          <ThemedText style={[styles.summaryDotSeparator, { color: theme.textMuted }]}>•</ThemedText>
 
           <View style={styles.summaryCenter}>
-            <ThemedText style={styles.summaryValueLabel}>
+            <ThemedText style={[styles.summaryValueLabel, { color: theme.textSecondary }]}>
               {t("products:value")}:{" "}
-              <ThemedText style={styles.summaryValueAmount}>
+              <ThemedText style={[styles.summaryValueAmount, { color: theme.primary }]}>
                 {formatCentimes(totalInventoryValueCentimes, i18n.language as any)}
               </ThemedText>
             </ThemedText>
@@ -157,10 +159,10 @@ export function ProductListScreen({ route, navigation }: any) {
 
           {counts.lowStock > 0 && (
             <>
-              <ThemedText style={styles.summaryDotSeparator}>•</ThemedText>
-              <View style={styles.badgeContainer}>
-                <Ionicons name="warning" size={12} color={Colors.light.secondary} />
-                <ThemedText style={styles.badgeText}>
+              <ThemedText style={[styles.summaryDotSeparator, { color: theme.textMuted }]}>•</ThemedText>
+              <View style={[styles.badgeContainer, { backgroundColor: theme.warningLight }]}>
+                <Ionicons name="warning" size={12} color={theme.warning} />
+                <ThemedText style={[styles.badgeText, { color: theme.warning }]}>
                   {counts.lowStock} {t("products:lowStock")}
                 </ThemedText>
               </View>
@@ -171,11 +173,11 @@ export function ProductListScreen({ route, navigation }: any) {
         {/* Empty State */}
         {filteredProducts.length === 0 && !loading && !error && (
           <View style={styles.emptyState}>
-            <View style={styles.emptyIconCircle}>
-              <Ionicons name="cube-outline" size={40} color={Colors.light.textMuted} />
+            <View style={[styles.emptyIconCircle, { backgroundColor: theme.surfaceAlt }]}>
+              <Ionicons name="cube-outline" size={40} color={theme.textMuted} />
             </View>
-            <ThemedText style={styles.emptyTitle}>{t("products:noProductsInList")}</ThemedText>
-            <ThemedText style={styles.emptyDescription}>{t("products:description")}</ThemedText>
+            <ThemedText style={[styles.emptyTitle, { color: theme.textPrimary }]}>{t("products:noProductsInList")}</ThemedText>
+            <ThemedText style={[styles.emptyDescription, { color: theme.textSecondary }]}>{t("products:description")}</ThemedText>
           </View>
         )}
 

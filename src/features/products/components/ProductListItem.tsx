@@ -9,6 +9,7 @@ import {
   Shadows,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { formatCentimes } from "@/utils/money";
@@ -29,6 +30,7 @@ interface ProductListItemProps {
 }
 
 export function ProductListItem({ product, onPress }: ProductListItemProps) {
+  const theme = useTheme();
   const { t, i18n } = useTranslation();
   const isOutOfStock = product.stock_quantity === 0;
   const isLowStock = !isOutOfStock && product.stock_quantity <= product.minimum_stock_quantity;
@@ -43,13 +45,13 @@ export function ProductListItem({ product, onPress }: ProductListItemProps) {
       accessibilityRole="button"
       accessibilityLabel={`${product.name}, ${product.stock_quantity} ${product.unit}`}
     >
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
         {/* Visual Thumbnail Box */}
-        <View style={styles.thumbnailBox}>
+        <View style={[styles.thumbnailBox, { backgroundColor: theme.surfaceAlt }]}>
           <Ionicons
             name="cube-outline"
             size={22}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
         </View>
 
@@ -57,53 +59,53 @@ export function ProductListItem({ product, onPress }: ProductListItemProps) {
         <View style={styles.contentCol}>
           {/* Header Row: Title & Price */}
           <View style={styles.titleRow}>
-            <ThemedText style={styles.productName} numberOfLines={1}>
+            <ThemedText style={[styles.productName, { color: theme.textPrimary }]} numberOfLines={1}>
               {product.name}
             </ThemedText>
-            <ThemedText style={styles.priceText}>
+            <ThemedText style={[styles.priceText, { color: theme.primary }]}>
               {formatCentimes(product.sale_price_centimes, i18n.language as any)}
             </ThemedText>
           </View>
 
           {/* Subtitle Row: SKU & Category */}
           <View style={styles.metaRow}>
-            <ThemedText style={styles.skuText}>
+            <ThemedText style={[styles.skuText, { color: theme.textMuted }]}>
               {product.sku ? product.sku : `ID-${product.id}`}
             </ThemedText>
-            <ThemedText style={styles.dotSeparator}>•</ThemedText>
-            <ThemedText style={styles.categoryText} numberOfLines={1}>
+            <ThemedText style={[styles.dotSeparator, { color: theme.textMuted }]}>•</ThemedText>
+            <ThemedText style={[styles.categoryText, { color: theme.textSecondary }]} numberOfLines={1}>
               {categoryOrUnit}
             </ThemedText>
           </View>
 
           {/* Bottom Row: Stock Quantity & Status Badge */}
           <View style={styles.stockRow}>
-            <ThemedText style={styles.stockLabel}>
+            <ThemedText style={[styles.stockLabel, { color: theme.textSecondary }]}>
               {t("products:stockLabel")}:{" "}
-              <ThemedText style={styles.stockValue}>
+              <ThemedText style={[styles.stockValue, { color: theme.textPrimary }]}>
                 {product.stock_quantity} {product.unit || "pcs"}
               </ThemedText>
             </ThemedText>
 
             {/* Status Badges with circular indicator dots */}
             {isOutOfStock ? (
-              <View style={styles.badgeOutOfStock}>
-                <View style={styles.dotError} />
-                <ThemedText style={styles.badgeTextOutOfStock}>
+              <View style={[styles.badgeOutOfStock, { backgroundColor: theme.errorLight }]}>
+                <View style={[styles.dotError, { backgroundColor: theme.error }]} />
+                <ThemedText style={[styles.badgeTextOutOfStock, { color: theme.error }]}>
                   {t("products:outOfStock")}
                 </ThemedText>
               </View>
             ) : isLowStock ? (
-              <View style={styles.badgeLowStock}>
-                <View style={styles.dotWarning} />
-                <ThemedText style={styles.badgeTextLowStock}>
+              <View style={[styles.badgeLowStock, { backgroundColor: theme.warningLight }]}>
+                <View style={[styles.dotWarning, { backgroundColor: theme.warning }]} />
+                <ThemedText style={[styles.badgeTextLowStock, { color: theme.warning }]}>
                   {t("products:lowStock")} ({t("products:minThreshold")}: {product.minimum_stock_quantity})
                 </ThemedText>
               </View>
             ) : (
-              <View style={styles.badgeInStock}>
-                <View style={styles.dotSuccess} />
-                <ThemedText style={styles.badgeTextInStock}>
+              <View style={[styles.badgeInStock, { backgroundColor: theme.primaryLight }]}>
+                <View style={[styles.dotSuccess, { backgroundColor: theme.primary }]} />
+                <ThemedText style={[styles.badgeTextInStock, { color: theme.primary }]}>
                   {t("products:inStock")}
                 </ThemedText>
               </View>
@@ -115,7 +117,7 @@ export function ProductListItem({ product, onPress }: ProductListItemProps) {
         <Ionicons
           name="chevron-forward"
           size={18}
-          color={Colors.light.textMuted}
+          color={theme.textMuted}
           style={styles.chevron}
         />
       </View>

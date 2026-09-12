@@ -12,6 +12,7 @@ import {
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { CartItem } from "./CartItem";
@@ -42,6 +43,7 @@ export function CartList({
   onCheckout,
   onClose,
 }: CartListProps) {
+  const theme = useTheme();
   const { t } = useTranslation();
 
   const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -51,27 +53,27 @@ export function CartList({
   >("cash");
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.surface }]}>
       {/* Grab Handle */}
       <View style={styles.grabHandleRow}>
-        <View style={styles.grabHandle} />
+        <View style={[styles.grabHandle, { backgroundColor: theme.border }]} />
       </View>
 
       {/* Header */}
-      <View style={styles.headerRow}>
+      <View style={[styles.headerRow, { borderBottomColor: theme.borderLight }]}>
         <View style={styles.headerLeft}>
-          <ThemedText style={styles.headerTitle}>
+          <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
             {t("sell.activeCart", { defaultValue: "Panier actif" })}
           </ThemedText>
-          <View style={styles.countBadge}>
-            <Text style={styles.countBadgeText}>
+          <View style={[styles.countBadge, { backgroundColor: theme.primaryLight }]}>
+            <Text style={[styles.countBadgeText, { color: theme.primary }]}>
               {totalCount} {t("products:items", { count: totalCount, defaultValue: totalCount === 1 ? "article" : "articles" })}
             </Text>
           </View>
         </View>
 
         {onClose && (
-          <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={8}>
+          <Pressable onPress={onClose} style={[styles.closeBtn, { backgroundColor: theme.backgroundElement }]} hitSlop={8}>
             <SymbolView
               name={{
                 ios: "xmark" as any,
@@ -79,7 +81,7 @@ export function CartList({
                 web: "close" as any,
               }}
               size={18}
-              tintColor={Colors.light.textSecondary}
+              tintColor={theme.textSecondary}
             />
           </Pressable>
         )}
@@ -102,42 +104,42 @@ export function CartList({
         ListFooterComponent={
           <View style={styles.footerSection}>
             {/* Price Summary Card */}
-            <View style={styles.summaryCard}>
+            <View style={[styles.summaryCard, { backgroundColor: theme.backgroundElement }]}>
               <View style={styles.summaryRow}>
-                <ThemedText style={styles.summaryLabel}>
+                <ThemedText style={[styles.summaryLabel, { color: theme.textSecondary }]}>
                   {t("receipt.subtotal", { defaultValue: "Sous-total" })}
                 </ThemedText>
-                <ThemedText style={styles.summaryValue}>
+                <ThemedText style={[styles.summaryValue, { color: theme.textPrimary }]}>
                   {formatCentimes(subtotal)}
                 </ThemedText>
               </View>
 
               {discount > 0 && (
                 <View style={styles.summaryRow}>
-                  <ThemedText style={styles.summaryLabel}>
+                  <ThemedText style={[styles.summaryLabel, { color: theme.textSecondary }]}>
                     {t("receipt.discount", { defaultValue: "Remise" })}
                   </ThemedText>
-                  <ThemedText style={[styles.summaryValue, styles.discountText]}>
+                  <ThemedText style={[styles.summaryValue, styles.discountText, { color: theme.warning }]}>
                     -{formatCentimes(discount)}
                   </ThemedText>
                 </View>
               )}
 
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-              <View style={[styles.summaryRow, styles.totalRow]}>
-                <ThemedText style={styles.totalLabel}>
+              <View style={[styles.summaryRow, styles.totalRow, { borderTopColor: theme.borderLight }]}>
+                <ThemedText style={[styles.totalLabel, { color: theme.textPrimary }]}>
                   {t("receipt.grand_total", { defaultValue: "Total net à payer" })}
                 </ThemedText>
-                <ThemedText style={styles.totalValue}>
+                <ThemedText style={[styles.totalValue, { color: theme.primary }]}>
                   {formatCentimes(total)}
                 </ThemedText>
               </View>
             </View>
 
             {/* Payment Method Selection */}
-            <View style={styles.paymentMethodSection}>
-              <ThemedText style={styles.paymentLabel}>
+            <View style={[styles.paymentMethodSection, { borderTopColor: theme.borderLight }]}>
+              <ThemedText style={[styles.paymentLabel, { color: theme.textSecondary }]}>
                 {t("receipt.payment_method", { defaultValue: "Mode de règlement" })}
               </ThemedText>
               <View style={styles.paymentGrid}>
@@ -146,7 +148,8 @@ export function CartList({
                   onPress={() => setPaymentMethod("cash")}
                   style={[
                     styles.paymentCard,
-                    paymentMethod === "cash" && styles.paymentCardSelected,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    paymentMethod === "cash" && [styles.paymentCardSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }],
                   ]}
                 >
                   <View style={styles.paymentIconContainer}>
@@ -159,20 +162,20 @@ export function CartList({
                       size={22}
                       tintColor={
                         paymentMethod === "cash"
-                          ? Colors.light.primary
-                          : Colors.light.textSecondary
+                          ? theme.primary
+                          : theme.textSecondary
                       }
                     />
                   </View>
                   <View style={styles.paymentDetails}>
-                    <ThemedText style={styles.paymentLabelText}>
+                    <ThemedText style={[styles.paymentLabelText, { color: theme.textPrimary }]}>
                       {t("receipt.cash", { defaultValue: "Espèces" })}
                     </ThemedText>
-                    <ThemedText style={styles.paymentSubLabel}>
+                    <ThemedText style={[styles.paymentSubLabel, { color: theme.textSecondary }]}>
                       {t("sell.payment_cash", { defaultValue: "نقد / كاش" })}
                     </ThemedText>
                   </View>
-                  <View style={styles.paymentRadio}>
+                  <View style={[styles.paymentRadio, { borderColor: theme.primary }]}>
                     <SymbolView
                       name={{
                         ios: "check" as any,
@@ -180,7 +183,7 @@ export function CartList({
                         web: "check" as any,
                       }}
                       size={14}
-                      tintColor={Colors.light.primary}
+                      tintColor={theme.primary}
                     />
                   </View>
                 </Pressable>
@@ -190,7 +193,8 @@ export function CartList({
                   onPress={() => setPaymentMethod("electronic")}
                   style={[
                     styles.paymentCard,
-                    paymentMethod === "electronic" && styles.paymentCardSelected,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    paymentMethod === "electronic" && [styles.paymentCardSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }],
                   ]}
                 >
                   <View style={styles.paymentIconContainer}>
@@ -203,20 +207,20 @@ export function CartList({
                       size={22}
                       tintColor={
                         paymentMethod === "electronic"
-                          ? Colors.light.primary
-                          : Colors.light.textSecondary
+                          ? theme.primary
+                          : theme.textSecondary
                       }
                     />
                   </View>
                   <View style={styles.paymentDetails}>
-                    <ThemedText style={styles.paymentLabelText}>
+                    <ThemedText style={[styles.paymentLabelText, { color: theme.textPrimary }]}>
                       {t("receipt.electronic", { defaultValue: "Carte / CIB" })}
                     </ThemedText>
-                    <ThemedText style={styles.paymentSubLabel}>
+                    <ThemedText style={[styles.paymentSubLabel, { color: theme.textSecondary }]}>
                       {t("sell.payment_electronic", { defaultValue: "بطاقة ذهبية / بنكية" })}
                     </ThemedText>
                   </View>
-                  <View style={styles.paymentRadio}>
+                  <View style={[styles.paymentRadio, { borderColor: theme.primary }]}>
                     <SymbolView
                       name={{
                         ios: "check" as any,
@@ -224,7 +228,7 @@ export function CartList({
                         web: "check" as any,
                       }}
                       size={14}
-                      tintColor={Colors.light.surface}
+                      tintColor={theme.surface}
                     />
                   </View>
                 </Pressable>
@@ -234,7 +238,8 @@ export function CartList({
                   onPress={() => setPaymentMethod("credit")}
                   style={[
                     styles.paymentCard,
-                    paymentMethod === "credit" && styles.paymentCardSelected,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    paymentMethod === "credit" && [styles.paymentCardSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }],
                   ]}
                 >
                   <View style={styles.paymentIconContainer}>
@@ -247,20 +252,20 @@ export function CartList({
                       size={22}
                       tintColor={
                         paymentMethod === "credit"
-                          ? Colors.light.primary
-                          : Colors.light.textSecondary
+                          ? theme.primary
+                          : theme.textSecondary
                       }
                     />
                   </View>
                   <View style={styles.paymentDetails}>
-                    <ThemedText style={styles.paymentLabelText}>
+                    <ThemedText style={[styles.paymentLabelText, { color: theme.textPrimary }]}>
                       {t("receipt.credit", { defaultValue: "Dette (Carnet)" })}
                     </ThemedText>
-                    <ThemedText style={styles.paymentSubLabel}>
+                    <ThemedText style={[styles.paymentSubLabel, { color: theme.textSecondary }]}>
                       {t("sell.payment_credit", { defaultValue: "دفتر ديون" })}
                     </ThemedText>
                   </View>
-                  <View style={styles.paymentRadio}>
+                  <View style={[styles.paymentRadio, { borderColor: theme.primary }]}>
                     <SymbolView
                       name={{
                         ios: "check" as any,
@@ -268,7 +273,7 @@ export function CartList({
                         web: "check" as any,
                       }}
                       size={14}
-                      tintColor={Colors.light.surface}
+                      tintColor={theme.surface}
                     />
                   </View>
                 </Pressable>
@@ -302,9 +307,9 @@ export function CartList({
                     web: "delete" as any,
                   }}
                   size={16}
-                  tintColor={Colors.light.destructive}
+                  tintColor={theme.destructive}
                 />
-                <Text style={styles.clearBtnText}>
+                <Text style={[styles.clearBtnText, { color: theme.destructive }]}>
                   {t("sell.clearCart", { defaultValue: "Vider le panier" })}
                 </Text>
               </Pressable>

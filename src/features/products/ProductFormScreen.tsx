@@ -160,23 +160,6 @@ export function ProductFormScreen({
     <ProductForm
       mode={mode}
       productId={productId}
-      initialProduct={
-        product
-          ? {
-              name: product.name,
-              sku: product.sku,
-              category: product.category,
-              sale_price_centimes: product.sale_price_centimes,
-              cost_price_centimes: product.cost_price_centimes,
-              stock_quantity: product.stock_quantity,
-              minimum_stock_quantity: product.minimum_stock_quantity,
-              unit: product.unit,
-              is_active: product.is_active,
-            }
-          : params?.sku
-            ? { sku: params.sku }
-            : undefined
-      }
       initialValues={
         product
           ? {

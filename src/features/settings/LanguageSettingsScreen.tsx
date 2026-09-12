@@ -14,12 +14,12 @@ import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Shadows,
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { changeLocale } from "@/localization/i18n";
 
 interface LanguageOption {
@@ -63,18 +63,18 @@ const LANGUAGES: LanguageOption[] = [
  * - Immediate zero-downtime switch without app reload
  * - Layout strictly remains LTR in all languages
  * - Arabic text aligns naturally within components
- * - Cultural framing card, zero-downtime card, and ergonomic counter usability explanation
+ * - Respects active color scheme (Light / Dark) dynamically via useTheme()
  */
 export function LanguageSettingsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || "fr");
 
   useEffect(() => {
     const onLangChange = (lng: string) => {
       setCurrentLanguage(lng);
     };
-    setCurrentLanguage(i18n.language || "fr");
     i18n.on("languageChanged", onLangChange);
     return () => {
       i18n.off("languageChanged", onLangChange);
@@ -98,8 +98,9 @@ export function LanguageSettingsScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.scrollContainer}
+      contentContainerStyle={[styles.scrollContainer, { backgroundColor: theme.background }]}
       showsVerticalScrollIndicator={false}
+      id="language-settings-screen"
     >
       <ThemedView style={styles.container}>
         {/* Breadcrumb Context */}
@@ -107,9 +108,10 @@ export function LanguageSettingsScreen() {
           style={styles.breadcrumb}
           onPress={() => router.back()}
           activeOpacity={0.7}
+          id="btn-language-back"
         >
-          <MaterialIcons name="arrow-back" size={18} color={Colors.light.textSecondary} />
-          <ThemedText style={styles.breadcrumbText}>
+          <MaterialIcons name="arrow-back" size={18} color={theme.textSecondary} />
+          <ThemedText style={[styles.breadcrumbText, { color: theme.textSecondary }]}>
             {t("navigation.back") || t("common.back") || "Back"}
           </ThemedText>
         </TouchableOpacity>
@@ -117,36 +119,36 @@ export function LanguageSettingsScreen() {
         {/* Screen Heading */}
         <View style={styles.headerSection}>
           <View style={styles.badgeRow}>
-            <MaterialIcons name="translate" size={18} color={Colors.light.primary} />
-            <ThemedText style={styles.badgeText}>
+            <MaterialIcons name="translate" size={18} color={theme.primary} />
+            <ThemedText style={[styles.badgeText, { color: theme.primary }]}>
               {t("settings.localeAndDisplay") || "Locale & Display"}
             </ThemedText>
           </View>
-          <ThemedText style={styles.headingTitle}>
+          <ThemedText style={[styles.headingTitle, { color: theme.textPrimary }]}>
             {t("settings.appLanguageTitle") || "App Language"}
           </ThemedText>
-          <ThemedText style={styles.headingSubtitle}>
+          <ThemedText style={[styles.headingSubtitle, { color: theme.textSecondary }]}>
             {t("settings.appLanguageSubtitle") ||
-              "Choose the display language for Dukkan OS interface, cash-register screens, and printed customer receipts."}
+              "Choose the display language for DukkanPro interface, cash-register screens, and printed customer receipts."}
           </ThemedText>
         </View>
 
         {/* Cultural Visual Framing Card */}
-        <View style={styles.framingCard}>
-          <View style={styles.framingIconContainer}>
-            <MaterialIcons name="receipt-long" size={24} color={Colors.light.primary} />
+        <View style={[styles.framingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.framingIconContainer, { backgroundColor: theme.surfaceAlt }]}>
+            <MaterialIcons name="receipt-long" size={24} color={theme.primary} />
           </View>
           <View style={styles.framingContent}>
-            <ThemedText style={styles.framingTitle}>
+            <ThemedText style={[styles.framingTitle, { color: theme.textPrimary }]}>
               {t("settings.framingTitle") || "Fast Bilingual POS Sync"}
             </ThemedText>
-            <ThemedText style={styles.framingSubtitle}>
+            <ThemedText style={[styles.framingSubtitle, { color: theme.textSecondary }]}>
               {t("settings.framingSubtitle") ||
                 "Thermal receipts render instant bilingual headers"}
             </ThemedText>
           </View>
-          <View style={styles.activePill}>
-            <ThemedText style={styles.activePillText}>
+          <View style={[styles.activePill, { backgroundColor: theme.primaryLight }]}>
+            <ThemedText style={[styles.activePillText, { color: theme.primary }]}>
               {t("settings.active") || "Active"}
             </ThemedText>
           </View>
@@ -161,16 +163,20 @@ export function LanguageSettingsScreen() {
                 key={item.code}
                 style={[
                   styles.optionCard,
-                  isSelected && styles.optionCardSelected,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: isSelected ? theme.primary : theme.border,
+                  },
                 ]}
                 onPress={() => handleSelectLanguage(item)}
                 activeOpacity={0.8}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: isSelected }}
+                id={`lang-option-${item.code}`}
               >
                 {/* Active badge for currently selected language */}
                 {isSelected && (
-                  <View style={styles.defaultBadge}>
+                  <View style={[styles.defaultBadge, { backgroundColor: theme.primary }]}>
                     <MaterialIcons name="check-circle" size={12} color="#FFFFFF" />
                     <ThemedText style={styles.defaultBadgeText}>
                       {t("settings.currentLanguageBadge") || "Active"}
@@ -182,13 +188,17 @@ export function LanguageSettingsScreen() {
                   <View
                     style={[
                       styles.avatarCircle,
-                      isSelected && { backgroundColor: Colors.light.primaryLight },
+                      {
+                        backgroundColor: isSelected ? theme.primaryLight : theme.surfaceAlt,
+                      },
                     ]}
                   >
                     <ThemedText
                       style={[
                         styles.avatarText,
-                        isSelected && { color: Colors.light.primary },
+                        {
+                          color: isSelected ? theme.primary : theme.textSecondary,
+                        },
                       ]}
                     >
                       {item.shortLabel}
@@ -196,10 +206,14 @@ export function LanguageSettingsScreen() {
                   </View>
                   <View style={styles.optionInfo}>
                     <View style={styles.optionTitleRow}>
-                      <ThemedText style={styles.optionName}>{item.name}</ThemedText>
-                      <ThemedText style={styles.optionSubname}>{item.subname}</ThemedText>
+                      <ThemedText style={[styles.optionName, { color: theme.textPrimary }]}>
+                        {item.name}
+                      </ThemedText>
+                      <ThemedText style={[styles.optionSubname, { color: theme.textSecondary }]}>
+                        {item.subname}
+                      </ThemedText>
                     </View>
-                    <ThemedText style={styles.optionDescription}>
+                    <ThemedText style={[styles.optionDescription, { color: theme.textSecondary }]}>
                       {t(item.descriptionKey) || item.name}
                     </ThemedText>
                   </View>
@@ -209,7 +223,9 @@ export function LanguageSettingsScreen() {
                 <View
                   style={[
                     styles.radioIndicator,
-                    isSelected && styles.radioIndicatorSelected,
+                    {
+                      backgroundColor: isSelected ? theme.primary : theme.surfaceAlt,
+                    },
                   ]}
                 >
                   {isSelected && (
@@ -222,15 +238,15 @@ export function LanguageSettingsScreen() {
         </View>
 
         {/* Zero Downtime Switch Banner */}
-        <View style={styles.featureBanner}>
-          <View style={styles.featureIconContainer}>
-            <MaterialIcons name="bolt" size={18} color={Colors.light.primary} />
+        <View style={[styles.featureBanner, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+          <View style={[styles.featureIconContainer, { backgroundColor: theme.surface }]}>
+            <MaterialIcons name="bolt" size={18} color={theme.primary} />
           </View>
           <View style={styles.featureContent}>
-            <ThemedText style={styles.featureTitle}>
+            <ThemedText style={[styles.featureTitle, { color: theme.textPrimary }]}>
               {t("settings.zeroDowntimeTitle") || "Zero Downtime Switch"}
             </ThemedText>
-            <ThemedText style={styles.featureSubtitle}>
+            <ThemedText style={[styles.featureSubtitle, { color: theme.textSecondary }]}>
               {t("settings.zeroDowntimeSubtitle") ||
                 "Swapping languages requires no app restart. POS quick-keys, category shortcuts, and price barcodes stay precisely where your fingers expect them."}
             </ThemedText>
@@ -238,15 +254,15 @@ export function LanguageSettingsScreen() {
         </View>
 
         {/* Informational Usability Card */}
-        <View style={styles.infoCard}>
-          <View style={styles.infoIconContainer}>
-            <MaterialIcons name="info" size={20} color={Colors.light.primary} />
+        <View style={[styles.infoCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.infoIconContainer, { backgroundColor: theme.primaryLight }]}>
+            <MaterialIcons name="info" size={20} color={theme.primary} />
           </View>
           <View style={styles.infoContent}>
-            <ThemedText style={styles.infoTitle}>
+            <ThemedText style={[styles.infoTitle, { color: theme.textPrimary }]}>
               {t("settings.ergonomicTitle") || "Ergonomic Counter Usability (LTR)"}
             </ThemedText>
-            <ThemedText style={styles.infoSubtitle}>
+            <ThemedText style={[styles.infoSubtitle, { color: theme.textSecondary }]}>
               {t("settings.ergonomicSubtitle") ||
                 "The app layout remains left-to-right (LTR) for all languages to ensure consistent counter usability. Text inside fields aligns naturally."}
             </ThemedText>
@@ -256,12 +272,12 @@ export function LanguageSettingsScreen() {
         {/* Decorative Store System Versioning */}
         <View style={styles.versionFooter}>
           <View style={styles.versionRow}>
-            <MaterialIcons name="verified" size={16} color={Colors.light.textMuted} />
-            <ThemedText style={styles.versionTitle}>
-              {t("settings.versionTagline") || "Dukkan OS v2.4.1 • Multi-language Engine"}
+            <MaterialIcons name="verified" size={16} color={theme.textMuted} />
+            <ThemedText style={[styles.versionTitle, { color: theme.textMuted }]}>
+              <ThemedText style={{ fontWeight: "800" }}>Dukkan<ThemedText style={{ color: theme.primary, fontWeight: "800" }}>Pro</ThemedText></ThemedText> v2.4.1 • Multi-language Engine
             </ThemedText>
           </View>
-          <ThemedText style={styles.versionSubtitle}>
+          <ThemedText style={[styles.versionSubtitle, { color: theme.textMuted }]}>
             {t("settings.versionCompliance") ||
               "Algerian Dinar (DZD) compliant localized registry"}
           </ThemedText>
@@ -277,7 +293,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: ComponentDimensions.screenPadding,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xxl,
-    backgroundColor: Colors.light.background,
   },
   container: {
     width: "100%",
@@ -296,7 +311,6 @@ const styles = StyleSheet.create({
   breadcrumbText: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   headerSection: {
     gap: Spacing.xs,
@@ -309,35 +323,29 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: "700",
-    color: Colors.light.primary,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   headingTitle: {
     ...Typography.heading2,
-    color: Colors.light.textPrimary,
   },
   headingSubtitle: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     lineHeight: 20,
   },
   framingCard: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surface,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
   },
   framingIconContainer: {
     width: 44,
     height: 44,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -348,15 +356,12 @@ const styles = StyleSheet.create({
   framingTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   framingSubtitle: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   activePill: {
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
@@ -364,7 +369,6 @@ const styles = StyleSheet.create({
   activePillText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   optionsList: {
     gap: ComponentDimensions.cardGap,
@@ -376,14 +380,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     minHeight: 64,
     padding: ComponentDimensions.cardPadding,
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
-  },
-  optionCardSelected: {
-    borderColor: Colors.light.primary,
   },
   defaultBadge: {
     position: "absolute",
@@ -392,7 +391,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.primary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -413,14 +411,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
     fontSize: 14,
     fontWeight: "700",
-    color: Colors.light.textSecondary,
   },
   optionInfo: {
     flex: 1,
@@ -434,43 +430,33 @@ const styles = StyleSheet.create({
   optionName: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   optionSubname: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   optionDescription: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   radioIndicator: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
-  },
-  radioIndicatorSelected: {
-    backgroundColor: Colors.light.primary,
   },
   featureBanner: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surfaceAlt,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   featureIconContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.surface,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 2,
@@ -481,11 +467,9 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   featureSubtitle: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
     marginTop: 3,
     lineHeight: 18,
   },
@@ -493,18 +477,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surface,
     padding: ComponentDimensions.cardPadding,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
   },
   infoIconContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 2,
@@ -515,11 +496,9 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   infoSubtitle: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
     marginTop: 3,
     lineHeight: 18,
   },
@@ -536,10 +515,8 @@ const styles = StyleSheet.create({
   versionTitle: {
     fontSize: 12,
     fontWeight: "500",
-    color: Colors.light.textMuted,
   },
   versionSubtitle: {
     fontSize: 11,
-    color: Colors.light.textMuted,
   },
 });

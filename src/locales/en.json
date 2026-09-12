@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Dukkan OS"
+    "title": "DukkanPro"
   },
   "tabs": {
     "home": "Home",
@@ -656,6 +656,15 @@
     "languageFrench": "French",
     "languageEnglish": "English",
     "default": "Default",
+    "theme": "Theme",
+    "themeSubtitle": "Color scheme and dark mode override",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystemDesc": "Follow device appearance",
+    "themeLightDesc": "Clean daylight appearance",
+    "themeDarkDesc": "High-contrast dark mode",
+    "themeUpdated": "Theme updated successfully",
     "phone": "Phone Number",
     "address": "Address / Location",
     "rcNumber": "Commercial Registry (RC)",

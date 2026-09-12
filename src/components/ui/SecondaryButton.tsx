@@ -1,13 +1,12 @@
-import { Pressable, StyleSheet, type PressableProps } from "react-native";
+import { Pressable, StyleSheet, View, type PressableProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import {
-    Colors,
-    ComponentDimensions,
-    Spacing,
-    Typography,
+  ComponentDimensions,
+  Spacing,
+  Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface SecondaryButtonProps extends PressableProps {
   title: string;
@@ -25,30 +24,37 @@ export function SecondaryButton({
   startIcon,
   endIcon,
   onPress,
+  style,
   ...rest
 }: SecondaryButtonProps) {
+  const theme = useTheme();
+
   return (
     <Pressable
       style={[
         styles.button,
+        {
+          borderColor: theme.primary,
+        },
         disabled && styles.buttonDisabled,
         loading && styles.buttonLoading,
+        style as any,
       ]}
       onPress={disabled || loading ? undefined : onPress}
       disabled={disabled || loading}
       {...rest}
     >
-      <ThemedView style={styles.buttonInner}>
+      <View style={styles.buttonInner}>
         {startIcon && (
-          <ThemedView style={styles.iconContainer}>{startIcon}</ThemedView>
+          <View style={styles.iconContainer}>{startIcon}</View>
         )}
 
-        <ThemedText style={styles.buttonText}>{title}</ThemedText>
+        <ThemedText style={[styles.buttonText, { color: theme.primary }]}>{title}</ThemedText>
 
         {endIcon && (
-          <ThemedView style={styles.iconContainer}>{endIcon}</ThemedView>
+          <View style={styles.iconContainer}>{endIcon}</View>
         )}
-      </ThemedView>
+      </View>
     </Pressable>
   );
 }
@@ -56,7 +62,6 @@ export function SecondaryButton({
 const styles = StyleSheet.create({
   button: {
     borderWidth: 1,
-    borderColor: Colors.light.primary,
     minHeight: ComponentDimensions.secondaryButtonHeight,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.xl,
@@ -81,7 +86,6 @@ const styles = StyleSheet.create({
     height: Spacing.xs,
   },
   buttonText: {
-    color: Colors.light.primary,
     ...Typography.body,
     fontWeight: 500,
   },

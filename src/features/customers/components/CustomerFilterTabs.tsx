@@ -2,7 +2,8 @@ import React from "react";
 import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ThemedText } from "@/components/themed-text";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface CustomerFilterCounts {
   all?: number;
@@ -13,16 +14,24 @@ export interface CustomerFilterCounts {
 
 interface CustomerFilterTabsProps {
   activeFilter: string;
-  onFilterChange: (newFilter: string) => void;
+  onFilterChange?: (newFilter: string) => void;
+  onSelectFilter?: (newFilter: string) => void;
   counts?: CustomerFilterCounts;
 }
 
 export function CustomerFilterTabs({
   activeFilter,
   onFilterChange,
+  onSelectFilter,
   counts,
 }: CustomerFilterTabsProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
+
+  const handleSelect = (val: string) => {
+    if (onSelectFilter) onSelectFilter(val);
+    if (onFilterChange) onFilterChange(val);
+  };
 
   const filters = [
     { value: "all", label: t("customers:all"), count: counts?.all },
@@ -47,9 +56,12 @@ export function CustomerFilterTabs({
               key={filter.value}
               style={[
                 styles.tab,
-                isActive && styles.tabActive,
+                {
+                  backgroundColor: isActive ? theme.primary : theme.surface,
+                  borderColor: isActive ? theme.primary : theme.borderLight,
+                },
               ]}
-              onPress={() => onFilterChange(filter.value)}
+              onPress={() => handleSelect(filter.value)}
               activeOpacity={0.7}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
@@ -57,7 +69,9 @@ export function CustomerFilterTabs({
               <ThemedText
                 style={[
                   styles.tabLabel,
-                  isActive ? styles.tabLabelActive : styles.tabLabelInactive,
+                  {
+                    color: isActive ? "#FFFFFF" : theme.textSecondary,
+                  },
                 ]}
               >
                 {filter.label}
@@ -67,21 +81,25 @@ export function CustomerFilterTabs({
                 <View
                   style={[
                     styles.countBadge,
-                    isActive
-                      ? styles.countBadgeActive
-                      : isDebtFilter && (filter.count ?? 0) > 0
-                        ? styles.countBadgeDebt
-                        : styles.countBadgeInactive,
+                    {
+                      backgroundColor: isActive
+                        ? "rgba(255, 255, 255, 0.25)"
+                        : isDebtFilter && (filter.count ?? 0) > 0
+                          ? theme.errorLight
+                          : theme.surfaceAlt,
+                    },
                   ]}
                 >
                   <ThemedText
                     style={[
                       styles.countText,
-                      isActive
-                        ? styles.countTextActive
-                        : isDebtFilter && (filter.count ?? 0) > 0
-                          ? styles.countTextDebt
-                          : styles.countTextInactive,
+                      {
+                        color: isActive
+                          ? "#FFFFFF"
+                          : isDebtFilter && (filter.count ?? 0) > 0
+                            ? theme.error
+                            : theme.textSecondary,
+                      },
                     ]}
                   >
                     {filter.count}
@@ -101,63 +119,28 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   scrollContent: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.xs,
+    gap: Spacing.xs,
   },
   tab: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingVertical: 7,
+    paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-  },
-  tabActive: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
   },
   tabLabel: {
     fontSize: 13,
     fontWeight: "600",
   },
-  tabLabelActive: {
-    color: "#FFFFFF",
-  },
-  tabLabelInactive: {
-    color: Colors.light.textSecondary,
-  },
   countBadge: {
-    borderRadius: BorderRadius.full,
     paddingHorizontal: 6,
     paddingVertical: 1,
-    minWidth: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  countBadgeActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
-  },
-  countBadgeDebt: {
-    backgroundColor: Colors.light.errorLight,
-  },
-  countBadgeInactive: {
-    backgroundColor: Colors.light.surfaceAlt,
+    borderRadius: BorderRadius.full,
   },
   countText: {
     fontSize: 11,
     fontWeight: "700",
-  },
-  countTextActive: {
-    color: "#FFFFFF",
-  },
-  countTextDebt: {
-    color: Colors.light.destructive,
-  },
-  countTextInactive: {
-    color: Colors.light.textSecondary,
   },
 });

@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
-import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { getById } from "@/database/repositories/customerRepository";
 import { getAll as getAllSales } from "@/database/repositories/saleRepository";
 import {
@@ -28,10 +30,18 @@ interface CustomerDetailScreenProps {
 export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
   const localParams = useLocalSearchParams<{ id?: string; customerId?: string }>();
-  const effectiveCustomerId = customerId ?? (localParams.customerId ? Number(localParams.customerId) : localParams.id ? Number(localParams.id) : undefined);
+  const effectiveCustomerId =
+    customerId ??
+    (localParams.customerId
+      ? Number(localParams.customerId)
+      : localParams.id
+      ? Number(localParams.id)
+      : undefined);
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [debtCentimes, setDebtCentimes] = useState(0);
   const [sales, setSales] = useState<Sale[]>([]);
@@ -43,9 +53,9 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   const loadData = useCallback(async () => {
     if (!effectiveCustomerId) {
       setLoading(false);
+      setRefreshing(false);
       return;
     }
-    setLoading(true);
     try {
       const [cust, debt, customerSales, customerPayments] = await Promise.all([
         getById(effectiveCustomerId),
@@ -59,9 +69,10 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
       setSales(customerSales.filter((s) => s.status === "completed"));
       setPayments(customerPayments);
     } catch (err) {
-      // Error handled by state
+      console.error("Failed to load customer detail data:", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [effectiveCustomerId]);
 
@@ -147,14 +158,17 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
         customerId: String(customer.id),
         customerName: customer.name,
         currentDebt: String(debtCentimes),
+        customerPhone: customer.phone || "",
       },
     } as any);
   };
 
-  if (loading) {
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
+  if (loading && !customer) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.light.primary} />
+        <ActivityIndicator size="large" color={theme.primary} />
         <ThemedText style={styles.loadingText}>{t("common:loading")}</ThemedText>
       </View>
     );
@@ -163,49 +177,42 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   if (!customer) {
     return (
       <View style={styles.centerContainer}>
-        <ThemedText style={styles.errorText}>
-          {t("customers:notFound")}
-        </ThemedText>
+        <ThemedText style={styles.errorText}>{t("customers:notFound")}</ThemedText>
         <TouchableOpacity
           style={styles.retryButton}
           onPress={() => router.back()}
         >
-          <ThemedText style={styles.retryButtonText}>
-            {t("common:back")}
-          </ThemedText>
+          <ThemedText style={styles.retryButtonText}>{t("common:back")}</ThemedText>
         </TouchableOpacity>
       </View>
     );
   }
 
   const hasDebt = debtCentimes > 0;
+  const initials = customer.name
+    ? customer.name
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "CU";
 
   return (
     <View style={styles.screen}>
       {/* Top Header Navigation */}
       <View style={styles.topBar}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.iconButton}
-          accessibilityRole="button"
-          accessibilityLabel={t("common:back")}
-        >
-          <MaterialIcons
-            name="arrow-back"
-            size={24}
-            color={Colors.light.textPrimary}
-          />
-        </TouchableOpacity>
-
-        <View style={styles.headerInfo}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.iconButton}
+            accessibilityRole="button"
+            accessibilityLabel={t("common:back")}
+          >
+            <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
+          </TouchableOpacity>
           <ThemedText style={styles.customerHeaderName} numberOfLines={1}>
             {customer.name}
-          </ThemedText>
-          <ThemedText style={styles.customerHeaderSubtitle} numberOfLines={1}>
-            {hasDebt
-              ? t("customers:hasDebt")
-              : t("customers:settled")}
-            {customer.phone ? ` • ${customer.phone}` : ""}
           </ThemedText>
         </View>
 
@@ -213,27 +220,19 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
           {customer.phone ? (
             <TouchableOpacity
               onPress={handleCall}
-              style={styles.iconButton}
+              style={styles.iconCircleBtn}
               accessibilityLabel={t("customers:phone")}
             >
-              <MaterialIcons
-                name="phone"
-                size={20}
-                color={Colors.light.primary}
-              />
+              <Ionicons name="call-outline" size={18} color={theme.primary} />
             </TouchableOpacity>
           ) : null}
 
           <TouchableOpacity
             onPress={() => router.push(`/customers/edit/${customer.id}` as any)}
-            style={styles.iconButton}
+            style={styles.iconCircleBtn}
             accessibilityLabel={t("common:edit")}
           >
-            <MaterialIcons
-              name="edit"
-              size={20}
-              color={Colors.light.textSecondary}
-            />
+            <Ionicons name="pencil" size={18} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -241,48 +240,93 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadData();
+            }}
+            tintColor={theme.primary}
+          />
+        }
       >
+        {/* Breadcrumb Strip matching Stitch */}
+        <View style={styles.breadcrumbRow}>
+          <Ionicons name="people-outline" size={14} color={theme.textMuted} />
+          <ThemedText style={styles.breadcrumbText} numberOfLines={1}>
+            {t("customers:title")} • {customer.name}
+          </ThemedText>
+        </View>
+
         {/* Hero Debt Card */}
-        <View
-          style={[
-            styles.heroDebtCard,
-            hasDebt ? styles.heroDebtCardActive : styles.heroDebtCardSettled,
-          ]}
-        >
-          <View style={styles.heroDebtHeader}>
-            <ThemedText
-              style={[
-                styles.heroDebtLabel,
-                hasDebt ? styles.heroDebtLabelActive : styles.heroDebtLabelSettled,
-              ]}
-            >
-              {t("customers:currentDebt")}
-            </ThemedText>
-            <View
-              style={[
-                styles.statusPill,
-                hasDebt ? styles.statusPillDebt : styles.statusPillSettled,
-              ]}
-            >
-              <ThemedText
-                style={[
-                  styles.statusPillText,
-                  hasDebt ? styles.statusPillTextDebt : styles.statusPillTextSettled,
-                ]}
-              >
-                {hasDebt ? t("customers:immediateDue") : t("customers:settled")}
-              </ThemedText>
+        <View style={styles.heroDebtCard}>
+          <View style={styles.avatarHeaderRow}>
+            <View style={styles.avatarCircle}>
+              <ThemedText style={styles.avatarText}>{initials}</ThemedText>
+            </View>
+
+            <View style={styles.customerInfoWrap}>
+              <View style={styles.nameStatusRow}>
+                <ThemedText style={styles.heroCustomerName} numberOfLines={1}>
+                  {customer.name}
+                </ThemedText>
+                <View
+                  style={[
+                    styles.statusPill,
+                    hasDebt ? styles.statusPillDebt : styles.statusPillSettled,
+                  ]}
+                >
+                  <ThemedText
+                    style={[
+                      styles.statusPillText,
+                      hasDebt ? styles.statusPillTextDebt : styles.statusPillTextSettled,
+                    ]}
+                  >
+                    {hasDebt ? t("customers:immediateDue") : t("customers:settled")}
+                  </ThemedText>
+                </View>
+              </View>
+
+              {customer.phone ? (
+                <TouchableOpacity onPress={handleCall} style={styles.phoneLinkRow}>
+                  <Ionicons name="call-outline" size={13} color={theme.primary} />
+                  <ThemedText style={styles.phoneText}>{customer.phone}</ThemedText>
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
 
-          <ThemedText
-            style={[
-              styles.heroDebtAmount,
-              hasDebt ? styles.heroDebtAmountActive : styles.heroDebtAmountSettled,
-            ]}
-          >
-            {formatCentimes(debtCentimes, i18n.language as any)}
-          </ThemedText>
+          {/* Amount Display */}
+          <View style={styles.amountDisplayBlock}>
+            <ThemedText style={styles.heroDebtLabel}>
+              {t("customers:currentDebt")}
+            </ThemedText>
+            <ThemedText
+              style={[
+                styles.heroDebtAmount,
+                hasDebt ? styles.heroDebtAmountActive : styles.heroDebtAmountSettled,
+              ]}
+            >
+              {formatCentimes(debtCentimes, i18n.language as any)}
+            </ThemedText>
+          </View>
+
+          {/* Micro Grid Summary */}
+          <View style={styles.microGrid}>
+            <View style={styles.microGridItem}>
+              <ThemedText style={styles.microGridLabel}>{t("customers:creditSales")}</ThemedText>
+              <ThemedText style={styles.microGridValue}>{creditSales.length}</ThemedText>
+            </View>
+            <View style={styles.microGridItem}>
+              <ThemedText style={styles.microGridLabel}>{t("customers:payments")}</ThemedText>
+              <ThemedText style={styles.microGridValue}>{payments.length}</ThemedText>
+            </View>
+            <View style={styles.microGridItem}>
+              <ThemedText style={styles.microGridLabel}>{t("customers:timeline")}</ThemedText>
+              <ThemedText style={styles.microGridValue}>{timelineItems.length}</ThemedText>
+            </View>
+          </View>
         </View>
 
         {/* Action Buttons Row */}
@@ -296,7 +340,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
             activeOpacity={0.8}
             disabled={!hasDebt}
           >
-            <MaterialIcons name="payments" size={20} color="#FFFFFF" />
+            <Ionicons name="cash-outline" size={20} color="#FFFFFF" />
             <ThemedText style={styles.primaryActionBtnText}>
               {t("customers:recordPayment")}
             </ThemedText>
@@ -307,11 +351,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
             onPress={handleShareReminder}
             activeOpacity={0.8}
           >
-            <MaterialIcons
-              name="share"
-              size={18}
-              color={Colors.light.textPrimary}
-            />
+            <Ionicons name="share-social-outline" size={18} color={theme.textPrimary} />
             <ThemedText style={styles.secondaryActionBtnText}>
               {t("customers:shareReminder")}
             </ThemedText>
@@ -424,11 +464,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
           <View style={styles.tabContent}>
             {creditSales.length === 0 ? (
               <View style={styles.tabEmptyState}>
-                <MaterialIcons
-                  name="receipt"
-                  size={36}
-                  color={Colors.light.textMuted}
-                />
+                <Ionicons name="receipt-outline" size={36} color={theme.textMuted} />
                 <ThemedText style={styles.tabEmptyText}>
                   {t("customers:noSales")}
                 </ThemedText>
@@ -438,10 +474,10 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                 <View key={sale.id} style={styles.recordRow}>
                   <View style={styles.recordLeft}>
                     <View style={styles.recordIconSale}>
-                      <MaterialIcons
-                        name="receipt-long"
+                      <Ionicons
+                        name="receipt-outline"
                         size={18}
-                        color={Colors.light.destructive}
+                        color={theme.error}
                       />
                     </View>
                     <View style={styles.recordTexts}>
@@ -468,11 +504,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
           <View style={styles.tabContent}>
             {payments.length === 0 ? (
               <View style={styles.tabEmptyState}>
-                <MaterialIcons
-                  name="payments"
-                  size={36}
-                  color={Colors.light.textMuted}
-                />
+                <Ionicons name="cash-outline" size={36} color={theme.textMuted} />
                 <ThemedText style={styles.tabEmptyText}>
                   {t("customers:noPayments")}
                 </ThemedText>
@@ -482,10 +514,10 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                 <View key={payment.id} style={styles.recordRow}>
                   <View style={styles.recordLeft}>
                     <View style={styles.recordIconPayment}>
-                      <MaterialIcons
-                        name="check-circle"
+                      <Ionicons
+                        name="checkmark-circle-outline"
                         size={18}
-                        color={Colors.light.primary}
+                        color={theme.primary}
                       />
                     </View>
                     <View style={styles.recordTexts}>
@@ -513,11 +545,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
           <View style={styles.tabContent}>
             {timelineItems.length === 0 ? (
               <View style={styles.tabEmptyState}>
-                <MaterialIcons
-                  name="history"
-                  size={36}
-                  color={Colors.light.textMuted}
-                />
+                <Ionicons name="time-outline" size={36} color={theme.textMuted} />
                 <ThemedText style={styles.tabEmptyText}>
                   {t("customers:noTimeline")}
                 </ThemedText>
@@ -533,15 +561,17 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                           : styles.recordIconPayment
                       }
                     >
-                      <MaterialIcons
+                      <Ionicons
                         name={
-                          item.type === "sale" ? "receipt-long" : "check-circle"
+                          item.type === "sale"
+                            ? "receipt-outline"
+                            : "checkmark-circle-outline"
                         }
                         size={18}
                         color={
                           item.type === "sale"
-                            ? Colors.light.destructive
-                            : Colors.light.primary
+                            ? theme.error
+                            : theme.primary
                         }
                       />
                     </View>
@@ -590,331 +620,398 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  centerContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: Spacing.xl,
-    backgroundColor: Colors.light.background,
-  },
-  loadingText: {
-    marginTop: Spacing.md,
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-  },
-  errorText: {
-    fontSize: 16,
-    color: Colors.light.destructive,
-    textAlign: "center",
-    marginBottom: Spacing.md,
-  },
-  retryButton: {
-    backgroundColor: Colors.light.surface,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: BorderRadius.button,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  retryButtonText: {
-    fontSize: 14,
-    color: Colors.light.textPrimary,
-  },
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.borderLight,
-  },
-  iconButton: {
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  headerInfo: {
-    flex: 1,
-    marginHorizontal: Spacing.sm,
-  },
-  customerHeaderName: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: Colors.light.textPrimary,
-  },
-  customerHeaderSubtitle: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginTop: 1,
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  scrollContent: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxxxxx,
-  },
-  heroDebtCard: {
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.xxl,
-    borderWidth: 1,
-    marginBottom: Spacing.md,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  heroDebtCardActive: {
-    backgroundColor: Colors.light.surface,
-    borderColor: Colors.light.borderLight,
-  },
-  heroDebtCardSettled: {
-    backgroundColor: Colors.light.primaryLight,
-    borderColor: Colors.light.primaryLight,
-  },
-  heroDebtHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: Spacing.xs,
-  },
-  heroDebtLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  heroDebtLabelActive: {
-    color: Colors.light.textSecondary,
-  },
-  heroDebtLabelSettled: {
-    color: Colors.light.primary,
-  },
-  heroDebtAmount: {
-    fontSize: 32,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-  },
-  heroDebtAmountActive: {
-    color: Colors.light.destructive, // Debt amounts use red per Stitch export
-  },
-  heroDebtAmountSettled: {
-    color: Colors.light.primary,
-  },
-  statusPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-  },
-  statusPillDebt: {
-    backgroundColor: Colors.light.errorLight,
-  },
-  statusPillSettled: {
-    backgroundColor: "rgba(27, 107, 58, 0.15)",
-  },
-  statusPillText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  statusPillTextDebt: {
-    color: Colors.light.destructive,
-  },
-  statusPillTextSettled: {
-    color: Colors.light.primary,
-  },
-  actionButtonsRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  primaryActionBtn: {
-    flex: 1.4,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: Colors.light.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: BorderRadius.button,
-    shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  primaryActionBtnDisabled: {
-    opacity: 0.5,
-  },
-  primaryActionBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  secondaryActionBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    backgroundColor: Colors.light.surface,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: BorderRadius.button,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  secondaryActionBtnText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-  },
-  tabsContainer: {
-    flexDirection: "row",
-    backgroundColor: Colors.light.surfaceAlt,
-    borderRadius: BorderRadius.xl,
-    padding: 3,
-    marginBottom: Spacing.md,
-  },
-  tabItem: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.lg,
-  },
-  tabItemActive: {
-    backgroundColor: Colors.light.surface,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabItemText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.light.textSecondary,
-  },
-  tabItemTextActive: {
-    color: Colors.light.textPrimary,
-  },
-  tabBadge: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-  },
-  tabBadgeActive: {
-    backgroundColor: Colors.light.primaryLight,
-  },
-  tabBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: Colors.light.textSecondary,
-  },
-  tabBadgeTextActive: {
-    color: Colors.light.primary,
-  },
-  tabContent: {
-    gap: Spacing.xs,
-  },
-  tabEmptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.xxxx,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-  },
-  tabEmptyText: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginTop: Spacing.sm,
-  },
-  recordRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-    marginBottom: Spacing.xs,
-  },
-  recordLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-    flex: 1,
-  },
-  recordIconSale: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.errorLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  recordIconPayment: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  recordTexts: {
-    flex: 1,
-  },
-  recordTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-  },
-  recordSubtitle: {
-    fontSize: 12,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
-  },
-  recordAmountSale: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Colors.light.destructive, // Sale / debt in red
-  },
-  recordAmountPayment: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Colors.light.primary, // Payment in green
-  },
-  notesCard: {
-    padding: Spacing.lg,
-    backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.light.borderLight,
-  },
-  notesTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.light.textSecondary,
-    marginBottom: Spacing.xs,
-    textTransform: "uppercase",
-  },
-  notesBody: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: Colors.light.textPrimary,
-  },
-});
+const createStyles = (theme: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    centerContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: Spacing.xl,
+      backgroundColor: theme.background,
+    },
+    loadingText: {
+      marginTop: Spacing.md,
+      fontSize: 14,
+      color: theme.textSecondary,
+    },
+    errorText: {
+      fontSize: 16,
+      color: theme.error,
+      textAlign: "center",
+      marginBottom: Spacing.md,
+    },
+    retryButton: {
+      backgroundColor: theme.surface,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: BorderRadius.button,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    retryButtonText: {
+      fontSize: 14,
+      color: theme.textPrimary,
+    },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.sm,
+      flex: 1,
+    },
+    iconButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    customerHeaderName: {
+      ...Typography.heading3,
+      color: theme.textPrimary,
+      flex: 1,
+    },
+    headerActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+    },
+    iconCircleBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: theme.surfaceAlt,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    scrollContent: {
+      padding: Spacing.lg,
+      paddingBottom: 48,
+      gap: Spacing.md,
+      maxWidth: 600,
+      alignSelf: "center",
+      width: "100%",
+    },
+    breadcrumbRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingHorizontal: 2,
+      marginBottom: 2,
+    },
+    breadcrumbText: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      fontSize: 12,
+    },
+    heroDebtCard: {
+      padding: Spacing.lg,
+      borderRadius: BorderRadius.xl,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: Spacing.md,
+      ...Shadows.sm,
+    },
+    avatarHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.md,
+    },
+    avatarCircle: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      backgroundColor: theme.primaryLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: theme.primary,
+    },
+    customerInfoWrap: {
+      flex: 1,
+      gap: 2,
+    },
+    nameStatusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: Spacing.xs,
+    },
+    heroCustomerName: {
+      ...Typography.heading3,
+      color: theme.textPrimary,
+      flex: 1,
+    },
+    phoneLinkRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      marginTop: 2,
+    },
+    phoneText: {
+      ...Typography.caption,
+      color: theme.primary,
+      fontWeight: "600",
+    },
+    amountDisplayBlock: {
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.md,
+      alignItems: "flex-start",
+      gap: 2,
+    },
+    heroDebtLabel: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      fontSize: 12,
+    },
+    heroDebtAmount: {
+      fontSize: 28,
+      fontWeight: "800",
+      letterSpacing: -0.5,
+    },
+    heroDebtAmountActive: {
+      color: theme.error,
+    },
+    heroDebtAmountSettled: {
+      color: theme.primary,
+    },
+    statusPill: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: BorderRadius.sm,
+    },
+    statusPillDebt: {
+      backgroundColor: theme.errorLight,
+    },
+    statusPillSettled: {
+      backgroundColor: theme.primaryLight,
+    },
+    statusPillText: {
+      ...Typography.caption,
+      fontSize: 11,
+      fontWeight: "700",
+    },
+    statusPillTextDebt: {
+      color: theme.error,
+    },
+    statusPillTextSettled: {
+      color: theme.primary,
+    },
+    microGrid: {
+      flexDirection: "row",
+      gap: Spacing.xs,
+    },
+    microGridItem: {
+      flex: 1,
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.sm,
+      alignItems: "center",
+      gap: 2,
+    },
+    microGridLabel: {
+      ...Typography.caption,
+      color: theme.textMuted,
+      fontSize: 11,
+    },
+    microGridValue: {
+      ...Typography.label,
+      color: theme.textPrimary,
+      fontWeight: "700",
+    },
+    actionButtonsRow: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+    },
+    primaryActionBtn: {
+      flex: 1.4,
+      height: 48,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: theme.primary,
+      borderRadius: BorderRadius.xl,
+      ...Shadows.sm,
+    },
+    primaryActionBtnDisabled: {
+      opacity: 0.5,
+    },
+    primaryActionBtnText: {
+      ...Typography.label,
+      fontWeight: "700",
+      color: "#FFFFFF",
+    },
+    secondaryActionBtn: {
+      flex: 1,
+      height: 48,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      backgroundColor: theme.surface,
+      borderRadius: BorderRadius.xl,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    secondaryActionBtnText: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textPrimary,
+    },
+    tabsContainer: {
+      flexDirection: "row",
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: BorderRadius.xl,
+      padding: 3,
+    },
+    tabItem: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
+      paddingVertical: 10,
+      borderRadius: BorderRadius.lg,
+    },
+    tabItemActive: {
+      backgroundColor: theme.surface,
+      ...Shadows.sm,
+    },
+    tabItemText: {
+      ...Typography.caption,
+      fontWeight: "600",
+      color: theme.textSecondary,
+    },
+    tabItemTextActive: {
+      color: theme.textPrimary,
+      fontWeight: "700",
+    },
+    tabBadge: {
+      backgroundColor: theme.surface,
+      borderRadius: BorderRadius.sm,
+      paddingHorizontal: 6,
+      paddingVertical: 1,
+    },
+    tabBadgeActive: {
+      backgroundColor: theme.primaryLight,
+    },
+    tabBadgeText: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: theme.textSecondary,
+    },
+    tabBadgeTextActive: {
+      color: theme.primary,
+    },
+    tabContent: {
+      gap: Spacing.xs,
+    },
+    tabEmptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: Spacing.xl,
+      backgroundColor: theme.surface,
+      borderRadius: BorderRadius.xl,
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: Spacing.xs,
+    },
+    tabEmptyText: {
+      ...Typography.caption,
+      color: theme.textMuted,
+    },
+    recordRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.md,
+      paddingHorizontal: Spacing.md,
+      backgroundColor: theme.surface,
+      borderRadius: BorderRadius.xl,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: Spacing.xs,
+    },
+    recordLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.sm,
+      flex: 1,
+    },
+    recordIconSale: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: theme.errorLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    recordIconPayment: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: theme.primaryLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    recordTexts: {
+      flex: 1,
+    },
+    recordTitle: {
+      ...Typography.label,
+      fontWeight: "600",
+      color: theme.textPrimary,
+    },
+    recordSubtitle: {
+      ...Typography.caption,
+      color: theme.textSecondary,
+      marginTop: 2,
+    },
+    recordAmountSale: {
+      ...Typography.label,
+      fontWeight: "700",
+      color: theme.error,
+    },
+    recordAmountPayment: {
+      ...Typography.label,
+      fontWeight: "700",
+      color: theme.primary,
+    },
+    notesCard: {
+      padding: Spacing.lg,
+      backgroundColor: theme.surface,
+      borderRadius: BorderRadius.xl,
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: Spacing.xs,
+    },
+    notesTitle: {
+      ...Typography.caption,
+      fontWeight: "700",
+      color: theme.textSecondary,
+      textTransform: "uppercase",
+    },
+    notesBody: {
+      ...Typography.body,
+      color: theme.textPrimary,
+    },
+  });

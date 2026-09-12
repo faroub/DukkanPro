@@ -2,7 +2,8 @@ import { Pressable, StyleSheet, type ViewProps } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing, Colors } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface ErrorStateProps extends ViewProps {
   message: string;
@@ -18,6 +19,8 @@ export function ErrorState({
   locale = "fr",
   ...rest
 }: ErrorStateProps) {
+  const theme = useTheme();
+
   const defaultRetryLabel =
     locale === "ar"
       ? "إعادة المحاولة"
@@ -28,12 +31,10 @@ export function ErrorState({
   return (
     <ThemedView type="background" style={styles.container} {...rest}>
       <ThemedView style={styles.content}>
-        <ThemedText style={styles.errorIcon}>{/* Error icon */}</ThemedText>
-
-        <ThemedText style={styles.errorMessage}>{message}</ThemedText>
+        <ThemedText style={[styles.errorMessage, { color: theme.error }]}>{message}</ThemedText>
 
         <Pressable
-          style={styles.retryButton}
+          style={[styles.retryButton, { backgroundColor: theme.primary }]}
           onPress={onRetry}
           accessibilityRole="button"
           accessibilityLabel={retryLabel || defaultRetryLabel}
@@ -55,29 +56,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.md,
   },
-  errorIcon: {
-    width: 40,
-    height: 40,
-    marginBottom: Spacing.md,
-  },
   errorMessage: {
     fontSize: 16,
-    color: Colors.light.destructive,
-    fontWeight: 500,
+    fontWeight: "500",
     textAlign: "center",
     maxWidth: "80%",
   },
   retryButton: {
-    backgroundColor: Colors.light.warning,
     minHeight: 48,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: Spacing.md,
     alignItems: "center",
+    justifyContent: "center",
   },
   retryText: {
-    color: Colors.light.textPrimary,
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: 600,
+    fontWeight: "600",
   },
 });

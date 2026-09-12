@@ -4,8 +4,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
-import { formatCentimes } from "@/utils/money";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 interface SummaryCardsProps {
   revenueKey: string;
@@ -46,6 +46,7 @@ export function SummaryCards({
   onPressLowStock,
 }: SummaryCardsProps) {
   const router = useRouter();
+  const theme = useTheme();
 
   const handleRevenuePress = () => {
     if (onPressRevenue) onPressRevenue();
@@ -80,35 +81,35 @@ export function SummaryCards({
     <View style={styles.grid}>
       {/* Metric Card 1: Today's Sales (Green) */}
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
         onPress={handleRevenuePress}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`${revenueKey}: ${revenueDZD} DZD`}
       >
         <View style={styles.cardTop}>
-          <ThemedText style={styles.cardLabel} numberOfLines={1}>
+          <ThemedText style={[styles.cardLabel, { color: theme.textSecondary }]} numberOfLines={1}>
             {revenueKey}
           </ThemedText>
-          <View style={styles.iconBoxPrimary}>
+          <View style={[styles.iconBoxPrimary, { backgroundColor: theme.primaryLight }]}>
             <MaterialIcons
               name="point-of-sale"
               size={15}
-              color={Colors.light.primary}
+              color={theme.primary}
             />
           </View>
         </View>
 
         <View style={styles.cardBottom}>
           <View style={styles.amountRow}>
-            <ThemedText style={[styles.amountText, styles.primaryText]}>
+            <ThemedText style={[styles.amountText, { color: theme.primary }]}>
               {formatAmount(revenueDZD)}
             </ThemedText>
-            <ThemedText style={[styles.currencyLabel, styles.primaryText]}>
+            <ThemedText style={[styles.currencyLabel, { color: theme.primary }]}>
               DZD
             </ThemedText>
           </View>
-          <ThemedText style={styles.subText} numberOfLines={1}>
+          <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
             {locale === "ar"
               ? `${salesCount} عملية بيع`
               : locale === "fr"
@@ -120,18 +121,18 @@ export function SummaryCards({
 
       {/* Metric Card 2: Est. Profit (Green) */}
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
         onPress={handleProfitPress}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`${profitKey}: ${profitDZD} DZD`}
       >
         <View style={styles.cardTop}>
-          <ThemedText style={styles.cardLabel} numberOfLines={1}>
+          <ThemedText style={[styles.cardLabel, { color: theme.textSecondary }]} numberOfLines={1}>
             {profitKey}
           </ThemedText>
-          <View style={styles.badgePrimary}>
-            <ThemedText style={styles.badgePrimaryText}>
+          <View style={[styles.badgePrimary, { backgroundColor: theme.primaryLight }]}>
+            <ThemedText style={[styles.badgePrimaryText, { color: theme.primary }]}>
               {profitPercent}
             </ThemedText>
           </View>
@@ -139,14 +140,14 @@ export function SummaryCards({
 
         <View style={styles.cardBottom}>
           <View style={styles.amountRow}>
-            <ThemedText style={[styles.amountText, styles.primaryText]}>
+            <ThemedText style={[styles.amountText, { color: theme.primary }]}>
               {formatAmount(profitDZD)}
             </ThemedText>
-            <ThemedText style={[styles.currencyLabel, styles.primaryText]}>
+            <ThemedText style={[styles.currencyLabel, { color: theme.primary }]}>
               DZD
             </ThemedText>
           </View>
-          <ThemedText style={styles.subText} numberOfLines={1}>
+          <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
             {locale === "ar"
               ? "الربح التقديري"
               : locale === "fr"
@@ -158,18 +159,18 @@ export function SummaryCards({
 
       {/* Metric Card 3: To Collect (Amber) */}
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
         onPress={handleToCollectPress}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`${toCollectKey}: ${toCollectDZD} DZD`}
       >
         <View style={styles.cardTop}>
-          <ThemedText style={styles.cardLabel} numberOfLines={1}>
+          <ThemedText style={[styles.cardLabel, { color: theme.textSecondary }]} numberOfLines={1}>
             {toCollectKey}
           </ThemedText>
-          <View style={styles.badgeWarning}>
-            <ThemedText style={styles.badgeWarningText}>
+          <View style={[styles.badgeWarning, { backgroundColor: theme.warningLight }]}>
+            <ThemedText style={[styles.badgeWarningText, { color: theme.secondary }]}>
               {locale === "ar"
                 ? `${debtCustomersCount} زبائن`
                 : `${debtCustomersCount} clients`}
@@ -179,14 +180,14 @@ export function SummaryCards({
 
         <View style={styles.cardBottom}>
           <View style={styles.amountRow}>
-            <ThemedText style={[styles.amountText, styles.secondaryText]}>
+            <ThemedText style={[styles.amountText, { color: theme.secondary }]}>
               {formatAmount(toCollectDZD)}
             </ThemedText>
-            <ThemedText style={[styles.currencyLabel, styles.secondaryText]}>
+            <ThemedText style={[styles.currencyLabel, { color: theme.secondary }]}>
               DZD
             </ThemedText>
           </View>
-          <ThemedText style={styles.subText} numberOfLines={1}>
+          <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
             {locale === "ar"
               ? "دفتر الديون"
               : locale === "fr"
@@ -198,35 +199,35 @@ export function SummaryCards({
 
       {/* Metric Card 4: Low Stock Alert (Amber) */}
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
         onPress={handleLowStockPress}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`${lowStockKey}: ${lowStockCount} items`}
       >
         <View style={styles.cardTop}>
-          <ThemedText style={styles.cardLabel} numberOfLines={1}>
+          <ThemedText style={[styles.cardLabel, { color: theme.textSecondary }]} numberOfLines={1}>
             {lowStockKey}
           </ThemedText>
-          <View style={styles.iconBoxWarning}>
+          <View style={[styles.iconBoxWarning, { backgroundColor: theme.warningLight }]}>
             <MaterialIcons
               name="notification-important"
               size={15}
-              color={Colors.light.secondary}
+              color={theme.secondary}
             />
           </View>
         </View>
 
         <View style={styles.cardBottom}>
           <View style={styles.amountRow}>
-            <ThemedText style={[styles.amountText, styles.secondaryText]}>
+            <ThemedText style={[styles.amountText, { color: theme.secondary }]}>
               {lowStockCount}
             </ThemedText>
-            <ThemedText style={[styles.currencyLabel, styles.secondaryText]}>
+            <ThemedText style={[styles.currencyLabel, { color: theme.secondary }]}>
               {locale === "ar" ? "منتجات" : "items"}
             </ThemedText>
           </View>
-          <ThemedText style={styles.subText} numberOfLines={1}>
+          <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
             {lowStockCount > 0
               ? locale === "ar"
                 ? "تنبيه بالنقص"
@@ -254,9 +255,7 @@ const styles = StyleSheet.create({
     width: "48%",
     flexGrow: 1,
     height: 128,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     justifyContent: "space-between",
@@ -270,7 +269,6 @@ const styles = StyleSheet.create({
   cardLabel: {
     ...Typography.caption,
     fontSize: 13,
-    color: Colors.light.textSecondary,
     fontWeight: "500",
     flex: 1,
     paddingRight: 4,
@@ -279,7 +277,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -287,19 +284,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    backgroundColor: Colors.light.primaryLight,
   },
   badgePrimaryText: {
     ...Typography.badge,
     fontSize: 11,
     fontWeight: "700",
-    color: Colors.light.primary,
   },
   iconBoxWarning: {
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: Colors.light.warningLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -307,13 +301,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    backgroundColor: Colors.light.warningLight,
   },
   badgeWarningText: {
     ...Typography.badge,
     fontSize: 11,
     fontWeight: "700",
-    color: Colors.light.secondary,
   },
   cardBottom: {
     marginTop: 2,
@@ -334,16 +326,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
   },
-  primaryText: {
-    color: Colors.light.primary,
-  },
-  secondaryText: {
-    color: Colors.light.secondary,
-  },
   subText: {
     ...Typography.caption,
     fontSize: 11,
-    color: Colors.light.textSecondary,
     marginTop: 1,
   },
 });

@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BorderRadius, Colors, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Spacing, Typography } from "@/constants/theme";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useTheme } from "@/hooks/use-theme";
 
 export interface CatalogueSettingsData {
   showPrices: boolean;
@@ -39,10 +40,11 @@ export function CatalogueSettings({
   onBack,
 }: CatalogueSettingsProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
       id="catalogue-settings-scroll"
@@ -58,16 +60,16 @@ export function CatalogueSettings({
           <MaterialIcons
             name="arrow-back"
             size={20}
-            color={Colors.light.textPrimary}
+            color={theme.textPrimary}
           />
-          <ThemedText style={styles.backButtonText}>
+          <ThemedText style={[styles.backButtonText, { color: theme.textPrimary }]}>
             {t("navigation.more")}
           </ThemedText>
         </TouchableOpacity>
 
-        <View style={styles.readyBadge} id="catalogue-ready-badge">
-          <View style={styles.pulseDot} />
-          <ThemedText style={styles.readyBadgeText}>
+        <View style={[styles.readyBadge, { backgroundColor: theme.primaryLight }]} id="catalogue-ready-badge">
+          <View style={[styles.pulseDot, { backgroundColor: theme.primary }]} />
+          <ThemedText style={[styles.readyBadgeText, { color: theme.primary }]}>
             {t("catalogue.readyToShare")}
           </ThemedText>
         </View>
@@ -75,59 +77,59 @@ export function CatalogueSettings({
 
       {/* Screen Title Block */}
       <View style={styles.headerBlock} id="catalogue-header-block">
-        <ThemedText style={styles.title}>
+        <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
           {t("catalogue.settingsTitle")}
         </ThemedText>
         <View style={styles.subtitleRow}>
           <MaterialIcons
             name="storefront"
             size={16}
-            color={Colors.light.textSecondary}
+            color={theme.textSecondary}
           />
-          <ThemedText style={styles.subtitle}>
+          <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
             {t("catalogue.settingsSubtitle")} • {settings.shopName || "Supérette El-Amel"}
           </ThemedText>
         </View>
       </View>
 
       {/* Feature Intro Showcase Card */}
-      <View style={styles.introCard} id="catalogue-intro-card">
-        <View style={styles.introIconContainer}>
+      <View style={[styles.introCard, { backgroundColor: theme.surface, borderColor: theme.border }]} id="catalogue-intro-card">
+        <View style={[styles.introIconContainer, { backgroundColor: theme.primaryLight }]}>
           <MaterialIcons
             name="menu-book"
             size={26}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
         </View>
         <View style={styles.introContent}>
           <View style={styles.introHeadlineRow}>
-            <ThemedText style={styles.introHeadline}>
+            <ThemedText style={[styles.introHeadline, { color: theme.textPrimary }]}>
               {t("catalogue.instantShowcase")}
             </ThemedText>
-            <View style={styles.channelPill}>
+            <View style={[styles.channelPill, { backgroundColor: theme.surfaceAlt }]}>
               <MaterialIcons
                 name="chat"
                 size={12}
-                color={Colors.light.secondary}
+                color={theme.primary}
               />
-              <ThemedText style={styles.channelPillText}>WhatsApp / SMS</ThemedText>
+              <ThemedText style={[styles.channelPillText, { color: theme.primary }]}>WhatsApp / SMS</ThemedText>
             </View>
           </View>
-          <ThemedText style={styles.introDesc}>
+          <ThemedText style={[styles.introDesc, { color: theme.textSecondary }]}>
             {t("catalogue.instantShowcaseDesc")}
           </ThemedText>
         </View>
       </View>
 
       {/* Display Preferences Card */}
-      <ThemedView style={styles.card} id="catalogue-preferences-card">
+      <ThemedView style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]} id="catalogue-preferences-card">
         <View style={styles.cardHeaderRow}>
           <MaterialIcons
             name="tune"
             size={20}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
-          <ThemedText style={styles.cardTitle}>
+          <ThemedText style={[styles.cardTitle, { color: theme.textPrimary }]}>
             {t("catalogue.displayPreferences")}
           </ThemedText>
         </View>
@@ -136,14 +138,14 @@ export function CatalogueSettings({
         <View style={styles.toggleRow} id="toggle-show-prices-row">
           <View style={styles.toggleInfo}>
             <View style={styles.toggleLabelRow}>
-              <ThemedText style={styles.toggleLabel}>
+              <ThemedText style={[styles.toggleLabel, { color: theme.textPrimary }]}>
                 {t("catalogue.showRetailPrices")}
               </ThemedText>
-              <View style={styles.currencyBadge}>
-                <ThemedText style={styles.currencyBadgeText}>DZD</ThemedText>
+              <View style={[styles.currencyBadge, { backgroundColor: theme.surfaceAlt }]}>
+                <ThemedText style={[styles.currencyBadgeText, { color: theme.textSecondary }]}>DZD</ThemedText>
               </View>
             </View>
-            <ThemedText style={styles.toggleDesc}>
+            <ThemedText style={[styles.toggleDesc, { color: theme.textSecondary }]}>
               {t("catalogue.showRetailPricesDesc")}
             </ThemedText>
           </View>
@@ -151,23 +153,23 @@ export function CatalogueSettings({
             value={settings.showPrices}
             onValueChange={(val) => onSettingChange("showPrices", val)}
             trackColor={{
-              false: Colors.light.disabledBackground,
-              true: Colors.light.primary,
+              false: theme.border,
+              true: theme.primary,
             }}
             thumbColor="#FFFFFF"
             id="switch-show-prices"
           />
         </View>
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
         {/* Toggle 2: Hide Out-of-Stock */}
         <View style={styles.toggleRow} id="toggle-hide-stock-row">
           <View style={styles.toggleInfo}>
-            <ThemedText style={styles.toggleLabel}>
+            <ThemedText style={[styles.toggleLabel, { color: theme.textPrimary }]}>
               {t("catalogue.hideOutOfStock")}
             </ThemedText>
-            <ThemedText style={styles.toggleDesc}>
+            <ThemedText style={[styles.toggleDesc, { color: theme.textSecondary }]}>
               {t("catalogue.hideOutOfStockDesc")}
             </ThemedText>
           </View>
@@ -175,8 +177,8 @@ export function CatalogueSettings({
             value={settings.hideOutOfStock}
             onValueChange={(val) => onSettingChange("hideOutOfStock", val)}
             trackColor={{
-              false: Colors.light.disabledBackground,
-              true: Colors.light.primary,
+              false: theme.border,
+              true: theme.primary,
             }}
             thumbColor="#FFFFFF"
             id="switch-hide-stock"
@@ -185,18 +187,18 @@ export function CatalogueSettings({
       </ThemedView>
 
       {/* Customer Header & Contact Card */}
-      <ThemedView style={styles.card} id="catalogue-contact-card">
+      <ThemedView style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]} id="catalogue-contact-card">
         <View style={styles.cardHeaderRow}>
           <MaterialIcons
             name="storefront"
             size={20}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
-          <ThemedText style={styles.cardTitle}>
+          <ThemedText style={[styles.cardTitle, { color: theme.textPrimary }]}>
             {t("catalogue.publicHeader")}
           </ThemedText>
-          <View style={styles.editableTag}>
-            <ThemedText style={styles.editableTagText}>
+          <View style={[styles.editableTag, { backgroundColor: theme.surfaceAlt }]}>
+            <ThemedText style={[styles.editableTagText, { color: theme.textSecondary }]}>
               {t("common.edit") || "Editable"}
             </ThemedText>
           </View>
@@ -204,22 +206,22 @@ export function CatalogueSettings({
 
         {/* Shop Header Title */}
         <View style={styles.fieldGroup}>
-          <ThemedText style={styles.fieldLabel}>
+          <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>
             {t("catalogue.shopHeaderTitle")}
           </ThemedText>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, { borderColor: theme.border, backgroundColor: theme.surfaceAlt }]}>
             <MaterialIcons
               name="badge"
               size={18}
-              color={Colors.light.textSecondary}
+              color={theme.textSecondary}
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.textPrimary }]}
               value={settings.shopName}
               onChangeText={(val) => onSettingChange("shopName", val)}
               placeholder="Supérette El-Amel"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={theme.textMuted}
               id="input-shop-name"
             />
           </View>
@@ -228,31 +230,31 @@ export function CatalogueSettings({
         {/* Order WhatsApp / Mobile */}
         <View style={styles.fieldGroup}>
           <View style={styles.fieldLabelRow}>
-            <ThemedText style={styles.fieldLabel}>
+            <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>
               {t("catalogue.orderWhatsApp")}
             </ThemedText>
             <View style={styles.autoLinksBadge}>
               <MaterialIcons
                 name="check-circle"
                 size={12}
-                color={Colors.light.primary}
+                color={theme.primary}
               />
-              <ThemedText style={styles.autoLinksText}>Auto-links</ThemedText>
+              <ThemedText style={[styles.autoLinksText, { color: theme.primary }]}>Auto-links</ThemedText>
             </View>
           </View>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, { borderColor: theme.border, backgroundColor: theme.surfaceAlt }]}>
             <MaterialIcons
               name="chat"
               size={18}
-              color={Colors.light.textSecondary}
+              color={theme.textSecondary}
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.textPrimary }]}
               value={settings.contact}
               onChangeText={(val) => onSettingChange("contact", val)}
               placeholder="+213 550 12 34 56"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={theme.textMuted}
               keyboardType="phone-pad"
               id="input-contact"
             />
@@ -261,22 +263,22 @@ export function CatalogueSettings({
 
         {/* Store Location / Address */}
         <View style={styles.fieldGroup}>
-          <ThemedText style={styles.fieldLabel}>
+          <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>
             {t("catalogue.storeLocation")}
           </ThemedText>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, { borderColor: theme.border, backgroundColor: theme.surfaceAlt }]}>
             <MaterialIcons
               name="place"
               size={18}
-              color={Colors.light.textSecondary}
+              color={theme.textSecondary}
               style={styles.inputIcon}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.textPrimary }]}
               value={settings.address}
               onChangeText={(val) => onSettingChange("address", val)}
               placeholder="Rue Didouche Mourad, Alger Centre"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={theme.textMuted}
               id="input-address"
             />
           </View>
@@ -284,15 +286,15 @@ export function CatalogueSettings({
 
         {/* Welcome Note */}
         <View style={styles.fieldGroup}>
-          <ThemedText style={styles.fieldLabel}>
+          <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>
             {t("catalogue.welcomeNote")}
           </ThemedText>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { borderColor: theme.border, backgroundColor: theme.surfaceAlt, color: theme.textPrimary }]}
             value={settings.welcomeNote}
             onChangeText={(val) => onSettingChange("welcomeNote", val)}
             placeholder="Commandes par WhatsApp acceptées • Retrait rapide en boutique"
-            placeholderTextColor={Colors.light.textMuted}
+            placeholderTextColor={theme.textMuted}
             multiline
             numberOfLines={2}
             id="input-welcome-note"
@@ -301,26 +303,26 @@ export function CatalogueSettings({
       </ThemedView>
 
       {/* Confidentiality Guaranteed Banner */}
-      <View style={styles.privacyBanner} id="catalogue-privacy-guarantee">
-        <View style={styles.privacyIconContainer}>
+      <View style={[styles.privacyBanner, { backgroundColor: theme.primaryLight, borderColor: theme.primary + "25" }]} id="catalogue-privacy-guarantee">
+        <View style={[styles.privacyIconContainer, { backgroundColor: theme.surface }]}>
           <MaterialIcons
             name="verified-user"
             size={22}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
         </View>
         <View style={styles.privacyContent}>
           <View style={styles.privacyTitleRow}>
-            <ThemedText style={styles.privacyTitle}>
+            <ThemedText style={[styles.privacyTitle, { color: theme.primary }]}>
               {t("catalogue.guaranteedPrivacy")}
             </ThemedText>
             <MaterialIcons
               name="lock"
               size={14}
-              color={Colors.light.primary}
+              color={theme.primary}
             />
           </View>
-          <ThemedText style={styles.privacyDesc}>
+          <ThemedText style={[styles.privacyDesc, { color: theme.textSecondary }]}>
             {t("catalogue.guaranteedPrivacyDesc")}
           </ThemedText>
         </View>
@@ -329,7 +331,7 @@ export function CatalogueSettings({
       {/* Action CTA Buttons */}
       <View style={styles.actionContainer} id="catalogue-settings-actions">
         <TouchableOpacity
-          style={styles.primaryButton}
+          style={[styles.primaryButton, { backgroundColor: theme.primary }]}
           onPress={onProceedToSelector}
           activeOpacity={0.8}
           id="btn-select-products"
@@ -350,7 +352,7 @@ export function CatalogueSettings({
           activeOpacity={0.7}
           id="btn-cancel-settings"
         >
-          <ThemedText style={styles.cancelButtonText}>
+          <ThemedText style={[styles.cancelButtonText, { color: theme.textSecondary }]}>
             {t("common.cancel")}
           </ThemedText>
         </TouchableOpacity>
@@ -362,7 +364,6 @@ export function CatalogueSettings({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   contentContainer: {
     padding: Spacing.lg,
@@ -384,13 +385,11 @@ const styles = StyleSheet.create({
   backButtonText: {
     ...Typography.body,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   readyBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: Colors.light.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: BorderRadius.pill,
@@ -399,18 +398,15 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.primary,
   },
   readyBadgeText: {
     ...Typography.badge,
-    color: Colors.light.primary,
   },
   headerBlock: {
     marginBottom: Spacing.lg,
   },
   title: {
     ...Typography.heading1,
-    color: Colors.light.textPrimary,
     marginBottom: 4,
   },
   subtitleRow: {
@@ -420,24 +416,20 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
   },
   introCard: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surface,
     padding: Spacing.lg,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
-    borderColor: Colors.light.borderLight,
     marginBottom: Spacing.lg,
   },
   introIconContainer: {
     width: 44,
     height: 44,
     borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -452,13 +444,11 @@ const styles = StyleSheet.create({
   },
   introHeadline: {
     ...Typography.heading3,
-    color: Colors.light.textPrimary,
   },
   channelPill: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.secondaryLight,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: BorderRadius.sm,
@@ -466,19 +456,15 @@ const styles = StyleSheet.create({
   channelPillText: {
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.secondary,
   },
   introDesc: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     lineHeight: 20,
   },
   card: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.light.borderLight,
     marginBottom: Spacing.lg,
   },
   cardHeaderRow: {
@@ -489,11 +475,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     ...Typography.heading3,
-    color: Colors.light.textPrimary,
     flex: 1,
   },
   editableTag: {
-    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
@@ -501,7 +485,6 @@ const styles = StyleSheet.create({
   editableTagText: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   toggleRow: {
     flexDirection: "row",
@@ -522,10 +505,8 @@ const styles = StyleSheet.create({
   toggleLabel: {
     ...Typography.body,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   currencyBadge: {
-    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 4,
@@ -533,15 +514,12 @@ const styles = StyleSheet.create({
   currencyBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: Colors.light.textSecondary,
   },
   toggleDesc: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.light.borderLight,
     marginVertical: Spacing.xs,
   },
   fieldGroup: {
@@ -555,7 +533,6 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     ...Typography.label,
-    color: Colors.light.textPrimary,
     marginBottom: 6,
   },
   autoLinksBadge: {
@@ -566,15 +543,12 @@ const styles = StyleSheet.create({
   autoLinksText: {
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Colors.light.border,
     borderRadius: BorderRadius.md,
-    backgroundColor: "#FAFAFA",
     paddingHorizontal: Spacing.md,
     height: 48,
   },
@@ -584,15 +558,12 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     ...Typography.body,
-    color: Colors.light.textPrimary,
     height: "100%",
   },
   textArea: {
     height: 68,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     borderRadius: BorderRadius.md,
-    backgroundColor: "#FAFAFA",
     padding: Spacing.md,
     textAlignVertical: "top",
   },
@@ -600,18 +571,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.md,
-    backgroundColor: Colors.light.primaryLight,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.light.primary + "25",
     marginBottom: Spacing.xxl,
   },
   privacyIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -627,11 +595,9 @@ const styles = StyleSheet.create({
   privacyTitle: {
     ...Typography.body,
     fontWeight: "700",
-    color: Colors.light.primary,
   },
   privacyDesc: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     lineHeight: 18,
   },
   actionContainer: {
@@ -639,7 +605,6 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     height: 52,
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.lg,
     flexDirection: "row",
     justifyContent: "center",
@@ -658,6 +623,5 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     ...Typography.body,
-    color: Colors.light.textSecondary,
   },
 });

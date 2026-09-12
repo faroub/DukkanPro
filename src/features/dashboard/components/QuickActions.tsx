@@ -3,7 +3,8 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 interface QuickActionsProps {
   quickActionNewSale?: string;
@@ -29,6 +30,8 @@ export function QuickActions({
   onAddCustomer,
   onRecordPayment,
 }: QuickActionsProps) {
+  const theme = useTheme();
+
   const actions = [
     {
       id: "sale",
@@ -83,11 +86,11 @@ export function QuickActions({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ThemedText style={styles.sectionTitle}>
+        <ThemedText style={[styles.sectionTitle, { color: theme.textPrimary }]}>
           {locale === "ar" ? "إجراءات سريعة" : locale === "fr" ? "Raccourcis rapides" : "Quick Actions"}
         </ThemedText>
-        <View style={styles.badge}>
-          <ThemedText style={styles.badgeText}>
+        <View style={[styles.badge, { backgroundColor: theme.primaryLight }]}>
+          <ThemedText style={[styles.badgeText, { color: theme.primary }]}>
             {locale === "ar" ? "اختصارات" : "Shortcuts"}
           </ThemedText>
         </View>
@@ -97,26 +100,26 @@ export function QuickActions({
         {actions.map((action) => (
           <TouchableOpacity
             key={action.id}
-            style={styles.actionCard}
+            style={[styles.actionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={action.onPress}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={`${action.title}: ${action.subtitle}`}
           >
             <View style={styles.cardLeft}>
-              <View style={styles.iconCircle}>
+              <View style={[styles.iconCircle, { backgroundColor: theme.primaryLight }]}>
                 <MaterialIcons
                   name={action.icon}
                   size={22}
-                  color={Colors.light.primary}
+                  color={theme.primary}
                 />
               </View>
 
               <View style={styles.textWrap}>
-                <ThemedText style={styles.actionTitle}>
+                <ThemedText style={[styles.actionTitle, { color: theme.textPrimary }]}>
                   {action.title}
                 </ThemedText>
-                <ThemedText style={styles.actionSubtitle}>
+                <ThemedText style={[styles.actionSubtitle, { color: theme.textSecondary }]}>
                   {action.subtitle}
                 </ThemedText>
               </View>
@@ -125,7 +128,7 @@ export function QuickActions({
             <MaterialIcons
               name="chevron-right"
               size={20}
-              color={Colors.light.textMuted}
+              color={theme.textMuted}
             />
           </TouchableOpacity>
         ))}
@@ -148,19 +151,16 @@ const styles = StyleSheet.create({
     ...Typography.heading3,
     fontSize: 17,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.light.primaryLight,
   },
   badgeText: {
     ...Typography.badge,
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   grid: {
     gap: 10,
@@ -169,9 +169,7 @@ const styles = StyleSheet.create({
     minHeight: 58,
     padding: 12,
     borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -187,7 +185,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.light.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -198,12 +195,10 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 15,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   actionSubtitle: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
 });

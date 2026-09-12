@@ -177,6 +177,17 @@ export default {
     reactivateProduct: "Réactiver le produit",
     archiveConfirm: "Êtes-vous sûr de vouloir archiver ce produit ?",
     copiedToClipboard: "Copié dans le presse-papiers",
+    inventoryRulesTitle: "Règles de stock & Contrôle produit",
+    inventoryRulesSubtitle: "Configurer les seuils d'alerte et la politique de vente de cet article",
+    sellingPolicyLabel: "Politique en rupture de stock",
+    strictPolicy: "Strict : Bloquer la vente si stock = 0",
+    allowNegativePolicy: "Autoriser stock négatif (Vente continue)",
+    presetThresholds: "Préréglages",
+    targetRestockQty: "Lot de réassort conseillé",
+    targetRestockQtyOptional: "Quantité recommandée lors des commandes",
+    stockStatusHealthy: "Stock suffisant",
+    stockStatusLow: "Alerte stock faible",
+    stockStatusOut: "Rupture de stock",
   },
 
   // 6. inventory — stock, movements
@@ -441,7 +452,16 @@ export default {
     languageArabic: "Arabe",
     languageFrench: "Français",
     languageEnglish: "Anglais",
-    default: "Par défaut"
+    default: "Par défaut",
+    theme: "Thème",
+    themeSubtitle: "Mode clair, sombre ou système",
+    themeSystem: "Système",
+    themeLight: "Clair",
+    themeDark: "Sombre",
+    themeSystemDesc: "Suit l'apparence du système de votre appareil",
+    themeLightDesc: "Thème clair épuré",
+    themeDarkDesc: "Mode sombre contrasté",
+    themeUpdated: "Thème mis à jour avec succès"
   },
 
   // 14. voice — voice command messages
