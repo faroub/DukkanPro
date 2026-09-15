@@ -171,74 +171,73 @@ export function BarcodeScannerModal({
       const product = findProductByCode(clean);
 
       if (product) {
-        if (continuousMode) {
-          // Continuous mode: auto-add, display floating toast, keep camera scanning
-          onScan(clean, product);
-          setSessionScanCount((prev) => prev + 1);
-          setLastScannedFeedback({
-            name: product.name,
-            priceCentimes: product.sale_price_centimes,
-          });
+        // Auto-add to cart on scan
+        onScan(clean, product);
+        setSessionScanCount((prev) => prev + 1);
+        setMatchedProduct(product);
+        setUnmatchedCode(null);
+        setLastScannedFeedback({
+          name: product.name,
+          priceCentimes: product.sale_price_centimes,
+        });
 
-          // Clear toast after 2.5 seconds
-          setTimeout(() => {
-            setLastScannedFeedback(null);
-          }, 2500);
+        // Clear feedback toast after 2.5s
+        setTimeout(() => {
+          setLastScannedFeedback(null);
+        }, 2500);
 
-          // Allow scanning another item after a 1.2s debounce
-          setTimeout(() => {
-            isProcessingRef.current = false;
-          }, 1200);
-        } else {
-          // Single-scan mode: show matched product card with quick-add action
-          setMatchedProduct(product);
-          setUnmatchedCode(null);
-        }
+        // Debounce before allowing next scan
+        setTimeout(() => {
+          isProcessingRef.current = false;
+        }, 1000);
       } else {
         // Not in database: show unmatched card with options to create or search
         setUnmatchedCode(clean);
         setMatchedProduct(null);
+        isProcessingRef.current = false;
       }
     },
-    [continuousMode, findProductByCode, onScan, playBeep]
+    [findProductByCode, onScan, playBeep]
   );
 
   // Start the camera scanning engine
   const startScanner = useCallback(
     async (cameraDeviceId?: string) => {
-      if (Platform.OS !== "web" || typeof window === "undefined") {
-        setCameraState("unsupported");
-        setErrorMessage("Le scanner caméra est optimisé pour les appareils web et mobiles.");
-        return;
-      }
-
-      if (!navigator?.mediaDevices?.getUserMedia) {
-        setCameraState("unsupported");
-        setErrorMessage("L'accès à la caméra n'est pas pris en charge par ce navigateur (HTTPS requis).");
-        return;
-      }
+      const isWebOrHasDOM =
+        typeof window !== "undefined" && typeof document !== "undefined";
 
       setCameraState("starting");
       setErrorMessage("");
       setMatchedProduct(null);
       setUnmatchedCode(null);
       setLastScannedFeedback(null);
-      setSessionScanCount(0);
       isProcessingRef.current = false;
+
+      if (!isWebOrHasDOM || !navigator?.mediaDevices?.getUserMedia) {
+        setCameraState("unsupported");
+        setErrorMessage(
+          "L'accès à la caméra requiert un navigateur web ou une douchette USB/Bluetooth."
+        );
+        return;
+      }
 
       try {
         await stopScanner();
 
-        // Ensure container exists in DOM
+        // Robustly poll for DOM container element up to 15 times (1.5s max)
         let container = document.getElementById(CONTAINER_ELEMENT_ID);
-        if (!container) {
-          await new Promise((resolve) => setTimeout(resolve, 150));
+        let retries = 0;
+        while (!container && retries < 15) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
           container = document.getElementById(CONTAINER_ELEMENT_ID);
+          retries++;
         }
 
         if (!container) {
           setCameraState("error");
-          setErrorMessage("Zone d'affichage de la caméra introuvable.");
+          setErrorMessage(
+            "Zone d'affichage de la caméra introuvable. Saisissez le code manuellement ci-dessous."
+          );
           return;
         }
 
@@ -289,9 +288,7 @@ export function BarcodeScannerModal({
             isProcessingRef.current = true;
             handleCodeFound(decodedText);
           },
-          () => {
-            // Scanner parsing cycle without detection: ignore
-          }
+          () => {}
         );
 
         setCameraState("active");
@@ -318,14 +315,18 @@ export function BarcodeScannerModal({
         ) {
           setCameraState("permission_denied");
           setErrorMessage(
-            "L'accès à la caméra a été refusé. Veuillez autoriser la caméra dans les paramètres de votre navigateur."
+            "L'accès à la caméra a été refusé. Veuillez autoriser la caméra dans votre navigateur."
           );
         } else if (name === "NotFoundError" || msg.includes("no camera")) {
           setCameraState("error");
-          setErrorMessage("Aucune caméra détectée sur cet appareil.");
+          setErrorMessage(
+            "Aucune caméra détectée. Vous pouvez saisir le code manuellement ci-dessous."
+          );
         } else {
           setCameraState("error");
-          setErrorMessage("Impossible de démarrer la caméra. Vous pouvez saisir le code manuellement.");
+          setErrorMessage(
+            "Impossible de démarrer la caméra. Saisissez le code manuellement ou utilisez une douchette."
+          );
         }
       }
     },
@@ -503,11 +504,25 @@ export function BarcodeScannerModal({
             {/* Camera Viewfinder Area */}
             <View style={styles.viewfinderWrapper}>
               {/* Camera DOM mounting element */}
-              <View
-                id={CONTAINER_ELEMENT_ID}
-                nativeID={CONTAINER_ELEMENT_ID}
-                style={styles.cameraBox}
-              />
+              {Platform.OS === "web" ? (
+                <div
+                  id={CONTAINER_ELEMENT_ID}
+                  style={{
+                    width: "100%",
+                    height: 230,
+                    borderRadius: 12,
+                    backgroundColor: "#090D16",
+                    overflow: "hidden",
+                    position: "relative",
+                  }}
+                />
+              ) : (
+                <View
+                  id={CONTAINER_ELEMENT_ID}
+                  nativeID={CONTAINER_ELEMENT_ID}
+                  style={styles.cameraBox}
+                />
+              )}
 
               {/* Reticle Overlay on top of Camera */}
               {cameraState === "active" && (
