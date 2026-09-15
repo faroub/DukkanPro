@@ -192,7 +192,7 @@ export default function SellScreen() {
       <ThemedView
         style={[styles.container, { backgroundColor: theme.background }]}
       >
-        {/* Header with Search & Barcode Scan */}
+        {/* Header with Title, Search & Barcode Scan */}
         <View
           style={[
             styles.headerContainer,
@@ -203,6 +203,15 @@ export default function SellScreen() {
             },
           ]}
         >
+          <View style={styles.screenTitleRow}>
+            <ThemedText style={[styles.screenTitle, { color: theme.textPrimary }]}>
+              {t("sell.title", { defaultValue: "Caisse & Ventes" })}
+            </ThemedText>
+            <ThemedText style={[styles.screenSubtitle, { color: theme.textSecondary }]}>
+              {t("sell.subtitle", { defaultValue: "Encaissement rapide • Catalogue & code-barres" })}
+            </ThemedText>
+          </View>
+
           <View style={styles.searchRow}>
             <View style={styles.searchInputWrapper}>
               <SearchInput
@@ -939,6 +948,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.borderLight,
     gap: Spacing.sm,
+  },
+  screenTitleRow: {
+    marginBottom: 2,
+  },
+  screenTitle: {
+    ...Typography.heading2,
+    fontSize: 20,
+    fontWeight: "700",
+    color: Colors.light.textPrimary,
+  },
+  screenSubtitle: {
+    ...Typography.caption,
+    fontSize: 12,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
   },
   searchRow: {
     flexDirection: "row",

@@ -244,6 +244,8 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     },
     headerTitle: {
       ...Typography.heading2,
+      fontSize: 20,
+      fontWeight: "700",
       color: theme.textPrimary,
     },
     headerSubtitle: {
