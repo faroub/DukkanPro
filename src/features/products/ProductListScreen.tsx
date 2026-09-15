@@ -9,6 +9,7 @@ import { ProductListItem } from "@/features/products/components/ProductListItem"
 import { useProducts } from "@/hooks/useProducts";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RefreshControl, ScrollView, StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -91,10 +92,12 @@ export function ProductListScreen({ route, navigation }: any) {
     setRefreshing(false);
   }, [reload]);
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={[styles.mainContainer, { backgroundColor: theme.background }]}>
       {/* Top Header Bar matching Stitch */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, Spacing.lg) }]}>
         <View style={styles.topBarLeft}>
           <ThemedText style={[styles.screenTitle, { color: theme.textPrimary }]}>{t("products:title")}</ThemedText>
           <ThemedText style={[styles.screenSubtitle, { color: theme.textSecondary }]}>

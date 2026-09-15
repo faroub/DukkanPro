@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ComponentDimensions, Spacing, Typography } from "@/constants/theme";
@@ -27,6 +28,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   const handleBack = () => {
     if (onBackPress) {
@@ -41,6 +43,8 @@ export function AppHeader({
       style={[
         styles.container,
         {
+          paddingTop: insets.top,
+          height: ComponentDimensions.headerHeight + insets.top,
           backgroundColor: theme.surface,
           borderBottomColor: theme.border,
         },

@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -96,11 +97,13 @@ export function MoreScreen() {
         ? t("settings:themeDarkDesc", { defaultValue: t("settings.themeDarkDesc", { defaultValue: isArabic ? "مظهر ليلي داكن ومريح للعين" : "Mode sombre contrasté" }) })
         : t("settings:themeLightDesc", { defaultValue: t("settings.themeLightDesc", { defaultValue: isArabic ? "مظهر نهاري ناصع ومريح" : "Thème clair épuré" }) });
 
+  const insets = useSafeAreaInsets();
+
   return (
     <ScrollView
       contentContainerStyle={[
         styles.scrollContainer,
-        { backgroundColor: theme.background },
+        { backgroundColor: theme.background, paddingTop: Math.max(insets.top, Spacing.lg) },
       ]}
       showsVerticalScrollIndicator={false}
     >

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -88,6 +89,7 @@ export function CustomerListScreen() {
   }, [refetch]);
 
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.screen}>
@@ -99,7 +101,7 @@ export function CustomerListScreen() {
             tintColor={theme.primary}
           />
         }
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: Math.max(insets.top, Spacing.lg) }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header with Title & Add Customer Button */}
