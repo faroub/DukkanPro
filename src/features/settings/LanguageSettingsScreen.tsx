@@ -10,6 +10,7 @@ import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
 import {
     BorderRadius,
+    Colors,
     ComponentDimensions,
     Shadows,
     Spacing,
@@ -67,6 +68,7 @@ export function LanguageSettingsScreen() {
   const router = useRouter();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const isArabic = i18n.language?.startsWith("ar");
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || "fr");
 
   useEffect(() => {
@@ -107,44 +109,27 @@ export function LanguageSettingsScreen() {
       id="language-settings-screen"
     >
       <ThemedView style={styles.container}>
-        {/* Breadcrumb Context */}
-        <TouchableOpacity
-          style={styles.breadcrumb}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-          id="btn-language-back"
-        >
-          <MaterialIcons
-            name="arrow-back"
-            size={18}
-            color={theme.textSecondary}
-          />
-          <ThemedText
-            style={[styles.breadcrumbText, { color: theme.textSecondary }]}
+        {/* Top Header Navigation */}
+        <View style={styles.topHeader}>
+          <TouchableOpacity
+            style={[
+              styles.backButton,
+              { backgroundColor: theme.surfaceAlt, borderColor: theme.border },
+            ]}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
           >
-            {t("navigation.back") || t("common.back") || "Back"}
-          </ThemedText>
-        </TouchableOpacity>
-
-        {/* Screen Heading */}
-        <View style={styles.headerSection}>
-          <View style={styles.badgeRow}>
-            <MaterialIcons name="translate" size={18} color={theme.primary} />
-            <ThemedText style={[styles.badgeText, { color: theme.primary }]}>
-              {t("settings.localeAndDisplay") || "Locale & Display"}
+            <MaterialIcons
+              name={isArabic ? "arrow-forward" : "arrow-back"}
+              size={20}
+              color={theme.textPrimary}
+            />
+          </TouchableOpacity>
+          <View style={styles.headerTitles}>
+            <ThemedText style={[styles.screenTitle, { color: theme.textPrimary }]}>
+              {t("settings.localeAndDisplay", { defaultValue: "Language and Display" })}
             </ThemedText>
           </View>
-          <ThemedText
-            style={[styles.headingTitle, { color: theme.textPrimary }]}
-          >
-            {t("settings.appLanguageTitle") || "App Language"}
-          </ThemedText>
-          <ThemedText
-            style={[styles.headingSubtitle, { color: theme.textSecondary }]}
-          >
-            {t("settings.appLanguageSubtitle") ||
-              "Choose the display language for DukkanPro interface, cash-register screens, and printed customer receipts."}
-          </ThemedText>
         </View>
 
         {/* Cultural Visual Framing Card */}
@@ -407,37 +392,32 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     gap: Spacing.md,
   },
-  breadcrumb: {
+  topHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.xs,
-    paddingVertical: Spacing.xs,
-    alignSelf: "flex-start",
+    gap: Spacing.sm,
+    paddingTop: Spacing.xs,
   },
-  breadcrumbText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  headerSection: {
-    gap: Spacing.xs,
-  },
-  badgeRow: {
-    flexDirection: "row",
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    justifyContent: "center",
     alignItems: "center",
-    gap: 6,
+    borderWidth: 1,
   },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
+  headerTitles: {
+    flex: 1,
   },
-  headingTitle: {
+  screenTitle: {
     ...Typography.heading2,
+    fontSize: 20,
+    fontWeight: "700",
   },
-  headingSubtitle: {
+  screenSubtitle: {
     ...Typography.caption,
-    lineHeight: 20,
+    color: Colors.light.textSecondary,
+    marginTop: 2,
   },
   framingCard: {
     flexDirection: "row",

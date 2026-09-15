@@ -114,9 +114,6 @@ export function MoreScreen() {
             <ThemedText style={[styles.screenTitle, textAlignStyle, { color: theme.textPrimary }]}>
               {t("settings.title") || "More"}
             </ThemedText>
-            <ThemedText style={[styles.screenSubtitle, textAlignStyle, { color: theme.textSecondary }]}>
-              {t("settings.subtitle", { defaultValue: "Paramètres et gestion" })}
-            </ThemedText>
           </View>
           <View style={[styles.syncBadge, { backgroundColor: theme.primaryLight }]}>
             <View style={[styles.syncDot, { backgroundColor: theme.primary }]} />
