@@ -121,7 +121,7 @@ export function LanguageSettingsScreen() {
             activeOpacity={0.7}
           >
             <MaterialIcons
-              name={isArabic ? "arrow-forward" : "arrow-back"}
+              name="arrow-back"
               size={20}
               color={theme.textPrimary}
             />
