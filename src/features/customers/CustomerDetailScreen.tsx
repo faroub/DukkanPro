@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -32,6 +33,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const localParams = useLocalSearchParams<{ id?: string; customerId?: string }>();
   const effectiveCustomerId =
     customerId ??
@@ -202,7 +204,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   return (
     <View style={styles.screen}>
       {/* Top Header Navigation */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
             onPress={() => router.back()}
