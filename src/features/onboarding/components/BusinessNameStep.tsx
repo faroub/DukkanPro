@@ -1,6 +1,8 @@
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -112,7 +114,10 @@ export function BusinessNameStep({
       });
 
   return (
-    <ThemedView style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -328,7 +333,7 @@ export function BusinessNameStep({
             </ThemedText>
             <ScrollView
               horizontal
-              showsHorizontalScrollIndicator={false}
+              showsHorizontalScrollIndicator={true}
               contentContainerStyle={styles.categoryScroll}
             >
               {categories.map((cat) => {
@@ -448,7 +453,7 @@ export function BusinessNameStep({
           </Pressable>
         )}
       </View>
-    </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -525,7 +530,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
   },
   titleSection: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   title: {
     ...Typography.heading1,
@@ -534,23 +539,23 @@ const styles = StyleSheet.create({
   subtitle: {
     ...Typography.body,
     color: Colors.light.textSecondary,
-    marginTop: 4,
+    marginTop: 2,
   },
   accentTile: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.md,
+    gap: Spacing.sm,
     backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.light.border,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
+    padding: Spacing.sm,
+    marginBottom: Spacing.md,
     ...Shadows.sm,
   },
   accentIconBox: {
-    width: 64,
-    height: 64,
+    width: 48,
+    height: 48,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
@@ -567,13 +572,13 @@ const styles = StyleSheet.create({
   accentTitle: {
     ...Typography.body,
     fontWeight: "700",
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.light.textPrimary,
   },
   accentSubtitle: {
     ...Typography.caption,
     color: Colors.light.textSecondary,
-    marginTop: 2,
+    marginTop: 1,
   },
   accentBadge: {
     flexDirection: "row",
@@ -584,7 +589,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
-    marginTop: 6,
+    marginTop: 4,
   },
   accentBadgeDot: {
     width: 6,
@@ -593,7 +598,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
   },
   accentBadgeText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
     color: Colors.light.primary,
   },
@@ -602,12 +607,12 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     borderColor: Colors.light.border,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
     ...Shadows.sm,
-    padding: ComponentDimensions.cardPadding,
+    padding: Spacing.md,
   },
   fieldGroup: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   labelRow: {
     flexDirection: "row",
@@ -701,11 +706,11 @@ const styles = StyleSheet.create({
   trustBanner: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.md,
+    gap: Spacing.sm,
     backgroundColor: Colors.light.backgroundElement,
-    padding: Spacing.md,
+    padding: Spacing.sm,
     borderRadius: BorderRadius.md,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   trustIconWrapper: {
     width: 32,

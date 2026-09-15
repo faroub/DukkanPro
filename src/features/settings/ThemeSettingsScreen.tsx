@@ -250,12 +250,7 @@ export function ThemeSettingsScreen() {
                   </View>
 
                   <View style={styles.optionContent}>
-                    <View
-                      style={[
-                        styles.optionTitleRow,
-                        isArabic && styles.rowReverse,
-                      ]}
-                    >
+                    <View style={styles.optionTitleRow}>
                       <ThemedText
                         style={[
                           styles.optionTitle,
@@ -587,8 +582,5 @@ const styles = StyleSheet.create({
   },
   alignEnd: {
     alignItems: "flex-end",
-  },
-  rowReverse: {
-    flexDirection: "row-reverse",
   },
 });

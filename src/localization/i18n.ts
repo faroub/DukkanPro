@@ -1,6 +1,5 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import { I18nManager } from "react-native";
 
 import ar from "@/locales/ar.json";
 import en from "@/locales/en.json";
@@ -25,12 +24,6 @@ export function updateLayoutDirection(locale: string): void {
     if (document.body) {
       document.body.dir = "ltr";
     }
-  }
-  try {
-    I18nManager.allowRTL(false);
-    I18nManager.forceRTL(false);
-  } catch (e) {
-    // Ignore
   }
 }
 

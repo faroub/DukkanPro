@@ -27,6 +27,7 @@ export interface UseLocaleReturn {
 
 /**
  * useLocale hook that provides locale and RTL layout information
+ * never triggers an RTL reload
  */
 export function useLocale(): UseLocaleReturn {
   const [locale, setLocale] = useState<Locale>(

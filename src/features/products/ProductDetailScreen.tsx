@@ -489,6 +489,9 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     container: {
       flex: 1,
       backgroundColor: theme.background,
+      maxWidth: 600,
+      alignSelf: 'center',
+      width: '100%',
     },
     loadingContainer: {
       flex: 1,

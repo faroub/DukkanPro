@@ -298,7 +298,7 @@ export function LowStockScreen() {
         {/* Category Filter Pills (Horizontal Scroll) */}
         <ScrollView
           horizontal
-          showsHorizontalScrollIndicator={false}
+          showsHorizontalScrollIndicator={true}
           contentContainerStyle={styles.categoryPillsRow}
         >
           {categories.map((cat) => {
