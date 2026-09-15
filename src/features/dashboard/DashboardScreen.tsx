@@ -153,7 +153,7 @@ export default function DashboardScreenDefault({
   return (
     <ThemedView type="background" style={styles.container}>
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top, Spacing.md) }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + Spacing.md, 36) }]}
         showsVerticalScrollIndicator={false}
       >
         {/* 1. Header / Store Greeting */}
