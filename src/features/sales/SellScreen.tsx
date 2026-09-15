@@ -197,6 +197,7 @@ export default function SellScreen() {
           style={[
             styles.headerContainer,
             {
+              paddingTop: Math.max(insets.top, Spacing.md),
               backgroundColor: theme.surface,
               borderBottomColor: theme.borderLight,
             },
@@ -306,52 +307,137 @@ export default function SellScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.frequentList}
             >
-              {frequentProducts.map((p) => (
-                <View
-                  key={p.id}
-                  style={[
-                    styles.frequentCard,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: theme.border,
-                    },
-                  ]}
-                  accessibilityLabel={`${p.name}, ${formatCentimes(p.sale_price_centimes)}`}
-                >
-                  <View style={styles.frequentCardContent}>
-                    <View
-                      style={[
-                        styles.frequentIconBox,
-                        { backgroundColor: theme.backgroundElement },
-                      ]}
+              {frequentProducts.map((p) => {
+                const cartQty = getItemCartQty(p.id);
+                return (
+                  <View
+                    key={p.id}
+                    style={[
+                      styles.frequentCard,
+                      {
+                        backgroundColor: theme.surface,
+                        borderColor: theme.border,
+                      },
+                      cartQty > 0 && [
+                        styles.frequentCardInCart,
+                        {
+                          borderColor: theme.primary,
+                          backgroundColor: theme.primaryLight,
+                        },
+                      ],
+                    ]}
+                    accessibilityLabel={`${p.name}, ${formatCentimes(p.sale_price_centimes)}`}
+                  >
+                    <Pressable
+                      style={styles.frequentCardContent}
+                      onPress={() => {
+                        if (cartQty === 0) {
+                          addItemWithProduct(p, 1);
+                        }
+                      }}
                     >
-                      <SymbolView
-                        name={{
-                          ios: "bag" as any,
-                          android: "shopping_bag" as any,
-                          web: "shopping_bag" as any,
-                        }}
-                        size={18}
-                        tintColor={theme.primary}
-                      />
-                    </View>
-                    <ThemedText
-                      style={[
-                        styles.frequentName,
-                        { color: theme.textPrimary },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {p.name}
-                    </ThemedText>
-                    <ThemedText
-                      style={[styles.frequentPrice, { color: theme.primary }]}
-                    >
-                      {formatCentimes(p.sale_price_centimes)}
-                    </ThemedText>
+                      <View
+                        style={[
+                          styles.frequentIconBox,
+                          { backgroundColor: theme.backgroundElement },
+                          cartQty > 0 && { backgroundColor: theme.primary },
+                        ]}
+                      >
+                        <SymbolView
+                          name={{
+                            ios: cartQty > 0 ? ("checkmark" as any) : ("bag" as any),
+                            android: cartQty > 0 ? ("check" as any) : ("shopping_bag" as any),
+                            web: cartQty > 0 ? ("check" as any) : ("shopping_bag" as any),
+                          }}
+                          size={18}
+                          tintColor={cartQty > 0 ? theme.surface : theme.primary}
+                        />
+                        {cartQty > 0 && (
+                          <View
+                            style={[
+                              styles.frequentQtyBadge,
+                              { backgroundColor: theme.primary },
+                            ]}
+                          >
+                            <Text style={styles.frequentQtyBadgeText}>{cartQty}</Text>
+                          </View>
+                        )}
+                      </View>
+                      <ThemedText
+                        style={[
+                          styles.frequentName,
+                          { color: theme.textPrimary },
+                          cartQty > 0 && { fontWeight: "700" },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {p.name}
+                      </ThemedText>
+                      <ThemedText
+                        style={[styles.frequentPrice, { color: theme.primary }]}
+                      >
+                        {formatCentimes(p.sale_price_centimes)}
+                      </ThemedText>
+                    </Pressable>
+
+                    {cartQty > 0 ? (
+                      <View style={styles.frequentStepperRow}>
+                        <Pressable
+                          onPress={() => subtractItem(p.id)}
+                          style={[
+                            styles.frequentStepBtn,
+                            { backgroundColor: theme.surface, borderColor: theme.border },
+                          ]}
+                          hitSlop={6}
+                          accessibilityLabel="Decrease quantity"
+                        >
+                          <SymbolView
+                            name={{ ios: "minus" as any, android: "remove" as any, web: "remove" as any }}
+                            size={12}
+                            tintColor={theme.primary}
+                          />
+                        </Pressable>
+                        <Text style={[styles.frequentStepQty, { color: theme.primary }]}>
+                          {cartQty}
+                        </Text>
+                        <Pressable
+                          onPress={() => addItemWithProduct(p, 1)}
+                          style={[
+                            styles.frequentStepBtn,
+                            { backgroundColor: theme.surface, borderColor: theme.border },
+                          ]}
+                          hitSlop={6}
+                          accessibilityLabel="Increase quantity"
+                        >
+                          <SymbolView
+                            name={{ ios: "plus" as any, android: "add" as any, web: "add" as any }}
+                            size={12}
+                            tintColor={theme.primary}
+                          />
+                        </Pressable>
+                      </View>
+                    ) : (
+                      <Pressable
+                        onPress={() => addItemWithProduct(p, 1)}
+                        style={[
+                          styles.frequentAddQuickBtn,
+                          { backgroundColor: theme.primary },
+                        ]}
+                        accessibilityLabel={`Add ${p.name}`}
+                      >
+                        <SymbolView
+                          name={{ ios: "plus" as any, android: "add" as any, web: "add" as any }}
+                          size={12}
+                          tintColor="#FFFFFF"
+                        />
+                        <Text style={[styles.frequentAddQuickText, { color: "#FFFFFF" }]}>
+                          {t("sell.add", { defaultValue: "Ajouter" })}
+                        </Text>
+                      </Pressable>
+                    )}
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </ScrollView>
           </View>
         )}
@@ -531,8 +617,7 @@ export default function SellScreen() {
                           style={[
                             styles.addBtn,
                             {
-                              backgroundColor: theme.surfaceAlt,
-                              borderColor: theme.primary,
+                              backgroundColor: theme.primary,
                             },
                           ]}
                           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -545,12 +630,12 @@ export default function SellScreen() {
                               web: "add" as any,
                             }}
                             size={14}
-                            tintColor={theme.primary}
+                            tintColor="#FFFFFF"
                           />
                           <Text
                             style={[
                               styles.addBtnText,
-                              { color: theme.primary },
+                              { color: "#FFFFFF" },
                             ]}
                           >
                             {t("sell.add", { defaultValue: "Ajouter" })}
@@ -929,42 +1014,108 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xs,
   },
   frequentCard: {
-    width: 108,
+    width: 140,
     backgroundColor: Colors.light.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xs,
-    paddingVertical: Spacing.sm,
-    borderWidth: 1,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderWidth: 1.5,
     borderColor: Colors.light.border,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     ...Shadows.sm,
   },
   frequentCardContent: {
     alignItems: "center",
     width: "100%",
-    gap: 4,
+    gap: 6,
   },
   frequentIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.light.backgroundElement,
     justifyContent: "center",
     alignItems: "center",
   },
   frequentName: {
     ...Typography.caption,
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
     color: Colors.light.textPrimary,
     textAlign: "center",
   },
   frequentPrice: {
     ...Typography.caption,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
     color: Colors.light.primary,
+  },
+  frequentCardInCart: {
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primaryLight,
+  },
+  frequentStepperRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    height: 38,
+    marginTop: 8,
+    paddingHorizontal: 4,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1.5,
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primaryLight,
+  },
+  frequentStepBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.light.surface,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  frequentStepQty: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  frequentAddQuickBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    width: "100%",
+    height: 38,
+    marginTop: 8,
+    borderRadius: BorderRadius.button,
+    backgroundColor: Colors.light.primary,
+    ...Shadows.sm,
+  },
+  frequentAddQuickText: {
+    ...Typography.caption,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  frequentQtyBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  frequentQtyBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "700",
   },
   listContainer: {
     flex: 1,
@@ -1103,17 +1254,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5,
     height: 38,
-    paddingHorizontal: 12,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.surfaceAlt,
-    borderWidth: 1.5,
-    borderColor: Colors.light.primary,
+    paddingHorizontal: 14,
+    borderRadius: BorderRadius.button,
+    backgroundColor: Colors.light.primary,
+    ...Shadows.sm,
   },
   addBtnText: {
     ...Typography.caption,
     fontSize: 13,
-    fontWeight: "600",
-    color: Colors.light.primary,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   stepperContainer: {
     flexDirection: "row",
