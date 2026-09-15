@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -166,10 +167,12 @@ export function LowStockScreen() {
     return "inventory-2";
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.container}>
       {/* Top Navigation & Page Title Bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <View style={styles.topBarLeft}>
           <TouchableOpacity
             style={styles.backButton}

@@ -24,6 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
@@ -56,6 +57,7 @@ export default function DashboardScreenDefault({
 }: DashboardScreenProps) {
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const {
     greeting,
     todayDate,
@@ -151,7 +153,7 @@ export default function DashboardScreenDefault({
   return (
     <ThemedView type="background" style={styles.container}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top, Spacing.md) }]}
         showsVerticalScrollIndicator={false}
       >
         {/* 1. Header / Store Greeting */}

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -230,10 +231,12 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
     .map((w) => w[0]?.toUpperCase())
     .join('');
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.screenWrapper}>
       {/* Top App Bar */}
-      <View style={styles.topAppBar}>
+      <View style={[styles.topAppBar, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <TouchableOpacity
           style={styles.backIconButton}
           onPress={() => router.back()}

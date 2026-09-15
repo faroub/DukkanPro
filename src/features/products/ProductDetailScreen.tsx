@@ -26,6 +26,7 @@ interface ProductDetailScreenProps {
 }
 
 export default function ProductDetailScreen({ productId: propProductId }: ProductDetailScreenProps = {}) {
+  const insets = useSafeAreaInsets();
   const localParams = useLocalSearchParams<{ id?: string }>();
   const route = useRoute() as { params?: { id?: string } };
   const rawId = propProductId ?? localParams?.id ?? route?.params?.id;
@@ -127,20 +128,17 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
     return t('products:movementAdjustment');
   };
 
-  const insets = useSafeAreaInsets();
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['top', 'bottom']}>
-      <View style={styles.container}>
-        {/* Header bar */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityLabel="Go back"
-            >
+    <View style={styles.container}>
+      {/* Header bar */}
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel="Go back"
+          >
             <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
           </TouchableOpacity>
           <ThemedText style={styles.headerTitle}>
@@ -484,8 +482,7 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
         {/* Footer Trademark */}
         <FooterTrademark />
       </ScrollView>
-      </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

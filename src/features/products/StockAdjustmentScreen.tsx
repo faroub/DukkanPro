@@ -78,6 +78,7 @@ const REASONS: ReasonOption[] = [
 
 export function StockAdjustmentScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const route = useRoute();
@@ -222,19 +223,16 @@ export function StockAdjustmentScreen() {
 
   const isLowStock = currentStock <= minStock;
 
-  const insets = useSafeAreaInsets();
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['top', 'bottom']}>
-      <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
-        {/* Header bar */}
-        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Go back"
-          >
+    <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Header bar */}
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityLabel="Go back"
+        >
           <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
         <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
@@ -574,8 +572,7 @@ export function StockAdjustmentScreen() {
         {/* Footer Trademark */}
         <FooterTrademark />
       </ScrollView>
-      </ThemedView>
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 

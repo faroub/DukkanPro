@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -178,10 +179,12 @@ export function SalesHistoryScreen() {
       : 'SEARCH RESULTS';
   }
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.container}>
       {/* 1. Top Bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <View style={styles.topBarLeft}>
           <TouchableOpacity
             style={styles.backButton}

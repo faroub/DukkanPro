@@ -219,23 +219,24 @@ export function ProductForm({
     }
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={[styles.container, { backgroundColor: theme.background }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        {/* Top Header */}
-        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity
-              style={[styles.backButton, { backgroundColor: theme.surfaceAlt }]}
-              onPress={onClose}
-              activeOpacity={0.7}
-              accessibilityLabel={t('common:close', 'Close')}
-            >
-              <Ionicons name="close" size={22} color={theme.textPrimary} />
-            </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      {/* Top Header */}
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={[styles.backButton, { backgroundColor: theme.surfaceAlt }]}
+            onPress={onClose}
+            activeOpacity={0.7}
+            accessibilityLabel={t('common:close', 'Close')}
+          >
+            <Ionicons name="close" size={22} color={theme.textPrimary} />
+          </TouchableOpacity>
           <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
             {mode === 'create'
               ? t('products:newProduct', 'New Product')
@@ -927,7 +928,6 @@ export function ProductForm({
         </View>
       </Modal>
     </KeyboardAvoidingView>
-    </SafeAreaView>
   );
 }
 
