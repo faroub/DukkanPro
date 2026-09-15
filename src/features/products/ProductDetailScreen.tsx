@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FooterTrademark } from '@/components/FooterTrademark';
@@ -126,10 +127,12 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
     return t('products:movementAdjustment');
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.container}>
       {/* Header bar */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={styles.backButton}

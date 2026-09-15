@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FooterTrademark } from '@/components/FooterTrademark';
@@ -221,10 +222,12 @@ export function StockAdjustmentScreen() {
 
   const isLowStock = currentStock <= minStock;
 
+  const insets = useSafeAreaInsets();
+
   return (
     <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header bar */}
-      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
