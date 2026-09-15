@@ -44,7 +44,7 @@ export function CustomerFilterTabs({
     <View style={styles.container}>
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={true}
         contentContainerStyle={styles.scrollContent}
       >
         {filters.map((filter) => {

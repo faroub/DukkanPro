@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
@@ -217,7 +219,10 @@ export function ProductForm({
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       {/* Top Header */}
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
         <View style={styles.headerLeft}>
@@ -919,7 +924,7 @@ export function ProductForm({
           </ThemedView>
         </View>
       </Modal>
-    </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 

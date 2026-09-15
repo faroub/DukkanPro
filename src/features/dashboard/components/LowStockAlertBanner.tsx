@@ -123,7 +123,7 @@ export function LowStockAlertBanner({
       {/* Product Items Horizontal Scroll Strip */}
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={true}
         contentContainerStyle={styles.itemStrip}
       >
         {lowStockProducts.slice(0, 6).map((item) => {

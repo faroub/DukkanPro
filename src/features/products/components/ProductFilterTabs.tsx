@@ -37,7 +37,7 @@ export function ProductFilterTabs({
     <View style={styles.container}>
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={true}
         contentContainerStyle={styles.scrollContent}
       >
         {FILTER_OPTIONS.map((option) => {

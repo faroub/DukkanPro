@@ -129,7 +129,7 @@ export function MoreScreen() {
             <MaterialIcons name="storefront" size={28} color={theme.primary} />
           </View>
           <View style={[styles.storeInfo, isArabic && styles.alignEnd]}>
-            <View style={[styles.storeNameRow, isArabic && styles.rowReverse]}>
+            <View style={styles.storeNameRow}>
               <ThemedText style={[styles.storeName, textAlignStyle, { color: theme.textPrimary }]}>
                 {t("onboarding.businessName.defaultShopName") || "Supérette El-Amel"}
               </ThemedText>
@@ -138,7 +138,7 @@ export function MoreScreen() {
             <ThemedText style={[styles.storeCategory, textAlignStyle, { color: theme.textSecondary }]}>
               {t("onboarding.businessType.grocerySub") || "Alimentation Générale • Alger Centre"}
             </ThemedText>
-            <View style={[styles.storeStatusPill, { backgroundColor: theme.surfaceAlt }, isArabic && styles.rowReverse, isArabic && styles.selfEnd]}>
+            <View style={[styles.storeStatusPill, { backgroundColor: theme.surfaceAlt }, isArabic && styles.selfEnd]}>
               <MaterialIcons name="cloud-done" size={13} color={theme.primary} />
               <ThemedText style={[styles.storeStatusText, { color: theme.textSecondary }]}>
                 <ThemedText style={{ fontWeight: "800" }}>Dukkan<ThemedText style={{ color: theme.primary, fontWeight: "800" }}>Pro</ThemedText></ThemedText> ({t("settings.offlineReady") || "Offline Ready"})
@@ -738,9 +738,6 @@ const styles = StyleSheet.create({
   },
   selfEnd: {
     alignSelf: "flex-end",
-  },
-  rowReverse: {
-    flexDirection: "row-reverse",
   },
 });
 
