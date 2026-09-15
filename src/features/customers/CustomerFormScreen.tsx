@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -105,10 +106,12 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
     );
   }
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.screen}>
       {/* Top Header */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.iconButton}

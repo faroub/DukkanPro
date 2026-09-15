@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -90,11 +91,12 @@ export function EmptyDashboardScreen({
     });
 
   const ownerName = profile?.ownerName || "Karim Benali";
+  const insets = useSafeAreaInsets();
 
   return (
     <ThemedView style={styles.container}>
       {/* Top Header Bar matching Stitch */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <View style={styles.logoAndBrand}>
           <View style={styles.logoBadge}>
             <SymbolView
