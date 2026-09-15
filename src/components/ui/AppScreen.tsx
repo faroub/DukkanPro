@@ -1,8 +1,8 @@
-import { StyleSheet, ScrollView, type ScrollViewProps } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { ThemedView } from "@/components/themed-view";
+import { Spacing } from "@/constants/theme";
 
 export interface AppScreenProps {
   children: React.ReactNode;
@@ -14,13 +14,27 @@ export function AppScreen({ children, header }: AppScreenProps) {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={[
+        styles.contentContainer,
+        {
+          paddingTop: safeAreaInsets.top + Spacing.lg,
+          paddingBottom: safeAreaInsets.bottom + Spacing.xl,
+          paddingLeft: safeAreaInsets.left + Spacing.lg,
+          paddingRight: safeAreaInsets.right + Spacing.lg,
+        },
+      ]}
       style={styles.background}
       showsVerticalScrollIndicator={false}
     >
-      {header && <ThemedView type="background" style={styles.headerContainer}>{header}</ThemedView>}
+      {header && (
+        <ThemedView type="background" style={styles.headerContainer}>
+          {header}
+        </ThemedView>
+      )}
 
-      <ThemedView type="background" style={styles.contentArea}>{children}</ThemedView>
+      <ThemedView type="background" style={styles.contentArea}>
+        {children}
+      </ThemedView>
     </ScrollView>
   );
 }
@@ -28,19 +42,16 @@ export function AppScreen({ children, header }: AppScreenProps) {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: 'rgba(248, 247, 244, 1)', // light background from theme
+    backgroundColor: "rgba(248, 247, 244, 1)", // light background from theme
   },
   contentContainer: {
     flexGrow: 1,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.xl,
   },
   headerContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: Spacing.lg,
   },
   contentArea: {
-    width: '100%',
+    width: "100%",
   },
 });

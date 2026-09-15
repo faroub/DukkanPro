@@ -1,14 +1,12 @@
+import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "@/hooks/use-theme";
 
 import DashboardScreen from "@/features/dashboard/DashboardScreen";
 
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const currentLang = i18n.language?.startsWith("ar")
     ? "ar"
     : i18n.language?.startsWith("en")

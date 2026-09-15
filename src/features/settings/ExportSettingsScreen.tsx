@@ -1,27 +1,28 @@
-import React, { useCallback, useMemo, useState } from "react";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+    Alert,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
 import {
-  BorderRadius,
-  ComponentDimensions,
-  Shadows,
-  Spacing,
-  Typography,
+    BorderRadius,
+    ComponentDimensions,
+    Shadows,
+    Spacing,
+    Typography,
 } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export type ExportTableId =
   | "products"
@@ -92,6 +93,7 @@ export function ExportSettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [selectedTables, setSelectedTables] = useState<ExportTableId[]>([
     "products",
@@ -106,17 +108,16 @@ export function ExportSettingsScreen() {
   const isAllSelected = selectedTables.length === TABLE_OPTIONS.length;
 
   const totalBytes = useMemo(() => {
-    return TABLE_OPTIONS.filter((opt) => selectedTables.includes(opt.id)).reduce(
-      (sum, opt) => sum + opt.bytes,
-      0
-    );
+    return TABLE_OPTIONS.filter((opt) =>
+      selectedTables.includes(opt.id),
+    ).reduce((sum, opt) => sum + opt.bytes, 0);
   }, [selectedTables]);
 
   const totalKb = Math.round(totalBytes / 1024);
 
   const handleToggleTable = useCallback((id: ExportTableId) => {
     setSelectedTables((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   }, []);
 
@@ -148,11 +149,13 @@ export function ExportSettingsScreen() {
             setIsExporting(true);
             setTimeout(() => {
               setIsExporting(false);
-              showToast("Export completed successfully! / Exportation terminée");
+              showToast(
+                "Export completed successfully! / Exportation terminée",
+              );
             }, 500);
           },
         },
-      ]
+      ],
     );
   }, [selectedTables, totalKb, t]);
 
@@ -160,7 +163,13 @@ export function ExportSettingsScreen() {
     <ScrollView
       contentContainerStyle={[
         styles.scrollContainer,
-        { backgroundColor: theme.background },
+        {
+          backgroundColor: theme.background,
+          paddingTop: Math.max(insets.top, Spacing.lg),
+          paddingBottom: insets.bottom + Spacing.xxl,
+          paddingLeft: insets.left + Spacing.lg,
+          paddingRight: insets.right + Spacing.lg,
+        },
       ]}
       showsVerticalScrollIndicator={false}
     >
@@ -171,8 +180,14 @@ export function ExportSettingsScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="arrow-back" size={18} color={theme.textSecondary} />
-          <ThemedText style={[styles.breadcrumbText, { color: theme.textSecondary }]}>
+          <MaterialIcons
+            name="arrow-back"
+            size={18}
+            color={theme.textSecondary}
+          />
+          <ThemedText
+            style={[styles.breadcrumbText, { color: theme.textSecondary }]}
+          >
             {t("navigation.back") || "Back to More"}
           </ThemedText>
         </TouchableOpacity>
@@ -190,14 +205,23 @@ export function ExportSettingsScreen() {
               { backgroundColor: theme.primaryLight },
             ]}
           >
-            <MaterialIcons name="cloud-download" size={28} color={theme.primary} />
+            <MaterialIcons
+              name="cloud-download"
+              size={28}
+              color={theme.primary}
+            />
           </View>
           <View style={styles.heroContent}>
-            <ThemedText style={[styles.heroTitle, { color: theme.textPrimary }]}>
+            <ThemedText
+              style={[styles.heroTitle, { color: theme.textPrimary }]}
+            >
               Export Store Records
             </ThemedText>
-            <ThemedText style={[styles.heroSubtitle, { color: theme.textSecondary }]}>
-              Download local backup files directly to your device storage in standard CSV format.
+            <ThemedText
+              style={[styles.heroSubtitle, { color: theme.textSecondary }]}
+            >
+              Download local backup files directly to your device storage in
+              standard CSV format.
             </ThemedText>
           </View>
         </View>
@@ -211,8 +235,14 @@ export function ExportSettingsScreen() {
         >
           <View style={styles.formatRow}>
             <View style={styles.formatLeft}>
-              <MaterialIcons name="format-list-bulleted" size={20} color={theme.primary} />
-              <ThemedText style={[styles.formatLabel, { color: theme.textPrimary }]}>
+              <MaterialIcons
+                name="format-list-bulleted"
+                size={20}
+                color={theme.primary}
+              />
+              <ThemedText
+                style={[styles.formatLabel, { color: theme.textPrimary }]}
+              >
                 File Format
               </ThemedText>
             </View>
@@ -222,19 +252,28 @@ export function ExportSettingsScreen() {
                 { backgroundColor: theme.primaryLight },
               ]}
             >
-              <View style={[styles.pulseDot, { backgroundColor: theme.primary }]} />
-              <ThemedText style={[styles.formatBadgeText, { color: theme.primary }]}>
+              <View
+                style={[styles.pulseDot, { backgroundColor: theme.primary }]}
+              />
+              <ThemedText
+                style={[styles.formatBadgeText, { color: theme.primary }]}
+              >
                 CSV (UTF-8, Standard)
               </ThemedText>
             </View>
           </View>
 
           <View style={styles.selectionRow}>
-            <ThemedText style={[styles.selectionSummary, { color: theme.textSecondary }]}>
-              {selectedTables.length} of {TABLE_OPTIONS.length} tables selected ({totalKb} KB)
+            <ThemedText
+              style={[styles.selectionSummary, { color: theme.textSecondary }]}
+            >
+              {selectedTables.length} of {TABLE_OPTIONS.length} tables selected
+              ({totalKb} KB)
             </ThemedText>
             <TouchableOpacity onPress={handleToggleAll} activeOpacity={0.7}>
-              <ThemedText style={[styles.toggleAllButton, { color: theme.primary }]}>
+              <ThemedText
+                style={[styles.toggleAllButton, { color: theme.primary }]}
+              >
                 {isAllSelected ? "Deselect All" : "Select All"}
               </ThemedText>
             </TouchableOpacity>
@@ -251,11 +290,20 @@ export function ExportSettingsScreen() {
           <View
             style={[
               styles.ledgersHeader,
-              { backgroundColor: theme.surfaceAlt, borderBottomColor: theme.border },
+              {
+                backgroundColor: theme.surfaceAlt,
+                borderBottomColor: theme.border,
+              },
             ]}
           >
-            <MaterialIcons name="storage" size={18} color={theme.textSecondary} />
-            <ThemedText style={[styles.ledgersHeaderTitle, { color: theme.textPrimary }]}>
+            <MaterialIcons
+              name="storage"
+              size={18}
+              color={theme.textSecondary}
+            />
+            <ThemedText
+              style={[styles.ledgersHeaderTitle, { color: theme.textPrimary }]}
+            >
               Available Store Ledgers
             </ThemedText>
           </View>
@@ -266,7 +314,12 @@ export function ExportSettingsScreen() {
               return (
                 <React.Fragment key={item.id}>
                   {index > 0 && (
-                    <View style={[styles.itemDivider, { backgroundColor: theme.borderLight }]} />
+                    <View
+                      style={[
+                        styles.itemDivider,
+                        { backgroundColor: theme.borderLight },
+                      ]}
+                    />
                   )}
                   <TouchableOpacity
                     style={styles.checkRow}
@@ -282,14 +335,26 @@ export function ExportSettingsScreen() {
                           { backgroundColor: theme.surfaceAlt },
                         ]}
                       >
-                        <MaterialIcons name={item.icon} size={20} color={theme.primary} />
+                        <MaterialIcons
+                          name={item.icon}
+                          size={20}
+                          color={theme.primary}
+                        />
                       </View>
                       <View style={styles.itemInfo}>
-                        <ThemedText style={[styles.itemTitle, { color: theme.textPrimary }]}>
+                        <ThemedText
+                          style={[
+                            styles.itemTitle,
+                            { color: theme.textPrimary },
+                          ]}
+                        >
                           {item.title}
                         </ThemedText>
                         <ThemedText
-                          style={[styles.itemDescription, { color: theme.textSecondary }]}
+                          style={[
+                            styles.itemDescription,
+                            { color: theme.textSecondary },
+                          ]}
                           numberOfLines={1}
                         >
                           {item.description}
@@ -303,11 +368,15 @@ export function ExportSettingsScreen() {
                         styles.checkbox,
                         {
                           borderColor: isChecked ? theme.primary : theme.border,
-                          backgroundColor: isChecked ? theme.primary : theme.surface,
+                          backgroundColor: isChecked
+                            ? theme.primary
+                            : theme.surface,
                         },
                       ]}
                     >
-                      {isChecked && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
+                      {isChecked && (
+                        <MaterialIcons name="check" size={16} color="#FFFFFF" />
+                      )}
                     </View>
                   </TouchableOpacity>
                 </React.Fragment>
@@ -323,15 +392,26 @@ export function ExportSettingsScreen() {
             { backgroundColor: theme.warningLight, borderColor: theme.border },
           ]}
         >
-          <View style={[styles.lockIconContainer, { backgroundColor: theme.surface }]}>
+          <View
+            style={[
+              styles.lockIconContainer,
+              { backgroundColor: theme.surface },
+            ]}
+          >
             <MaterialIcons name="lock" size={20} color={theme.warning} />
           </View>
           <View style={styles.privacyContent}>
-            <ThemedText style={[styles.privacyTitle, { color: theme.textPrimary }]}>
+            <ThemedText
+              style={[styles.privacyTitle, { color: theme.textPrimary }]}
+            >
               Local & Private Storage
             </ThemedText>
-            <ThemedText style={[styles.privacySubtitle, { color: theme.textSecondary }]}>
-              CSV headers will use the selected language (Français). Data stays strictly on your device — nothing is uploaded to third-party servers.
+            <ThemedText
+              style={[styles.privacySubtitle, { color: theme.textSecondary }]}
+            >
+              CSV headers will use the selected language (Français). Data stays
+              strictly on your device — nothing is uploaded to third-party
+              servers.
             </ThemedText>
           </View>
         </View>
@@ -357,16 +437,29 @@ export function ExportSettingsScreen() {
           </View>
           <View style={styles.statusContent}>
             <View style={styles.statusHeaderRow}>
-              <ThemedText style={[styles.statusTitle, { color: theme.textPrimary }]}>
-                {selectedTables.length > 0 ? "Ready to Export" : "No Tables Selected"}
+              <ThemedText
+                style={[styles.statusTitle, { color: theme.textPrimary }]}
+              >
+                {selectedTables.length > 0
+                  ? "Ready to Export"
+                  : "No Tables Selected"}
               </ThemedText>
-              <View style={[styles.versionTag, { backgroundColor: theme.surface }]}>
-                <ThemedText style={[styles.versionTagText, { color: theme.textSecondary }]}>
+              <View
+                style={[styles.versionTag, { backgroundColor: theme.surface }]}
+              >
+                <ThemedText
+                  style={[
+                    styles.versionTagText,
+                    { color: theme.textSecondary },
+                  ]}
+                >
                   v1.2.4
                 </ThemedText>
               </View>
             </View>
-            <ThemedText style={[styles.statusSubtitle, { color: theme.textSecondary }]}>
+            <ThemedText
+              style={[styles.statusSubtitle, { color: theme.textSecondary }]}
+            >
               {selectedTables.length > 0
                 ? `Ready to export ${selectedTables.length} CSV files (approx ${totalKb} KB). Tap confirm below to save to Downloads.`
                 : "Select one or more tables from the list above to proceed."}
@@ -392,7 +485,9 @@ export function ExportSettingsScreen() {
           <MaterialIcons
             name="download"
             size={22}
-            color={selectedTables.length === 0 ? theme.textSecondary : "#FFFFFF"}
+            color={
+              selectedTables.length === 0 ? theme.textSecondary : "#FFFFFF"
+            }
           />
           <ThemedText
             style={[
@@ -406,8 +501,8 @@ export function ExportSettingsScreen() {
             {isExporting
               ? "Exporting..."
               : selectedTables.length > 0
-              ? `Export as CSV (${selectedTables.length} tables)`
-              : "Select at least 1 table"}
+                ? `Export as CSV (${selectedTables.length} tables)`
+                : "Select at least 1 table"}
           </ThemedText>
         </TouchableOpacity>
 

@@ -1,14 +1,14 @@
 import { SymbolView } from "expo-symbols";
 import { useCallback, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Modal,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,20 +17,20 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { SearchInput } from "@/components/ui/SearchInput";
 import {
-  BorderRadius,
-  Colors,
-  ComponentDimensions,
-  Shadows,
-  Spacing,
-  Typography,
+    BorderRadius,
+    Colors,
+    ComponentDimensions,
+    Shadows,
+    Spacing,
+    Typography,
 } from "@/constants/theme";
 import { create } from "@/database/repositories/saleRepository";
 import { BarcodeScannerModal } from "@/features/sales/components/BarcodeScannerModal";
 import { CartList } from "@/features/sales/components/CartList";
 import { CheckoutSheet } from "@/features/sales/components/CheckoutSheet";
 import { ReceiptPreview } from "@/features/sales/components/ReceiptPreview";
-import { useProducts } from "@/hooks/useProducts";
 import { useTheme } from "@/hooks/use-theme";
+import { useProducts } from "@/hooks/useProducts";
 import { useCartStoreHook } from "@/stores/cartStore";
 import { Product } from "@/types/entities";
 import { formatCentimes } from "@/utils/money";
@@ -107,7 +107,11 @@ export default function SellScreen() {
         if (!p.sku) return false;
         const s = p.sku.trim().toLowerCase();
         const c = cleanCode.toLowerCase();
-        return s === c || (s.replace(/^0+/, "") !== "" && s.replace(/^0+/, "") === c.replace(/^0+/, ""));
+        return (
+          s === c ||
+          (s.replace(/^0+/, "") !== "" &&
+            s.replace(/^0+/, "") === c.replace(/^0+/, ""))
+        );
       });
 
     if (productToAdd) {
@@ -176,14 +180,34 @@ export default function SellScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.background }, insets]}>
-      <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
+    <View
+      style={[
+        styles.screen,
+        {
+          backgroundColor: theme.background,
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
+      <ThemedView
+        style={[styles.container, { backgroundColor: theme.background }]}
+      >
         {/* Header with Search & Barcode Scan */}
-        <View style={[styles.headerContainer, { backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
+        <View
+          style={[
+            styles.headerContainer,
+            {
+              backgroundColor: theme.surface,
+              borderBottomColor: theme.borderLight,
+            },
+          ]}
+        >
           <View style={styles.searchRow}>
             <View style={styles.searchInputWrapper}>
               <SearchInput
-                placeholder={t("products:searchPlaceholder", { defaultValue: "Rechercher produit ou code..." })}
+                placeholder={t("products:searchPlaceholder", {
+                  defaultValue: "Rechercher produit ou code...",
+                })}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 locale={isArabic ? "ar" : "fr"}
@@ -192,8 +216,13 @@ export default function SellScreen() {
 
             <Pressable
               onPress={() => setScannerVisible(true)}
-              style={[styles.scannerBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              accessibilityLabel={t("sell.scanBarcode", { defaultValue: "Scanner un code-barres" })}
+              style={[
+                styles.scannerBtn,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+              accessibilityLabel={t("sell.scanBarcode", {
+                defaultValue: "Scanner un code-barres",
+              })}
             >
               <SymbolView
                 name={{
@@ -223,17 +252,30 @@ export default function SellScreen() {
                     style={[
                       styles.chip,
                       { backgroundColor: theme.backgroundElement },
-                      isSelected && [styles.chipSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }],
+                      isSelected && [
+                        styles.chipSelected,
+                        {
+                          backgroundColor: theme.primaryLight,
+                          borderColor: theme.primary,
+                        },
+                      ],
                     ]}
                   >
                     <Text
                       style={[
                         styles.chipText,
                         { color: theme.textSecondary },
-                        isSelected && [styles.chipTextSelected, { color: theme.primary }],
+                        isSelected && [
+                          styles.chipTextSelected,
+                          { color: theme.primary },
+                        ],
                       ]}
                     >
-                      {cat === "all" ? t("sell.allProducts", { defaultValue: "Tous les articles" }) : cat}
+                      {cat === "all"
+                        ? t("sell.allProducts", {
+                            defaultValue: "Tous les articles",
+                          })
+                        : cat}
                     </Text>
                   </Pressable>
                 );
@@ -244,10 +286,19 @@ export default function SellScreen() {
 
         {/* Frequent Items Carousel (when not searching) */}
         {!searchQuery && frequentProducts.length > 0 && (
-          <View style={[styles.frequentSection, { borderBottomColor: theme.borderLight }]}>
+          <View
+            style={[
+              styles.frequentSection,
+              { borderBottomColor: theme.borderLight },
+            ]}
+          >
             <View style={styles.sectionHeader}>
-              <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-                {t("sell.frequentItems", { defaultValue: "Articles Fréquents" })}
+              <ThemedText
+                style={[styles.sectionTitle, { color: theme.textSecondary }]}
+              >
+                {t("sell.frequentItems", {
+                  defaultValue: "Articles Fréquents",
+                })}
               </ThemedText>
             </View>
             <ScrollView
@@ -258,11 +309,22 @@ export default function SellScreen() {
               {frequentProducts.map((p) => (
                 <View
                   key={p.id}
-                  style={[styles.frequentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  style={[
+                    styles.frequentCard,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                    },
+                  ]}
                   accessibilityLabel={`${p.name}, ${formatCentimes(p.sale_price_centimes)}`}
                 >
                   <View style={styles.frequentCardContent}>
-                    <View style={[styles.frequentIconBox, { backgroundColor: theme.backgroundElement }]}>
+                    <View
+                      style={[
+                        styles.frequentIconBox,
+                        { backgroundColor: theme.backgroundElement },
+                      ]}
+                    >
                       <SymbolView
                         name={{
                           ios: "bag" as any,
@@ -273,10 +335,18 @@ export default function SellScreen() {
                         tintColor={theme.primary}
                       />
                     </View>
-                    <ThemedText style={[styles.frequentName, { color: theme.textPrimary }]} numberOfLines={1}>
+                    <ThemedText
+                      style={[
+                        styles.frequentName,
+                        { color: theme.textPrimary },
+                      ]}
+                      numberOfLines={1}
+                    >
                       {p.name}
                     </ThemedText>
-                    <ThemedText style={[styles.frequentPrice, { color: theme.primary }]}>
+                    <ThemedText
+                      style={[styles.frequentPrice, { color: theme.primary }]}
+                    >
                       {formatCentimes(p.sale_price_centimes)}
                     </ThemedText>
                   </View>
@@ -303,13 +373,26 @@ export default function SellScreen() {
                 size={48}
                 tintColor={theme.textMuted}
               />
-              <ThemedText style={[styles.emptyTitle, { color: theme.textPrimary }]}>
-                {searchQuery ? t("products:noProductsInList", { defaultValue: "Aucun produit trouvé" }) : t("products:noProductsInList", { defaultValue: "Catalogue vide" })}
+              <ThemedText
+                style={[styles.emptyTitle, { color: theme.textPrimary }]}
+              >
+                {searchQuery
+                  ? t("products:noProductsInList", {
+                      defaultValue: "Aucun produit trouvé",
+                    })
+                  : t("products:noProductsInList", {
+                      defaultValue: "Catalogue vide",
+                    })}
               </ThemedText>
-              <ThemedText style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
+              <ThemedText
+                style={[styles.emptySubtitle, { color: theme.textSecondary }]}
+              >
                 {searchQuery
                   ? `${t("common:search", { defaultValue: "Recherche" })}: "${searchQuery}"`
-                  : t("products:subtitle", { defaultValue: "Ajoutez des produits dans l'onglet Catalogue" })}
+                  : t("products:subtitle", {
+                      defaultValue:
+                        "Ajoutez des produits dans l'onglet Catalogue",
+                    })}
               </ThemedText>
             </View>
           ) : (
@@ -331,18 +414,42 @@ export default function SellScreen() {
                   <View
                     style={[
                       styles.productCard,
-                      { backgroundColor: theme.surface, borderColor: theme.border },
-                      cartQty > 0 && [styles.productCardInCart, { borderColor: theme.primary, backgroundColor: theme.primaryLight }],
+                      {
+                        backgroundColor: theme.surface,
+                        borderColor: theme.border,
+                      },
+                      cartQty > 0 && [
+                        styles.productCardInCart,
+                        {
+                          borderColor: theme.primary,
+                          backgroundColor: theme.primaryLight,
+                        },
+                      ],
                     ]}
                   >
                     <View style={styles.productCardMainArea}>
                       <View style={styles.productLeft}>
-                        <View style={[styles.productAvatar, { backgroundColor: theme.primaryLight }]}>
-                          <Text style={[styles.productInitial, { color: theme.primary }]}>
+                        <View
+                          style={[
+                            styles.productAvatar,
+                            { backgroundColor: theme.primaryLight },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.productInitial,
+                              { color: theme.primary },
+                            ]}
+                          >
                             {item.name ? item.name[0].toUpperCase() : "P"}
                           </Text>
                           {cartQty > 0 && (
-                            <View style={[styles.productQtyBadge, { backgroundColor: theme.primary }]}>
+                            <View
+                              style={[
+                                styles.productQtyBadge,
+                                { backgroundColor: theme.primary },
+                              ]}
+                            >
                               <Text style={styles.productQtyBadgeText}>
                                 {cartQty}
                               </Text>
@@ -352,15 +459,36 @@ export default function SellScreen() {
                       </View>
 
                       <View style={styles.productCenter}>
-                        <ThemedText style={[styles.productName, { color: theme.textPrimary }]} numberOfLines={1}>
+                        <ThemedText
+                          style={[
+                            styles.productName,
+                            { color: theme.textPrimary },
+                          ]}
+                          numberOfLines={1}
+                        >
                           {item.name}
                         </ThemedText>
                         <View style={styles.productMeta}>
                           {item.unit && (
-                            <Text style={[styles.unitText, { color: theme.textSecondary }]}>{item.unit}</Text>
+                            <Text
+                              style={[
+                                styles.unitText,
+                                { color: theme.textSecondary },
+                              ]}
+                            >
+                              {item.unit}
+                            </Text>
                           )}
                           {item.sku && (
-                            <Text style={[styles.skuBadge, { backgroundColor: theme.backgroundElement, color: theme.textSecondary }]}>
+                            <Text
+                              style={[
+                                styles.skuBadge,
+                                {
+                                  backgroundColor: theme.backgroundElement,
+                                  color: theme.textSecondary,
+                                },
+                              ]}
+                            >
                               SKU: {item.sku}
                             </Text>
                           )}
@@ -379,7 +507,10 @@ export default function SellScreen() {
                                   isLowStock && styles.stockBadgeTextLow,
                                 ]}
                               >
-                                {t("products:stockLabel", { defaultValue: "Stock" })}: {item.stock_quantity}
+                                {t("products:stockLabel", {
+                                  defaultValue: "Stock",
+                                })}
+                                : {item.stock_quantity}
                               </Text>
                             </View>
                           )}
@@ -388,14 +519,22 @@ export default function SellScreen() {
                     </View>
 
                     <View style={styles.productRight}>
-                      <Text style={[styles.productPrice, { color: theme.primary }]}>
+                      <Text
+                        style={[styles.productPrice, { color: theme.primary }]}
+                      >
                         {formatCentimes(item.sale_price_centimes)}
                       </Text>
 
                       {cartQty === 0 ? (
                         <Pressable
                           onPress={() => addItemWithProduct(item, 1)}
-                          style={[styles.addBtn, { backgroundColor: theme.surfaceAlt, borderColor: theme.primary }]}
+                          style={[
+                            styles.addBtn,
+                            {
+                              backgroundColor: theme.surfaceAlt,
+                              borderColor: theme.primary,
+                            },
+                          ]}
                           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                           accessibilityLabel={`${t("sell.add", { defaultValue: "Ajouter" })} ${item.name}`}
                         >
@@ -408,15 +547,34 @@ export default function SellScreen() {
                             size={14}
                             tintColor={theme.primary}
                           />
-                          <Text style={[styles.addBtnText, { color: theme.primary }]}>
+                          <Text
+                            style={[
+                              styles.addBtnText,
+                              { color: theme.primary },
+                            ]}
+                          >
                             {t("sell.add", { defaultValue: "Ajouter" })}
                           </Text>
                         </Pressable>
                       ) : (
-                        <View style={[styles.stepperContainer, { backgroundColor: theme.surfaceAlt, borderColor: theme.primary }]}>
+                        <View
+                          style={[
+                            styles.stepperContainer,
+                            {
+                              backgroundColor: theme.surfaceAlt,
+                              borderColor: theme.primary,
+                            },
+                          ]}
+                        >
                           <Pressable
                             onPress={() => subtractItem(item.id)}
-                            style={[styles.stepperBtnMinus, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                            style={[
+                              styles.stepperBtnMinus,
+                              {
+                                backgroundColor: theme.surface,
+                                borderColor: theme.border,
+                              },
+                            ]}
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 6 }}
                             accessibilityLabel={`-`}
                           >
@@ -431,11 +589,21 @@ export default function SellScreen() {
                             />
                           </Pressable>
                           <View style={styles.stepperQtyBox}>
-                            <Text style={[styles.stepperQtyText, { color: theme.primary }]}>{cartQty}</Text>
+                            <Text
+                              style={[
+                                styles.stepperQtyText,
+                                { color: theme.primary },
+                              ]}
+                            >
+                              {cartQty}
+                            </Text>
                           </View>
                           <Pressable
                             onPress={() => addItemWithProduct(item, 1)}
-                            style={[styles.stepperBtnPlus, { backgroundColor: theme.primary }]}
+                            style={[
+                              styles.stepperBtnPlus,
+                              { backgroundColor: theme.primary },
+                            ]}
                             hitSlop={{ top: 8, bottom: 8, left: 6, right: 8 }}
                             accessibilityLabel={`+`}
                           >
@@ -455,7 +623,9 @@ export default function SellScreen() {
                   </View>
                 );
               }}
-              ListFooterComponent={() => <FooterTrademark style={{ paddingBottom: 60 }} />}
+              ListFooterComponent={() => (
+                <FooterTrademark style={{ paddingBottom: 60 }} />
+              )}
             />
           )}
         </View>
@@ -466,14 +636,26 @@ export default function SellScreen() {
           id="sell-actions-container"
           // @ts-ignore
           className="sell-actions-container"
-          style={[styles.bottomDockContainer, { backgroundColor: theme.surface, borderTopColor: theme.borderLight }]}
+          style={[
+            styles.bottomDockContainer,
+            {
+              backgroundColor: theme.surface,
+              borderTopColor: theme.borderLight,
+            },
+          ]}
         >
           <Pressable
             onPress={() => setCartVisible(true)}
             style={[
               styles.cartBarInner,
               { backgroundColor: theme.primary },
-              itemCount === 0 && [styles.cartBarInnerEmpty, { backgroundColor: theme.backgroundElement, borderColor: theme.border }],
+              itemCount === 0 && [
+                styles.cartBarInnerEmpty,
+                {
+                  backgroundColor: theme.backgroundElement,
+                  borderColor: theme.border,
+                },
+              ],
             ]}
             accessibilityLabel={t("sell.cart.viewCart", {
               defaultValue: "Voir le panier",
@@ -489,12 +671,15 @@ export default function SellScreen() {
                     web: "shopping_bag" as any,
                   }}
                   size={20}
-                  tintColor={
-                    itemCount > 0 ? "#FFFFFF" : theme.textSecondary
-                  }
+                  tintColor={itemCount > 0 ? "#FFFFFF" : theme.textSecondary}
                 />
                 {itemCount > 0 && (
-                  <View style={[styles.cartCountBadge, { backgroundColor: theme.warning }]}>
+                  <View
+                    style={[
+                      styles.cartCountBadge,
+                      { backgroundColor: theme.warning },
+                    ]}
+                  >
                     <Text style={styles.cartCountBadgeText}>{itemCount}</Text>
                   </View>
                 )}
@@ -503,7 +688,10 @@ export default function SellScreen() {
                 <Text
                   style={[
                     styles.cartBarLabel,
-                    itemCount === 0 && [styles.cartBarLabelEmpty, { color: theme.textSecondary }],
+                    itemCount === 0 && [
+                      styles.cartBarLabelEmpty,
+                      { color: theme.textSecondary },
+                    ],
                   ]}
                   numberOfLines={1}
                 >
@@ -512,7 +700,10 @@ export default function SellScreen() {
                 <Text
                   style={[
                     styles.cartBarTotal,
-                    itemCount === 0 && [styles.cartBarTotalEmpty, { color: theme.textPrimary }],
+                    itemCount === 0 && [
+                      styles.cartBarTotalEmpty,
+                      { color: theme.textPrimary },
+                    ],
                   ]}
                   numberOfLines={1}
                 >
@@ -530,7 +721,10 @@ export default function SellScreen() {
               <Text
                 style={[
                   styles.cartBarActionText,
-                  itemCount === 0 && [styles.cartBarActionTextEmpty, { color: theme.textSecondary }],
+                  itemCount === 0 && [
+                    styles.cartBarActionTextEmpty,
+                    { color: theme.textSecondary },
+                  ],
                 ]}
                 numberOfLines={1}
               >
@@ -543,9 +737,7 @@ export default function SellScreen() {
                   web: "chevron_right" as any,
                 }}
                 size={16}
-                tintColor={
-                  itemCount > 0 ? "#FFFFFF" : theme.textSecondary
-                }
+                tintColor={itemCount > 0 ? "#FFFFFF" : theme.textSecondary}
               />
             </View>
           </Pressable>
@@ -605,12 +797,14 @@ export default function SellScreen() {
               clearCart();
               setSale(null);
             }}
-            saleItems={sale?.items?.map((item: any) => ({
-              id: item.id,
-              name: item.name,
-              quantity: item.quantity,
-              sale_price_centimes: item.unitSalePriceCentimes,
-            })) || []}
+            saleItems={
+              sale?.items?.map((item: any) => ({
+                id: item.id,
+                name: item.name,
+                quantity: item.quantity,
+                sale_price_centimes: item.unitSalePriceCentimes,
+              })) || []
+            }
             cartTotal={sale?.total_centimes || 0}
             discountCentimes={discount}
             paymentMethod={paymentMethod}
@@ -645,6 +839,9 @@ export default function SellScreen() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,

@@ -1,19 +1,20 @@
-import React, { useState, useMemo, useCallback } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Linking,
-  Alert,
-} from "react-native";
-import { useTranslation } from "react-i18next";
-import { useRouter } from "expo-router";
-import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+    Alert,
+    Linking,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface PaymentReminderPreviewProps {
   customerId: number;
@@ -31,13 +32,14 @@ export function PaymentReminderPreview({
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [lang, setLang] = useState<"fr" | "ar" | "en">(
     i18n.language.startsWith("ar")
       ? "ar"
       : i18n.language.startsWith("en")
         ? "en"
-        : "fr"
+        : "fr",
   );
   const [channel, setChannel] = useState<"whatsapp" | "sms">("whatsapp");
 
@@ -60,7 +62,9 @@ export function PaymentReminderPreview({
   const handleSend = useCallback(async () => {
     const encodedText = encodeURIComponent(messageBody);
 
-    let formattedPhone = (customerPhone || "").replace(/\s+/g, "").replace(/[^0-9]/g, "");
+    let formattedPhone = (customerPhone || "")
+      .replace(/\s+/g, "")
+      .replace(/[^0-9]/g, "");
     if (formattedPhone.startsWith("0")) {
       formattedPhone = "213" + formattedPhone.slice(1);
     }
@@ -75,7 +79,7 @@ export function PaymentReminderPreview({
       } else {
         Alert.alert(
           t("common:error"),
-          t("customers:whatsappNotInstalled") || "WhatsApp is not installed."
+          t("customers:whatsappNotInstalled") || "WhatsApp is not installed.",
         );
       }
     } else {
@@ -88,7 +92,8 @@ export function PaymentReminderPreview({
       } else {
         Alert.alert(
           t("common:error"),
-          t("customers:smsNotSupported") || "SMS is not supported on this device."
+          t("customers:smsNotSupported") ||
+            "SMS is not supported on this device.",
         );
       }
     }
@@ -97,9 +102,9 @@ export function PaymentReminderPreview({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
       {/* Top Header */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { paddingTop: insets.top + Spacing.md }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.iconButton}
@@ -124,7 +129,10 @@ export function PaymentReminderPreview({
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + Spacing.xxl },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile / Balance Summary Card */}
@@ -136,7 +144,9 @@ export function PaymentReminderPreview({
               </ThemedText>
             </View>
             <View>
-              <ThemedText style={styles.customerName}>{customerName}</ThemedText>
+              <ThemedText style={styles.customerName}>
+                {customerName}
+              </ThemedText>
               <ThemedText style={styles.clientTag}>
                 {customerPhone || t("customers:customer")}
               </ThemedText>
@@ -288,9 +298,7 @@ export function PaymentReminderPreview({
               <MaterialIcons
                 name="textsms"
                 size={22}
-                color={
-                  channel === "sms" ? theme.primary : theme.textSecondary
-                }
+                color={channel === "sms" ? theme.primary : theme.textSecondary}
               />
               <View style={styles.channelInfo}>
                 <ThemedText
@@ -312,9 +320,7 @@ export function PaymentReminderPreview({
                     : "radio-button-unchecked"
                 }
                 size={20}
-                color={
-                  channel === "sms" ? theme.primary : theme.textSecondary
-                }
+                color={channel === "sms" ? theme.primary : theme.textSecondary}
               />
             </TouchableOpacity>
           </View>
@@ -334,7 +340,9 @@ export function PaymentReminderPreview({
           <TouchableOpacity
             style={[
               styles.sendBtn,
-              channel === "whatsapp" ? styles.sendBtnWhatsapp : styles.sendBtnSms,
+              channel === "whatsapp"
+                ? styles.sendBtnWhatsapp
+                : styles.sendBtnSms,
             ]}
             onPress={handleSend}
           >

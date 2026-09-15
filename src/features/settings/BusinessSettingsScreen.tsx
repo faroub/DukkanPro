@@ -1,27 +1,28 @@
-import React, { useCallback, useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
 import {
-  BorderRadius,
-  ComponentDimensions,
-  Shadows,
-  Spacing,
-  Typography,
+    BorderRadius,
+    ComponentDimensions,
+    Shadows,
+    Spacing,
+    Typography,
 } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * BusinessSettingsScreen - Screen for managing store profile and receipt headers.
@@ -36,15 +37,16 @@ export function BusinessSettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [businessName, setBusinessName] = useState("Supérette El-Amel");
   const [ownerName, setOwnerName] = useState("Karim Belkacem");
   const [businessType, setBusinessType] = useState(
-    "Alimentation Générale / Superette"
+    "Alimentation Générale / Superette",
   );
   const [phoneNumber, setPhoneNumber] = useState("+213 550 12 34 56");
   const [storeAddress, setStoreAddress] = useState(
-    "Rue Didouche Mourad, Alger Centre"
+    "Rue Didouche Mourad, Alger Centre",
   );
   const [rcNumber, setRcNumber] = useState("RC: 16/00-1234567");
   const [isSaving, setIsSaving] = useState(false);
@@ -63,7 +65,16 @@ export function BusinessSettingsScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={[styles.scrollContainer, { backgroundColor: theme.background }]}
+      contentContainerStyle={[
+        styles.scrollContainer,
+        {
+          backgroundColor: theme.background,
+          paddingTop: Math.max(insets.top, Spacing.lg),
+          paddingBottom: insets.bottom + Spacing.xxl,
+          paddingLeft: insets.left + Spacing.lg,
+          paddingRight: insets.right + Spacing.lg,
+        },
+      ]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
@@ -74,44 +85,82 @@ export function BusinessSettingsScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="arrow-back" size={18} color={theme.textSecondary} />
-          <ThemedText style={[styles.breadcrumbText, { color: theme.textSecondary }]}>
+          <MaterialIcons
+            name="arrow-back"
+            size={18}
+            color={theme.textSecondary}
+          />
+          <ThemedText
+            style={[styles.breadcrumbText, { color: theme.textSecondary }]}
+          >
             {t("navigation.back") || "Back to More"}
           </ThemedText>
         </TouchableOpacity>
 
         {/* Screen Heading */}
         <View style={styles.headerSection}>
-          <View style={[styles.badgeRow, { backgroundColor: theme.primaryLight }]}>
+          <View
+            style={[styles.badgeRow, { backgroundColor: theme.primaryLight }]}
+          >
             <MaterialIcons name="verified" size={16} color={theme.primary} />
-            <ThemedText style={[styles.badgeText, { color: theme.primary }]}>Active Store Profile</ThemedText>
+            <ThemedText style={[styles.badgeText, { color: theme.primary }]}>
+              Active Store Profile
+            </ThemedText>
           </View>
-          <ThemedText style={[styles.headingTitle, { color: theme.textPrimary }]}>
+          <ThemedText
+            style={[styles.headingTitle, { color: theme.textPrimary }]}
+          >
             Business Profile & Identity
           </ThemedText>
-          <ThemedText style={[styles.headingSubtitle, { color: theme.textSecondary }]}>
+          <ThemedText
+            style={[styles.headingSubtitle, { color: theme.textSecondary }]}
+          >
             Information displayed on receipts, invoices, and payment reminders.
           </ThemedText>
         </View>
 
         {/* Store Photo / Header Preview Card */}
-        <View style={[styles.previewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.photoContainer, { backgroundColor: theme.primaryLight }]}>
+        <View
+          style={[
+            styles.previewCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
+          <View
+            style={[
+              styles.photoContainer,
+              { backgroundColor: theme.primaryLight },
+            ]}
+          >
             <MaterialIcons name="storefront" size={28} color={theme.primary} />
           </View>
           <View style={styles.previewInfo}>
             <View style={styles.previewNameRow}>
-              <ThemedText style={[styles.previewName, { color: theme.textPrimary }]}>
+              <ThemedText
+                style={[styles.previewName, { color: theme.textPrimary }]}
+              >
                 {businessName || "Supérette El-Amel"}
               </ThemedText>
-              <MaterialIcons name="check-circle" size={18} color={theme.primary} />
+              <MaterialIcons
+                name="check-circle"
+                size={18}
+                color={theme.primary}
+              />
             </View>
-            <ThemedText style={[styles.previewLocation, { color: theme.textSecondary }]}>
+            <ThemedText
+              style={[styles.previewLocation, { color: theme.textSecondary }]}
+            >
               Alger Centre • DZD Account
             </ThemedText>
             <View style={styles.previewReceiptBadge}>
-              <MaterialIcons name="receipt-long" size={14} color={theme.primary} />
-              <ThemedText style={[styles.previewReceiptText, { color: theme.primary }]}>
+              <MaterialIcons
+                name="receipt-long"
+                size={14}
+                color={theme.primary}
+              />
+              <ThemedText
+                style={[styles.previewReceiptText, { color: theme.primary }]}
+              >
                 Receipt Header Preview Active
               </ThemedText>
             </View>
@@ -119,14 +168,32 @@ export function BusinessSettingsScreen() {
         </View>
 
         {/* Form Card */}
-        <View style={[styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View
+          style={[
+            styles.formCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
           {/* 1. Business Name */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>Business Name</ThemedText>
-              <ThemedText style={[styles.fieldRequired, { color: theme.textMuted }]}>Required</ThemedText>
+              <ThemedText
+                style={[styles.fieldLabel, { color: theme.textPrimary }]}
+              >
+                Business Name
+              </ThemedText>
+              <ThemedText
+                style={[styles.fieldRequired, { color: theme.textMuted }]}
+              >
+                Required
+              </ThemedText>
             </View>
-            <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.inputWrapper,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+            >
               <MaterialIcons
                 name="storefront"
                 size={20}
@@ -146,10 +213,23 @@ export function BusinessSettingsScreen() {
           {/* 2. Owner / Manager Name */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>Owner / Manager Name</ThemedText>
-              <ThemedText style={[styles.fieldRequired, { color: theme.textMuted }]}>Required</ThemedText>
+              <ThemedText
+                style={[styles.fieldLabel, { color: theme.textPrimary }]}
+              >
+                Owner / Manager Name
+              </ThemedText>
+              <ThemedText
+                style={[styles.fieldRequired, { color: theme.textMuted }]}
+              >
+                Required
+              </ThemedText>
             </View>
-            <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.inputWrapper,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+            >
               <MaterialIcons
                 name="person"
                 size={20}
@@ -169,9 +249,18 @@ export function BusinessSettingsScreen() {
           {/* 3. Business Type */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>Business Type</ThemedText>
+              <ThemedText
+                style={[styles.fieldLabel, { color: theme.textPrimary }]}
+              >
+                Business Type
+              </ThemedText>
             </View>
-            <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.inputWrapper,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+            >
               <MaterialIcons
                 name="category"
                 size={20}
@@ -191,13 +280,26 @@ export function BusinessSettingsScreen() {
           {/* 4. Phone Number */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>Phone Number</ThemedText>
+              <ThemedText
+                style={[styles.fieldLabel, { color: theme.textPrimary }]}
+              >
+                Phone Number
+              </ThemedText>
               <View style={styles.whatsappBadge}>
                 <MaterialIcons name="chat" size={13} color={theme.primary} />
-                <ThemedText style={[styles.whatsappText, { color: theme.primary }]}>WhatsApp</ThemedText>
+                <ThemedText
+                  style={[styles.whatsappText, { color: theme.primary }]}
+                >
+                  WhatsApp
+                </ThemedText>
               </View>
             </View>
-            <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.inputWrapper,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+            >
               <MaterialIcons
                 name="call"
                 size={20}
@@ -213,7 +315,9 @@ export function BusinessSettingsScreen() {
                 placeholderTextColor={theme.textMuted}
               />
             </View>
-            <ThemedText style={[styles.fieldHelper, { color: theme.textSecondary }]}>
+            <ThemedText
+              style={[styles.fieldHelper, { color: theme.textSecondary }]}
+            >
               Used to send automated customer debt reminders and POS receipts.
             </ThemedText>
           </View>
@@ -221,9 +325,18 @@ export function BusinessSettingsScreen() {
           {/* 5. Address / Location */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>Address / Location</ThemedText>
+              <ThemedText
+                style={[styles.fieldLabel, { color: theme.textPrimary }]}
+              >
+                Address / Location
+              </ThemedText>
             </View>
-            <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.inputWrapper,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+            >
               <MaterialIcons
                 name="location-on"
                 size={20}
@@ -243,10 +356,23 @@ export function BusinessSettingsScreen() {
           {/* 6. Commercial Registry (RC) */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>Commercial Registry (RC)</ThemedText>
-              <ThemedText style={[styles.fieldLegal, { color: theme.textMuted }]}>Legal Info</ThemedText>
+              <ThemedText
+                style={[styles.fieldLabel, { color: theme.textPrimary }]}
+              >
+                Commercial Registry (RC)
+              </ThemedText>
+              <ThemedText
+                style={[styles.fieldLegal, { color: theme.textMuted }]}
+              >
+                Legal Info
+              </ThemedText>
             </View>
-            <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.inputWrapper,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+              ]}
+            >
               <MaterialIcons
                 name="badge"
                 size={20}
@@ -266,37 +392,77 @@ export function BusinessSettingsScreen() {
           {/* 7. Currency (Locked / Display only) */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
-              <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>Currency</ThemedText>
+              <ThemedText
+                style={[styles.fieldLabel, { color: theme.textPrimary }]}
+              >
+                Currency
+              </ThemedText>
               <View style={styles.lockedBadge}>
                 <MaterialIcons name="lock" size={13} color={theme.textMuted} />
-                <ThemedText style={[styles.lockedText, { color: theme.textMuted }]}>Display only</ThemedText>
+                <ThemedText
+                  style={[styles.lockedText, { color: theme.textMuted }]}
+                >
+                  Display only
+                </ThemedText>
               </View>
             </View>
-            <View style={[styles.inputWrapper, styles.inputDisabled, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.inputWrapper,
+                styles.inputDisabled,
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.border,
+                },
+              ]}
+            >
               <MaterialIcons
                 name="payments"
                 size={20}
                 color={theme.textMuted}
                 style={styles.inputIcon}
               />
-              <ThemedText style={[styles.disabledText, { color: theme.textSecondary }]}>DZD (Algerian Dinar)</ThemedText>
+              <ThemedText
+                style={[styles.disabledText, { color: theme.textSecondary }]}
+              >
+                DZD (Algerian Dinar)
+              </ThemedText>
               <MaterialIcons name="lock" size={18} color={theme.textMuted} />
             </View>
-            <ThemedText style={[styles.fieldHelper, { color: theme.textSecondary }]}>
+            <ThemedText
+              style={[styles.fieldHelper, { color: theme.textSecondary }]}
+            >
               Fixed to Algerian Dinar for regional fiscal & ledger consistency.
             </ThemedText>
           </View>
         </View>
 
         {/* Ledger Sync Notification Card */}
-        <View style={[styles.syncCard, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
-          <View style={[styles.syncIconContainer, { backgroundColor: theme.primaryLight }]}>
+        <View
+          style={[
+            styles.syncCard,
+            { backgroundColor: theme.surfaceAlt, borderColor: theme.border },
+          ]}
+        >
+          <View
+            style={[
+              styles.syncIconContainer,
+              { backgroundColor: theme.primaryLight },
+            ]}
+          >
             <MaterialIcons name="security" size={22} color={theme.primary} />
           </View>
           <View style={styles.syncContent}>
-            <ThemedText style={[styles.syncTitle, { color: theme.textPrimary }]}>Ledger Data Synced</ThemedText>
-            <ThemedText style={[styles.syncSubtitle, { color: theme.textSecondary }]}>
-              Updated details synchronize automatically across linked POS terminals.
+            <ThemedText
+              style={[styles.syncTitle, { color: theme.textPrimary }]}
+            >
+              Ledger Data Synced
+            </ThemedText>
+            <ThemedText
+              style={[styles.syncSubtitle, { color: theme.textSecondary }]}
+            >
+              Updated details synchronize automatically across linked POS
+              terminals.
             </ThemedText>
           </View>
         </View>
@@ -304,7 +470,11 @@ export function BusinessSettingsScreen() {
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: theme.primary }, isSaving && { opacity: 0.8 }]}
+            style={[
+              styles.saveButton,
+              { backgroundColor: theme.primary },
+              isSaving && { opacity: 0.8 },
+            ]}
             onPress={handleSave}
             activeOpacity={0.8}
             disabled={isSaving}
@@ -320,7 +490,9 @@ export function BusinessSettingsScreen() {
             onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <ThemedText style={[styles.cancelButtonText, { color: theme.textSecondary }]}>
+            <ThemedText
+              style={[styles.cancelButtonText, { color: theme.textSecondary }]}
+            >
               {t("common.cancel") || "Cancel"}
             </ThemedText>
           </TouchableOpacity>
@@ -474,8 +646,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.button,
     paddingHorizontal: 12,
   },
-  inputDisabled: {
-  },
+  inputDisabled: {},
   inputIcon: {
     marginRight: 10,
   },
