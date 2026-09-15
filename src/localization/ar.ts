@@ -209,6 +209,15 @@ export default {
     noStockYet: "لا توجد حركة مخزون بعد",
   },
 
+  sell: {
+    title: "الصندوق والمبيعات",
+    subtitle: "إصدار فواتير سريع • الكاتالوج والباركود",
+    scanBarcode: "مسح الرمز الشريطي",
+    allProducts: "جميع المنتجات",
+    frequentItems: "المنتجات الأكثر طلباً",
+    add: "إضافة",
+  },
+
   // 7. sales — sale flow, cart, checkout
   sales: {
     title: "المبيعات",

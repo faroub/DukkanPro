@@ -209,6 +209,15 @@ export default {
     noStockYet: "No stock movements yet"
   },
 
+  sell: {
+    title: "Sales & Register",
+    subtitle: "Fast checkout • Catalogue & barcode",
+    scanBarcode: "Scan barcode",
+    allProducts: "All items",
+    frequentItems: "Frequent Items",
+    add: "Add",
+  },
+
   // 7. sales — sale flow, cart, checkout
   sales: {
     title: "Sales",
