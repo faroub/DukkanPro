@@ -143,7 +143,7 @@ export function ProductForm({
     if (stockQuantity <= currentMinThreshold) {
       return {
         label: t('products:stockStatusLow', 'Low Stock Warning'),
-        color: theme.warning || theme.secondary,
+        color: (theme as any).warning || (theme as any).secondary || (theme as any).primary,
         bg: theme.warningLight,
         icon: 'warning' as const,
       };

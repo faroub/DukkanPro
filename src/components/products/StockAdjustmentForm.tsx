@@ -164,8 +164,8 @@ export function StockAdjustmentForm({ productId, initialQuantity = 0, onAdjustme
           )}
 
           {showSuccess && (
-            <ThemedView style={[styles.successBanner, { backgroundColor: theme.successLight }]}>
-              <ThemedText style={{ color: theme.success, fontSize: 12 }}>
+            <ThemedView style={[styles.successBanner, { backgroundColor: (theme as any).successLight || theme.primaryLight }]}>
+              <ThemedText style={{ color: (theme as any).success || theme.primary, fontSize: 12 }}>
                 {t('products:adjustmentSuccess')}
               </ThemedText>
             </ThemedView>
