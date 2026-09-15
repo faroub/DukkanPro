@@ -60,7 +60,7 @@ function computeEffectiveScheme(pref: ThemePreference, systemScheme?: ColorSchem
 
 export function AppThemeProvider({ children }: ThemeProviderProps) {
   const rnColorScheme = useRNColorScheme();
-  const [appAppearanceScheme, setAppAppearanceScheme] = useState<ColorSchemeName>(Appearance.getColorScheme());
+  const [appAppearanceScheme, setAppAppearanceScheme] = useState<ColorSchemeName>(Appearance.getColorScheme() || "light");
   const [themePreference, setThemePreferenceState] = useState<ThemePreference>("system");
 
   // Subscribe to real-time Appearance changes from OS/browser

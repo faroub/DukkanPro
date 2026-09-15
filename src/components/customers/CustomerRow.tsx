@@ -86,7 +86,7 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
               styles.avatarText,
               {
                 color: customer.hasDebt
-                  ? theme.error || theme.destructive
+                  ? theme.error || (theme as any).destructive
                   : theme.primary,
               },
             ]}
@@ -119,7 +119,7 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
             <ThemedText
               style={[
                 styles.debtAmount,
-                { color: theme.error || theme.destructive },
+                { color: theme.error || (theme as any).destructive },
               ]}
             >
               {formatCentimes(customer.outstandingBalance, i18n.language as any)}
@@ -133,7 +133,7 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
               <ThemedText
                 style={[
                   styles.debtBadgeText,
-                  { color: theme.error || theme.destructive },
+                  { color: theme.error || (theme as any).destructive },
                 ]}
               >
                 {t("customers:hasDebt")}
