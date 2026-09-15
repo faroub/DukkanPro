@@ -10,7 +10,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
@@ -173,8 +173,10 @@ export default function SellScreen() {
 
   const isArabic = i18n.language?.startsWith("ar");
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={["top", "bottom"]}>
+    <View style={[{ flex: 1, backgroundColor: theme.background }, insets]}>
       <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
         {/* Header with Search & Barcode Scan */}
         <View style={[styles.headerContainer, { backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
@@ -638,15 +640,11 @@ export default function SellScreen() {
           />
         )}
       </ThemedView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,

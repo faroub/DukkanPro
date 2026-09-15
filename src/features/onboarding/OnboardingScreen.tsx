@@ -1,6 +1,7 @@
 import { useRouter, type Href } from "expo-router";
-import { useState } from "react";
-import { SafeAreaView, StyleSheet, View } from "react-native";
+import { useState, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Colors } from "@/constants/theme";
 import { BusinessNameStep } from "@/features/onboarding/components/BusinessNameStep";
@@ -26,6 +27,7 @@ import type { Locale } from "@/localization/types";
  */
 export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [profile, setProfile] = useState<{
@@ -78,7 +80,7 @@ export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[{ flex: 1, backgroundColor: Colors.light.background }, insets]}>
       <View style={styles.container}>
         {currentStep === 0 && (
           <LanguageStep
@@ -122,15 +124,11 @@ export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
   container: {
     flex: 1,
   },

@@ -1,7 +1,7 @@
 import { useTheme } from "@/hooks/use-theme";
 import React from "react";
-import { StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DatabaseProvider } from "./DatabaseProvider";
 import { LocaleProvider } from "./LocaleProvider";
 import { Colors } from "@/constants/theme";
@@ -12,13 +12,14 @@ export interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[{ flex: 1, backgroundColor: theme.background }, insets]}>
       <DatabaseProvider>
         <LocaleProvider>{children}</LocaleProvider>
       </DatabaseProvider>
-    </SafeAreaView>
+    </View>
   );
 }
 
