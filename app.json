@@ -7,6 +7,11 @@
     "icon": "./assets/images/icon.png",
     "scheme": "dukkanos",
     "userInterfaceStyle": "automatic",
+    "androidStatusBar": {
+      "backgroundColor": "#00000000",
+      "barStyle": "dark-content",
+      "translucent": true
+    },
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.oubfar.DukkanOS"

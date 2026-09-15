@@ -1,11 +1,10 @@
 import { useRouter, type Href } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import { useTheme } from "@/hooks/use-theme";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
+import { useTheme } from "@/hooks/use-theme";
 import { useOnboarding } from "@/hooks/useOnboarding";
 
 SplashScreen.preventAutoHideAsync();
@@ -38,13 +37,11 @@ export default function Root() {
     }
   }, [isOnboardingComplete, router]);
 
-  const insets = useSafeAreaInsets();
-
   if (isOnboardingComplete === null) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />
-      </ActivityIndicator>
+      </View>
     );
   }
 
@@ -52,16 +49,16 @@ export default function Root() {
 
   if (shouldShowOnboarding) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <OnboardingScreen onComplete={() => setIsOnboardingComplete(true)} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ActivityIndicator size="large" color={theme.primary} />
-    </ActivityIndicator>
+    </View>
   );
 }
 
@@ -70,6 +67,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: theme.background,
   },
 });

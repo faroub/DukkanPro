@@ -1,31 +1,24 @@
-import React, { useCallback } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
 import {
-  BorderRadius,
-  Colors,
-  ComponentDimensions,
-  Shadows,
-  Spacing,
-  Typography,
+    BorderRadius,
+    Colors,
+    ComponentDimensions,
+    Shadows,
+    Spacing,
+    Typography,
 } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import {
-  ThemePreference,
-  useThemePreference,
-} from "@/providers/ThemeProvider";
+import { ThemePreference, useThemePreference } from "@/providers/ThemeProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ThemeOptionItem {
   id: ThemePreference;
@@ -75,7 +68,13 @@ export function ThemeSettingsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
-  const { themePreference, colorScheme, systemColorScheme, setThemePreference } = useThemePreference();
+  const insets = useSafeAreaInsets();
+  const {
+    themePreference,
+    colorScheme,
+    systemColorScheme,
+    setThemePreference,
+  } = useThemePreference();
 
   const isArabic = i18n.language?.startsWith("ar");
   const textAlignStyle = isArabic ? styles.textRight : styles.textLeft;
@@ -97,14 +96,20 @@ export function ThemeSettingsScreen() {
               : "Apparence calquée sur le système";
       showToast(msg);
     },
-    [setThemePreference, isArabic]
+    [setThemePreference, isArabic],
   );
 
   return (
     <ScrollView
       contentContainerStyle={[
         styles.scrollContainer,
-        { backgroundColor: theme.background },
+        {
+          backgroundColor: theme.background,
+          paddingTop: Math.max(insets.top, Spacing.lg),
+          paddingBottom: insets.bottom + Spacing.xxl,
+          paddingLeft: insets.left + Spacing.lg,
+          paddingRight: insets.right + Spacing.lg,
+        },
       ]}
       showsVerticalScrollIndicator={false}
     >
@@ -129,14 +134,18 @@ export function ThemeSettingsScreen() {
             <ThemedText style={[styles.screenTitle, textAlignStyle]}>
               {t("settings:theme", {
                 defaultValue: t("settings.theme", {
-                  defaultValue: t("theme", { defaultValue: isArabic ? "المظهر" : "Thème" }),
+                  defaultValue: t("theme", {
+                    defaultValue: isArabic ? "المظهر" : "Thème",
+                  }),
                 }),
               })}
             </ThemedText>
             <ThemedText style={[styles.screenSubtitle, textAlignStyle]}>
               {t("settings:themeSubtitle", {
                 defaultValue: t("settings.themeSubtitle", {
-                  defaultValue: isArabic ? "الوضع الفاتح، الداكن، أو حسب إعدادات الجهاز" : "Mode clair, sombre ou système",
+                  defaultValue: isArabic
+                    ? "الوضع الفاتح، الداكن، أو حسب إعدادات الجهاز"
+                    : "Mode clair, sombre ou système",
                 }),
               })}
             </ThemedText>
@@ -168,10 +177,12 @@ export function ThemeSettingsScreen() {
               color={theme.primary}
             />
           </View>
-          <View style={[styles.activeBannerContent, isArabic && styles.alignEnd]}>
+          <View
+            style={[styles.activeBannerContent, isArabic && styles.alignEnd]}
+          >
             <ThemedText style={[styles.activeBannerTitle, textAlignStyle]}>
               {themePreference === "system"
-                ? `${t("settings.themeSystem") || "System"} (${isArabic ? "الجهاز: " : "Appareil : "}${systemColorScheme === "dark" ? (isArabic ? "داكن" : "Sombre") : (isArabic ? "فاتح" : "Clair")})`
+                ? `${t("settings.themeSystem") || "System"} (${isArabic ? "الجهاز: " : "Appareil : "}${systemColorScheme === "dark" ? (isArabic ? "داكن" : "Sombre") : isArabic ? "فاتح" : "Clair"})`
                 : themePreference === "dark"
                   ? `${t("settings.themeDark") || "Dark"} (${isArabic ? "مفروض" : "Forcé"})`
                   : `${t("settings.themeLight") || "Light"} (${isArabic ? "مفروض" : "Forcé"})`}
@@ -182,8 +193,10 @@ export function ThemeSettingsScreen() {
                   ? `يتبع النظام تلقائياً. المظهر المكتشف حالياً: ${systemColorScheme === "dark" ? "داكن" : "فاتح"}`
                   : `Suit la configuration du système. Actuellement détecté : ${systemColorScheme === "dark" ? "Sombre" : "Clair"}`
                 : themePreference === "dark"
-                  ? (t("settings.themeDarkDesc") || "Moteur داكن ثابت بغض النظر عن الجهاز")
-                  : (t("settings.themeLightDesc") || "Mode clair ثابت بغض النظر عن الجهاز")}
+                  ? t("settings.themeDarkDesc") ||
+                    "Moteur داكن ثابت بغض النظر عن الجهاز"
+                  : t("settings.themeLightDesc") ||
+                    "Mode clair ثابت بغض النظر عن الجهاز"}
             </ThemedText>
           </View>
         </View>
@@ -262,7 +275,9 @@ export function ThemeSettingsScreen() {
                         ]}
                       >
                         {t(opt.titleKey)}
-                        {opt.id === "system" ? ` (${systemColorScheme === "dark" ? (isArabic ? "داكن" : "Sombre") : (isArabic ? "فاتح" : "Clair")})` : ""}
+                        {opt.id === "system"
+                          ? ` (${systemColorScheme === "dark" ? (isArabic ? "داكن" : "Sombre") : isArabic ? "فاتح" : "Clair"})`
+                          : ""}
                       </ThemedText>
                       {isSelected && (
                         <View
@@ -294,7 +309,9 @@ export function ThemeSettingsScreen() {
                   <View
                     style={[
                       styles.radioCircle,
-                      { borderColor: isSelected ? theme.primary : theme.border },
+                      {
+                        borderColor: isSelected ? theme.primary : theme.border,
+                      },
                     ]}
                   >
                     {isSelected && (
@@ -372,10 +389,7 @@ export function ThemeSettingsScreen() {
                 ]}
               >
                 <ThemedText
-                  style={[
-                    styles.previewPillText,
-                    { color: theme.primary },
-                  ]}
+                  style={[styles.previewPillText, { color: theme.primary }]}
                 >
                   {isArabic ? "1 500 دج" : "1 500 DZD"}
                 </ThemedText>

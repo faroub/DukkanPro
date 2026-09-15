@@ -1,6 +1,6 @@
 import { useRouter, type Href } from "expo-router";
-import { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Colors } from "@/constants/theme";
@@ -80,7 +80,16 @@ export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
   };
 
   return (
-    <View style={[{ flex: 1, backgroundColor: Colors.light.background }, insets]}>
+    <View
+      style={[
+        styles.screen,
+        {
+          backgroundColor: Colors.light.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
       <View style={styles.container}>
         {currentStep === 0 && (
           <LanguageStep
@@ -129,6 +138,9 @@ export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },

@@ -13,8 +13,9 @@ import {
 import { useTheme } from "@/hooks/use-theme";
 import { CatalogueProduct } from "@/services/catalogue/catalogueService";
 import { useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type CatalogueStep = "settings" | "selector" | "preview";
 
@@ -72,6 +73,7 @@ const DEFAULT_SAMPLE_PRODUCTS: SelectorProductItem[] = [
 
 export function CatalogueScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const theme = useTheme();
   const [step, setStep] = useState<CatalogueStep>("settings");
 
@@ -81,10 +83,13 @@ export function CatalogueScreen() {
     shopName: "Supérette El-Amel",
     contact: "+213 550 12 34 56",
     address: "Rue Didouche Mourad, Alger Centre",
-    welcomeNote: "Commandes par WhatsApp acceptées • Retrait rapide au comptoir",
+    welcomeNote:
+      "Commandes par WhatsApp acceptées • Retrait rapide au comptoir",
   });
 
-  const [products, setProducts] = useState<SelectorProductItem[]>(DEFAULT_SAMPLE_PRODUCTS);
+  const [products, setProducts] = useState<SelectorProductItem[]>(
+    DEFAULT_SAMPLE_PRODUCTS,
+  );
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
     new Set(DEFAULT_SAMPLE_PRODUCTS.map((p) => p.id)),
   );
@@ -169,7 +174,17 @@ export function CatalogueScreen() {
   }, [products, selectedProductIds]);
 
   return (
-    <ThemedView style={[styles.screen, { backgroundColor: theme.background }]} id="catalogue-root">
+    <ThemedView
+      style={[
+        styles.screen,
+        {
+          backgroundColor: theme.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        },
+      ]}
+      id="catalogue-root"
+    >
       {step === "settings" && (
         <CatalogueSettings
           settings={settings}
