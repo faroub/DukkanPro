@@ -126,8 +126,8 @@ export function LanguageSettingsScreen() {
               color={theme.textPrimary}
             />
           </TouchableOpacity>
-          <View style={[styles.headerTitles, isArabic && styles.alignEnd]}>
-            <ThemedText style={[styles.screenTitle, textAlignStyle, { color: theme.textPrimary }]}>
+          <View style={styles.headerTitles}>
+            <ThemedText style={[styles.screenTitle, styles.textLeft, { color: theme.textPrimary }]}>
               {t("settings.localeAndDisplay", { defaultValue: "Language and Display" })}
             </ThemedText>
           </View>

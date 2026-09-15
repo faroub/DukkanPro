@@ -130,8 +130,8 @@ export function ThemeSettingsScreen() {
               color={theme.textPrimary}
             />
           </TouchableOpacity>
-          <View style={[styles.headerTitles, isArabic && styles.alignEnd]}>
-            <ThemedText style={[styles.screenTitle, textAlignStyle]}>
+          <View style={styles.headerTitles}>
+            <ThemedText style={[styles.screenTitle, styles.textLeft]}>
               {t("settings:theme", {
                 defaultValue: t("settings.theme", {
                   defaultValue: t("theme", {

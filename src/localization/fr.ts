@@ -209,6 +209,15 @@ export default {
     noStockYet: " aucune mouvement de stock pour l'instant"
   },
 
+  sell: {
+    title: "Caisse & Ventes",
+    subtitle: "Encaissement rapide • Catalogue & code-barres",
+    scanBarcode: "Scanner un code-barres",
+    allProducts: "Tous les articles",
+    frequentItems: "Articles Fréquents",
+    add: "Ajouter",
+  },
+
   // 7. sales — sale flow, cart, checkout
   sales: {
     title: "Ventes",

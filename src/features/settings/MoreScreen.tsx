@@ -110,8 +110,8 @@ export function MoreScreen() {
       <ThemedView style={styles.container}>
         {/* Top Section Header */}
         <View style={styles.topHeader}>
-          <View style={[styles.titleColumn, isArabic && styles.alignEnd]}>
-            <ThemedText style={[styles.screenTitle, textAlignStyle, { color: theme.textPrimary }]}>
+          <View style={styles.titleColumn}>
+            <ThemedText style={[styles.screenTitle, styles.textLeft, { color: theme.textPrimary }]}>
               {t("settings.title") || "More"}
             </ThemedText>
           </View>

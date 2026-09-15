@@ -45,6 +45,9 @@ export function GreetingCard({
       <View style={styles.topRow}>
         <View style={styles.titleColumn}>
           <View style={styles.storeNameRow}>
+            <View style={[styles.storeLogoBadge, { backgroundColor: theme.primaryLight }]}>
+              <MaterialIcons name="storefront" size={16} color={theme.primary} />
+            </View>
             <ThemedText style={[styles.storeName, { color: theme.textPrimary }]} numberOfLines={1}>
               {displayName}
             </ThemedText>
@@ -107,9 +110,7 @@ export function GreetingCard({
             accessibilityRole="button"
             accessibilityLabel="Store settings and profile"
           >
-            <ThemedText style={[styles.profileAvatarText, { color: theme.textPrimary }]}>
-              {displayName.charAt(0).toUpperCase()}
-            </ThemedText>
+            <MaterialIcons name="person" size={18} color={theme.textPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -138,6 +139,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     minWidth: 0,
+  },
+  storeLogoBadge: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 2,
+    flexShrink: 0,
   },
   storeName: {
     ...Typography.heading2,
