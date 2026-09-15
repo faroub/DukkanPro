@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';

@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FooterTrademark } from '@/components/FooterTrademark';
