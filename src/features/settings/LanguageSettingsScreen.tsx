@@ -69,6 +69,7 @@ export function LanguageSettingsScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const isArabic = i18n.language?.startsWith("ar");
+  const textAlignStyle = isArabic ? styles.textRight : styles.textLeft;
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || "fr");
 
   useEffect(() => {
@@ -125,8 +126,8 @@ export function LanguageSettingsScreen() {
               color={theme.textPrimary}
             />
           </TouchableOpacity>
-          <View style={styles.headerTitles}>
-            <ThemedText style={[styles.screenTitle, { color: theme.textPrimary }]}>
+          <View style={[styles.headerTitles, isArabic && styles.alignEnd]}>
+            <ThemedText style={[styles.screenTitle, textAlignStyle, { color: theme.textPrimary }]}>
               {t("settings.localeAndDisplay", { defaultValue: "Language and Display" })}
             </ThemedText>
           </View>
@@ -604,5 +605,14 @@ const styles = StyleSheet.create({
   },
   versionSubtitle: {
     fontSize: 11,
+  },
+  textLeft: {
+    textAlign: "left",
+  },
+  textRight: {
+    textAlign: "right",
+  },
+  alignEnd: {
+    alignItems: "flex-end",
   },
 });

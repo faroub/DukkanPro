@@ -79,7 +79,7 @@ export function MoreScreen() {
       ? "English (Active) • Arabic & French available"
       : "Français (Actif) • Arabe disponible";
 
-  const textAlignStyle = styles.textLeft;
+  const textAlignStyle = isArabic ? styles.textRight : styles.textLeft;
 
   const currentThemeLabel =
     themePreference === "system"
@@ -110,7 +110,7 @@ export function MoreScreen() {
       <ThemedView style={styles.container}>
         {/* Top Section Header */}
         <View style={styles.topHeader}>
-          <View style={styles.titleColumn}>
+          <View style={[styles.titleColumn, isArabic && styles.alignEnd]}>
             <ThemedText style={[styles.screenTitle, textAlignStyle, { color: theme.textPrimary }]}>
               {t("settings.title") || "More"}
             </ThemedText>
@@ -128,7 +128,7 @@ export function MoreScreen() {
           <View style={[styles.storeIconContainer, { backgroundColor: theme.primaryLight }]}>
             <MaterialIcons name="storefront" size={28} color={theme.primary} />
           </View>
-          <View style={styles.storeInfo}>
+          <View style={[styles.storeInfo, isArabic && styles.alignEnd]}>
             <View style={styles.storeNameRow}>
               <ThemedText style={[styles.storeName, textAlignStyle, { color: theme.textPrimary }]}>
                 {t("onboarding.businessName.defaultShopName") || "Supérette El-Amel"}
