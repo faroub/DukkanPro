@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -219,24 +219,23 @@ export function ProductForm({
     }
   };
 
-  const insets = useSafeAreaInsets();
-
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      {/* Top Header */}
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            style={[styles.backButton, { backgroundColor: theme.surfaceAlt }]}
-            onPress={onClose}
-            activeOpacity={0.7}
-            accessibilityLabel={t('common:close', 'Close')}
-          >
-            <Ionicons name="close" size={22} color={theme.textPrimary} />
-          </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={[styles.container, { backgroundColor: theme.background }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        {/* Top Header */}
+        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity
+              style={[styles.backButton, { backgroundColor: theme.surfaceAlt }]}
+              onPress={onClose}
+              activeOpacity={0.7}
+              accessibilityLabel={t('common:close', 'Close')}
+            >
+              <Ionicons name="close" size={22} color={theme.textPrimary} />
+            </TouchableOpacity>
           <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
             {mode === 'create'
               ? t('products:newProduct', 'New Product')
@@ -928,6 +927,7 @@ export function ProductForm({
         </View>
       </Modal>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

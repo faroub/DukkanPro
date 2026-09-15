@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FooterTrademark } from '@/components/FooterTrademark';
@@ -130,16 +130,17 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
-      {/* Header bar */}
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Go back"
-          >
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }} edges={['top', 'bottom']}>
+      <View style={styles.container}>
+        {/* Header bar */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityLabel="Go back"
+            >
             <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
           </TouchableOpacity>
           <ThemedText style={styles.headerTitle}>
@@ -483,7 +484,8 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
         {/* Footer Trademark */}
         <FooterTrademark />
       </ScrollView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
