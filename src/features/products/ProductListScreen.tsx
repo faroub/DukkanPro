@@ -225,7 +225,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   screenTitle: {
-    ...Typography.heading1,
+    ...Typography.heading2,
+    fontSize: 20,
+    fontWeight: "700",
     color: Colors.light.textPrimary,
   },
   screenSubtitle: {

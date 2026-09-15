@@ -77,7 +77,7 @@ export function ThemeSettingsScreen() {
   } = useThemePreference();
 
   const isArabic = i18n.language?.startsWith("ar");
-  const textAlignStyle = isArabic ? styles.textRight : styles.textLeft;
+  const textAlignStyle = styles.textLeft;
 
   const handleSelectTheme = useCallback(
     async (pref: ThemePreference) => {
@@ -130,7 +130,7 @@ export function ThemeSettingsScreen() {
               color={theme.textPrimary}
             />
           </TouchableOpacity>
-          <View style={[styles.headerTitles, isArabic && styles.alignEnd]}>
+          <View style={styles.headerTitles}>
             <ThemedText style={[styles.screenTitle, textAlignStyle]}>
               {t("settings:theme", {
                 defaultValue: t("settings.theme", {
@@ -438,6 +438,8 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     ...Typography.heading2,
+    fontSize: 20,
+    fontWeight: "700",
   },
   screenSubtitle: {
     ...Typography.caption,
