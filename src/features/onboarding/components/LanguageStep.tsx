@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   rtlAlign: {
-    textAlign: "left",
+    textAlign: "right",
   },
   defaultTag: {
     backgroundColor: Colors.light.primary,

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "DukkanOS",
-    "slug": "DukkanOS",
+    "name": "DukkanPro",
+    "slug": "DukkanPro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "dukkanos",
+    "scheme": "dukkanpro",
     "userInterfaceStyle": "automatic",
     "androidStatusBar": {
       "backgroundColor": "#00000000",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.oubfar.DukkanOS"
+      "bundleIdentifier": "com.oubfar.DukkanPro"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.oubfar.DukkanOS"
+      "package": "com.oubfar.DukkanPro"
     },
     "web": {
       "output": "single",
