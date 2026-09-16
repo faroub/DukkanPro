@@ -1,6 +1,6 @@
-import ar from "@/locales/ar.json";
-import en from "@/locales/en.json";
-import fr from "@/locales/fr.json";
+import ar from "@/localization/ar";
+import en from "@/localization/en";
+import fr from "@/localization/fr";
 import { AppProviders } from "@/providers/AppProviders";
 import i18n from "i18next";
 import React from "react";
