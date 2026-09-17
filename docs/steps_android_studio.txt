@@ -1,0 +1,91 @@
+To test the DukkanPro app in Android Studio, follow these steps:
+
+1. **Open the Project in Android Studio**:
+   - Launch Android Studio.
+   - Select "Open an existing Android Studio project".
+   - Navigate to the `/home/faroub/Documents/Projects/DukkanPro/android` directory and select it.
+
+2. **Configure the Build**:
+   - Ensure that the `build.gradle` file is correctly configured. The provided snippet shows the configuration for the React Native Android app, including the entry file, React Native directory, and Hermes compiler settings.
+   - Make sure that the `gradle.properties` file is correctly set up with the necessary properties.
+
+3. **Set Up the Emulator or Device**:
+   - Open the AVD Manager in Android Studio.
+   - Create or select an Android Virtual Device (AVD) that matches the target SDK version specified in the `build.gradle` file (e.g., `targetSdkVersion`).
+   - Start the emulator or connect a physical device via USB.
+
+4. **Run the App**:
+   - In Android Studio, select the emulator or connected device from the dropdown menu.
+   - Click on the "Run" button (green triangle) or press `Shift + F10`.
+   - Android Studio will build the project and deploy it to the selected device.
+
+5. **Debugging and Testing**:
+   - Use the Logcat tool in Android Studio to monitor the app's logs and debug any issues.
+   - Perform manual testing on the emulator or device to ensure all features work as expected.
+
+By following these steps, you should be able to test the DukkanPro app in Android Studio effectively.
+
+
+
+
+
+
+
+Great question — and the answer is important because this changes how you use Android Studio entirely. **You don't rebuild the app in Android Studio for React Native code changes.** Your project already has `expo-dev-client` installed and an `android/` directory, so you get **Fast Refresh**: edit TS/TSX → the app updates instantly on device/emulator.
+
+Here's the optimal workflow for DukkanPro:
+
+## 🏆 Optimal Daily Workflow (JS/TS changes only)
+
+**Terminal 1 — start the Metro dev server:**
+```bash
+cd /home/faroub/Documents/Projects/DukkanPro
+npx expo start --dev-client
+```
+
+**Device/Emulator:**
+1. Start your Android emulator (or plug in a device with USB debugging + `adb devices` shows it)
+2. Launch the **DukkanPro** app from the home screen — the dev-client launcher auto-detects and connects to the Metro server
+
+**Now just edit code.** Every change to `.tsx`/`.ts` files under `src/` hot-reloads instantly (Fast Refresh). No Gradle, no Android Studio run button, no waiting.
+
+Useful shortcuts in the Metro terminal:
+- `r` — manual reload
+- `m` — open dev menu
+- `j` — open debugger (Chrome DevTools / React Native DevTools)
+
+## 🔨 When You Actually Need to Rebuild (native changes only)
+
+Rebuild is needed **only** when you:
+- Install/update a library with native code (e.g. new `expo-*` package)
+- Change `app.json` / app config
+- Upgrade the Expo SDK
+
+Then run:
+```bash
+npx expo prebuild --clean   # regenerate android/ from config
+npx expo run:android        # build + install + start server
+# add --device to install on a physical phone
+```
+
+## 🤖 What Android Studio Is Actually For
+
+Keep it open only for:
+- **Logcat** — viewing native crash logs (`adb logcat` works too)
+- Inspecting generated native code in `android/`
+- Building a **release APK/AAB** for distribution (`Build > Generate Signed Bundle`)
+
+⚠️ Don't use the Android Studio ▶️ Run button for daily development — it embeds the JS bundle at build time (see your `build.gradle`'s `bundleCommand = "export:embed"`), making every change a slow Gradle rebuild. Always load JS from Metro via the dev client instead.
+
+## 📋 Summary Cheat-Sheet
+
+| Task | Command |
+|---|---|
+| Daily development | `npx expo start --dev-client` |
+| First build / after native changes | `npx expo run:android` |
+| Physical device | `npx expo run:android --device` |
+| Regenerate native dirs after config change | `npx expo prebuild --clean` |
+| Web dev (also in your scripts) | `npm run dev` (port 3000) |
+| Unit tests | `npm test` |
+
+> Side note on your earlier `WARNING: A restricted method in java.lang.System has been called` message — that's a harmless JDK 24/25 warning emitted by Gradle, not an error in your app. You can ignore it as long as the build succeeds.
