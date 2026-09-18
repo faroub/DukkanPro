@@ -179,13 +179,13 @@ export default function DashboardScreenDefault({
         {/* 2. 2x2 Bento Summary Cards */}
         <SummaryCards
           revenueKey={t("dashboard.summary.revenue") || (locale === "ar" ? "مبيعات اليوم" : "Today's Sales")}
-          revenueValue_centimes={todayRevenue_centimes || 28000}
+          revenueValue_centimes={todayRevenue_centimes}
           profitKey={t("dashboard.summary.profit") || (locale === "ar" ? "الربح التقديري" : "Est. Profit")}
-          profitValue_centimes={todayProfit_centimes || 6000}
+          profitValue_centimes={todayProfit_centimes}
           toCollectKey={t("dashboard.summary.toCollect") || (locale === "ar" ? "ديون للتحصيل" : "To Collect")}
-          toCollectValue_centimes={toCollect_centimes || 42000}
+          toCollectValue_centimes={toCollect_centimes}
           lowStockKey={t("dashboard.summary.lowStock") || t("dashboard.lowStock.title") || (locale === "ar" ? "نقص المخزون" : "Low Stock")}
-          lowStockCount={lowStockCount || 3}
+          lowStockCount={lowStockCount}
           locale={locale}
           textAlignment={alignment}
           onPressRevenue={handleSeeAllSales}

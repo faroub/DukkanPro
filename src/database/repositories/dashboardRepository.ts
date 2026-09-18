@@ -22,31 +22,54 @@ export type DashboardResult = {
 };
 
 /**
+ * Timestamp bounds of the merchant's local calendar day, as a half-open
+ * interval [start, end) in the "YYYY-MM-DD HH:MM:SS" format used by sold_at.
+ *
+ * sold_at is stored in UTC (datetime('now')), so the bounds are derived from
+ * local midnight to keep sales made between 23:00 and 00:00 local time on the
+ * correct calendar day (e.g. Algeria is UTC+1).
+ */
+function localDayBounds(): [string, string] {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  const fmt = (d: Date) => d.toISOString().slice(0, 19).replace("T", " ");
+  return [fmt(start), fmt(end)];
+}
+
+/**
  - Get today's revenue from completed sales (centimes).
  * "Today" means the merchant's local calendar day.
  */
 export async function getTodayRevenue(): Promise<number> {
+  const [start, end] = localDayBounds();
   const rows: any[] = await executeAll(
     // language=SQLite
     `SELECT COALESCE(SUM(s.total_centimes), 0) as total
        FROM sales s
       WHERE s.status = 'completed'
-    `,
+        AND s.sold_at >= ?
+        AND s.sold_at < ?`,
+    [start, end],
   );
   return rows[0]?.total as number;
 }
 
 /**
  - Get today's cost of goods sold (centimes).
- * Computed as historical cost of items sold in completed sales.
+ * Computed as historical cost of items sold in completed sales today.
  */
 export async function getTodayCost(): Promise<number> {
+  const [start, end] = localDayBounds();
   const rows: any[] = await executeAll(
     // language=SQLite
     `SELECT COALESCE(SUM(si.unit_cost_price_centimes * si.quantity), 0) as total
        FROM sale_items si
       JOIN sales s ON s.id = si.sale_id
-     WHERE s.status = 'completed'`,
+     WHERE s.status = 'completed'
+       AND s.sold_at >= ?
+       AND s.sold_at < ?`,
+    [start, end],
   );
   return rows[0]?.total as number;
 }
