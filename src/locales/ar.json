@@ -18,14 +18,37 @@
     "increase": "زيادة الكمية",
     "title": "الصندوق والمبيعات",
     "subtitle": "إصدار فواتير سريع • الكاتالوج والباركود",
-    "scanBarcode": "مسح الرمز الشريطي"
+    "scanBarcode": "مسح الرمز الشريطي",
+    "activeCart": "السلة الحالية",
+    "amountPaid": "المبلغ المدفوع",
+    "amountPaidPlaceholder": "مثال: 500 د.ج",
+    "cancel": "إلغاء",
+    "cart": {
+      "seeCart": "عرض السلة",
+      "viewCart": "عرض السلة"
+    },
+    "clearCart": "إفراغ السلة",
+    "confirmPayment": "تأكيد الدفع",
+    "confirmSale": "تأكيد البيع",
+    "discount": "الخصم",
+    "edit": "تعديل",
+    "empty_cart": "سلتك فارغة",
+    "no_products": "لا توجد منتجات متاحة",
+    "no_results": "لا توجد نتائج لـ \"{{query}}\"",
+    "paymentMethod": "طريقة الدفع",
+    "search_placeholder": "ابحث عن منتجات…",
+    "search_products": "البحث عن منتجات",
+    "selectCustomer": "اختر عميلاً",
+    "subtotal": "المجموع الفرعي",
+    "total": "المجموع"
   },
   "dashboard": {
     "greeting": "مرحباً",
     "summary": {
       "revenue": "الإيرادات",
       "profit": "الربح التقديري",
-      "toCollect": "المبالغ المستحقة"
+      "toCollect": "المبالغ المستحقة",
+      "lowStock": "نقص المخزون"
     },
     "recentSales": {
       "title": "المبيعات الأخيرة",
@@ -52,7 +75,10 @@
     "thisMonth": "هذا الشهر",
     "stockValue": "قيمة المخزون",
     "noSalesYet": "لا مبيعات بعد",
-    "newSale": "مبيعة جديدة"
+    "newSale": "مبيعة جديدة",
+    "charts": {
+      "salesTrend": "اتجاه المبيعات خلال 7 أيام"
+    }
   },
   "common": {
     "primaryButton": "زر رئيسي",
@@ -100,7 +126,12 @@
     "success": "تم بنجاح",
     "yes": "نعم",
     "no": "لا",
-    "ok": "حسناً"
+    "ok": "حسناً",
+    "add": "إضافة",
+    "clear": "مسح",
+    "noNote": "لا توجد ملاحظة",
+    "select": "تحديد",
+    "unknownError": "خطأ غير معروف"
   },
   "appText": "نص التطبيق",
   "screen": "شاشة",
@@ -305,7 +336,16 @@
     "targetRestockQtyOptional": "حجم الطلبية المفضل عند الشراء من المورد",
     "stockStatusHealthy": "مخزون كافٍ",
     "stockStatusLow": "تنبيه انخفاض المخزون",
-    "stockStatusOut": "نفد المخزون"
+    "stockStatusOut": "نفد المخزون",
+    "allowNegativeDesc": "بيع سريع للمنتجات كثيرة الطلب قبل تسجيل توريد المورد.",
+    "archive": "أرشفة",
+    "archivedBadge": "مؤرشف",
+    "editingProduct": "تعديل {{name}}",
+    "id": "المعرّف",
+    "newProduct": "منتج جديد",
+    "productName": "اسم المنتج",
+    "reactivate": "إعادة التفعيل",
+    "strictPolicyDesc": "يضمن دقة جرد المخزون الفعلي في جميع الأوقات."
   },
   "catalogue": {
     "catalogue": "كتالوج",
@@ -477,7 +517,13 @@
     "noProductsFound": "لم يتم العثور على منتجات",
     "emptyCatalog": "الكتالوج فارغ",
     "search_products": "بحث عن منتج أو رمز...",
-    "viewCart": "عرض السلة"
+    "viewCart": "عرض السلة",
+    "cartValidated": "تم التحقق من السلة",
+    "completed": "مكتملة",
+    "directPayment": "دفع مباشر بدون الدفتر",
+    "exactAmount": "المبلغ بالضبط",
+    "status": "الحالة",
+    "totalToPay": "إجمالي المستحق"
   },
   "onboarding": {
     "appText": "نص التطبيق",
@@ -572,7 +618,15 @@
       "startButton": "ابدأ استخدام دكان OS",
       "settingUp": "جاري تجهيز مساحة العمل...",
       "ready": "جاهز!",
-      "backButton": "الرجوع إلى الخطوة 2"
+      "backButton": "الرجوع إلى الخطوة 2",
+      "backToStep2": "العودة إلى الخطوة 2",
+      "currencyNote": "العملة الافتراضية للجزائر (مثبّتة)",
+      "editBusinessName": "تعديل اسم المتجر",
+      "editBusinessType": "تعديل نوع النشاط",
+      "editOwnerName": "تعديل اسم المالك",
+      "previewReadyBadge": "جاهز للانطلاق",
+      "previewSubtitle": "دفترك الرقمي جاهز",
+      "previewTitle": "نقطة البيع والديون والمخزون"
     },
     "emptyDashboard": {
       "headerTitle": "لوحة التحكم",
@@ -596,7 +650,16 @@
       "addCustomer": "إضافة زبون",
       "addCustomerSub": "دفتر الكريدي",
       "guideTitle": "دليل البدء",
-      "guideStep": "الخطوة 1 من 3: إضافة المخزون الأولي"
+      "guideStep": "الخطوة 1 من 3: إضافة المخزون الأولي",
+      "brandSubtitle": "لوحة تحكم فارغة",
+      "buyersLabel": "المشترون",
+      "gettingStarted": "دليل البدء",
+      "heroSubtitle": "أنشئ كتالوج منتجاتك لبدء البيع وتسجيل ديون العملاء بسهولة.",
+      "heroTitle": "ابدأ بإضافة منتجك الأول",
+      "ownerDetails": "المالك: {{owner}} • {{city}}",
+      "receiptsLabel": "الإيصالات",
+      "salesLabel": "المبيعات",
+      "step1Of3": "الخطوة 1 من 3: إضافة المخزون الأولي"
     },
     "back": "خلف"
   },
@@ -736,7 +799,15 @@
     "exportedSales": "تم تصدير المبيعات بنجاح",
     "exportSuccess": "تم تصدير البيانات بنجاح",
     "exportError": "حدث خطأ أثناء تصدير البيانات",
-    "noDataToExport": "يرجى تحديد جدول واحد على الأقل للتصدير"
+    "noDataToExport": "يرجى تحديد جدول واحد على الأقل للتصدير",
+    "customers": "العملاء",
+    "exportButton": "تصدير",
+    "exportInProgress": "جارٍ التصدير…",
+    "inventoryMovements": "حركات المخزون",
+    "payments": "المدفوعات",
+    "products": "المنتجات",
+    "saleItems": "عناصر البيع",
+    "sales": "المبيعات"
   },
   "dataReset": {
     "title": "إعادة ضبط البيانات",
@@ -770,7 +841,8 @@
     "irreversibleWarning": "سيؤدي هذا إلى حذف جميع بيانات المتجر نهائياً بما في ذلك المنتجات والزبائن والمبيعات والمدفوعات وحركات المخزون. لا يمكن التراجع عن هذا الإجراء.",
     "resetData": "إعادة ضبط البيانات",
     "success": "تمت إعادة ضبط كافة البيانات بنجاح.",
-    "wrongBusinessName": "اسم المتجر غير متطابق. يرجى كتابة اسم المتجر بدقة."
+    "wrongBusinessName": "اسم المتجر غير متطابق. يرجى كتابة اسم المتجر بدقة.",
+    "confirm": "تأكيد"
   },
   "navigation": {
     "home": "الرئيسية",
@@ -782,7 +854,8 @@
     "dashboard": "لوحة التحكم",
     "settings": "الإعدادات",
     "profile": "الملف التعريفي",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "back": "العودة إلى المزيد"
   },
   "inventory": {
     "title": "المخزون",
@@ -889,7 +962,43 @@
     "totalDebt": "إجمالي الدين",
     "viewDetails": "عرض التفاصيل",
     "whatsapp": "واتساب",
-    "withDebt": "عليهم دين"
+    "withDebt": "عليهم دين",
+    "amount": "المبلغ",
+    "cashRecommended": "يُنصح بالدفع نقداً",
+    "createCustomer": "إنشاء عميل",
+    "creditSale": "بيع آجل",
+    "customer": "عميل",
+    "customerName": "اسم العميل",
+    "debtBalance": "رصيد الدين",
+    "emptyAllSubtitle": "لا يوجد عملاء بعد. أضف عميلك الأول لتتبّع المبيعات والديون.",
+    "emptyFilterSubtitle": "لا يوجد عملاء يطابقون بحثك.",
+    "errorSave": "تعذّر حفظ العميل",
+    "fullAmount": "المبلغ الكامل",
+    "id": "المعرّف",
+    "messageLanguage": "لغة الرسالة",
+    "namePlaceholder": "مثال: أحمد بن علي",
+    "nameRequiredError": "الاسم مطلوب",
+    "newCustomerSubtitle": "أدخل المعلومات لإنشاء عميل جديد",
+    "noCustomersFound": "لم يتم العثور على عملاء",
+    "noPayments": "لا توجد مدفوعات مسجّلة",
+    "noSales": "لا توجد مبيعات مسجّلة",
+    "payment": "دفعة",
+    "paymentInvalidAmount": "أدخل مبلغاً صحيحاً",
+    "paymentOverlimit": "المبلغ يتجاوز الدين البالغ {{debt}}",
+    "paymentsMade": "المدفوعات ({{count}})",
+    "phoneHelperText": "اختياري. يُستخدم لإرسال تذكيرات الدفع عبر واتساب أو الرسائل القصيرة.",
+    "receiptNotePlaceholder": "أضف ملاحظة على الإيصال…",
+    "remainingBalanceAfter": "الرصيد المتبقي",
+    "sendChannel": "قناة الإرسال",
+    "sendViaSms": "إرسال عبر الرسائل القصيرة",
+    "smsNotSupported": "الرسائل القصيرة غير مدعومة على هذا الجهاز.",
+    "standardSms": "رسالة قصيرة عادية",
+    "timeline": "السجل الزمني",
+    "totalDebtToCollect": "إجمالي التحصيل",
+    "updateInfoSubtitle": "تحديث معلومات العميل",
+    "whatsappNotInstalled": "واتساب غير مثبّت.",
+    "whatsappRecommended": "موصى به",
+    "withDebtCount": "أصحاب الديون"
   },
   "payments": {
     "title": "المدفوعات",
@@ -904,7 +1013,10 @@
     "amountReceived": "المبلغ المستلم",
     "remainingBalance": "الرصيد المتبقي",
     "paymentCompleted": "تم إتمام الدفعة",
-    "noPaymentsYet": "لا توجد مدفوعات بعد"
+    "noPaymentsYet": "لا توجد مدفوعات بعد",
+    "amount": "المبلغ",
+    "id": "المعرّف",
+    "payment_method": "طريقة الدفع"
   },
   "receipts": {
     "printed": "تم تسجيل البيع",
@@ -936,7 +1048,8 @@
     "customerName": "اسم الزبون",
     "phoneNumber": "رقم الهاتف",
     "thankYou": "شكراً لزيارتكم",
-    "comeAgain": "نتمنى لكم يوماً سعيداً"
+    "comeAgain": "نتمنى لكم يوماً سعيداً",
+    "businessType": "نوع النشاط"
   },
   "exports": {
     "title": "التصدير",
@@ -965,7 +1078,11 @@
     "sayQuantity": "الكمية",
     "startSale": "بيع بدء",
     "cancelSale": "بيع إلغاء",
-    "takePhoto": "التقاط صورة"
+    "takePhoto": "التقاط صورة",
+    "ambiguousProduct": "أي منتج تقصد؟",
+    "noProductFound": "لم يتم العثور على أي منتج لهذا الأمر.",
+    "pleaseSelectProduct": "يرجى تحديد منتج للمتابعة.",
+    "reviewSheetTitle": "مراجعة البيع"
   },
   "errors": {
     "title": "خطأ",
@@ -1052,6 +1169,29 @@
     "change_due": "المبلغ المتبقي / الصرف",
     "new_sale": "بيع جديد",
     "share": "مشاركة الإيصال",
-    "receipt_title": "إيصال دفع"
+    "receipt_title": "إيصال دفع",
+    "amountPaid": "المبلغ المدفوع",
+    "change": "الباقي",
+    "paymentMethod": "طريقة الدفع",
+    "profit": "الربح",
+    "total": "المجموع"
+  },
+  "inventoryMovements": {
+    "date": "التاريخ",
+    "id": "المعرّف",
+    "movementType": "نوع الحركة",
+    "note": "ملاحظة",
+    "product": "المنتج",
+    "quantity": "الكمية"
+  },
+  "nav": {
+    "sell": "السلة"
+  },
+  "saleItems": {
+    "id": "المعرّف",
+    "lineTotal": "إجمالي السطر",
+    "productName": "اسم المنتج",
+    "quantity": "الكمية",
+    "unitPrice": "سعر الوحدة"
   }
 }

@@ -18,14 +18,37 @@
     "increase": "Augmenter la quantité",
     "title": "Caisse & Ventes",
     "subtitle": "Encaissement rapide • Catalogue & code-barres",
-    "scanBarcode": "Scanner un code-barres"
+    "scanBarcode": "Scanner un code-barres",
+    "activeCart": "Panier actif",
+    "amountPaid": "Montant payé",
+    "amountPaidPlaceholder": "ex. 500 DZD",
+    "cancel": "Annuler",
+    "cart": {
+      "seeCart": "Voir le panier",
+      "viewCart": "Voir le panier"
+    },
+    "clearCart": "Vider le panier",
+    "confirmPayment": "Confirmer le paiement",
+    "confirmSale": "Confirmer la vente",
+    "discount": "Remise",
+    "edit": "Modifier",
+    "empty_cart": "Votre panier est vide",
+    "no_products": "Aucun produit disponible",
+    "no_results": "Aucun résultat pour « {{query}} »",
+    "paymentMethod": "Mode de paiement",
+    "search_placeholder": "Rechercher des produits…",
+    "search_products": "Rechercher des produits",
+    "selectCustomer": "Sélectionner un client",
+    "subtotal": "Sous-total",
+    "total": "Total"
   },
   "dashboard": {
     "greeting": "Bonjour",
     "summary": {
       "revenue": "Chiffre d'affaires",
       "profit": "Bénéfice estimé",
-      "toCollect": "À encaisser"
+      "toCollect": "À encaisser",
+      "lowStock": "Stock faible"
     },
     "recentSales": {
       "title": "Ventes récentes",
@@ -52,7 +75,10 @@
     "thisMonth": "Ce mois",
     "stockValue": "Valeur du stock",
     "noSalesYet": "Pas de ventes encore",
-    "newSale": "Nouvelle vente"
+    "newSale": "Nouvelle vente",
+    "charts": {
+      "salesTrend": "Tendance des ventes sur 7 jours"
+    }
   },
   "common": {
     "primaryButton": "Bouton principal",
@@ -100,7 +126,12 @@
     "success": "Succès",
     "yes": "Oui",
     "no": "Non",
-    "ok": "D'accord"
+    "ok": "D'accord",
+    "add": "Ajouter",
+    "clear": "Effacer",
+    "noNote": "Aucune note",
+    "select": "Sélectionner",
+    "unknownError": "Erreur inconnue"
   },
   "appText": "Texte de l'application",
   "screen": "Écran",
@@ -305,7 +336,16 @@
     "targetRestockQtyOptional": "Quantité recommandée lors des commandes",
     "stockStatusHealthy": "Stock suffisant",
     "stockStatusLow": "Alerte stock faible",
-    "stockStatusOut": "Rupture de stock"
+    "stockStatusOut": "Rupture de stock",
+    "allowNegativeDesc": "Encaissement rapide pour les articles à forte rotation avant l'enregistrement de la livraison fournisseur.",
+    "archive": "Archiver",
+    "archivedBadge": "Archivé",
+    "editingProduct": "Modification de {{name}}",
+    "id": "ID",
+    "newProduct": "Nouveau produit",
+    "productName": "Nom du produit",
+    "reactivate": "Réactiver",
+    "strictPolicyDesc": "Garantit en permanence l'exactitude de l'inventaire physique."
   },
   "catalogue": {
     "catalogue": "Catalogue",
@@ -477,7 +517,13 @@
     "noProductsFound": "Aucun produit trouvé",
     "emptyCatalog": "Catalogue vide",
     "search_products": "Rechercher un produit ou code...",
-    "viewCart": "Voir le panier"
+    "viewCart": "Voir le panier",
+    "cartValidated": "Panier validé",
+    "completed": "Terminée",
+    "directPayment": "Paiement direct sans carnet",
+    "exactAmount": "Compte juste",
+    "status": "Statut",
+    "totalToPay": "Total à payer"
   },
   "onboarding": {
     "appText": "Texte de l'application",
@@ -572,7 +618,15 @@
       "startButton": "Commencer avec Dukkan OS",
       "settingUp": "Configuration en cours...",
       "ready": "Prêt !",
-      "backButton": "Retour à l'étape 2"
+      "backButton": "Retour à l'étape 2",
+      "backToStep2": "Retour à l'étape 2",
+      "currencyNote": "Devise par défaut pour l'Algérie (verrouillée)",
+      "editBusinessName": "Modifier le nom de l'entreprise",
+      "editBusinessType": "Modifier le type d'entreprise",
+      "editOwnerName": "Modifier le nom du propriétaire",
+      "previewReadyBadge": "PRÊT À DÉMARRER",
+      "previewSubtitle": "Votre registre numérique est prêt",
+      "previewTitle": "Point de vente, dettes et stock"
     },
     "emptyDashboard": {
       "headerTitle": "Tableau de bord vide",
@@ -596,7 +650,16 @@
       "addCustomer": "Ajouter client",
       "addCustomerSub": "Carnet crédit",
       "guideTitle": "Guide de démarrage",
-      "guideStep": "Étape 1 sur 3 : Ajouter le stock initial"
+      "guideStep": "Étape 1 sur 3 : Ajouter le stock initial",
+      "brandSubtitle": "Tableau de bord vide",
+      "buyersLabel": "Acheteurs",
+      "gettingStarted": "Guide de démarrage",
+      "heroSubtitle": "Créez votre catalogue de produits pour commencer à vendre et à enregistrer les dettes clients facilement.",
+      "heroTitle": "Commencez par ajouter votre premier produit",
+      "ownerDetails": "Propriétaire : {{owner}} • {{city}}",
+      "receiptsLabel": "Reçus",
+      "salesLabel": "Ventes",
+      "step1Of3": "Étape 1 sur 3 : Ajouter le stock initial"
     },
     "back": "Retour"
   },
@@ -736,7 +799,15 @@
     "exportedSales": "Ventes exportées avec succès",
     "exportSuccess": "Exportation réussie",
     "exportError": "Erreur lors de l'exportation",
-    "noDataToExport": "Sélectionnez au moins un tableau à exporter"
+    "noDataToExport": "Sélectionnez au moins un tableau à exporter",
+    "customers": "Clients",
+    "exportButton": "Exporter",
+    "exportInProgress": "Exportation en cours…",
+    "inventoryMovements": "Mouvements de stock",
+    "payments": "Paiements",
+    "products": "Produits",
+    "saleItems": "Articles vendus",
+    "sales": "Ventes"
   },
   "dataReset": {
     "title": "Réinitialisation des données",
@@ -770,7 +841,8 @@
     "irreversibleWarning": "Cela supprimera définitivement toutes les données de l'entreprise. Cette action est irréversible.",
     "resetData": "Réinitialiser les données",
     "success": "Toutes les données ont été réinitialisées avec succès.",
-    "wrongBusinessName": "Le nom du commerce ne correspond pas. Veuillez saisir le nom exact."
+    "wrongBusinessName": "Le nom du commerce ne correspond pas. Veuillez saisir le nom exact.",
+    "confirm": "Confirmer"
   },
   "navigation": {
     "home": "Accueil",
@@ -782,7 +854,8 @@
     "dashboard": "Tableau de bord",
     "settings": "Paramètres",
     "profile": "Profil",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "back": "Retour à Plus"
   },
   "inventory": {
     "title": "Stock",
@@ -889,7 +962,43 @@
     "totalDebt": "Dette totale",
     "viewDetails": "Voir les détails",
     "whatsapp": "WhatsApp",
-    "withDebt": "Avec dette"
+    "withDebt": "Avec dette",
+    "amount": "Montant",
+    "cashRecommended": "Paiement en espèces recommandé",
+    "createCustomer": "Créer un client",
+    "creditSale": "Vente à crédit",
+    "customer": "Client",
+    "customerName": "Nom du client",
+    "debtBalance": "Solde de la dette",
+    "emptyAllSubtitle": "Aucun client pour l'instant. Ajoutez votre premier client pour suivre les ventes et les dettes.",
+    "emptyFilterSubtitle": "Aucun client ne correspond à votre recherche.",
+    "errorSave": "Échec de l'enregistrement du client",
+    "fullAmount": "Montant total",
+    "id": "ID",
+    "messageLanguage": "Langue du message",
+    "namePlaceholder": "ex. Ahmed Benali",
+    "nameRequiredError": "Le nom est obligatoire",
+    "newCustomerSubtitle": "Renseignez les informations pour créer un nouveau client",
+    "noCustomersFound": "Aucun client trouvé",
+    "noPayments": "Aucun paiement enregistré",
+    "noSales": "Aucune vente enregistrée",
+    "payment": "Paiement",
+    "paymentInvalidAmount": "Saisissez un montant valide",
+    "paymentOverlimit": "Le montant dépasse la dette de {{debt}}",
+    "paymentsMade": "Paiements effectués ({{count}})",
+    "phoneHelperText": "Facultatif. Utilisé pour envoyer des rappels de paiement par WhatsApp ou SMS.",
+    "receiptNotePlaceholder": "Ajouter une note sur le reçu…",
+    "remainingBalanceAfter": "Solde restant",
+    "sendChannel": "Canal d'envoi",
+    "sendViaSms": "Envoyer par SMS",
+    "smsNotSupported": "Les SMS ne sont pas pris en charge sur cet appareil.",
+    "standardSms": "SMS standard",
+    "timeline": "Chronologie",
+    "totalDebtToCollect": "Total à encaisser",
+    "updateInfoSubtitle": "Mettre à jour les informations du client",
+    "whatsappNotInstalled": "WhatsApp n'est pas installé.",
+    "whatsappRecommended": "Recommandé",
+    "withDebtCount": "Avec dette"
   },
   "payments": {
     "title": "Moyens de paiement",
@@ -904,7 +1013,10 @@
     "amountReceived": "Montant reçu",
     "remainingBalance": "Solde restant",
     "paymentCompleted": "Paiement terminé",
-    "noPaymentsYet": "Aucun paiement pour l'instant"
+    "noPaymentsYet": "Aucun paiement pour l'instant",
+    "amount": "Montant",
+    "id": "ID",
+    "payment_method": "Mode de paiement"
   },
   "receipts": {
     "printed": "Caisse Enregistrée",
@@ -936,7 +1048,8 @@
     "customerName": "Nom du client",
     "phoneNumber": "Numéro de téléphone",
     "thankYou": "Merci de votre visite",
-    "comeAgain": "Nous espérons vous revoir bientôt"
+    "comeAgain": "Nous espérons vous revoir bientôt",
+    "businessType": "Type d'entreprise"
   },
   "exports": {
     "title": "Exportation",
@@ -965,7 +1078,11 @@
     "sayQuantity": "Dites la quantité",
     "startSale": "Commencer la vente",
     "cancelSale": "Annuler la vente",
-    "takePhoto": "Prendre une photo"
+    "takePhoto": "Prendre une photo",
+    "ambiguousProduct": "Quel produit vouliez-vous dire ?",
+    "noProductFound": "Aucun produit n'a été trouvé pour cette commande.",
+    "pleaseSelectProduct": "Veuillez sélectionner un produit pour continuer.",
+    "reviewSheetTitle": "Vérifier la vente"
   },
   "errors": {
     "title": "Erreur",
@@ -1052,6 +1169,29 @@
     "change_due": "Monnaie à rendre",
     "new_sale": "Nouvelle vente",
     "share": "Partager",
-    "receipt_title": "Ticket de caisse"
+    "receipt_title": "Ticket de caisse",
+    "amountPaid": "Montant payé",
+    "change": "Rendu",
+    "paymentMethod": "Mode de paiement",
+    "profit": "Bénéfice",
+    "total": "Total"
+  },
+  "inventoryMovements": {
+    "date": "Date",
+    "id": "ID",
+    "movementType": "Type de mouvement",
+    "note": "Note",
+    "product": "Produit",
+    "quantity": "Quantité"
+  },
+  "nav": {
+    "sell": "Panier"
+  },
+  "saleItems": {
+    "id": "ID",
+    "lineTotal": "Total de la ligne",
+    "productName": "Nom du produit",
+    "quantity": "Quantité",
+    "unitPrice": "Prix unitaire"
   }
 }
