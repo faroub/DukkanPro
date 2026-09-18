@@ -95,15 +95,40 @@ describe('parseCentimes', () => {
     expect(parseCentimes('12.55 DZD')).toBe(1255);
     expect(parseCentimes('0.05 DZD')).toBe(5);
   });
+
+  describe('with an explicit locale', () => {
+    it('treats "," as grouping in en-DZ', () => {
+      expect(parseCentimes('1,400 DZD', 'en-DZ')).toBe(140000);
+      expect(parseCentimes('999,999.99 DZD', 'en-DZ')).toBe(99999999);
+    });
+
+    it('treats "," as the decimal separator in fr-DZ', () => {
+      expect(parseCentimes('12,55 DZD', 'fr-DZ')).toBe(1255);
+      expect(parseCentimes('1.400,99 DZD', 'fr-DZ')).toBe(140099);
+    });
+
+    it('resolves the ambiguous "1,234" by locale', () => {
+      expect(parseCentimes('1,234', 'en-DZ')).toBe(123400);
+      expect(parseCentimes('1,234', 'fr-DZ')).toBe(123);
+      expect(parseCentimes('1,234', 'ar-DZ')).toBe(123);
+    });
+
+    it('accepts short language codes', () => {
+      expect(parseCentimes('1,400 DZD', 'en')).toBe(140000);
+      expect(parseCentimes('12,55 DZD', 'fr')).toBe(1255);
+      expect(parseCentimes('12,55 دج', 'ar')).toBe(1255);
+    });
+  });
 });
 
 describe('formatCentimes ↔ parseCentimes round-trip', () => {
-  const amounts = [0, 5, 105, 500, 1255, 14000, 140000, 99999999];
+  // The app deals only in whole dinars; every amount is a multiple of 100 centimes.
+  const amounts = [0, 500, 12500, 14000, 140000, 99999900];
   const locales = ['fr-DZ', 'en-DZ', 'ar-DZ'] as const;
 
   it.each(amounts)('round-trips %d centimes through every locale', (amount) => {
     for (const locale of locales) {
-      expect(parseCentimes(formatCentimes(amount, locale))).toBe(amount);
+      expect(parseCentimes(formatCentimes(amount, locale), locale)).toBe(amount);
     }
   });
 });

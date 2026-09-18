@@ -80,7 +80,7 @@ export function formatCentimes(
       // Arabic numbers are: 0, 1, 2, 3, 4, ... with "دج" suffix for Algerian Dinar
       const formattedAr = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
+        maximumFractionDigits: 0,
         useGrouping: true,
       }).format(dinars);
       return `${formattedAr} دج`;
@@ -90,7 +90,7 @@ export function formatCentimes(
       // French locale: Western numerals with space + " DZD" suffix
       const formattedFr = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
+        maximumFractionDigits: 0,
         useGrouping: true,
       }).format(dinars);
       return `${formattedFr} DZD`;
@@ -100,7 +100,7 @@ export function formatCentimes(
       // English locale: Western numerals with comma separator + " DZD" suffix
       const formattedEn = new Intl.NumberFormat("en-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
+        maximumFractionDigits: 0,
         useGrouping: true,
       }).format(dinars);
       return `${formattedEn} DZD`;
@@ -110,7 +110,7 @@ export function formatCentimes(
       // Fallback to French locale format
       const formattedDefault = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
+        maximumFractionDigits: 0,
         useGrouping: true,
       }).format(dinars);
       return `${formattedDefault} DZD`;
@@ -132,33 +132,59 @@ export function format14000Centimes(
 
 /**
  * Parse a DZD formatted string back to centimes integer.
- * Accepts "140 DZD", "140,00 DZD", "١٤٠ دj", etc.
+ * Accepts "140 DZD", "140,00 DZD", "١٤٠ دج", etc.
+ *
+ * Separator meanings are locale-dependent: en-DZ uses ',' for grouping and '.'
+ * as the decimal separator, while fr-DZ/ar-DZ use ',' as the decimal separator.
+ * Passing a locale makes parsing unambiguous; without one, a shape-based
+ * heuristic is used that resolves most real-world inputs correctly.
  *
  * @param formatted - The formatted DZD string
+ * @param localeInput - Optional locale (ar-DZ, fr-DZ, en-DZ, ar, fr, en)
  * @returns Amount in centimes (integer), or 0 if parsing fails
  */
-export function parseCentimes(formatted: string): number {
+export function parseCentimes(
+  formatted: string,
+  localeInput?: "ar-DZ" | "fr-DZ" | "en-DZ" | "ar" | "fr" | "en" | string,
+): number {
   const cleaned = toArabicNumerals(formatted)
     .replace("دج", "DZD")
     .replace("د.ج", "DZD")
     .replace(/[^\d,.-]/g, "")
     .trim();
 
-  // Separators are locale-dependent: fr-DZ uses "," as the decimal ("12,55")
-  // while en-DZ uses it for grouping ("1,400"). The app never formats more
-  // than 2 fraction digits, so a lone separator followed by exactly 3 digits
-  // is a group separator; anything else is a decimal separator.
-  let numeric = cleaned;
-  if (cleaned.includes(".") && cleaned.includes(",")) {
+  // A known locale makes the separators unambiguous; unknown or omitted
+  // locales fall back to the shape-based heuristic below.
+  const lang = localeInput ?? "";
+  const locale = lang.startsWith("en")
+    ? "en-DZ"
+    : lang.startsWith("ar")
+      ? "ar-DZ"
+      : lang.startsWith("fr")
+        ? "fr-DZ"
+        : null;
+
+  let numeric: string;
+  if (locale === "en-DZ") {
+    // English: ',' groups digits, '.' is the decimal separator.
+    numeric = cleaned.replace(/,/g, "");
+  } else if (locale) {
+    // French/Arabic: ',' is the decimal separator ('.' groups, European style).
+    numeric = cleaned.replace(/\./g, "").replace(/,/g, ".");
+  } else if (cleaned.includes(".") && cleaned.includes(",")) {
     // Both present: the last one is the decimal separator, the other groups.
     numeric =
       cleaned.lastIndexOf(".") > cleaned.lastIndexOf(",")
         ? cleaned.replace(/,/g, "")
         : cleaned.replace(/\./g, "").replace(",", ".");
   } else if (cleaned.includes(",")) {
+    // A lone ',' followed by exactly 3 digits is en-DZ grouping ("1,400");
+    // otherwise it is a fr-DZ decimal ("12,55").
     const parts = cleaned.split(",");
     const isGrouping = parts.length > 2 || parts[1].length === 3;
     numeric = isGrouping ? cleaned.replace(/,/g, "") : cleaned.replace(",", ".");
+  } else {
+    numeric = cleaned;
   }
 
   const value = parseFloat(numeric);

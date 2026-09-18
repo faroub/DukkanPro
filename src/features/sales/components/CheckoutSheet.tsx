@@ -62,7 +62,7 @@ export function CheckoutSheet({
   const [note, setNote] = useState<string>("");
   const [amountReceived, setAmountReceived] = useState<number>(cartTotal);
   const [partialAmount, setPartialAmount] = useState<number>(
-    Math.round(cartTotal / 2),
+    Math.round(cartTotal / 200) * 100,
   );
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
@@ -392,10 +392,10 @@ export function CheckoutSheet({
                       style={[styles.cashTextInput, { color: theme.textPrimary }]}
                       value={(amountReceived / 100).toString()}
                       onChangeText={(val) => {
-                        const num = parseFloat(val.replace(/[^0-9.]/g, "")) || 0;
-                        setAmountReceived(Math.round(num * 100));
+                        const num = parseInt(val.replace(/[^0-9]/g, ""), 10) || 0;
+                        setAmountReceived(num * 100);
                       }}
-                      keyboardType="decimal-pad"
+                      keyboardType="number-pad"
                     />
                     <Text style={[styles.currencySuffix, { color: theme.textSecondary }]}>DZD</Text>
                   </View>
@@ -472,11 +472,10 @@ export function CheckoutSheet({
                       style={[styles.cashTextInput, { color: theme.textPrimary }]}
                       value={(partialAmount / 100).toString()}
                       onChangeText={(val) => {
-                        const num =
-                          parseFloat(val.replace(/[^0-9.]/g, "")) || 0;
-                        setPartialAmount(Math.round(num * 100));
+                        const num = parseInt(val.replace(/[^0-9]/g, ""), 10) || 0;
+                        setPartialAmount(num * 100);
                       }}
-                      keyboardType="decimal-pad"
+                      keyboardType="number-pad"
                     />
                     <Text
                       style={[styles.currencySuffix, { color: theme.textSecondary }]}
