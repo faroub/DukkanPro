@@ -32,7 +32,7 @@ import { ReceiptPreview } from "@/features/sales/components/ReceiptPreview";
 import { useTheme } from "@/hooks/use-theme";
 import { useProducts } from "@/hooks/useProducts";
 import { useCartStoreHook } from "@/stores/cartStore";
-import { Product } from "@/types/entities";
+import { Product, Sale } from "@/types/entities";
 import { formatCentimes } from "@/utils/money";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -62,12 +62,9 @@ export default function SellScreen() {
   const [checkoutVisible, setCheckoutVisible] = useState(false);
   const [receiptVisible, setReceiptVisible] = useState(false);
   const [scannerVisible, setScannerVisible] = useState(false);
-  const [sale, setSale] = useState<any>(null);
+  const [sale, setSale] = useState<Sale | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [errorState, setErrorState] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<
-    "cash" | "electronic" | "mixed" | "partial" | "credit"
-  >("cash");
   const [note, setNote] = useState<string>("");
   const [customerId, setCustomerId] = useState<number | null>(null);
 
@@ -149,6 +146,7 @@ export default function SellScreen() {
           })),
           note: details.note,
           discountCentimes: discount,
+          amountPaidCentimes: details.amountPaid,
         };
 
         const newSale = await create(saleInput);
@@ -158,7 +156,6 @@ export default function SellScreen() {
 
         clearCart();
         setCheckoutVisible(false);
-        setPaymentMethod("cash");
         setNote("");
         setCustomerId(null);
       } catch (err: any) {
@@ -885,18 +882,18 @@ export default function SellScreen() {
               setSale(null);
             }}
             saleItems={
-              sale?.items?.map((item: any) => ({
+              sale?.saleItems?.map((item) => ({
                 id: item.id,
-                name: item.name,
+                name: item.product_name_snapshot,
                 quantity: item.quantity,
-                sale_price_centimes: item.unitSalePriceCentimes,
+                sale_price_centimes: item.unit_sale_price_centimes,
               })) || []
             }
             cartTotal={sale?.total_centimes || 0}
-            discountCentimes={discount}
-            paymentMethod={paymentMethod}
-            amountReceived={sale?.total_paid_centimes || 0}
-            customerName={sale?.customerName || null}
+            discountCentimes={sale?.discount_centimes || 0}
+            paymentMethod={sale?.payment_method}
+            amountReceived={sale?.amount_paid_centimes || 0}
+            customerName={null}
           />
         )}
 

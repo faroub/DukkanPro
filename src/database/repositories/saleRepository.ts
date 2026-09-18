@@ -50,6 +50,8 @@ export async function create(saleInput: {
     note?: string;
   }>;
   note?: string;
+  discountCentimes?: number; // discount applied to the subtotal
+  amountPaidCentimes?: number; // amount settled at sale time (e.g. cash received)
 }): Promise<Sale> {
   const db = await getDatabase();
   return await transaction(db, async (tx: any) => {
@@ -135,10 +137,23 @@ export async function create(saleInput: {
       );
     }
 
-    // 4. Update sale header with computed values
-    const totalCentimes = subtotal; // no discount at creation for simplicity
-    const amountPaid = totalCentimes; // fully paid at creation
-    const remainingBalance = 0; // fully paid
+    // 4. Update sale header with the computed settlement values
+    const discountCentimes = Math.max(
+      0,
+      Math.min(saleInput.discountCentimes ?? 0, subtotal),
+    );
+    const totalCentimes = subtotal - discountCentimes;
+
+    // Amount settled now: an explicit amount (e.g. cash received) wins;
+    // otherwise credit sales are settled later and other methods on the spot.
+    const amountPaid =
+      saleInput.amountPaidCentimes !== undefined
+        ? Math.max(0, saleInput.amountPaidCentimes)
+        : saleInput.paymentMethod === "credit"
+          ? 0
+          : totalCentimes;
+
+    const remainingBalance = Math.max(0, totalCentimes - amountPaid);
 
     await executeWrite(
       // language=SQLite
@@ -150,7 +165,14 @@ export async function create(saleInput: {
            remaining_balance_centimes = ?,
            updated_at = datetime('now')
        WHERE id = ?`,
-      [subtotal, 0, totalCentimes, amountPaid, remainingBalance, saleId],
+      [
+        subtotal,
+        discountCentimes,
+        totalCentimes,
+        amountPaid,
+        remainingBalance,
+        saleId,
+      ],
     );
 
     // 5. Return the complete sale record

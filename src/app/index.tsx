@@ -44,7 +44,7 @@ export default function Root() {
     return (
       <View style={[{ flex: 1, backgroundColor: theme.background }, style]}>
         <ActivityIndicator size="large" color={theme.primary} />
-      </ActivityIndicator>
+      </View>
     );
   }
 
@@ -61,7 +61,7 @@ export default function Root() {
   return (
     <View style={[{ flex: 1, backgroundColor: theme.background }, style]}>
       <ActivityIndicator size="large" color={theme.primary} />
-    </ActivityIndicator>
+    </View>
   );
 }
 

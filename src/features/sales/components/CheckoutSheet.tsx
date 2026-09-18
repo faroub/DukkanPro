@@ -61,6 +61,9 @@ export function CheckoutSheet({
   >("cash");
   const [note, setNote] = useState<string>("");
   const [amountReceived, setAmountReceived] = useState<number>(cartTotal);
+  const [partialAmount, setPartialAmount] = useState<number>(
+    Math.round(cartTotal / 2),
+  );
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
 
@@ -69,6 +72,7 @@ export function CheckoutSheet({
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
   const changeDue = Math.max(0, amountReceived - cartTotal);
+  const remainingAfterPartial = Math.max(0, cartTotal - partialAmount);
 
   const handleQuickAddCash = (centimesToAdd: number) => {
     setAmountReceived((prev) => prev + centimesToAdd);
@@ -86,11 +90,16 @@ export function CheckoutSheet({
 
     onCheckout({
       method: paymentMethod,
-      amountPaid: paymentMethod === "cash" ? amountReceived : undefined,
+      amountPaid:
+        paymentMethod === "cash"
+          ? amountReceived
+          : paymentMethod === "partial"
+            ? partialAmount
+            : undefined,
       note,
       customerId: customerId || undefined,
     });
-  }, [paymentMethod, amountReceived, note, customerId, onCheckout]);
+  }, [paymentMethod, amountReceived, partialAmount, note, customerId, onCheckout]);
 
   return (
     <Modal
@@ -429,6 +438,70 @@ export function CheckoutSheet({
                   </ThemedText>
                   <Text style={[styles.changeDueAmount, { color: theme.primary }]}>
                     {formatCentimes(changeDue)}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Partial Payment Calculator (Shown when payment is partial) */}
+            {paymentMethod === "partial" && (
+              <View
+                style={[
+                  styles.cashCalculatorCard,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                ]}
+              >
+                <View style={styles.cashInputRow}>
+                  <ThemedText
+                    style={[styles.cashInputLabel, { color: theme.textPrimary }]}
+                  >
+                    {t("sales:amountReceived", {
+                      defaultValue: "Montant reçu",
+                    })}
+                  </ThemedText>
+                  <View
+                    style={[
+                      styles.cashInputWrapper,
+                      {
+                        backgroundColor: theme.backgroundElement,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                  >
+                    <TextInput
+                      style={[styles.cashTextInput, { color: theme.textPrimary }]}
+                      value={(partialAmount / 100).toString()}
+                      onChangeText={(val) => {
+                        const num =
+                          parseFloat(val.replace(/[^0-9.]/g, "")) || 0;
+                        setPartialAmount(Math.round(num * 100));
+                      }}
+                      keyboardType="decimal-pad"
+                    />
+                    <Text
+                      style={[styles.currencySuffix, { color: theme.textSecondary }]}
+                    >
+                      DZD
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Remaining Balance Display */}
+                <View
+                  style={[
+                    styles.changeDueRow,
+                    { backgroundColor: theme.surface, borderColor: theme.warning },
+                  ]}
+                >
+                  <ThemedText
+                    style={[styles.changeDueLabel, { color: theme.warning }]}
+                  >
+                    {t("sales:remainingBalance", {
+                      defaultValue: "Solde restant",
+                    })}
+                  </ThemedText>
+                  <Text style={[styles.changeDueAmount, { color: theme.warning }]}>
+                    {formatCentimes(remainingAfterPartial)}
                   </Text>
                 </View>
               </View>
