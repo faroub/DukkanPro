@@ -41,43 +41,7 @@ export function RecentSalesList({
   const router = useRouter();
   const theme = useTheme();
 
-  // Provide fallback sample data matching Stitch if none yet recorded
-  const displaySales: SaleItemData[] =
-    recentSales.length > 0
-      ? recentSales.slice(0, 3)
-      : [
-          {
-            id: 101,
-            customerName: "Yacine Benali",
-            customerInitials: "YB",
-            itemsCount: 3,
-            total_centimes: 12000,
-            sold_at: new Date().toISOString(),
-            status: "completed",
-            payment_method: "cash",
-          },
-          {
-            id: 102,
-            customerName: locale === "ar" ? "زبون نقدي" : locale === "fr" ? "Client Comptoir" : "Cash Customer",
-            customerInitials: "",
-            itemsCount: 1,
-            total_centimes: 4500,
-            sold_at: new Date(Date.now() - 33 * 60 * 1000).toISOString(),
-            status: "completed",
-            payment_method: "cash",
-          },
-          {
-            id: 103,
-            customerName: "Karim Meziane",
-            customerInitials: "KM",
-            itemsCount: 4,
-            total_centimes: 11500,
-            remaining_balance_centimes: 6000,
-            sold_at: new Date(Date.now() - 75 * 60 * 1000).toISOString(),
-            status: "partial",
-            payment_method: "credit",
-          },
-        ];
+  const displaySales: SaleItemData[] = recentSales.slice(0, 3);
 
   const handleSeeAll = () => {
     if (onSeeAll) {
@@ -115,13 +79,15 @@ export function RecentSalesList({
           <ThemedText style={[styles.sectionTitle, { color: theme.textPrimary }]}>
             {recentSalesHeader}
           </ThemedText>
-          <View style={[styles.newBadge, { backgroundColor: theme.primaryLight }]}>
-            <ThemedText style={[styles.newBadgeText, { color: theme.primary }]}>
-              {locale === "ar"
-                ? `${displaySales.length} جديد`
-                : `${displaySales.length} new`}
-            </ThemedText>
-          </View>
+          {displaySales.length > 0 && (
+            <View style={[styles.newBadge, { backgroundColor: theme.primaryLight }]}>
+              <ThemedText style={[styles.newBadgeText, { color: theme.primary }]}>
+                {locale === "ar"
+                  ? `${displaySales.length} جديد`
+                  : `${displaySales.length} new`}
+              </ThemedText>
+            </View>
+          )}
         </View>
 
         <TouchableOpacity
@@ -142,8 +108,16 @@ export function RecentSalesList({
       </View>
 
       {/* Sales List */}
-      <View style={styles.list}>
-        {displaySales.map((sale) => {
+      {displaySales.length === 0 ? (
+        <View style={[styles.emptyState, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <MaterialIcons name="receipt-long" size={28} color={theme.textSecondary} />
+          <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
+            {recentSalesNoResults}
+          </ThemedText>
+        </View>
+      ) : (
+        <View style={styles.list}>
+          {displaySales.map((sale) => {
           const isCash = !sale.customerInitials || sale.customerInitials === "";
           const isPartialOrCredit =
             sale.status === "partial" ||
@@ -240,6 +214,7 @@ export function RecentSalesList({
           );
         })}
       </View>
+      )}
     </View>
   );
 }
@@ -286,6 +261,18 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 8,
+  },
+  emptyState: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    paddingVertical: Spacing.lg,
+    alignItems: "center",
+    gap: 8,
+  },
+  emptyText: {
+    ...Typography.caption,
+    fontSize: 13,
   },
   saleCard: {
     borderRadius: BorderRadius.lg,

@@ -183,33 +183,52 @@ export async function getLowStockProducts(limit: number): Promise<any[]> {
 }
 
 /**
- - Get seven-day sales trend: daily total revenue for the last 7 days.
+ - Local calendar day key ("YYYY-MM-DD") for a Date, using the device timezone.
+ */
+function localDateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ - Get seven-day sales trend: daily total revenue for the last 7 local days.
+ *
+ - sold_at is stored in UTC (datetime('now')), so SQL DATE() would bucket by UTC
+ - day and misplace sales made between 23:00 and 00:00 local time (e.g. Algeria
+ - is UTC+1). Sales are therefore fetched as raw timestamps and bucketed in JS
+ - by the merchant's local calendar day.
  */
 export async function getSevenDaySales(): Promise<{ date: string; total: number }[]> {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const fetchSince = new Date(todayStart.getTime() - 6 * 24 * 60 * 60 * 1000);
+  const fmt = (d: Date) => d.toISOString().slice(0, 19).replace("T", " ");
+
   const rows: any[] = await executeAll(
     // language=SQLite
-    `SELECT DATE(s.sold_at) as date,
-           COALESCE(SUM(s.total_centimes), 0) as total
+    `SELECT s.sold_at, s.total_centimes
        FROM sales s
       WHERE s.status = 'completed'
-    GROUP BY DATE(s.sold_at)
-    ORDER BY date DESC
-       LIMIT 7`,
+        AND s.sold_at >= ?
+     ORDER BY s.sold_at DESC`,
+    [fmt(fetchSince)],
   );
 
-  // Ensure we always return 7 entries, filling missing days with 0
-  const result: { date: string; total: number }[] = [];
-  const today = new Date();
+  // Seed one bucket per day, oldest first, so the chart is chronological.
+  const totals = new Map<string, number>();
   for (let i = 6; i >= 0; i--) {
-    const day = new Date(today);
-    day.setDate(today.getDate() - i);
-    const dayStr = day.toISOString().split("T")[0];
-    const found = rows.find((r) => r.date === dayStr);
-    result.push({
-      date: dayStr,
-      total: found ? found.total : 0,
-    });
+    totals.set(localDateKey(new Date(todayStart.getTime() - i * 24 * 60 * 60 * 1000)), 0);
   }
 
-  return result;
+  for (const row of rows) {
+    // sold_at has no timezone marker; "Z" makes JS read it as the UTC instant it is.
+    const key = localDateKey(new Date(`${row.sold_at}Z`));
+    if (totals.has(key)) {
+      totals.set(key, (totals.get(key) as number) + (row.total_centimes || 0));
+    }
+  }
+
+  return [...totals.entries()].map(([date, total]) => ({ date, total }));
 }
