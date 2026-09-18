@@ -122,8 +122,7 @@ describe('parseCentimes', () => {
 });
 
 describe('formatCentimes ↔ parseCentimes round-trip', () => {
-  // The app deals only in whole dinars; every amount is a multiple of 100 centimes.
-  const amounts = [0, 500, 12500, 14000, 140000, 99999900];
+  const amounts = [0, 5, 105, 500, 1255, 14000, 140000, 99999999];
   const locales = ['fr-DZ', 'en-DZ', 'ar-DZ'] as const;
 
   it.each(amounts)('round-trips %d centimes through every locale', (amount) => {

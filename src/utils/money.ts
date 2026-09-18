@@ -80,7 +80,7 @@ export function formatCentimes(
       // Arabic numbers are: 0, 1, 2, 3, 4, ... with "دج" suffix for Algerian Dinar
       const formattedAr = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
         useGrouping: true,
       }).format(dinars);
       return `${formattedAr} دج`;
@@ -90,7 +90,7 @@ export function formatCentimes(
       // French locale: Western numerals with space + " DZD" suffix
       const formattedFr = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
         useGrouping: true,
       }).format(dinars);
       return `${formattedFr} DZD`;
@@ -100,7 +100,7 @@ export function formatCentimes(
       // English locale: Western numerals with comma separator + " DZD" suffix
       const formattedEn = new Intl.NumberFormat("en-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
         useGrouping: true,
       }).format(dinars);
       return `${formattedEn} DZD`;
@@ -110,7 +110,7 @@ export function formatCentimes(
       // Fallback to French locale format
       const formattedDefault = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
         useGrouping: true,
       }).format(dinars);
       return `${formattedDefault} DZD`;

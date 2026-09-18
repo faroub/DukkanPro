@@ -118,8 +118,8 @@ export function ProductForm({
   const [errorMsg, setErrorMsg] = useState('');
 
   // Live profit & margin calculation
-  const saleDinars = parseInt(salePriceDzd, 10) || 0;
-  const costDinars = parseInt(costPriceDzd, 10) || 0;
+  const saleDinars = parseFloat(salePriceDzd) || 0;
+  const costDinars = parseFloat(costPriceDzd) || 0;
   const profitDinars = saleDinars - costDinars;
   const marginPercentage = saleDinars > 0 ? (profitDinars / saleDinars) * 100 : 0;
 
@@ -193,8 +193,8 @@ export function ProductForm({
       return;
     }
 
-    const saleCentimes = (parseInt(salePriceDzd, 10) || 0) * 100;
-    const costCentimes = (parseInt(costPriceDzd, 10) || 0) * 100;
+    const saleCentimes = Math.round((parseFloat(salePriceDzd) || 0) * 100);
+    const costCentimes = Math.round((parseFloat(costPriceDzd) || 0) * 100);
     const minStock = parseInt(minStockAlert, 10) || 0;
 
     try {
@@ -461,7 +461,7 @@ export function ProductForm({
                   onChangeText={setSalePriceDzd}
                   placeholder="0"
                   placeholderTextColor={theme.textMuted}
-                  keyboardType="number-pad"
+                  keyboardType="decimal-pad"
                 />
                 <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>DZD</ThemedText>
               </View>
@@ -487,7 +487,7 @@ export function ProductForm({
                   onChangeText={setCostPriceDzd}
                   placeholder="0"
                   placeholderTextColor={theme.textMuted}
-                  keyboardType="number-pad"
+                  keyboardType="decimal-pad"
                 />
                 <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>DZD</ThemedText>
               </View>
