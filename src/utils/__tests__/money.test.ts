@@ -79,6 +79,33 @@ describe('parseCentimes', () => {
   it('should parse "0 DZD" to 0', () => {
     expect(parseCentimes('0 DZD')).toBe(0);
   });
+
+  it('should treat a comma group separator as grouping, not decimals', () => {
+    // Regression: "1,400 DZD" (en-DZ grouping) was parsed as 1.4 DZD = 140
+    expect(parseCentimes('1,400 DZD')).toBe(140000);
+    expect(parseCentimes('999,999.99 DZD')).toBe(99999999);
+  });
+
+  it('should treat a comma as a decimal separator in French format', () => {
+    expect(parseCentimes('12,55 DZD')).toBe(1255);
+    expect(parseCentimes('0,05 DZD')).toBe(5);
+  });
+
+  it('should parse sub-dinar English format', () => {
+    expect(parseCentimes('12.55 DZD')).toBe(1255);
+    expect(parseCentimes('0.05 DZD')).toBe(5);
+  });
+});
+
+describe('formatCentimes ↔ parseCentimes round-trip', () => {
+  const amounts = [0, 5, 105, 500, 1255, 14000, 140000, 99999999];
+  const locales = ['fr-DZ', 'en-DZ', 'ar-DZ'] as const;
+
+  it.each(amounts)('round-trips %d centimes through every locale', (amount) => {
+    for (const locale of locales) {
+      expect(parseCentimes(formatCentimes(amount, locale))).toBe(amount);
+    }
+  });
 });
 
 describe('format14000Centimes', () => {
