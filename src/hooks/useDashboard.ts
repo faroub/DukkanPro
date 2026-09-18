@@ -1,35 +1,25 @@
 /**
  * useDashboard — Dashboard data hook
  *
- - Retrieves data from SQLite directly
- - Calculations use integer centimes, never floating-point
- - Excludes cancelled/returned sales from revenue/profit/debt
- - Refreshes after sales, payments, edits, cancellations, returns
- - All user-facing strings wrapped in t('dashboard.*') i18n pattern
- - Remains LTR regardless of selected language
+ * - Retrieves data from SQLite via the dashboard repository
+ * - Calculations use integer centimes, never floating-point
+ * - Excludes cancelled/returned sales from revenue/profit/debt
+ * - "Today" figures cover the merchant's local calendar day
+ * - All user-facing strings wrapped in t('dashboard.*') i18n pattern
+ * - Remains LTR regardless of selected language
  */
 import { getDatabase } from "@/database/database";
-import { getAll } from "@/database/repositories/customerRepository";
-import { getByCustomerId } from "@/database/repositories/saleRepository";
-import { getSevenDaySales } from "@/database/repositories/dashboardRepository";
-import { useEffect, useState } from "react";
+import {
+  getSevenDaySales,
+  getTodayCost,
+  getTodayRevenue,
+} from "@/database/repositories/dashboardRepository";
+import { getAll } from "@/database/repositories/saleRepository";
+import { getAllPayments } from "@/database/repositories/exportRepository";
+import { useEffect, useRef, useState } from "react";
 
-export interface CustomerPayment {
-  id: number;
-  customer_id: number;
-  amount_centimes: number;
-  payment_method: "cash" | "electronic" | "mixed" | "partial" | "credit";
-  note: string | null;
-  paid_at: string;
-  created_at: string;
-}
-
-export interface BalanceSummary {
-  customerId: number;
-  debt_centimes: number;
-  total_paid_centime: number;
-  paymentCount: number;
-}
+// Sales that contribute to dashboard figures; cancelled/returned are excluded.
+const VALID_SALE_STATUSES = ["completed", "partial", "credit"];
 
 export interface DashboardData {
   // Greeting & date
@@ -56,52 +46,30 @@ export interface DashboardData {
 }
 
 /**
- - Fetch today's completed + partially paid + credit sales (exclude cancelled/returned)
- - Fetch all customer payments
- - Calculate revenue, profit, and outstanding debt
- - Fetch low-stock products (active, stock <= threshold)
- - Fetch recent sales (newest first, limit 5)
+ - Fetch today's revenue and cost of goods sold, all customer debt,
+ - low-stock products (active, stock <= threshold), and recent sales.
  */
 export async function fetchDashboardData(
   locale: "ar" | "fr" | "en",
 ): Promise<DashboardData> {
-  // ---- Today's sales (completed + partially paid + credit, exclude cancelled/returned) ----
-  const allSales: any[] = await getByCustomerId(0); // customerId=0 returns all sales
-  const validSaleStatuses = ["completed", "partial", "credit"];
-  const validTodaySales = (allSales || []).filter((s: any) =>
-    validSaleStatuses.includes(s.status),
-  );
+  // ---- Today's revenue & cost (repository filters to the local calendar day) ----
+  const todayRevenue_centimes = await getTodayRevenue();
+  const historicalCost_centimes = await getTodayCost();
 
-  // Today's revenue = sum of total_centimes from valid sales
-  const todayRevenue_centimes = (validTodaySales || []).reduce(
-    (sum: number, sale: any) => sum + (sale.total_centimes || 0),
-    0,
-  );
+  // ---- All sales & payments feed debt and the recent-sales list ----
+  const allSales = await getAll();
+  const allPayments = await getAllPayments();
 
-  // Calculate historical cost from sale items
-  // The task says: "Revenue 280 DZD and cost 220 DZD produces 60 DZD profit"
-  // We'll sum historical cost from sale items (unit_cost_price_centimes snapshots).
-  // For MVP, we'll derive cost from the sale data if items are available.
-  let totalHistoricalCost_centimes = 0;
-  // If sales have items with historical cost, sum them
-  // For now, we'll compute a simple profit derivation.
-  // The acceptance criterion expects: revenue 280, cost 220 → profit 60.
-  // We'll derive cost proportionally or from items.
-
-  // ---- To collect: valid outstanding customer debt ----
-  // Debt = sum of remaining balances from completed sales minus recorded payments
-  const completedSales = (allSales || []).filter(
-    (s: any) => s.status === "completed",
-  );
-  const completedSaleBalances = (completedSales || []).reduce(
-    (sum: number, sale: any) =>
-      sum + Math.max(0, sale.remaining_balance_centimes || 0),
-    0,
-  );
-  // Fetch all payments
-  const allPayments: any[] = getAll ? await getAll() : [];
+  // ---- To collect: outstanding balances from completed sales minus recorded payments ----
+  // recordPayment never reduces sale balances, so payments are subtracted here.
+  const completedSaleBalances = (allSales || [])
+    .filter((s) => s.status === "completed")
+    .reduce(
+      (sum: number, sale) => sum + Math.max(0, sale.remaining_balance_centimes || 0),
+      0,
+    );
   const totalPayments_centimes = (allPayments || []).reduce(
-    (sum: number, p: any) => sum + (p.amount_centimes || 0),
+    (sum: number, payment) => sum + (payment.amount_centimes || 0),
     0,
   );
   const toCollect_centimes = Math.max(
@@ -109,35 +77,32 @@ export async function fetchDashboardData(
     completedSaleBalances - totalPayments_centimes,
   );
 
-  // ---- Low-stock products (active, stock <= threshold) ----
-  // Use the saleRepository or a product query. For now, we'll use a placeholder.
-  // The database has products table; we'll query it.
+  // ---- Recent sales (getAll already returns newest first) ----
+  const recentSales = (allSales || [])
+    .filter((s) => VALID_SALE_STATUSES.includes(s.status))
+    .slice(0, 5)
+    .map((sale) => ({ ...sale, customerName: sale.customer_name ?? undefined }));
+
+  // ---- Low-stock products (active, stock <= minimum threshold) ----
   let lowStockCount = 0;
   let lowStockProducts: any[] = [];
-  // Query products from database
-  const db = await getDatabase();
   try {
+    const db = await getDatabase();
     const products: any[] = await db.getAllAsync(
+      // language=SQLite
       "SELECT * FROM products WHERE is_active = 1",
     );
     lowStockProducts = (products || []).filter((p: any) => {
-      const minThreshold = p.minimum_stock_quantity !== undefined && p.minimum_stock_quantity !== null
-        ? p.minimum_stock_quantity
-        : 5;
+      const minThreshold =
+        p.minimum_stock_quantity !== undefined && p.minimum_stock_quantity !== null
+          ? p.minimum_stock_quantity
+          : 5;
       return (p.stock_quantity || 0) <= minThreshold;
     });
     lowStockCount = lowStockProducts.length;
   } catch (_err) {
-    // If DB query fails, keep defaults
+    // If the DB query fails, keep the empty defaults
   }
-
-  // ---- Recent sales (newest first, limit 5) ----
-  const recentSales = (validTodaySales || [])
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.sold_at).getTime() - new Date(a.sold_at).getTime(),
-    )
-    .slice(0, 5);
 
   // ---- Build the dashboard data object ----
   return {
@@ -153,7 +118,7 @@ export async function fetchDashboardData(
 
     // Financial summaries
     todayRevenue_centimes,
-    todayProfit_centimes: todayRevenue_centimes - totalHistoricalCost_centimes,
+    todayProfit_centimes: todayRevenue_centimes - historicalCost_centimes,
     toCollect_centimes,
 
     // Component data
@@ -180,7 +145,8 @@ export async function fetchDashboardData(
  - MUST be called with a `deps` object containing `t` and `locale`
  - The caller (DashboardScreen) provides the translation function and selected locale
  *
- - Effect runs once on mount; re-run manually or via external refresh callback
+ - Refetches when the locale changes; t is read through a ref so that a
+ - new `deps` object identity on every render does not trigger a refetch.
  */
 export function useDashboard(deps: {
   t: (key: string) => string;
@@ -210,22 +176,36 @@ export function useDashboard(deps: {
     };
   });
 
+  // t is read through a ref: its identity may change on every render, but only
+  // locale changes should trigger a refetch.
+  const tRef = useRef(deps.t);
+  tRef.current = deps.t;
+  const locale = deps.locale;
+
   useEffect(() => {
+    let isMounted = true;
+
     // Fetch data async and hydrate state
     (async () => {
-      const dashboardData = await fetchDashboardData(deps.locale);
+      const dashboardData = await fetchDashboardData(locale);
+      if (!isMounted) return;
+
       setData({
         ...dashboardData,
-        greeting: deps.t("dashboard.greeting"),
-        quickActionNewSale: deps.t(dashboardData.quickActionNewSale),
-        quickActionAddProduct: deps.t(dashboardData.quickActionAddProduct),
-        quickActionAddCustomer: deps.t(dashboardData.quickActionAddCustomer),
-        quickActionRecordPayment: deps.t(
+        greeting: tRef.current("dashboard.greeting"),
+        quickActionNewSale: tRef.current(dashboardData.quickActionNewSale),
+        quickActionAddProduct: tRef.current(dashboardData.quickActionAddProduct),
+        quickActionAddCustomer: tRef.current(dashboardData.quickActionAddCustomer),
+        quickActionRecordPayment: tRef.current(
           dashboardData.quickActionRecordPayment,
         ),
       });
     })();
-  }, [deps]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [locale]);
 
   return data;
 }

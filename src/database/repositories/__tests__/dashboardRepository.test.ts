@@ -41,10 +41,19 @@ beforeEach(async () => {
 
 describe("dashboardRepository", () => {
   describe("getTodayRevenue", () => {
-    it("returns revenue from completed sales only", async () => {
-      // Revenue should only include completed sales
+    it("excludes completed sales from previous days", async () => {
+      // A completed sale from 30 days ago must not count towards today's revenue
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
+             total_centimes, amount_paid_centimes, remaining_balance_centimes,
+             payment_method, note, sold_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now', '-30 days'), datetime('now'), datetime('now'))`,
+        [1, "completed", 9000, 0, 9000, 9000, 0, "cash"],
+      );
+
       const revenue = await getTodayRevenue();
-      expect(typeof revenue).toBe("number");
+      expect(revenue).toBe(0);
     });
 
     it("adds sale revenue and reflects in getTodayRevenue", async () => {
@@ -111,6 +120,36 @@ describe("dashboardRepository", () => {
       const cost = await getTodayCost();
       // Cost = quantity × historical cost = 2 × 3000 = 6000
       expect(cost).toBe(6000);
+    });
+
+    it("excludes cost from sales outside the local calendar day", async () => {
+      // A completed sale from 30 days ago must not contribute to today's cost
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
+         VALUES (?, ?, ?, ?, ?, 1)`,
+        ["Product A", 5000, 3000, 10, "pcs"],
+      );
+
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
+             total_centimes, amount_paid_centimes, remaining_balance_centimes,
+             payment_method, note, sold_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now', '-30 days'), datetime('now'), datetime('now'))`,
+        [1, "completed", 6000, 0, 6000, 6000, 0, "cash"],
+      );
+
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sale_items (sale_id, product_id, product_name_snapshot,
+             quantity, unit_sale_price_centimes, unit_cost_price_centimes, line_total_centimes, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        [1, 1, "Product A", 2, 5000, 3000, 6000],
+      );
+
+      const cost = await getTodayCost();
+      expect(cost).toBe(0);
     });
   });
 
