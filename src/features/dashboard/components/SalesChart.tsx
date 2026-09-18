@@ -1,29 +1,27 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import { ThemedText } from "@/components/themed-text";
 import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes } from "@/utils/money";
 import { MaterialIcons } from "@expo/vector-icons";
+import { SalesChartView } from "./SalesChartView";
 
 interface SalesChartProps {
   data?: { date: string; total: number }[];
   title?: string;
   subtitle?: string;
   locale?: "ar" | "fr" | "en";
+}
+
+/** A single point on the chart, as produced for the renderer (see SalesChartView). */
+export interface ChartPoint {
+  date: string;
+  label: string;
+  totalCentimes: number;
+  amount: number;
+  isToday: boolean;
 }
 
 const YEARS = [2026, 2025, 2024];
@@ -126,7 +124,7 @@ export function SalesChart({
     }
   };
 
-  const formattedData = chartDataset.map((item, index) => {
+  const formattedData: ChartPoint[] = chartDataset.map((item, index) => {
     const isToday =
       item.date === "2026-09-12" || index === chartDataset.length - 1;
     const amountInDZD = Math.round(item.total / 100);
@@ -147,32 +145,6 @@ export function SalesChart({
     totalSumCentimes / (formattedData.length || 1) / 100
   );
   const peakDZD = Math.max(...formattedData.map((d) => d.amount), 0);
-
-  // Custom Recharts Tooltip Component
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload;
-      return (
-        <View
-          style={[
-            styles.tooltipContainer,
-            {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
-            },
-          ]}
-        >
-          <ThemedText style={[styles.tooltipLabel, { color: theme.textSecondary }]}>
-            {item.label} ({item.date})
-          </ThemedText>
-          <ThemedText style={[styles.tooltipValue, { color: theme.primary }]}>
-            {formatCentimes(item.totalCentimes)}
-          </ThemedText>
-        </View>
-      );
-    }
-    return null;
-  };
 
   const defaultTitle =
     title ||
@@ -351,83 +323,9 @@ export function SalesChart({
         </View>
       </View>
 
-      {/* Recharts Container */}
+      {/* Chart: recharts on web, native Views on native (see SalesChartView) */}
       <View style={styles.chartWrapper}>
-        <ResponsiveContainer width="100%" height={180}>
-          {chartType === "bar" ? (
-            <BarChart
-              data={formattedData}
-              margin={{ top: 12, right: 8, left: -20, bottom: 0 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke={theme.border}
-                strokeOpacity={0.4}
-              />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: theme.textSecondary, fontSize: 10, fontWeight: 500 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: theme.textSecondary, fontSize: 10 }}
-                unit=" DZD"
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="amount" radius={[6, 6, 0, 0]}>
-                {formattedData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.isToday ? theme.primary : theme.primaryLight}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          ) : (
-            <AreaChart
-              data={formattedData}
-              margin={{ top: 12, right: 8, left: -20, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={theme.primary} stopOpacity={0.4} />
-                  <stop offset="95%" stopColor={theme.primary} stopOpacity={0.0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke={theme.border}
-                strokeOpacity={0.4}
-              />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: theme.textSecondary, fontSize: 10, fontWeight: 500 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: theme.textSecondary, fontSize: 10 }}
-                unit=" DZD"
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="amount"
-                stroke={theme.primary}
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill="url(#salesGradient)"
-              />
-            </AreaChart>
-          )}
-        </ResponsiveContainer>
+        <SalesChartView data={formattedData} chartType={chartType} />
       </View>
     </View>
   );
@@ -542,29 +440,7 @@ const styles = StyleSheet.create({
     height: 24,
   },
   chartWrapper: {
-    height: 180,
     width: "100%",
-    marginTop: 2,
-  },
-  tooltipContainer: {
-    padding: 10,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  tooltipLabel: {
-    ...Typography.caption,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  tooltipValue: {
-    ...Typography.label,
-    fontSize: 15,
-    fontWeight: "700",
     marginTop: 2,
   },
 });
