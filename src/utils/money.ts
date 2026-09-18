@@ -80,7 +80,7 @@ export function formatCentimes(
       // Arabic numbers are: 0, 1, 2, 3, 4, ... with "دج" suffix for Algerian Dinar
       const formattedAr = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
         useGrouping: true,
       }).format(dinars);
       return `${formattedAr} دج`;
@@ -90,7 +90,7 @@ export function formatCentimes(
       // French locale: Western numerals with space + " DZD" suffix
       const formattedFr = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
         useGrouping: true,
       }).format(dinars);
       return `${formattedFr} DZD`;
@@ -100,7 +100,7 @@ export function formatCentimes(
       // English locale: Western numerals with comma separator + " DZD" suffix
       const formattedEn = new Intl.NumberFormat("en-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
         useGrouping: true,
       }).format(dinars);
       return `${formattedEn} DZD`;
@@ -110,7 +110,7 @@ export function formatCentimes(
       // Fallback to French locale format
       const formattedDefault = new Intl.NumberFormat("fr-DZ", {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 2,
         useGrouping: true,
       }).format(dinars);
       return `${formattedDefault} DZD`;
@@ -138,30 +138,30 @@ export function format14000Centimes(
  * @returns Amount in centimes (integer), or 0 if parsing fails
  */
 export function parseCentimes(formatted: string): number {
-  // Remove currency symbol and whitespace, replace Arabic "دج" with "DZD"
-  const cleaned = formatted
+  const cleaned = toArabicNumerals(formatted)
     .replace("دج", "DZD")
     .replace("د.ج", "DZD")
-    // Convert Arabic-Indic digits to Western digits for parsing
-    .replace(/[٠-٩]/g, (digit) => {
-      const reverseMap: Record<string, string> = {
-        "٠": "0",
-        "١": "1",
-        "٢": "2",
-        "٣": "3",
-        "٤": "4",
-        "٥": "5",
-        "٦": "6",
-        "٧": "7",
-        "٨": "8",
-        "٩": "9",
-      };
-      return reverseMap[digit] || digit;
-    })
     .replace(/[^\d,.-]/g, "")
     .trim();
 
-  const value = parseFloat(cleaned.replace(/,/g, "."));
+  // Separators are locale-dependent: fr-DZ uses "," as the decimal ("12,55")
+  // while en-DZ uses it for grouping ("1,400"). The app never formats more
+  // than 2 fraction digits, so a lone separator followed by exactly 3 digits
+  // is a group separator; anything else is a decimal separator.
+  let numeric = cleaned;
+  if (cleaned.includes(".") && cleaned.includes(",")) {
+    // Both present: the last one is the decimal separator, the other groups.
+    numeric =
+      cleaned.lastIndexOf(".") > cleaned.lastIndexOf(",")
+        ? cleaned.replace(/,/g, "")
+        : cleaned.replace(/\./g, "").replace(",", ".");
+  } else if (cleaned.includes(",")) {
+    const parts = cleaned.split(",");
+    const isGrouping = parts.length > 2 || parts[1].length === 3;
+    numeric = isGrouping ? cleaned.replace(/,/g, "") : cleaned.replace(",", ".");
+  }
+
+  const value = parseFloat(numeric);
 
   if (isNaN(value)) return 0;
 
