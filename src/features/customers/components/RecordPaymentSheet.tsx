@@ -117,7 +117,7 @@ export function RecordPaymentSheet({ customerId, customerName, onClose, onPaymen
             onPress={() => handleMethodChange("cash")}
           >
             <ThemedText type="caption" style={{ color: selectedMethod === "cash" ? "#FFFFFF" : theme.textSecondary }}>
-              {t("sell:cash")}
+              {t("sales:cash")}
             </ThemedText>
           </Pressable>
 
@@ -131,7 +131,7 @@ export function RecordPaymentSheet({ customerId, customerName, onClose, onPaymen
             onPress={() => handleMethodChange("electronic")}
           >
             <ThemedText type="caption" style={{ color: selectedMethod === "electronic" ? "#FFFFFF" : theme.textSecondary }}>
-              {t("sell:electronic")}
+              {t("sales:electronic")}
             </ThemedText>
           </Pressable>
         </View>

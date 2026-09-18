@@ -262,7 +262,7 @@ export function CheckoutSheet({
                       {t("receipt:cash", { defaultValue: "Espèces" })}
                     </ThemedText>
                     <ThemedText style={[styles.methodSubLabel, { color: theme.textSecondary }]}>
-                      {t("sell.payment_cash", { defaultValue: "نقداً" })}
+                      {t("sales:payment_cash")}
                     </ThemedText>
                   </View>
                 </Pressable>
@@ -296,7 +296,7 @@ export function CheckoutSheet({
                       {t("receipt:electronic", { defaultValue: "Carte / CIB" })}
                     </ThemedText>
                     <ThemedText style={[styles.methodSubLabel, { color: theme.textSecondary }]}>
-                      {t("sell.payment_electronic", { defaultValue: "إلكتروني" })}
+                      {t("sales:payment_electronic")}
                     </ThemedText>
                   </View>
                 </Pressable>
@@ -330,7 +330,7 @@ export function CheckoutSheet({
                       {t("receipt:credit", { defaultValue: "Dette (Carnet)" })}
                     </ThemedText>
                     <ThemedText style={[styles.methodSubLabel, { color: theme.textSecondary }]}>
-                      {t("sell.payment_credit", { defaultValue: "دفتر ديون" })}
+                      {t("sales:payment_credit")}
                     </ThemedText>
                   </View>
                 </Pressable>
@@ -364,7 +364,7 @@ export function CheckoutSheet({
                       {t("receipt:partial", { defaultValue: "Versement partiel" })}
                     </ThemedText>
                     <ThemedText style={[styles.methodSubLabel, { color: theme.textSecondary }]}>
-                      {t("sell.payment_partial", { defaultValue: "دفع جزئي" })}
+                      {t("sales:payment_partial")}
                     </ThemedText>
                   </View>
                 </Pressable>

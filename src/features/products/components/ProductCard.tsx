@@ -37,7 +37,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </ThemedText>
 
         <ThemedText type="small" style={styles.price}>
-          {priceDzd} {t("appText:money")}
+          {priceDzd} {t("common:money")}
         </ThemedText>
 
         <ThemedText type="small" style={styles.stock}>

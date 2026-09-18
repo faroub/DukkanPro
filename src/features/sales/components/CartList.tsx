@@ -172,7 +172,7 @@ export function CartList({
                       {t("receipt.cash", { defaultValue: "Espèces" })}
                     </ThemedText>
                     <ThemedText style={[styles.paymentSubLabel, { color: theme.textSecondary }]}>
-                      {t("sell.payment_cash", { defaultValue: "نقد / كاش" })}
+                      {t("sales:payment_cash")}
                     </ThemedText>
                   </View>
                   <View style={[styles.paymentRadio, { borderColor: theme.primary }]}>
@@ -217,7 +217,7 @@ export function CartList({
                       {t("receipt.electronic", { defaultValue: "Carte / CIB" })}
                     </ThemedText>
                     <ThemedText style={[styles.paymentSubLabel, { color: theme.textSecondary }]}>
-                      {t("sell.payment_electronic", { defaultValue: "بطاقة ذهبية / بنكية" })}
+                      {t("sales:payment_electronic")}
                     </ThemedText>
                   </View>
                   <View style={[styles.paymentRadio, { borderColor: theme.primary }]}>
@@ -262,7 +262,7 @@ export function CartList({
                       {t("receipt.credit", { defaultValue: "Dette (Carnet)" })}
                     </ThemedText>
                     <ThemedText style={[styles.paymentSubLabel, { color: theme.textSecondary }]}>
-                      {t("sell.payment_credit", { defaultValue: "دفتر ديون" })}
+                      {t("sales:payment_credit")}
                     </ThemedText>
                   </View>
                   <View style={[styles.paymentRadio, { borderColor: theme.primary }]}>
