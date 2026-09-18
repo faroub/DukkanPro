@@ -340,5 +340,43 @@ describe("dashboardRepository", () => {
         expect(typeof entry.total).toBe("number");
       }
     });
+
+    it("buckets sales by the local calendar day, not the UTC day", async () => {
+      // sold_at is stored in UTC. Pick a local wall-clock time whose UTC instant
+      // falls on a different calendar day, so SQL DATE() would misplace it.
+      const offsetMin = -new Date().getTimezoneOffset();
+      const probe = new Date();
+      const localHour = offsetMin >= 0 ? 1 : 23; // 01:00 local (UTC = previous day) when ahead of UTC
+      const localY = probe.getFullYear();
+      const localM = probe.getMonth();
+      const localD = probe.getDate();
+      const expectedKey = `${localY}-${String(localM + 1).padStart(2, "0")}-${String(localD).padStart(2, "0")}`;
+
+      const utc = new Date(Date.UTC(localY, localM, localD, localHour, 30) - offsetMin * 60 * 1000);
+      const utcStr = utc.toISOString().slice(0, 19).replace("T", " ");
+      const utcDateOfSale = utcStr.slice(0, 10);
+      const daysDiverge = utcDateOfSale !== expectedKey;
+
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
+             total_centimes, amount_paid_centimes, remaining_balance_centimes,
+             payment_method, note, sold_at, created_at, updated_at)
+         VALUES (NULL, 'completed', 7000, 0, 7000, 7000, 0, 'cash', NULL, ?, datetime('now'), datetime('now'))`,
+        [utcStr],
+      );
+
+      const trend = await getSevenDaySales();
+      expect(trend).toHaveLength(7);
+
+      if (daysDiverge) {
+        // The old DATE(s.sold_at) logic would have put the sale on this UTC day.
+        const wrongBucket = trend.find((t) => t.date === utcDateOfSale);
+        expect(wrongBucket?.total ?? 0).toBe(0);
+      }
+
+      const bucket = trend.find((t) => t.date === expectedKey);
+      expect(bucket?.total).toBe(7000);
+    });
   });
 });
