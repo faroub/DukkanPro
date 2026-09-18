@@ -41,7 +41,7 @@ export function ProductRow({ product }: ProductRowProps) {
 
       <View style={styles.centerCell}>
         <ThemedText type="small" style={styles.text}>
-          {priceDzd} {t("appText:money")}
+          {priceDzd} {t("common:money")}
         </ThemedText>
       </View>
 

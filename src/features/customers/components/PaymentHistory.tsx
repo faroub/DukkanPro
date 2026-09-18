@@ -72,8 +72,8 @@ export function PaymentHistory({ customerId, customerName }: PaymentHistoryProps
           >
             <ThemedText type="body" style={[styles.paymentMethod, { color: theme.primary }]}>
               {payment.payment_method === "cash"
-                ? t("sell:cash")
-                : t("sell:electronic")}
+                ? t("sales:cash")
+                : t("sales:electronic")}
             </ThemedText>
             <ThemedText type="caption" style={[styles.paymentAmount, { color: theme.primary }]}>
               -{formatCentimes(payment.amount_centimes)}

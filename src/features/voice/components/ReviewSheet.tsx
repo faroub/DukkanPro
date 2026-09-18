@@ -194,7 +194,7 @@ export function ReviewSheet({
                 <Text style={styles.quantityText}>x{parsed.quantity}</Text>
               </View>
               <Text style={styles.paymentText}>
-                {parsed.paymentMethod === "cash" ? t("cash") : t("credit")}
+                {parsed.paymentMethod === "cash" ? t("sales:cash") : t("sales:credit")}
               </Text>
             </View>
           )}

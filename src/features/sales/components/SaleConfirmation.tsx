@@ -87,11 +87,11 @@ export function SaleConfirmation({
 
             <View style={styles.paymentMethods}>
               {[
-                { value: "cash", label: t("sell.cash"), icon: "cash" },
-                { value: "electronic", label: t("sell.electronic"), icon: "credit-card" },
-                { value: "mixed", label: t("sell.mixed"), icon: "merge" },
-                { value: "partial", label: t("sell.partial"), icon: "currency-exchange" },
-                { value: "credit", label: t("sell.credit"), icon: "account-clock" },
+                { value: "cash", label: t("sales:cash"), icon: "cash" },
+                { value: "electronic", label: t("sales:electronic"), icon: "credit-card" },
+                { value: "mixed", label: t("sales:mixed"), icon: "merge" },
+                { value: "partial", label: t("sales:partial"), icon: "currency-exchange" },
+                { value: "credit", label: t("sales:credit"), icon: "account-clock" },
               ].map((method) => (
                 <Pressable
                   key={method.value}

@@ -21,7 +21,7 @@ export function Receipt({
   onShare,
   sale,
 }: ReceiptProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Calculate derived values
   const subtotal = sale.subtotal_centimes;
@@ -40,7 +40,8 @@ export function Receipt({
 
   // Format date
   const soldAt = new Date(sale.sold_at);
-  const formattedDate = soldAt.toLocaleDateString(t("locale") === "ar" ? "ar-DZ" : "fr-DZ", {
+  const isArabic = i18n.language === "ar";
+  const formattedDate = soldAt.toLocaleDateString(isArabic ? "ar-DZ" : "fr-DZ", {
     year: "numeric",
     month: "numeric",
     day: "numeric",
@@ -50,9 +51,9 @@ export function Receipt({
   const lineItems = sale.saleItems?.map((item) => ({
     productName: item.product_name_snapshot,
     quantity: item.quantity,
-    unitPrice: formatCentimes(item.unit_sale_price_centimes, t("locale") === "ar" ? "ar-DZ" : "fr-DZ"),
-    total: formatCentimes(item.line_total_centimes, t("locale") === "ar" ? "ar-DZ" : "fr-DZ"),
-    cost: formatCentimes(item.unit_cost_price_centimes, t("locale") === "ar" ? "ar-DZ" : "fr-DZ"),
+    unitPrice: formatCentimes(item.unit_sale_price_centimes, isArabic ? "ar-DZ" : "fr-DZ"),
+    total: formatCentimes(item.line_total_centimes, isArabic ? "ar-DZ" : "fr-DZ"),
+    cost: formatCentimes(item.unit_cost_price_centimes, isArabic ? "ar-DZ" : "fr-DZ"),
   })) || [];
 
   return (
@@ -62,10 +63,10 @@ export function Receipt({
           {/* Business header */}
           <View style={styles.header}>
             <ThemedText type="title" style={{ textAlign: "center", marginBottom: 4 }}>
-              {t("business.name")}
+              {t("receipts:storeName")}
             </ThemedText>
             <ThemedText type="caption" style={{ textAlign: "center", color: Colors.light.textSecondary, marginBottom: 8 }}>
-              {t("business.type")}
+              {t("receipts:businessType")}
             </ThemedText>
             <ThemedText type="caption" style={{ textAlign: "center", color: Colors.light.textSecondary }}>
               {formattedDate}
