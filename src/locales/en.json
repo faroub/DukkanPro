@@ -18,14 +18,37 @@
     "increase": "Increase quantity",
     "title": "Sales & Register",
     "subtitle": "Fast checkout • Catalogue & barcode",
-    "scanBarcode": "Scan barcode"
+    "scanBarcode": "Scan barcode",
+    "activeCart": "Active cart",
+    "amountPaid": "Amount paid",
+    "amountPaidPlaceholder": "e.g. 500 DZD",
+    "cancel": "Cancel",
+    "cart": {
+      "seeCart": "See cart",
+      "viewCart": "View cart"
+    },
+    "clearCart": "Clear cart",
+    "confirmPayment": "Confirm payment",
+    "confirmSale": "Confirm sale",
+    "discount": "Discount",
+    "edit": "Edit",
+    "empty_cart": "Your cart is empty",
+    "no_products": "No products available",
+    "no_results": "No results for \"{{query}}\"",
+    "paymentMethod": "Payment method",
+    "search_placeholder": "Search products…",
+    "search_products": "Search products",
+    "selectCustomer": "Select customer",
+    "subtotal": "Subtotal",
+    "total": "Total"
   },
   "dashboard": {
     "greeting": "Hello",
     "summary": {
       "revenue": "Revenue",
       "profit": "Estimated profit",
-      "toCollect": "To collect"
+      "toCollect": "To collect",
+      "lowStock": "Low stock"
     },
     "recentSales": {
       "title": "Recent sales",
@@ -52,7 +75,10 @@
     "thisMonth": "This Month",
     "stockValue": "Stock Value",
     "noSalesYet": "No sales yet",
-    "newSale": "New Sale"
+    "newSale": "New Sale",
+    "charts": {
+      "salesTrend": "7-day sales trend"
+    }
   },
   "common": {
     "primaryButton": "Primary",
@@ -100,7 +126,12 @@
     "success": "Success",
     "yes": "Yes",
     "no": "No",
-    "ok": "OK"
+    "ok": "OK",
+    "add": "Add",
+    "clear": "Clear",
+    "noNote": "No note",
+    "select": "Select",
+    "unknownError": "Unknown error"
   },
   "appText": "App Text",
   "screen": "Screen",
@@ -305,7 +336,16 @@
     "targetRestockQtyOptional": "Recommended restock amount",
     "stockStatusHealthy": "Healthy Stock",
     "stockStatusLow": "Low Stock Warning",
-    "stockStatusOut": "Out of Stock"
+    "stockStatusOut": "Out of Stock",
+    "allowNegativeDesc": "Fast checkout for fast-moving items before supplier delivery is registered.",
+    "archive": "Archive",
+    "archivedBadge": "Archived",
+    "editingProduct": "Editing {{name}}",
+    "id": "ID",
+    "newProduct": "New product",
+    "productName": "Product name",
+    "reactivate": "Reactivate",
+    "strictPolicyDesc": "Guarantees physical inventory count accuracy at all times."
   },
   "catalogue": {
     "catalogue": "Catalogue",
@@ -477,7 +517,13 @@
     "noProductsFound": "No products found",
     "emptyCatalog": "Catalog empty",
     "search_products": "Search product or barcode...",
-    "viewCart": "View Cart"
+    "viewCart": "View Cart",
+    "cartValidated": "Cart validated",
+    "completed": "Completed",
+    "directPayment": "Direct payment without ledger",
+    "exactAmount": "Exact amount",
+    "status": "Status",
+    "totalToPay": "Total to pay"
   },
   "onboarding": {
     "appText": "App Text",
@@ -572,7 +618,15 @@
       "startButton": "Start using Dukkan OS",
       "settingUp": "Setting up workspace...",
       "ready": "Ready!",
-      "backButton": "Back to step 2"
+      "backButton": "Back to step 2",
+      "backToStep2": "Back to step 2",
+      "currencyNote": "Default currency for Algeria (locked)",
+      "editBusinessName": "Edit business name",
+      "editBusinessType": "Edit business type",
+      "editOwnerName": "Edit owner name",
+      "previewReadyBadge": "READY TO LAUNCH",
+      "previewSubtitle": "Your digital ledger is prepared",
+      "previewTitle": "Point of Sale, debts & inventory"
     },
     "emptyDashboard": {
       "headerTitle": "Empty Dashboard",
@@ -596,7 +650,16 @@
       "addCustomer": "Add Customer",
       "addCustomerSub": "Carnet crédit",
       "guideTitle": "Getting started guide",
-      "guideStep": "Step 1 of 3: Add initial stock"
+      "guideStep": "Step 1 of 3: Add initial stock",
+      "brandSubtitle": "Empty Dashboard",
+      "buyersLabel": "Buyers",
+      "gettingStarted": "Getting started guide",
+      "heroSubtitle": "Create your product catalog to start making sales and recording customer debts easily.",
+      "heroTitle": "Start by adding your first product",
+      "ownerDetails": "Owner: {{owner}} • {{city}}",
+      "receiptsLabel": "Receipts",
+      "salesLabel": "Sales",
+      "step1Of3": "Step 1 of 3: Add initial stock"
     },
     "back": "Back"
   },
@@ -736,7 +799,15 @@
     "exportedSales": "Sales exported successfully",
     "exportSuccess": "Export successful",
     "exportError": "Error during export",
-    "noDataToExport": "Select at least 1 table to export"
+    "noDataToExport": "Select at least 1 table to export",
+    "customers": "Customers",
+    "exportButton": "Export",
+    "exportInProgress": "Export in progress…",
+    "inventoryMovements": "Inventory movements",
+    "payments": "Payments",
+    "products": "Products",
+    "saleItems": "Sale items",
+    "sales": "Sales"
   },
   "dataReset": {
     "title": "Data Reset & Factory Wipe",
@@ -770,7 +841,8 @@
     "irreversibleWarning": "This will permanently delete all business data including products, customers, sales, payments, and inventory movements. This action cannot be undone.",
     "resetData": "Reset Data",
     "success": "All data has been reset successfully.",
-    "wrongBusinessName": "Business name does not match. Please type the exact business name."
+    "wrongBusinessName": "Business name does not match. Please type the exact business name.",
+    "confirm": "Confirm"
   },
   "navigation": {
     "home": "Home",
@@ -782,7 +854,8 @@
     "dashboard": "Dashboard",
     "settings": "Settings",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "back": "Back to More"
   },
   "inventory": {
     "title": "Inventory",
@@ -889,7 +962,43 @@
     "totalDebt": "Total Debt",
     "viewDetails": "View Details",
     "whatsapp": "WhatsApp",
-    "withDebt": "With Debt"
+    "withDebt": "With Debt",
+    "amount": "Amount",
+    "cashRecommended": "Cash payment recommended",
+    "createCustomer": "Create customer",
+    "creditSale": "Credit sale",
+    "customer": "Customer",
+    "customerName": "Customer name",
+    "debtBalance": "Debt balance",
+    "emptyAllSubtitle": "No customers yet. Add your first client to track sales and debts.",
+    "emptyFilterSubtitle": "No customers match your search.",
+    "errorSave": "Failed to save the customer",
+    "fullAmount": "Full amount",
+    "id": "ID",
+    "messageLanguage": "Message language",
+    "namePlaceholder": "e.g. Ahmed Benali",
+    "nameRequiredError": "Name is required",
+    "newCustomerSubtitle": "Fill in the details to create a new customer",
+    "noCustomersFound": "No customers found",
+    "noPayments": "No payments recorded",
+    "noSales": "No sales recorded",
+    "payment": "Payment",
+    "paymentInvalidAmount": "Enter a valid amount",
+    "paymentOverlimit": "The amount exceeds the debt of {{debt}}",
+    "paymentsMade": "Payments made ({{count}})",
+    "phoneHelperText": "Optional. Used to send payment reminders via WhatsApp or SMS.",
+    "receiptNotePlaceholder": "Add a note to the receipt…",
+    "remainingBalanceAfter": "Remaining balance",
+    "sendChannel": "Send channel",
+    "sendViaSms": "Send via SMS",
+    "smsNotSupported": "SMS is not supported on this device.",
+    "standardSms": "Standard SMS",
+    "timeline": "Timeline",
+    "totalDebtToCollect": "Total to collect",
+    "updateInfoSubtitle": "Update the customer's information",
+    "whatsappNotInstalled": "WhatsApp is not installed.",
+    "whatsappRecommended": "Recommended",
+    "withDebtCount": "With debt"
   },
   "payments": {
     "title": "Payments",
@@ -904,7 +1013,10 @@
     "amountReceived": "Amount Received",
     "remainingBalance": "Remaining Balance",
     "paymentCompleted": "Payment Completed",
-    "noPaymentsYet": "No payments yet"
+    "noPaymentsYet": "No payments yet",
+    "amount": "Amount",
+    "id": "ID",
+    "payment_method": "Payment method"
   },
   "receipts": {
     "printed": "Sale Recorded",
@@ -936,7 +1048,8 @@
     "customerName": "Customer Name",
     "phoneNumber": "Phone Number",
     "thankYou": "Thank you for visiting",
-    "comeAgain": "We hope to see you again"
+    "comeAgain": "We hope to see you again",
+    "businessType": "Business type"
   },
   "exports": {
     "title": "Export",
@@ -965,7 +1078,11 @@
     "sayQuantity": "Say Quantity",
     "startSale": "Start Sale",
     "cancelSale": "Cancel Sale",
-    "takePhoto": "Take Photo"
+    "takePhoto": "Take Photo",
+    "ambiguousProduct": "Which product did you mean?",
+    "noProductFound": "No product was found for this command.",
+    "pleaseSelectProduct": "Please select a product to continue.",
+    "reviewSheetTitle": "Review sale"
   },
   "errors": {
     "title": "Error",
@@ -1052,6 +1169,29 @@
     "change_due": "Change Due",
     "new_sale": "New Sale",
     "share": "Share",
-    "receipt_title": "Receipt"
+    "receipt_title": "Receipt",
+    "amountPaid": "Amount paid",
+    "change": "Change",
+    "paymentMethod": "Payment method",
+    "profit": "Profit",
+    "total": "Total"
+  },
+  "inventoryMovements": {
+    "date": "Date",
+    "id": "ID",
+    "movementType": "Movement type",
+    "note": "Note",
+    "product": "Product",
+    "quantity": "Quantity"
+  },
+  "nav": {
+    "sell": "Cart"
+  },
+  "saleItems": {
+    "id": "ID",
+    "lineTotal": "Line total",
+    "productName": "Product name",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price"
   }
 }

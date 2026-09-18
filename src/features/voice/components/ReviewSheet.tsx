@@ -214,7 +214,7 @@ export function ReviewSheet({
                     onConfirm(newParsed);
                   }}
                 >
-                  <Text style={{ color: "#1B6B3A" }}>{t("select")}</Text>
+                  <Text style={{ color: "#1B6B3A" }}>{t("common:select")}</Text>
                 </TouchableOpacity>
               </View>
             ))}
