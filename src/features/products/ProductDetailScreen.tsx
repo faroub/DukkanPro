@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEdgeToEdge } from '@/hooks/useEdgeToEdge';
 import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FooterTrademark } from '@/components/FooterTrademark';
@@ -26,7 +26,7 @@ interface ProductDetailScreenProps {
 }
 
 export default function ProductDetailScreen({ productId: propProductId }: ProductDetailScreenProps = {}) {
-  const insets = useSafeAreaInsets();
+  const { insets, style } = useEdgeToEdge();
   const localParams = useLocalSearchParams<{ id?: string }>();
   const route = useRoute() as { params?: { id?: string } };
   const rawId = propProductId ?? localParams?.id ?? route?.params?.id;
@@ -131,7 +131,7 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
   return (
     <View style={styles.container}>
       {/* Header bar */}
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
+      <View style={[{ flex: 1, backgroundColor: theme.background }, styles.header, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={styles.backButton}

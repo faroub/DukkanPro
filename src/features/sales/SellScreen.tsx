@@ -10,7 +10,7 @@ import {
     Text,
     View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useEdgeToEdge } from "@/hooks/useEdgeToEdge";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
@@ -177,18 +177,11 @@ export default function SellScreen() {
 
   const isArabic = i18n.language?.startsWith("ar");
 
-  const insets = useSafeAreaInsets();
+  const { insets, style } = useEdgeToEdge();
 
   return (
     <View
-      style={[
-        styles.screen,
-        {
-          backgroundColor: theme.background,
-          paddingBottom: insets.bottom,
-        },
-      ]}
-    >
+      style={[{ flex: 1, backgroundColor: theme.background }, style]}>
       <ThemedView
         style={[styles.container, { backgroundColor: theme.background }]}
       >

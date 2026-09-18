@@ -2,7 +2,7 @@ import { useRouter, type Href } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useEdgeToEdge } from "@/hooks/useEdgeToEdge";
 
 import { useTheme } from "@/hooks/use-theme";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
@@ -38,11 +38,11 @@ export default function Root() {
     }
   }, [isOnboardingComplete, router]);
 
-  const insets = useSafeAreaInsets();
+  const { insets, style } = useEdgeToEdge();
 
   if (isOnboardingComplete === null) {
     return (
-      <View style={styles.container}>
+      <View style={[{ flex: 1, backgroundColor: theme.background }, style]}>
         <ActivityIndicator size="large" color={theme.primary} />
       </ActivityIndicator>
     );
@@ -52,14 +52,14 @@ export default function Root() {
 
   if (shouldShowOnboarding) {
     return (
-      <View style={styles.container}>
+      <View style={[{ flex: 1, backgroundColor: theme.background }, style]}>
         <OnboardingScreen onComplete={() => setIsOnboardingComplete(true)} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[{ flex: 1, backgroundColor: theme.background }, style]}>
       <ActivityIndicator size="large" color={theme.primary} />
     </ActivityIndicator>
   );
@@ -70,6 +70,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: theme.background,
   },
 });
