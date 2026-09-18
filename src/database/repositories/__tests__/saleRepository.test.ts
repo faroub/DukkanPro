@@ -91,6 +91,90 @@ describe("saleRepository", () => {
       expect(product2?.stock_quantity).toBeLessThan(Infinity);
     });
 
+    it("records a credit sale as unsettled debt", async () => {
+      const sale = await create({
+        customerId: 1,
+        paymentMethod: "credit",
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 2500 }],
+      });
+
+      expect(sale.total_centimes).toBe(5000);
+      expect(sale.amount_paid_centimes).toBe(0);
+      expect(sale.remaining_balance_centimes).toBe(5000);
+
+      // Persisted row must match the returned settlement values
+      const row = await db.getFirstAsync(
+        `SELECT amount_paid_centimes, remaining_balance_centimes FROM sales WHERE id = ?`,
+        [sale.id],
+      );
+      expect(row?.amount_paid_centimes).toBe(0);
+      expect(row?.remaining_balance_centimes).toBe(5000);
+    });
+
+    it("applies a discount to the sale total", async () => {
+      const sale = await create({
+        customerId: 1,
+        paymentMethod: "cash",
+        discountCentimes: 1000,
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 2500 }],
+      });
+
+      expect(sale.subtotal_centimes).toBe(5000);
+      expect(sale.discount_centimes).toBe(1000);
+      expect(sale.total_centimes).toBe(4000);
+      expect(sale.amount_paid_centimes).toBe(4000);
+      expect(sale.remaining_balance_centimes).toBe(0);
+    });
+
+    it("honours an explicit amount paid and tracks the shortfall", async () => {
+      const sale = await create({
+        customerId: 1,
+        paymentMethod: "cash",
+        amountPaidCentimes: 3000,
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 2500 }],
+      });
+
+      expect(sale.amount_paid_centimes).toBe(3000);
+      expect(sale.remaining_balance_centimes).toBe(2000);
+    });
+
+    it("records a partial payment against the total", async () => {
+      const sale = await create({
+        customerId: 1,
+        paymentMethod: "partial",
+        amountPaidCentimes: 2500,
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 2500 }],
+      });
+
+      expect(sale.total_centimes).toBe(5000);
+      expect(sale.amount_paid_centimes).toBe(2500);
+      expect(sale.remaining_balance_centimes).toBe(2500);
+    });
+
+    it("settles electronic and mixed sales in full by default", async () => {
+      for (const method of ["electronic", "mixed"] as const) {
+        const sale = await create({
+          customerId: 1,
+          paymentMethod: method,
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 2500 }],
+        });
+        expect(sale.amount_paid_centimes).toBe(2500);
+        expect(sale.remaining_balance_centimes).toBe(0);
+      }
+    });
+
+    it("clamps a discount larger than the subtotal", async () => {
+      const sale = await create({
+        customerId: 1,
+        paymentMethod: "cash",
+        discountCentimes: 99999,
+        items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 2500 }],
+      });
+
+      expect(sale.total_centimes).toBe(0);
+      expect(sale.remaining_balance_centimes).toBe(0);
+    });
+
     it("stores historical cost price on sale items (snapshot)", async () => {
       const sale = await create({
         customerId: 1,
