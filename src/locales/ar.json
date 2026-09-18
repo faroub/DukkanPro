@@ -15,7 +15,10 @@
     "tapToAdd": "اضغط للإضافة",
     "allProducts": "جميع المنتجات",
     "decrease": "إنقاص الكمية",
-    "increase": "زيادة الكمية"
+    "increase": "زيادة الكمية",
+    "title": "الصندوق والمبيعات",
+    "subtitle": "إصدار فواتير سريع • الكاتالوج والباركود",
+    "scanBarcode": "مسح الرمز الشريطي"
   },
   "dashboard": {
     "greeting": "مرحباً",
@@ -291,7 +294,18 @@
     "referenceNoteOptional": "اختياري",
     "referenceNotePlaceholder": "مثال: وصل استلام #BL-4890، اسم المورد",
     "impactSummary": "ملخص أثر التعديل",
-    "copiedToClipboard": "تم النسخ إلى الحافظة"
+    "copiedToClipboard": "تم النسخ إلى الحافظة",
+    "inventoryRulesTitle": "قواعد المخزون والتحكم بالمنتج",
+    "inventoryRulesSubtitle": "تحديد عتبات التنبيه وقواعد البيع الخاصة بهذا المنتج",
+    "sellingPolicyLabel": "سياسة البيع عند نفاد المخزون",
+    "strictPolicy": "صارم: منع البيع عند نفاد المخزون (0)",
+    "allowNegativePolicy": "السماح بالمخزون السالب (مواصلة البيع)",
+    "presetThresholds": "خيارات سريعة",
+    "targetRestockQty": "كمية التزويد الموصى بها",
+    "targetRestockQtyOptional": "حجم الطلبية المفضل عند الشراء من المورد",
+    "stockStatusHealthy": "مخزون كافٍ",
+    "stockStatusLow": "تنبيه انخفاض المخزون",
+    "stockStatusOut": "نفد المخزون"
   },
   "catalogue": {
     "catalogue": "كتالوج",
@@ -908,7 +922,21 @@
     "change_due": "المبلغ المتبقي / الصرف",
     "new_sale": "بيع جديد",
     "share": "مشاركة الإيصال",
-    "receipt_title": "إيصال دفع"
+    "receipt_title": "إيصال دفع",
+    "title": "الفاتورة",
+    "subtitle": "نص الفاتورة",
+    "storeName": "اسم المتجر",
+    "storeAddress": "عنوان المتجر",
+    "time": "الوقت",
+    "saleItems": "عناصر البيع",
+    "tax": "الضريبة",
+    "totalAmount": "المبلغ الإجمالي",
+    "amountPaid": "المبلغ المدفوع",
+    "changeDue": "الباقي",
+    "customerName": "اسم الزبون",
+    "phoneNumber": "رقم الهاتف",
+    "thankYou": "شكراً لزيارتكم",
+    "comeAgain": "نتمنى لكم يوماً سعيداً"
   },
   "exports": {
     "title": "التصدير",

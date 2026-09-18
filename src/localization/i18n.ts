@@ -1,9 +1,9 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-import ar from "@/localization/ar";
-import en from "@/localization/en";
-import fr from "@/localization/fr";
+import ar from "@/locales/ar.json";
+import en from "@/locales/en.json";
+import fr from "@/locales/fr.json";
 
 function buildResourceNamespaces(bundle: any) {
   const namespaces: Record<string, any> = {

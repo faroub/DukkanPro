@@ -15,7 +15,10 @@
     "tapToAdd": "Tap to add",
     "allProducts": "All products",
     "decrease": "Decrease quantity",
-    "increase": "Increase quantity"
+    "increase": "Increase quantity",
+    "title": "Sales & Register",
+    "subtitle": "Fast checkout • Catalogue & barcode",
+    "scanBarcode": "Scan barcode"
   },
   "dashboard": {
     "greeting": "Hello",
@@ -291,7 +294,18 @@
     "referenceNoteOptional": "Optional",
     "referenceNotePlaceholder": "e.g., Delivery slip #BL-4890, wholesaler name",
     "impactSummary": "Adjustment Impact Summary",
-    "copiedToClipboard": "Copied to clipboard"
+    "copiedToClipboard": "Copied to clipboard",
+    "inventoryRulesTitle": "Inventory Rules & Stock Controls",
+    "inventoryRulesSubtitle": "Configure specific thresholds and selling rules for this product",
+    "sellingPolicyLabel": "Out-of-Stock Selling Policy",
+    "strictPolicy": "Strict: Block sales when stock is 0",
+    "allowNegativePolicy": "Allow Negative Stock (Sell even when 0)",
+    "presetThresholds": "Presets",
+    "targetRestockQty": "Recommended Restock Batch",
+    "targetRestockQtyOptional": "Recommended restock amount",
+    "stockStatusHealthy": "Healthy Stock",
+    "stockStatusLow": "Low Stock Warning",
+    "stockStatusOut": "Out of Stock"
   },
   "catalogue": {
     "catalogue": "Catalogue",
@@ -908,7 +922,21 @@
     "change_due": "Change Due",
     "new_sale": "New Sale",
     "share": "Share",
-    "receipt_title": "Receipt"
+    "receipt_title": "Receipt",
+    "title": "Receipt",
+    "subtitle": "Receipt Text",
+    "storeName": "Store Name",
+    "storeAddress": "Store Address",
+    "time": "Time",
+    "saleItems": "Sale Items",
+    "tax": "Tax",
+    "totalAmount": "Total Amount",
+    "amountPaid": "Amount Paid",
+    "changeDue": "Change Due",
+    "customerName": "Customer Name",
+    "phoneNumber": "Phone Number",
+    "thankYou": "Thank you for visiting",
+    "comeAgain": "We hope to see you again"
   },
   "exports": {
     "title": "Export",
