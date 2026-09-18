@@ -15,7 +15,10 @@
     "tapToAdd": "Appuyer pour ajouter",
     "allProducts": "Tous les articles",
     "decrease": "Diminuer la quantité",
-    "increase": "Augmenter la quantité"
+    "increase": "Augmenter la quantité",
+    "title": "Caisse & Ventes",
+    "subtitle": "Encaissement rapide • Catalogue & code-barres",
+    "scanBarcode": "Scanner un code-barres"
   },
   "dashboard": {
     "greeting": "Bonjour",
@@ -291,7 +294,18 @@
     "referenceNoteOptional": "Optionnel",
     "referenceNotePlaceholder": "ex: Bon de livraison #BL-4890, grossiste",
     "impactSummary": "Résumé d'impact",
-    "copiedToClipboard": "Copié dans le presse-papiers"
+    "copiedToClipboard": "Copié dans le presse-papiers",
+    "inventoryRulesTitle": "Règles de stock & Contrôle produit",
+    "inventoryRulesSubtitle": "Configurer les seuils d'alerte et la politique de vente de cet article",
+    "sellingPolicyLabel": "Politique en rupture de stock",
+    "strictPolicy": "Strict : Bloquer la vente si stock = 0",
+    "allowNegativePolicy": "Autoriser stock négatif (Vente continue)",
+    "presetThresholds": "Préréglages",
+    "targetRestockQty": "Lot de réassort conseillé",
+    "targetRestockQtyOptional": "Quantité recommandée lors des commandes",
+    "stockStatusHealthy": "Stock suffisant",
+    "stockStatusLow": "Alerte stock faible",
+    "stockStatusOut": "Rupture de stock"
   },
   "catalogue": {
     "catalogue": "Catalogue",
@@ -908,7 +922,21 @@
     "change_due": "Monnaie à rendre",
     "new_sale": "Nouvelle vente",
     "share": "Partager",
-    "receipt_title": "Ticket de caisse"
+    "receipt_title": "Ticket de caisse",
+    "title": "Recu",
+    "subtitle": "Texu du reçu",
+    "storeName": "Nom du magasin",
+    "storeAddress": "Adresse du magasin",
+    "time": "Heure",
+    "saleItems": "Articles de la vente",
+    "tax": "Taxe",
+    "totalAmount": "Montant total",
+    "amountPaid": "Montant payé",
+    "changeDue": "Reste",
+    "customerName": "Nom du client",
+    "phoneNumber": "Numéro de téléphone",
+    "thankYou": "Merci de votre visite",
+    "comeAgain": "Nous espérons vous revoir bientôt"
   },
   "exports": {
     "title": "Exportation",

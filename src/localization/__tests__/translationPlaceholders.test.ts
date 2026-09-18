@@ -1,6 +1,6 @@
-import ar from "@/localization/ar";
-import en from "@/localization/en";
-import fr from "@/localization/fr";
+import ar from "@/locales/ar.json";
+import en from "@/locales/en.json";
+import fr from "@/locales/fr.json";
 
 function placeholders(value: unknown): string[] {
   if (typeof value !== "string") return [];

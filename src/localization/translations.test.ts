@@ -1,6 +1,6 @@
-import ar from "./ar";
-import en from "./en";
-import fr from "./fr";
+import ar from "@/locales/ar.json";
+import en from "@/locales/en.json";
+import fr from "@/locales/fr.json";
 
 const REQUIRED_SECTIONS = [
   "common",
