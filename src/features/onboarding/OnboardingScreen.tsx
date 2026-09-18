@@ -1,7 +1,7 @@
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useEdgeToEdge } from "@/hooks/useEdgeToEdge";
 
 import { Colors } from "@/constants/theme";
 import { BusinessNameStep } from "@/features/onboarding/components/BusinessNameStep";
@@ -27,7 +27,7 @@ import type { Locale } from "@/localization/types";
  */
 export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const { insets, style } = useEdgeToEdge();
 
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [profile, setProfile] = useState<{

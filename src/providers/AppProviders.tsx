@@ -1,7 +1,7 @@
 import { useTheme } from "@/hooks/use-theme";
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useEdgeToEdge } from "@/hooks/useEdgeToEdge";
 import { DatabaseProvider } from "./DatabaseProvider";
 import { LocaleProvider } from "./LocaleProvider";
 import { Colors } from "@/constants/theme";
@@ -12,10 +12,10 @@ export interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const { insets, style } = useEdgeToEdge();
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.background }, insets]}>
+    <View style={[{ flex: 1, backgroundColor: theme.background }, style]}>
       <DatabaseProvider>
         <LocaleProvider>{children}</LocaleProvider>
       </DatabaseProvider>

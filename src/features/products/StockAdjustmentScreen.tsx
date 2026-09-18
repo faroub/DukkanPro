@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEdgeToEdge } from '@/hooks/useEdgeToEdge';
 import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FooterTrademark } from '@/components/FooterTrademark';
@@ -78,7 +78,7 @@ const REASONS: ReasonOption[] = [
 
 export function StockAdjustmentScreen() {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const { insets, style } = useEdgeToEdge();
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const route = useRoute();
@@ -226,7 +226,7 @@ export function StockAdjustmentScreen() {
   return (
     <ThemedView type="background" style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header bar */}
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+      <View style={[{ flex: 1, backgroundColor: theme.surface }, styles.header, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}

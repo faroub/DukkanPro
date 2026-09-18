@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEdgeToEdge } from '@/hooks/useEdgeToEdge';
 import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -219,7 +219,7 @@ export function ProductForm({
     }
   };
 
-  const insets = useSafeAreaInsets();
+  const { insets, style } = useEdgeToEdge();
 
   return (
     <KeyboardAvoidingView
@@ -227,7 +227,7 @@ export function ProductForm({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Top Header */}
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
+      <View style={[{ flex: 1, backgroundColor: theme.surface }, styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={[styles.backButton, { backgroundColor: theme.surfaceAlt }]}
