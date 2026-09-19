@@ -85,7 +85,7 @@ The database is a **module singleton**, not a React context:
   `_migration_version`.
 - `seed.ts` — Development-only sample data.
 - `repositories/` — One repository per domain: `productRepository`,
-  `customerRepository`, `saleRepository`, `inventoryRepository`,
+  `customerRepository`, `saleRepository`,
   `businessProfileRepository`, `dashboardRepository`, `exportRepository`,
   `resetRepository`. Each imports the query helpers directly.
 
