@@ -1,14 +1,20 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
-  Animated,
   Modal,
   Pressable,
   StyleSheet,
   TextInput,
   View,
+  Animated,
+  Platform,
+  ScrollView,
 } from "react-native";
-import { CameraView, useCameraPermissions, type BarcodeType } from "expo-camera";
 import { SymbolView } from "expo-symbols";
+import {
+  Html5Qrcode,
+  Html5QrcodeSupportedFormats,
+  Html5QrcodeScannerState,
+} from "html5-qrcode";
 
 import { ThemedText } from "@/components/themed-text";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
@@ -32,19 +38,7 @@ export interface BarcodeScannerModalProps {
   onSearchInCatalog?: (code: string) => void;
 }
 
-// Parity with the web (html5-qrcode) format list.
-const BARCODE_TYPES: BarcodeType[] = [
-  "ean13",
-  "ean8",
-  "code128",
-  "code39",
-  "code93",
-  "upc_a",
-  "upc_e",
-  "qr",
-  "itf14",
-  "datamatrix",
-];
+const CONTAINER_ELEMENT_ID = "dukkan-barcode-scanner-view";
 
 export function BarcodeScannerModal({
   visible,
@@ -54,95 +48,60 @@ export function BarcodeScannerModal({
   onNavigateToCreateProduct,
   onSearchInCatalog,
 }: BarcodeScannerModalProps) {
-  const [permission, requestPermission] = useCameraPermissions();
   const [manualCode, setManualCode] = useState("");
+  const [cameraState, setCameraState] = useState<
+    "starting" | "active" | "error" | "permission_denied" | "unsupported"
+  >("starting");
+  const [errorMessage, setErrorMessage] = useState("");
   const [continuousMode, setContinuousMode] = useState(false);
   const [sessionScanCount, setSessionScanCount] = useState(0);
   const [matchedProduct, setMatchedProduct] = useState<Product | null>(null);
   const [unmatchedCode, setUnmatchedCode] = useState<string | null>(null);
-  const [torchOn, setTorchOn] = useState(false);
-  const [cameraReady, setCameraReady] = useState(false);
   const [lastScannedFeedback, setLastScannedFeedback] = useState<{
     name: string;
     priceCentimes: number;
   } | null>(null);
 
+  // Camera device management
+  const [availableCameras, setAvailableCameras] = useState<
+    { id: string; label: string }[]
+  >([]);
+  const [activeCameraIndex, setActiveCameraIndex] = useState(0);
+  const [torchSupported, setTorchSupported] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
+
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const isProcessingRef = useRef(false);
   const [laserAnim] = useState(() => new Animated.Value(0));
 
-  // Product lookup — same matching rules as the web modal and SellScreen.
-  const findProductByCode = useCallback(
-    (code: string): Product | undefined => {
-      const trimmed = code.trim().toLowerCase();
-      if (!trimmed) return undefined;
+  // Sound feedback for successful barcode detection
+  const playBeep = useCallback(() => {
+    try {
+      if (typeof window === "undefined") return;
+      const AudioContextClass =
+        window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-      return products.find((p) => {
-        if (!p.sku) return false;
-        const s = p.sku.trim().toLowerCase();
-        if (s === trimmed) return true;
-        const sClean = s.replace(/^0+/, "");
-        const tClean = trimmed.replace(/^0+/, "");
-        return sClean.length > 0 && sClean === tClean;
-      });
-    },
-    [products]
-  );
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(1050, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
 
-  const handleCodeFound = useCallback(
-    (code: string) => {
-      const clean = code.trim();
-      if (!clean) return;
-
-      const product = findProductByCode(clean);
-
-      if (product) {
-        onScan(clean, product);
-        setSessionScanCount((prev) => prev + 1);
-        setMatchedProduct(product);
-        setUnmatchedCode(null);
-        setLastScannedFeedback({
-          name: product.name,
-          priceCentimes: product.sale_price_centimes,
-        });
-
-        setTimeout(() => setLastScannedFeedback(null), 2500);
-        setTimeout(() => {
-          isProcessingRef.current = false;
-        }, 1000);
-      } else {
-        setUnmatchedCode(clean);
-        setMatchedProduct(null);
-        isProcessingRef.current = false;
-      }
-    },
-    [findProductByCode, onScan]
-  );
-
-  const onBarcodeScanned = useCallback(
-    (result: { data: string }) => {
-      if (isProcessingRef.current) return;
-      isProcessingRef.current = true;
-      handleCodeFound(result.data);
-    },
-    [handleCodeFound]
-  );
-
-  // Reset session state every time the modal opens.
-  useEffect(() => {
-    if (visible) {
-      setManualCode("");
-      setSessionScanCount(0);
-      setMatchedProduct(null);
-      setUnmatchedCode(null);
-      setLastScannedFeedback(null);
-      setCameraReady(false);
-      isProcessingRef.current = false;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.12);
+    } catch {
+      // Audio playback fails gracefully if muted by browser
     }
-  }, [visible]);
+  }, []);
 
-  // Laser reticle animation while the camera preview is live.
+  // Animate laser scanning reticle
   useEffect(() => {
-    if (visible && cameraReady) {
+    if (visible && cameraState === "active") {
       const loop = Animated.loop(
         Animated.sequence([
           Animated.timing(laserAnim, {
@@ -160,8 +119,262 @@ export function BarcodeScannerModal({
       loop.start();
       return () => loop.stop();
     }
-  }, [visible, cameraReady, laserAnim]);
+  }, [visible, cameraState, laserAnim]);
 
+  // Clean stop scanner helper
+  const stopScanner = useCallback(async () => {
+    if (scannerRef.current) {
+      try {
+        const state = scannerRef.current.getState();
+        if (
+          state === Html5QrcodeScannerState.SCANNING ||
+          state === Html5QrcodeScannerState.PAUSED
+        ) {
+          await scannerRef.current.stop();
+        }
+        scannerRef.current.clear();
+      } catch (err) {
+        console.warn("Error stopping barcode camera:", err);
+      }
+      scannerRef.current = null;
+    }
+    setTorchOn(false);
+    setTorchSupported(false);
+  }, []);
+
+  // Product lookup helper
+  const findProductByCode = useCallback(
+    (code: string): Product | undefined => {
+      const trimmed = code.trim().toLowerCase();
+      if (!trimmed) return undefined;
+
+      return products.find((p) => {
+        if (!p.sku) return false;
+        const s = p.sku.trim().toLowerCase();
+        // Exact or trimmed or zero-padded variations
+        if (s === trimmed) return true;
+        const sClean = s.replace(/^0+/, "");
+        const tClean = trimmed.replace(/^0+/, "");
+        return sClean.length > 0 && sClean === tClean;
+      });
+    },
+    [products]
+  );
+
+  // Process a detected or entered code
+  const handleCodeFound = useCallback(
+    (code: string) => {
+      const clean = code.trim();
+      if (!clean) return;
+
+      playBeep();
+      const product = findProductByCode(clean);
+
+      if (product) {
+        // Auto-add to cart on scan
+        onScan(clean, product);
+        setSessionScanCount((prev) => prev + 1);
+        setMatchedProduct(product);
+        setUnmatchedCode(null);
+        setLastScannedFeedback({
+          name: product.name,
+          priceCentimes: product.sale_price_centimes,
+        });
+
+        // Clear feedback toast after 2.5s
+        setTimeout(() => {
+          setLastScannedFeedback(null);
+        }, 2500);
+
+        // Debounce before allowing next scan
+        setTimeout(() => {
+          isProcessingRef.current = false;
+        }, 1000);
+      } else {
+        // Not in database: show unmatched card with options to create or search
+        setUnmatchedCode(clean);
+        setMatchedProduct(null);
+        isProcessingRef.current = false;
+      }
+    },
+    [findProductByCode, onScan, playBeep]
+  );
+
+  // Start the camera scanning engine
+  const startScanner = useCallback(
+    async (cameraDeviceId?: string) => {
+      const isWebOrHasDOM =
+        typeof window !== "undefined" && typeof document !== "undefined";
+
+      setCameraState("starting");
+      setErrorMessage("");
+      setMatchedProduct(null);
+      setUnmatchedCode(null);
+      setLastScannedFeedback(null);
+      isProcessingRef.current = false;
+
+      if (!isWebOrHasDOM || !navigator?.mediaDevices?.getUserMedia) {
+        setCameraState("unsupported");
+        setErrorMessage(
+          "L'accès à la caméra requiert un navigateur web ou une douchette USB/Bluetooth."
+        );
+        return;
+      }
+
+      try {
+        await stopScanner();
+
+        // Robustly poll for DOM container element up to 15 times (1.5s max)
+        let container = document.getElementById(CONTAINER_ELEMENT_ID);
+        let retries = 0;
+        while (!container && retries < 15) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          container = document.getElementById(CONTAINER_ELEMENT_ID);
+          retries++;
+        }
+
+        if (!container) {
+          setCameraState("error");
+          setErrorMessage(
+            "Zone d'affichage de la caméra introuvable. Saisissez le code manuellement ci-dessous."
+          );
+          return;
+        }
+
+        // Query available cameras
+        try {
+          const cameras = await Html5Qrcode.getCameras();
+          if (cameras && cameras.length > 0) {
+            setAvailableCameras(cameras);
+          }
+        } catch {
+          // Non-fatal if listing cameras fails
+        }
+
+        const scanner = new Html5Qrcode(CONTAINER_ELEMENT_ID, {
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.CODE_93,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.DATA_MATRIX,
+          ],
+          verbose: false,
+        });
+        scannerRef.current = scanner;
+
+        const cameraConfig = cameraDeviceId
+          ? cameraDeviceId
+          : { facingMode: "environment" };
+
+        await scanner.start(
+          cameraConfig,
+          {
+            fps: 15,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const width = Math.min(Math.floor(viewfinderWidth * 0.88), 320);
+              const height = Math.min(Math.floor(viewfinderHeight * 0.65), 180);
+              return { width, height };
+            },
+            aspectRatio: 1.333333,
+          },
+          (decodedText) => {
+            if (isProcessingRef.current) return;
+            isProcessingRef.current = true;
+            handleCodeFound(decodedText);
+          },
+          () => {}
+        );
+
+        setCameraState("active");
+
+        // Inspect torch capability
+        try {
+          const caps = (scanner as any).getRunningTrackCameraCapabilities?.();
+          if (caps?.torchFeature?.()?.isSupported?.()) {
+            setTorchSupported(true);
+          }
+        } catch {
+          setTorchSupported(false);
+        }
+      } catch (err: any) {
+        console.warn("Scanner initialization error:", err);
+        const name = err?.name || "";
+        const msg = (err?.message || "").toLowerCase();
+
+        if (
+          name === "NotAllowedError" ||
+          name === "PermissionDeniedError" ||
+          msg.includes("permission") ||
+          msg.includes("denied")
+        ) {
+          setCameraState("permission_denied");
+          setErrorMessage(
+            "L'accès à la caméra a été refusé. Veuillez autoriser la caméra dans votre navigateur."
+          );
+        } else if (name === "NotFoundError" || msg.includes("no camera")) {
+          setCameraState("error");
+          setErrorMessage(
+            "Aucune caméra détectée. Vous pouvez saisir le code manuellement ci-dessous."
+          );
+        } else {
+          setCameraState("error");
+          setErrorMessage(
+            "Impossible de démarrer la caméra. Saisissez le code manuellement ou utilisez une douchette."
+          );
+        }
+      }
+    },
+    [handleCodeFound, stopScanner]
+  );
+
+  // Initialize camera when modal opens
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (visible) {
+      const timer = setTimeout(() => {
+        if (!isCancelled) {
+          startScanner();
+        }
+      }, 50);
+
+      return () => {
+        isCancelled = true;
+        clearTimeout(timer);
+        stopScanner();
+      };
+    }
+  }, [visible, startScanner, stopScanner]);
+
+  // Flip / switch camera
+  const handleSwitchCamera = async () => {
+    if (availableCameras.length <= 1) return;
+    const nextIndex = (activeCameraIndex + 1) % availableCameras.length;
+    setActiveCameraIndex(nextIndex);
+    await startScanner(availableCameras[nextIndex].id);
+  };
+
+  // Toggle flashlight / torch
+  const handleToggleTorch = async () => {
+    if (!scannerRef.current || !torchSupported) return;
+    try {
+      const nextTorch = !torchOn;
+      await (scannerRef.current as any).applyVideoConstraints({
+        advanced: [{ torch: nextTorch }],
+      });
+      setTorchOn(nextTorch);
+    } catch (err) {
+      console.warn("Failed to toggle torch:", err);
+    }
+  };
+
+  // Manual code submission
   const handleManualSubmit = () => {
     if (manualCode.trim()) {
       handleCodeFound(manualCode.trim());
@@ -169,14 +382,56 @@ export function BarcodeScannerModal({
     }
   };
 
-  const cameraActive =
-    visible && !!permission && permission.granted && !matchedProduct;
+  // Image file scanning fallback
+  const handleImageFileSelect = async (e: any) => {
+    const file = e.target.files?.[0];
+    if (!file || !scannerRef.current) return;
+    try {
+      const decoded = await scannerRef.current.scanFile(file, true);
+      if (decoded) {
+        handleCodeFound(decoded);
+      }
+    } catch {
+      setErrorMessage("Aucun code-barres n'a pu être lu depuis cette image.");
+    }
+  };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay} id="barcode-scanner-modal-overlay">
+        {/* Inject clean CSS for the camera video stream */}
+        {Platform.OS === "web" && (
+          <style>{`
+            #${CONTAINER_ELEMENT_ID} {
+              position: relative !important;
+              width: 100% !important;
+              height: 230px !important;
+              overflow: hidden !important;
+              border-radius: 12px !important;
+              background-color: #090D16 !important;
+            }
+            #${CONTAINER_ELEMENT_ID} video {
+              width: 100% !important;
+              height: 100% !important;
+              object-fit: cover !important;
+              display: block !important;
+            }
+            #${CONTAINER_ELEMENT_ID} canvas {
+              display: none !important;
+            }
+            #${CONTAINER_ELEMENT_ID} #qr-shaded-region {
+              border-color: rgba(30, 41, 59, 0.6) !important;
+            }
+          `}</style>
+        )}
+
         <View style={styles.container}>
-          {/* Header */}
+          {/* Header with Title & Mode Toggle */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <ThemedText style={styles.title}>Scanner Code-Barres</ThemedText>
@@ -192,28 +447,42 @@ export function BarcodeScannerModal({
               accessibilityLabel="Fermer le scanner"
             >
               <SymbolView
-                name={{ ios: "xmark" as any, android: "close" as any }}
+                name={{
+                  ios: "xmark" as any,
+                  android: "close" as any,
+                  web: "close" as any,
+                }}
                 size={18}
                 tintColor={Colors.light.textSecondary}
               />
             </Pressable>
           </View>
 
-          {/* Toolbar */}
+          {/* Quick Toolbar: Continuous Scan & Tools */}
           <View style={styles.toolbar}>
             <Pressable
-              style={[styles.modeToggle, continuousMode && styles.modeToggleActive]}
+              style={[
+                styles.modeToggle,
+                continuousMode && styles.modeToggleActive,
+              ]}
               onPress={() => setContinuousMode(!continuousMode)}
             >
               <SymbolView
-                name={{ ios: "repeat" as any, android: "autorenew" as any }}
+                name={{
+                  ios: "repeat" as any,
+                  android: "autorenew" as any,
+                  web: "autorenew" as any,
+                }}
                 size={16}
                 tintColor={
                   continuousMode ? Colors.light.primary : Colors.light.textSecondary
                 }
               />
               <ThemedText
-                style={[styles.modeToggleText, continuousMode && styles.modeToggleTextActive]}
+                style={[
+                  styles.modeToggleText,
+                  continuousMode && styles.modeToggleTextActive,
+                ]}
               >
                 Scan continu {continuousMode ? "Activé" : "Désactivé"}
               </ThemedText>
@@ -228,68 +497,35 @@ export function BarcodeScannerModal({
             )}
           </View>
 
-          <View style={styles.scrollContent}>
-            {/* Camera Viewfinder */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {/* Camera Viewfinder Area */}
             <View style={styles.viewfinderWrapper}>
-              {cameraActive ? (
-                <CameraView
-                  style={styles.cameraBox}
-                  facing="back"
-                  enableTorch={torchOn}
-                  barcodeScannerSettings={{ barcodeTypes: BARCODE_TYPES }}
-                  onBarcodeScanned={onBarcodeScanned}
-                  onCameraReady={() => setCameraReady(true)}
-                  animateShutter={false}
+              {/* Camera DOM mounting element */}
+              {Platform.OS === "web" ? (
+                <div
+                  id={CONTAINER_ELEMENT_ID}
+                  style={{
+                    width: "100%",
+                    height: 230,
+                    borderRadius: 12,
+                    backgroundColor: "#090D16",
+                    overflow: "hidden",
+                    position: "relative",
+                  }}
                 />
               ) : (
-                <View style={styles.cameraFallback}>
-                  {permission === null ? (
-                    <View style={styles.centeredMessage}>
-                      <SymbolView
-                        name={{ ios: "camera.viewfinder" as any, android: "photo_camera" as any }}
-                        size={32}
-                        tintColor={Colors.light.primary}
-                      />
-                      <ThemedText style={styles.fallbackTitle}>
-                        Activation de la caméra...
-                      </ThemedText>
-                    </View>
-                  ) : permission.granted ? (
-                    <View style={styles.centeredMessage}>
-                      <SymbolView
-                        name={{ ios: "camera.viewfinder" as any, android: "photo_camera" as any }}
-                        size={32}
-                        tintColor={Colors.light.primary}
-                      />
-                      <ThemedText style={styles.fallbackTitle}>
-                        Démarrage de la caméra...
-                      </ThemedText>
-                    </View>
-                  ) : (
-                    <View style={styles.centeredMessage}>
-                      <SymbolView
-                        name={{ ios: "lock" as any, android: "lock" as any }}
-                        size={32}
-                        tintColor={Colors.light.warning}
-                      />
-                      <ThemedText style={styles.fallbackTitle}>
-                        Caméra non autorisée
-                      </ThemedText>
-                      <ThemedText style={styles.fallbackSub}>
-                        Autorisez l'accès à la caméra pour scanner les code-barres.
-                      </ThemedText>
-                      <Pressable style={styles.retryBtn} onPress={() => requestPermission()}>
-                        <ThemedText style={styles.retryBtnText}>
-                          Autoriser la caméra
-                        </ThemedText>
-                      </Pressable>
-                    </View>
-                  )}
-                </View>
+                <View
+                  id={CONTAINER_ELEMENT_ID}
+                  nativeID={CONTAINER_ELEMENT_ID}
+                  style={styles.cameraBox}
+                />
               )}
 
-              {/* Reticle overlay */}
-              {cameraActive && cameraReady && (
+              {/* Reticle Overlay on top of Camera */}
+              {cameraState === "active" && (
                 <View style={styles.reticleOverlay} pointerEvents="none">
                   <View style={styles.reticle}>
                     <View style={[styles.corner, styles.tl]} />
@@ -319,31 +555,111 @@ export function BarcodeScannerModal({
                 </View>
               )}
 
-              {/* Torch toggle */}
-              {cameraActive && cameraReady && (
+              {/* Camera Overlaid Controls (Flash & Flip) */}
+              {cameraState === "active" && (
                 <View style={styles.cameraControls}>
-                  <Pressable
-                    style={[styles.cameraControlBtn, torchOn && styles.cameraControlBtnActive]}
-                    onPress={() => setTorchOn((v) => !v)}
-                    accessibilityLabel="Activer le flash"
-                  >
-                    <SymbolView
-                      name={{
-                        ios: torchOn ? ("bolt.fill" as any) : ("bolt.slash.fill" as any),
-                        android: torchOn ? ("flash_on" as any) : ("flash_off" as any),
-                      }}
-                      size={18}
-                      tintColor={torchOn ? "#FACC15" : "#FFFFFF"}
-                    />
-                  </Pressable>
+                  {availableCameras.length > 1 && (
+                    <Pressable
+                      style={styles.cameraControlBtn}
+                      onPress={handleSwitchCamera}
+                      accessibilityLabel="Changer de caméra"
+                    >
+                      <SymbolView
+                        name={{
+                          ios: "camera.rotate" as any,
+                          android: "flip_camera_ios" as any,
+                          web: "flip_camera_ios" as any,
+                        }}
+                        size={18}
+                        tintColor="#FFFFFF"
+                      />
+                    </Pressable>
+                  )}
+
+                  {torchSupported && (
+                    <Pressable
+                      style={[
+                        styles.cameraControlBtn,
+                        torchOn && styles.cameraControlBtnActive,
+                      ]}
+                      onPress={handleToggleTorch}
+                      accessibilityLabel="Activer le flash"
+                    >
+                      <SymbolView
+                        name={{
+                          ios: torchOn ? ("bolt.fill" as any) : ("bolt.slash.fill" as any),
+                          android: torchOn ? ("flash_on" as any) : ("flash_off" as any),
+                          web: torchOn ? ("flash_on" as any) : ("flash_off" as any),
+                        }}
+                        size={18}
+                        tintColor={torchOn ? "#FACC15" : "#FFFFFF"}
+                      />
+                    </Pressable>
+                  )}
                 </View>
               )}
 
-              {/* Floating scan feedback toast */}
+              {/* Camera Loading or Error State */}
+              {cameraState !== "active" && (
+                <View style={styles.cameraFallback}>
+                  {cameraState === "starting" ? (
+                    <View style={styles.centeredMessage}>
+                      <SymbolView
+                        name={{
+                          ios: "camera.viewfinder" as any,
+                          android: "photo_camera" as any,
+                          web: "photo_camera" as any,
+                        }}
+                        size={32}
+                        tintColor={Colors.light.primary}
+                      />
+                      <ThemedText style={styles.fallbackTitle}>
+                        Activation de la caméra...
+                      </ThemedText>
+                      <ThemedText style={styles.fallbackSub}>
+                        {"Veuillez autoriser l'accès si demandé par le navigateur"}
+                      </ThemedText>
+                    </View>
+                  ) : (
+                    <View style={styles.centeredMessage}>
+                      <SymbolView
+                        name={{
+                          ios: "exclamationmark.triangle" as any,
+                          android: "videocam_off" as any,
+                          web: "videocam_off" as any,
+                        }}
+                        size={32}
+                        tintColor={Colors.light.warning}
+                      />
+                      <ThemedText style={styles.fallbackTitle}>
+                        Caméra inaccessible
+                      </ThemedText>
+                      <ThemedText style={styles.fallbackSub}>
+                        {errorMessage ||
+                          "Veuillez autoriser la caméra dans votre navigateur ou entrer le code ci-dessous."}
+                      </ThemedText>
+                      <Pressable
+                        style={styles.retryBtn}
+                        onPress={() => startScanner()}
+                      >
+                        <ThemedText style={styles.retryBtnText}>
+                          Réessayer la caméra
+                        </ThemedText>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Floating Toast in Continuous Mode */}
               {lastScannedFeedback && (
                 <View style={styles.floatingToast}>
                   <SymbolView
-                    name={{ ios: "checkmark.circle.fill" as any, android: "check_circle" as any }}
+                    name={{
+                      ios: "checkmark.circle.fill" as any,
+                      android: "check_circle" as any,
+                      web: "check_circle" as any,
+                    }}
                     size={18}
                     tintColor={Colors.light.positive}
                   />
@@ -359,22 +675,32 @@ export function BarcodeScannerModal({
               )}
             </View>
 
-            {/* Matched Product Card */}
+            {/* Matched Product Card (Single Scan Mode) */}
             {matchedProduct && (
               <View style={styles.matchedCard}>
                 <View style={styles.matchedBadgeRow}>
                   <View style={styles.successBadge}>
                     <SymbolView
-                      name={{ ios: "checkmark" as any, android: "check" as any }}
+                      name={{
+                        ios: "checkmark" as any,
+                        android: "check" as any,
+                        web: "check" as any,
+                      }}
                       size={14}
                       tintColor={Colors.light.positive}
                     />
-                    <ThemedText style={styles.successBadgeText}>Produit identifié</ThemedText>
+                    <ThemedText style={styles.successBadgeText}>
+                      Produit identifié
+                    </ThemedText>
                   </View>
-                  <ThemedText style={styles.skuTag}>SKU: {matchedProduct.sku}</ThemedText>
+                  <ThemedText style={styles.skuTag}>
+                    SKU: {matchedProduct.sku}
+                  </ThemedText>
                 </View>
 
-                <ThemedText style={styles.matchedName}>{matchedProduct.name}</ThemedText>
+                <ThemedText style={styles.matchedName}>
+                  {matchedProduct.name}
+                </ThemedText>
 
                 <View style={styles.matchedDetailsRow}>
                   <ThemedText style={styles.matchedPrice}>
@@ -384,7 +710,8 @@ export function BarcodeScannerModal({
                     style={[
                       styles.stockPill,
                       matchedProduct.stock_quantity <=
-                        (matchedProduct.minimum_stock_quantity || 0) && styles.stockPillLow,
+                        (matchedProduct.minimum_stock_quantity || 0) &&
+                        styles.stockPillLow,
                     ]}
                   >
                     <ThemedText style={styles.stockPillText}>
@@ -416,12 +743,16 @@ export function BarcodeScannerModal({
               </View>
             )}
 
-            {/* Unmatched Code Card */}
+            {/* Unmatched Code Alert Card */}
             {unmatchedCode && (
               <View style={styles.unmatchedCard}>
                 <View style={styles.unmatchedHeader}>
                   <SymbolView
-                    name={{ ios: "questionmark.circle" as any, android: "help_outline" as any }}
+                    name={{
+                      ios: "questionmark.circle" as any,
+                      android: "help_outline" as any,
+                      web: "help_outline" as any,
+                    }}
                     size={20}
                     tintColor={Colors.light.warning}
                   />
@@ -430,7 +761,7 @@ export function BarcodeScannerModal({
                   </ThemedText>
                 </View>
                 <ThemedText style={styles.unmatchedDesc}>
-                  Ce code-barres n'est pas encore enregistré dans votre stock.
+                  {"Ce code-barres n'est pas encore enregistré dans votre stock."}
                 </ThemedText>
 
                 <View style={styles.unmatchedActions}>
@@ -443,7 +774,11 @@ export function BarcodeScannerModal({
                       }}
                     >
                       <SymbolView
-                        name={{ ios: "plus.circle" as any, android: "add_circle_outline" as any }}
+                        name={{
+                          ios: "plus.circle" as any,
+                          android: "add_circle_outline" as any,
+                          web: "add_circle_outline" as any,
+                        }}
                         size={16}
                         tintColor="#FFFFFF"
                       />
@@ -474,13 +809,15 @@ export function BarcodeScannerModal({
                       isProcessingRef.current = false;
                     }}
                   >
-                    <ThemedText style={styles.resumeScanText}>Reprendre le scan</ThemedText>
+                    <ThemedText style={styles.resumeScanText}>
+                      Reprendre le scan
+                    </ThemedText>
                   </Pressable>
                 </View>
               </View>
             )}
 
-            {/* Manual Code Entry */}
+            {/* Manual Code Input Section */}
             <View style={styles.manualSection}>
               <ThemedText style={styles.manualLabel}>
                 Saisie manuelle du code-barres ou SKU :
@@ -497,15 +834,54 @@ export function BarcodeScannerModal({
                   autoCapitalize="characters"
                 />
                 <Pressable
-                  style={[styles.validateBtn, !manualCode.trim() && styles.validateBtnDisabled]}
+                  style={[
+                    styles.validateBtn,
+                    !manualCode.trim() && styles.validateBtnDisabled,
+                  ]}
                   onPress={handleManualSubmit}
                   disabled={!manualCode.trim()}
                 >
-                  <ThemedText style={styles.validateBtnText}>Chercher</ThemedText>
+                  <ThemedText style={styles.validateBtnText}>
+                    Chercher
+                  </ThemedText>
                 </Pressable>
               </View>
             </View>
-          </View>
+
+            {/* Optional Image Upload Fallback */}
+            {Platform.OS === "web" && (
+              <View style={styles.uploadSection}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="barcode-image-file-input"
+                  style={{ display: "none" }}
+                  onChange={handleImageFileSelect}
+                />
+                <Pressable
+                  style={styles.uploadBtn}
+                  onPress={() => {
+                    if (typeof document !== "undefined") {
+                      document.getElementById("barcode-image-file-input")?.click();
+                    }
+                  }}
+                >
+                  <SymbolView
+                    name={{
+                      ios: "photo" as any,
+                      android: "image" as any,
+                      web: "image" as any,
+                    }}
+                    size={16}
+                    tintColor={Colors.light.textSecondary}
+                  />
+                  <ThemedText style={styles.uploadBtnText}>
+                    {"Scanner une photo ou capture d'un code-barres"}
+                  </ThemedText>
+                </Pressable>
+              </View>
+            )}
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -933,5 +1309,21 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  uploadSection: {
+    alignItems: "center",
+    paddingTop: 4,
+  },
+  uploadBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  uploadBtnText: {
+    ...Typography.caption,
+    color: Colors.light.textSecondary,
+    textDecorationLine: "underline",
   },
 });
