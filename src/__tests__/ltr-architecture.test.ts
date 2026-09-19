@@ -41,12 +41,14 @@ describe("LTR architecture", () => {
     expect(filesMatching(patterns.reverse)).toEqual([]);
   });
 
-  it("keeps locale direction informational only", () => {
-    const localeHook = fs.readFileSync(
-      path.join(sourceRoot, "hooks/useLocale.ts"),
+  it("keeps layout direction hardcoded to LTR", () => {
+    const i18nSetup = fs.readFileSync(
+      path.join(sourceRoot, "localization/i18n.ts"),
       "utf8",
     );
-    expect(localeHook).toContain("isRTL: false");
-    expect(localeHook).toContain("never triggers an RTL reload");
+    // updateLayoutDirection pins dir="ltr" for every locale, Arabic included —
+    // language switching never triggers RTL layout.
+    expect(i18nSetup).toContain('document.documentElement.dir = "ltr"');
+    expect(i18nSetup).not.toMatch(/forceRTL|allowRTL/);
   });
 });

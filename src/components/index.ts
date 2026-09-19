@@ -4,7 +4,6 @@
  */
 
 export { ExternalLink } from "./external-link";
-export { HintRow } from "./hint-row";
 export { AppTabBar } from "./navigation/AppTabBar";
 export { ThemedText } from "./themed-text";
 export type { ThemedTextProps } from "./themed-text";
@@ -30,7 +29,6 @@ export { SecondaryButton } from "./ui/SecondaryButton";
 export type { SecondaryButtonProps } from "./ui/SecondaryButton";
 export { StatusBadge } from "./ui/StatusBadge";
 export { showToast, useToast } from "./use-toast";
-export { WebBadge } from "./web-badge";
 
 export type { AppHeaderProps } from "./ui/AppHeader";
 export type { AppScreenProps } from "./ui/AppScreen";
