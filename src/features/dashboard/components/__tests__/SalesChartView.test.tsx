@@ -4,7 +4,7 @@
  * so these tests exercise the pure-React-Native renderer, not recharts.
  */
 import React from "react";
-import { fireEvent, render } from "@testing-library/react-native";
+import { render, userEvent } from "@testing-library/react-native";
 
 import { SalesChartView } from "../SalesChartView";
 
@@ -38,8 +38,7 @@ describe("SalesChartView (native)", () => {
       <SalesChartView data={data} chartType="bar" />,
     );
 
-    fireEvent.press(getAllByRole("button")[0]);
-
+    await userEvent.press(getAllByRole("button")[0]);
     expect(getByText("100 DZD")).toBeTruthy();
     expect(getByText("Sept 1 (2026-09-01)")).toBeTruthy();
   });
