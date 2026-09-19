@@ -40,29 +40,68 @@ export function BusinessSettingsScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
-  const [businessName, setBusinessName] = useState("Supérette El-Amel");
-  const [ownerName, setOwnerName] = useState("Karim Belkacem");
-  const [businessType, setBusinessType] = useState(
-    "Alimentation Générale / Superette",
-  );
-  const [phoneNumber, setPhoneNumber] = useState("+213 550 12 34 56");
-  const [storeAddress, setStoreAddress] = useState(
-    "Rue Didouche Mourad, Alger Centre",
-  );
-  const [rcNumber, setRcNumber] = useState("RC: 16/00-1234567");
+  const [businessName, setBusinessName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [businessType, setBusinessType] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [storeAddress, setStoreAddress] = useState("");
+  const [rcNumber, setRcNumber] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [profileId, setProfileId] = useState<number | null>(null);
 
-  const handleSave = useCallback(() => {
+  // Load the stored profile once, so the form reflects what's saved on disk.
+  useEffect(() => {
+    businessProfile.get().then((profile) => {
+      if (!profile) return;
+      setProfileId(profile.id);
+      setBusinessName(profile.business_name);
+      setOwnerName(profile.owner_name);
+      setBusinessType(profile.business_type);
+      setPhoneNumber(profile.phone_number ?? "");
+      setStoreAddress(profile.address ?? "");
+      setRcNumber(profile.rc_number ?? "");
+    });
+  }, []);
+
+  const handleSave = useCallback(async () => {
     if (!businessName.trim()) {
       showToast(t("errors.requiredField") || "Le nom du magasin est requis");
       return;
     }
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      const shared = {
+        business_name: businessName.trim(),
+        owner_name: ownerName.trim(),
+        business_type: businessType.trim() || "grocery",
+        currency: "DZD",
+        selected_locale: "fr" as const,
+        phone_number: phoneNumber.trim() || null,
+        address: storeAddress.trim() || null,
+        rc_number: rcNumber.trim() || null,
+      };
+      if (profileId !== null) {
+        await businessProfile.update({ id: profileId, ...shared });
+      } else {
+        const created = await businessProfile.create(shared);
+        setProfileId(created.id);
+      }
+      showToast(t("settings.profileSaved") || "Profile saved successfully!");
+    } catch (error) {
+      showToast(t("errors.saveFailed") || "Failed to save profile");
+    } finally {
       setIsSaving(false);
-      showToast("Profile saved successfully! / Profil enregistré !");
-    }, 400);
-  }, [businessName, t]);
+    }
+  }, [
+    businessName,
+    ownerName,
+    businessType,
+    phoneNumber,
+    storeAddress,
+    rcNumber,
+    profileId,
+    t,
+  ]);
 
   return (
     <ScrollView
@@ -140,7 +179,7 @@ export function BusinessSettingsScreen() {
               <ThemedText
                 style={[styles.previewName, { color: theme.textPrimary }]}
               >
-                {businessName || "Supérette El-Amel"}
+                {businessName || t("settings.businessNamePlaceholder") || "Your store name"}
               </ThemedText>
               <MaterialIcons
                 name="check-circle"
@@ -151,7 +190,7 @@ export function BusinessSettingsScreen() {
             <ThemedText
               style={[styles.previewLocation, { color: theme.textSecondary }]}
             >
-              Alger Centre • DZD Account
+              {storeAddress || t("settings.addressPlaceholder") || "Address not set"} • DZD Account
             </ThemedText>
             <View style={styles.previewReceiptBadge}>
               <MaterialIcons
@@ -438,36 +477,6 @@ export function BusinessSettingsScreen() {
           </View>
         </View>
 
-        {/* Ledger Sync Notification Card */}
-        <View
-          style={[
-            styles.syncCard,
-            { backgroundColor: theme.surfaceAlt, borderColor: theme.border },
-          ]}
-        >
-          <View
-            style={[
-              styles.syncIconContainer,
-              { backgroundColor: theme.primaryLight },
-            ]}
-          >
-            <MaterialIcons name="security" size={22} color={theme.primary} />
-          </View>
-          <View style={styles.syncContent}>
-            <ThemedText
-              style={[styles.syncTitle, { color: theme.textPrimary }]}
-            >
-              Ledger Data Synced
-            </ThemedText>
-            <ThemedText
-              style={[styles.syncSubtitle, { color: theme.textSecondary }]}
-            >
-              Updated details synchronize automatically across linked POS
-              terminals.
-            </ThemedText>
-          </View>
-        </View>
-
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
@@ -662,33 +671,6 @@ const styles = StyleSheet.create({
   },
   fieldHelper: {
     fontSize: 12,
-    lineHeight: 16,
-  },
-  syncCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-    padding: ComponentDimensions.cardPadding,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-  },
-  syncIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  syncContent: {
-    flex: 1,
-  },
-  syncTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  syncSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
     lineHeight: 16,
   },
   actionsContainer: {

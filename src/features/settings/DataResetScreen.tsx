@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Alert,
@@ -22,10 +22,11 @@ import {
     Spacing,
     Typography,
 } from "@/constants/theme";
+import { executeAll } from "@/database/database";
+import * as businessProfile from "@/database/repositories/businessProfileRepository";
+import { clearBusinessData, resetDatabase } from "@/database/repositories/resetRepository";
 import { useTheme } from "@/hooks/use-theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const expectedBusinessName = "Supérette El-Amel";
 
 /**
  * DataResetScreen - Screen for resetting all application data.
@@ -45,59 +46,99 @@ export function DataResetScreen() {
 
   const [businessNameInput, setBusinessNameInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [expectedBusinessName, setExpectedBusinessName] = useState("");
+  const [productCount, setProductCount] = useState(0);
+  const [saleCount, setSaleCount] = useState(0);
 
-  const isMatched = businessNameInput.trim() === expectedBusinessName;
+  // Load the real profile name (used as the type-to-confirm gate) and live row
+  // counts for the impact chips, so the screen never shows fabricated numbers.
+  useEffect(() => {
+    businessProfile.get().then((profile) => {
+      if (profile) setExpectedBusinessName(profile.business_name);
+    });
+    executeAll<{ c: number }>("SELECT COUNT(*) AS c FROM products").then(
+      (rows) => setProductCount(rows[0]?.c ?? 0),
+    );
+    executeAll<{ c: number }>("SELECT COUNT(*) AS c FROM sales").then(
+      (rows) => setSaleCount(rows[0]?.c ?? 0),
+    );
+  }, []);
+
+  const isMatched =
+    expectedBusinessName.length > 0 &&
+    businessNameInput.trim() === expectedBusinessName;
 
   const handleSoftReset = useCallback(() => {
     Alert.alert(
-      "Clear Demo Data",
-      "This will remove the 48 sample items and 12 demo sales, while keeping your business profile and settings intact.",
+      t("dataReset.clearDemoTitle") || "Clear Demo Data",
+      t("dataReset.clearDemoMessage", {
+        products: productCount,
+        sales: saleCount,
+      }) ||
+        `This will remove ${productCount} catalogue item(s) and ${saleCount} sale(s), while keeping your business profile and settings intact.`,
       [
         { text: t("common.cancel") || "Cancel", style: "cancel" },
         {
-          text: "Clear Demo Data",
-          onPress: () => {
-            showToast(
-              "Demo data cleared successfully! / Données démo effacées",
-            );
-          },
-        },
-      ],
-    );
-  }, [t]);
-
-  const handleHardReset = useCallback(() => {
-    if (businessNameInput.trim() !== expectedBusinessName) {
-      showToast("Veuillez saisir le nom exact du commerce pour confirmer");
-      return;
-    }
-
-    Alert.alert(
-      "Final Verification / Confirmation Définitive",
-      "Supérette El-Amel will be completely purged from this terminal. All sales, customers, debt balances, and inventory will be permanently deleted. This action CANNOT be undone.",
-      [
-        { text: t("common.cancel") || "Cancel", style: "cancel" },
-        {
-          text: "Delete All Data",
-          style: "destructive",
+          text: t("dataReset.clearDemoTitle") || "Clear Demo Data",
           onPress: async () => {
-            setIsLoading(true);
             try {
-              showToast("Database wiped. Returning to onboarding...");
-              setTimeout(() => {
-                setIsLoading(false);
-                router.replace("/onboarding" as any);
-              }, 600);
+              await clearBusinessData();
+              setProductCount(0);
+              setSaleCount(0);
+              showToast(
+                t("dataReset.clearDemoSuccess") ||
+                  "Demo data cleared successfully!",
+              );
             } catch (error) {
-              console.error("Data reset error:", error);
-              setIsLoading(false);
-              showToast("Error during data reset");
+              console.error("Soft reset error:", error);
+              showToast(
+                t("errors.resetFailed") || "Error clearing demo data",
+              );
             }
           },
         },
       ],
     );
-  }, [businessNameInput, router, t]);
+  }, [t, productCount, saleCount]);
+
+  const handleHardReset = useCallback(() => {
+    if (!isMatched) {
+      showToast(
+        t("dataReset.typeExactName") ||
+          "Veuillez saisir le nom exact du commerce pour confirmer",
+      );
+      return;
+    }
+
+    Alert.alert(
+      t("dataReset.confirmTitle"),
+      t("dataReset.confirmMessage") ||
+        `${expectedBusinessName} will be completely purged from this terminal. All sales, customers, debt balances, and inventory will be permanently deleted. This action CANNOT be undone.`,
+      [
+        { text: t("common.cancel") || "Cancel", style: "cancel" },
+        {
+          text: t("dataReset.confirm") || "Delete All Data",
+          style: "destructive",
+          onPress: async () => {
+            setIsLoading(true);
+            try {
+              await resetDatabase();
+              showToast(
+                t("dataReset.wipeSuccess") ||
+                  "Database wiped. Returning to onboarding...",
+              );
+              router.replace("/onboarding");
+            } catch (error) {
+              console.error("Data reset error:", error);
+              showToast(t("errors.resetFailed") || "Error during data reset");
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [expectedBusinessName, isMatched, router, t]);
 
   return (
     <ScrollView
@@ -145,7 +186,7 @@ export function DataResetScreen() {
           <ThemedText
             style={[styles.headingSubtitle, { color: theme.textSecondary }]}
           >
-            Supérette El-Amel •{" "}
+            {expectedBusinessName || t("settings.businessNamePlaceholder") || "Your store"} •{" "}
             <ThemedText style={{ fontWeight: "800" }}>
               Dukkan
               <ThemedText style={{ color: theme.primary, fontWeight: "800" }}>
@@ -261,7 +302,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.chipText, { color: theme.textSecondary }]}
               >
-                48 Demo Items
+                {productCount} Demo Items
               </ThemedText>
             </View>
             <View style={[styles.chip, { backgroundColor: theme.surfaceAlt }]}>
@@ -273,7 +314,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.chipText, { color: theme.textSecondary }]}
               >
-                12 Sample Orders
+                {saleCount} Sample Orders
               </ThemedText>
             </View>
             <View style={[styles.chip, { backgroundColor: theme.surfaceAlt }]}>

@@ -1,9 +1,10 @@
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText, ThemedView, showToast } from "@/components";
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Colors } from "@/constants/theme";
+import { executeAll, executeWrite } from "@/database/database";
 import {
     ScrollView,
     StyleSheet,
@@ -13,11 +14,30 @@ import {
     View
 } from "react-native";
 
+const ALLOW_NEGATIVE_KEY = "inventory_allow_negative_stock";
+const LOW_STOCK_THRESHOLD_KEY = "inventory_low_stock_threshold";
+
+/**
+ * Read a boolean/number setting from app_settings, or fall back to the default.
+ */
+async function readSetting(key: string, fallback: string): Promise<string> {
+  try {
+    const rows = await executeAll<{ value: string }>(
+      "SELECT value FROM app_settings WHERE key = ?",
+      [key],
+    );
+    return rows.length > 0 ? rows[0].value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
  * InventorySettingsScreen - Screen for managing inventory settings.
  * - Allow negative stock (default: disabled)
  * - Default low-stock threshold
  * - Negative stock disabled by default
+ * - Settings persist to the app_settings table
  * - All user-facing strings come from translation dictionaries
  * - Layout remains LTR in all languages
  */
@@ -26,7 +46,22 @@ export function InventorySettingsScreen() {
   const router = useRouter();
   const [allowNegativeStock, setAllowNegativeStock] = useState(false);
   const [defaultLowStockThreshold, setDefaultLowStockThreshold] = useState(10);
-  const [businessName, setBusinessName] = useState("");
+
+  // Load persisted settings on mount so the form reflects what's saved.
+  useEffect(() => {
+    (async () => {
+      const storedNegative = await readSetting(ALLOW_NEGATIVE_KEY, "false");
+      setAllowNegativeStock(storedNegative === "true");
+      const storedThreshold = await readSetting(
+        LOW_STOCK_THRESHOLD_KEY,
+        "10",
+      );
+      const parsed = parseInt(storedThreshold, 10);
+      if (!isNaN(parsed) && parsed >= 0) {
+        setDefaultLowStockThreshold(parsed);
+      }
+    })();
+  }, []);
 
   const handleToggleChange = useCallback((value: boolean) => {
     setAllowNegativeStock(value);
@@ -40,9 +75,20 @@ export function InventorySettingsScreen() {
   }, []);
 
   const handleSave = useCallback(async () => {
-    // TODO: Persist inventory settings to app_settings or backend
-    showToast(t("settings.saveChanges"));
-  }, [t]);
+    try {
+      await executeWrite(
+        "INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES (?, ?, datetime('now'))",
+        [ALLOW_NEGATIVE_KEY, allowNegativeStock ? "true" : "false"],
+      );
+      await executeWrite(
+        "INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES (?, ?, datetime('now'))",
+        [LOW_STOCK_THRESHOLD_KEY, defaultLowStockThreshold.toString()],
+      );
+      showToast(t("settings.changesSaved") || t("settings.saveChanges"));
+    } catch (error) {
+      showToast(t("errors.saveFailed") || "Failed to save settings");
+    }
+  }, [allowNegativeStock, defaultLowStockThreshold, t]);
 
   // Show confirmation if negative stock is enabled
   const negativeStockWarning = !allowNegativeStock ? null : (
