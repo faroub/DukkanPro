@@ -7,11 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "dukkanpro",
     "userInterfaceStyle": "automatic",
-    "androidStatusBar": {
-      "backgroundColor": "#00000000",
-      "barStyle": "dark-content",
-      "translucent": true
-    },
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.oubfar.DukkanPro"
@@ -43,6 +38,7 @@
       "expo-sqlite",
       "expo-localization",
       "expo-sharing",
+      ["expo-status-bar", { "style": "dark" }],
       [
         "expo-camera",
         {
