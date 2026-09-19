@@ -15,8 +15,8 @@ const data = [
 ];
 
 describe("SalesChartView (native)", () => {
-  it("renders bar mode with the peak selected by default", () => {
-    const { getByText } = render(
+  it("renders bar mode with the peak selected by default", async () => {
+    const { getByText } = await render(
       <SalesChartView data={data} chartType="bar" />,
     );
 
@@ -25,21 +25,20 @@ describe("SalesChartView (native)", () => {
     expect(getByText("Sept 2 (2026-09-02)")).toBeTruthy();
   });
 
-  it("renders area mode without crashing", () => {
-    const { getByText } = render(
+  it("renders area mode without crashing", async () => {
+    const { getByText } = await render(
       <SalesChartView data={data} chartType="area" />,
     );
 
     expect(getByText("300 DZD")).toBeTruthy();
   });
 
-  it("updates the readout when a point is tapped", () => {
-    const { getAllByRole, getByText } = render(
+  it("updates the readout when a point is tapped", async () => {
+    const { getAllByRole, getByText } = await render(
       <SalesChartView data={data} chartType="bar" />,
     );
 
-    const bars = getAllByRole("button");
-    fireEvent.press(bars[0]);
+    fireEvent.press(getAllByRole("button")[0]);
 
     expect(getByText("100 DZD")).toBeTruthy();
     expect(getByText("Sept 1 (2026-09-01)")).toBeTruthy();
