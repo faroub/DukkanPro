@@ -6,7 +6,6 @@ import {
     getCurrentDeviceLocale,
     isSupportedLocale,
     readStoredLocaleFromAsyncStorage,
-    storeLocaleInAsyncStorage,
 } from "@/localization/localeConfig";
 import type { Locale } from "@/localization/types";
 
@@ -37,8 +36,8 @@ export function LocaleProvider({ children }: LocaleProviderProps) {
         locale = deviceLocale;
       }
 
+      // changeLocale applies the language, direction, and persistence.
       changeI18nLocale(locale);
-      await storeLocaleInAsyncStorage(locale);
     }
 
     initializeLocale();

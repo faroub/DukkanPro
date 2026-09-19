@@ -27,6 +27,16 @@ import type { Locale } from "@/localization/types";
 const PREFERRED_LOCALES = ["ar", "fr", "en"] as const;
 
 /**
+ * Canonical locale persistence keys.
+ *
+ * `LOCALE_STORAGE_KEY` is the app_settings row that survives on native; the
+ * localStorage mirror is only for the synchronous pre-React read in i18n.ts
+ * (web), which needs the initial language before SQLite is available.
+ */
+export const LOCALE_STORAGE_KEY = "selected_locale";
+const LOCALSTORAGE_KEY = "dukkan_locale";
+
+/**
  * Map an Expo language code to a Dukkan OS locale
  * Returns the locale if supported, otherwise undefined
  */
@@ -141,7 +151,7 @@ export async function storeLocaleInAsyncStorage(
 ): Promise<void> {
   if (typeof window !== "undefined" && window.localStorage) {
     try {
-      window.localStorage.setItem("dukkan_locale", locale);
+      window.localStorage.setItem(LOCALSTORAGE_KEY, locale);
     } catch (e) {
       // Ignore
     }
@@ -149,7 +159,7 @@ export async function storeLocaleInAsyncStorage(
   try {
     await executeWrite(
       `INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES (?, ?, datetime('now'))`,
-      ['selectedLocale', locale]
+      [LOCALE_STORAGE_KEY, locale]
     );
   } catch (error) {
     // SQLite may not be available in all environments (e.g., web)
@@ -168,7 +178,7 @@ export async function storeLocaleInAsyncStorage(
 export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
   if (typeof window !== "undefined" && window.localStorage) {
     try {
-      const stored = window.localStorage.getItem("dukkan_locale");
+      const stored = window.localStorage.getItem(LOCALSTORAGE_KEY);
       if (stored && isSupportedLocale(stored)) {
         return stored as Locale;
       }
@@ -179,7 +189,7 @@ export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
   try {
     const rows: any[] = await executeRead(
       `SELECT value FROM app_settings WHERE key = ?`,
-      ['selectedLocale']
+      [LOCALE_STORAGE_KEY]
     );
     if (rows.length === 0) {
       return 'fr';
