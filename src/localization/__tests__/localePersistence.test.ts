@@ -4,7 +4,7 @@
  * the locale config read `selectedLocale`, so a merchant's onboarding choice was
  * silently dropped on reload.
  */
-import { getDatabase } from "@/database";
+import { getDatabase } from "@/database/database";
 import {
   readStoredLocaleFromAsyncStorage,
   storeLocaleInAsyncStorage,
