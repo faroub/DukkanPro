@@ -42,7 +42,14 @@
       ],
       "expo-sqlite",
       "expo-localization",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow DukkanPro to access your camera to scan product barcodes.",
+          "barcodeScannerEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
