@@ -1,9 +1,19 @@
 pluginManagement {
   try {
+    def jdk17Path = "/home/faroub/.gradle/jdks/eclipse_adoptium-17-amd64-linux.2"
+    System.setProperty("java.home", jdk17Path)
+
     def pe = Class.forName("java.lang.ProcessEnvironment")
     def envField = pe.getDeclaredField("theEnvironment")
     envField.setAccessible(true)
     Map env = (Map) envField.get(null)
+
+    def varClass = Class.forName("java.lang.ProcessEnvironment\$Variable")
+    def valClass = Class.forName("java.lang.ProcessEnvironment\$Value")
+    def varValueOf = varClass.getMethod("valueOf", String.class)
+    def valValueOf = valClass.getMethod("valueOf", String.class)
+
+    env.put(varValueOf.invoke(null, "JAVA_HOME"), valValueOf.invoke(null, jdk17Path))
 
     def entryIterator = env.entrySet().iterator()
     while (entryIterator.hasNext()) {
