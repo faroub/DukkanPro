@@ -95,20 +95,9 @@ export function SalesChart({
 
   const filteredRawData = data.filter((item) => item.date.startsWith(filterPrefix));
 
-  const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-
-  const chartDataset =
-    filteredRawData.length > 0
-      ? filteredRawData
-      : Array.from({ length: Math.min(daysInMonth, 12) }, (_, i) => {
-          const dayNum = Math.min(i * 2 + 1, daysInMonth);
-          const dayStr = dayNum.toString().padStart(2, "0");
-          const date = `${filterPrefix}-${dayStr}`;
-          // Pseudo random reproducible sales amount based on date sum
-          const seed = (selectedYear * 12 + selectedMonth + dayNum) * 37;
-          const total = 12000 + (seed % 28000);
-          return { date, total };
-        });
+  // No synthetic fallback: when the month has no recorded sales the chart shows
+  // its empty state rather than fabricated bars.
+  const chartDataset = filteredRawData;
 
   // Format date helper for X-axis labels
   const formatDayLabel = (dateStr: string, index: number, isLast: boolean) => {
@@ -325,7 +314,20 @@ export function SalesChart({
 
       {/* Chart: recharts on web, native Views on native (see SalesChartView) */}
       <View style={styles.chartWrapper}>
-        <SalesChartView data={formattedData} chartType={chartType} />
+        {formattedData.length === 0 ? (
+          <View style={[styles.emptyChart, { borderColor: theme.borderLight }]}>
+            <MaterialIcons name="show-chart" size={28} color={theme.textMuted} />
+            <ThemedText style={[styles.emptyChartText, { color: theme.textSecondary }]}>
+              {locale === "ar"
+                ? "لا توجد مبيعات مسجلة هذا الشهر"
+                : locale === "fr"
+                ? "Aucune vente enregistrée ce mois-ci"
+                : "No sales recorded this month"}
+            </ThemedText>
+          </View>
+        ) : (
+          <SalesChartView data={formattedData} chartType={chartType} />
+        )}
       </View>
     </View>
   );
@@ -442,5 +444,17 @@ const styles = StyleSheet.create({
   chartWrapper: {
     width: "100%",
     marginTop: 2,
+  },
+  emptyChart: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: Spacing.xl,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderRadius: BorderRadius.md,
+  },
+  emptyChartText: {
+    ...Typography.caption,
+    fontSize: 12,
   },
 });

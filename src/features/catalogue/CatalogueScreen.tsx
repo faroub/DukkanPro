@@ -19,58 +19,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type CatalogueStep = "settings" | "selector" | "preview";
 
-const DEFAULT_SAMPLE_PRODUCTS: SelectorProductItem[] = [
-  {
-    id: 1,
-    name: "Lait Candia 1L",
-    category: "Dairy & Fresh",
-    price_centimes: 14000,
-    stock: 24,
-  },
-  {
-    id: 2,
-    name: "Café Moulu Familico 250g",
-    category: "Groceries",
-    price_centimes: 32000,
-    stock: 15,
-  },
-  {
-    id: 3,
-    name: "Huile Végétale Elio 2L",
-    category: "Cooking Oil",
-    price_centimes: 34000,
-    stock: 12,
-  },
-  {
-    id: 4,
-    name: "Couscous Dari 1kg",
-    category: "Pantry",
-    price_centimes: 14000,
-    stock: 30,
-  },
-  {
-    id: 5,
-    name: "Pain Baguette Blanche",
-    category: "Bakery",
-    price_centimes: 1500,
-    stock: 40,
-  },
-  {
-    id: 6,
-    name: "Eau Minérale Ifri 1.5L",
-    category: "Beverages",
-    price_centimes: 4500,
-    stock: 0,
-  },
-  {
-    id: 7,
-    name: "Sucre Blanc Cristallisé 1kg",
-    category: "Pantry",
-    price_centimes: 9500,
-    stock: 18,
-  },
-];
-
 export function CatalogueScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -80,18 +28,15 @@ export function CatalogueScreen() {
   const [settings, setSettings] = useState<CatalogueSettingsData>({
     showPrices: true,
     hideOutOfStock: true,
-    shopName: "Supérette El-Amel",
-    contact: "+213 550 12 34 56",
-    address: "Rue Didouche Mourad, Alger Centre",
-    welcomeNote:
-      "Commandes par WhatsApp acceptées • Retrait rapide au comptoir",
+    shopName: "",
+    contact: "",
+    address: "",
+    welcomeNote: "",
   });
 
-  const [products, setProducts] = useState<SelectorProductItem[]>(
-    DEFAULT_SAMPLE_PRODUCTS,
-  );
+  const [products, setProducts] = useState<SelectorProductItem[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(
-    new Set(DEFAULT_SAMPLE_PRODUCTS.map((p) => p.id)),
+    new Set(),
   );
 
   // Load business profile and active products on mount
@@ -106,6 +51,8 @@ export function CatalogueScreen() {
           setSettings((prev) => ({
             ...prev,
             shopName: profile.business_name || prev.shopName,
+            contact: profile.phone_number ?? prev.contact,
+            address: profile.address ?? prev.address,
           }));
         }
 
@@ -123,7 +70,7 @@ export function CatalogueScreen() {
           setSelectedProductIds(new Set(mapped.map((p) => p.id)));
         }
       } catch {
-        // Keep default sample products if error occurs
+        // Leave the catalogue empty; the selector shows its empty state.
       }
     }
 

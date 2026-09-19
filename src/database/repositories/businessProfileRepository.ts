@@ -20,9 +20,20 @@ export type BusinessProfileResult = {
 
 type BusinessProfileInput = Omit<
   BusinessProfile,
-  "id" | "created_at" | "updated_at"
->;
-type BusinessProfileUpdate = Omit<BusinessProfile, "created_at" | "updated_at">;
+  "id" | "created_at" | "updated_at" | "phone_number" | "address" | "rc_number"
+> & {
+  phone_number?: string | null;
+  address?: string | null;
+  rc_number?: string | null;
+};
+type BusinessProfileUpdate = Omit<
+  BusinessProfile,
+  "created_at" | "updated_at" | "phone_number" | "address" | "rc_number"
+> & {
+  phone_number?: string | null;
+  address?: string | null;
+  rc_number?: string | null;
+};
 
 /**
  - Retrieve the first (or only) business profile.
