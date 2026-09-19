@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
@@ -353,7 +353,7 @@ export function ExportSettingsScreen() {
               style={[styles.selectionSummary, { color: theme.textSecondary }]}
             >
               {selectedTables.length} of {TABLE_OPTIONS.length} tables selected
-              ({totalKb} KB)
+              ({selectedRowCount} {t("exportSettings.rows") || "rows"})
             </ThemedText>
             <TouchableOpacity onPress={handleToggleAll} activeOpacity={0.7}>
               <ThemedText

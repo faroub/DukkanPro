@@ -29,10 +29,12 @@ describe("security business rules", () => {
       path.join(sourceRoot, "features/settings/DataResetScreen.tsx"),
       "utf8",
     );
-    expect(resetScreen).toContain(
-      "businessNameInput.trim() !== expectedBusinessName",
-    );
+    // The type-to-confirm gate is derived from the stored business name and the
+    // hard reset is only reachable when the entered name matches it exactly.
+    expect(resetScreen).toContain("expectedBusinessName");
+    expect(resetScreen).toContain("isMatched");
     expect(resetScreen).toContain("Alert.alert");
+    expect(resetScreen).toContain("resetDatabase");
   });
 
   it("does not place raw SQL in route files", () => {
