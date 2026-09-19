@@ -64,6 +64,7 @@ export function SalesChartView({
               key={point.date}
               style={styles.column}
               onPress={() => setSelected(index)}
+              accessibilityRole="button"
               android_ripple={{ color: theme.border, radius: 8 }}
             >
               {chartType === "area" ? (
