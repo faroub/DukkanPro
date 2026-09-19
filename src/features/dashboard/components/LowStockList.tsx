@@ -31,7 +31,6 @@ interface LowStockListProps {
 }
 
 export function LowStockList({
-  lowStockCount,
   lowStockProducts,
   locale,
   lowStockTitle = "Low Stock Alert",
@@ -225,6 +224,19 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 8,
+  },
+  emptyCard: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  emptyText: {
+    ...Typography.caption,
+    fontSize: 13,
+    flex: 1,
   },
   card: {
     borderRadius: BorderRadius.lg,
