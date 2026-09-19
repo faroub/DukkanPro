@@ -24,6 +24,9 @@ export interface BusinessProfile extends Entity {
   business_type: string; // e.g. "grocery", "baker", "market_vendor", "service_seller"
   currency: string; // ISO 4217 or DZD
   selected_locale: "ar" | "fr" | "en";
+  phone_number: string | null; // added in migration 10
+  address: string | null; // added in migration 10
+  rc_number: string | null; // added in migration 10
   created_at: string; // ISO datetime string from SQLite datetime('now')
   updated_at: string; // ISO datetime string from SQLite datetime('now')
 }

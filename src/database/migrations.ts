@@ -50,6 +50,10 @@ const ALL_MIGRATIONS: Migration[] = [
     version: 9,
     sql: schema.appSettings,
   },
+  {
+    version: 10,
+    sql: schema.businessProfilesContact,
+  },
 ];
 
 export async function runMigrations(db: any): Promise<void> {

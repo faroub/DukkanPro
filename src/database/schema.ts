@@ -38,6 +38,15 @@ export const schema = {
   `,
 
   // ============================================================
+  // business_profiles v2 — adds contact columns (migration 10)
+  // ============================================================
+  businessProfilesContact: `
+    ALTER TABLE business_profiles ADD COLUMN phone_number TEXT;
+    ALTER TABLE business_profiles ADD COLUMN address TEXT;
+    ALTER TABLE business_profiles ADD COLUMN rc_number TEXT;
+  `,
+
+  // ============================================================
   // products — Product catalogue inventory
   // ============================================================
   products: `
