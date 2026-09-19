@@ -127,18 +127,12 @@ export function BarcodeScannerModal({
     [handleCodeFound]
   );
 
-  // Reset session state every time the modal opens.
+  // Ask for camera access on open, mirroring the browser permission prompt.
   useEffect(() => {
-    if (visible) {
-      setManualCode("");
-      setSessionScanCount(0);
-      setMatchedProduct(null);
-      setUnmatchedCode(null);
-      setLastScannedFeedback(null);
-      setCameraReady(false);
-      isProcessingRef.current = false;
+    if (visible && permission && !permission.granted && permission.canAskAgain) {
+      requestPermission();
     }
-  }, [visible]);
+  }, [visible, permission, requestPermission]);
 
   // Laser reticle animation while the camera preview is live.
   useEffect(() => {
@@ -169,8 +163,7 @@ export function BarcodeScannerModal({
     }
   };
 
-  const cameraActive =
-    visible && !!permission && permission.granted && !matchedProduct;
+  const cameraActive = visible && !!permission && permission.granted;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -254,17 +247,6 @@ export function BarcodeScannerModal({
                         Activation de la caméra...
                       </ThemedText>
                     </View>
-                  ) : permission.granted ? (
-                    <View style={styles.centeredMessage}>
-                      <SymbolView
-                        name={{ ios: "camera.viewfinder" as any, android: "photo_camera" as any }}
-                        size={32}
-                        tintColor={Colors.light.primary}
-                      />
-                      <ThemedText style={styles.fallbackTitle}>
-                        Démarrage de la caméra...
-                      </ThemedText>
-                    </View>
                   ) : (
                     <View style={styles.centeredMessage}>
                       <SymbolView
@@ -276,7 +258,7 @@ export function BarcodeScannerModal({
                         Caméra non autorisée
                       </ThemedText>
                       <ThemedText style={styles.fallbackSub}>
-                        Autorisez l'accès à la caméra pour scanner les code-barres.
+                        {"Autorisez l'accès à la caméra pour scanner les code-barres."}
                       </ThemedText>
                       <Pressable style={styles.retryBtn} onPress={() => requestPermission()}>
                         <ThemedText style={styles.retryBtnText}>
@@ -430,7 +412,7 @@ export function BarcodeScannerModal({
                   </ThemedText>
                 </View>
                 <ThemedText style={styles.unmatchedDesc}>
-                  Ce code-barres n'est pas encore enregistré dans votre stock.
+                  {"Ce code-barres n'est pas encore enregistré dans votre stock."}
                 </ThemedText>
 
                 <View style={styles.unmatchedActions}>

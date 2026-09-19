@@ -199,8 +199,10 @@ data.
   `scripts/check-no-rtl.ts` (rejects `I18nManager.forceRTL`/`allowRTL` and
   `flexDirection: "row-reverse"`).
 - **Platform-specific files.** `.web.tsx`/`.web.ts` variants (e.g.
-  `animated-icon.web.tsx`, `use-color-scheme.web.ts`, `SalesChartView.web.tsx`)
-  are selected by Metro on web; the native variant is used otherwise.
+  `animated-icon.web.tsx`, `use-color-scheme.web.ts`, `SalesChartView.web.tsx`,
+  `BarcodeScannerModal.web.tsx`) are selected by Metro on web; the native
+  variant is used otherwise. For the barcode scanner this means
+  `html5-qrcode` on web and `expo-camera`'s `CameraView` on native.
 - **Money is integer centimes** everywhere; formatting to DZD happens only at
   display time (`formatCentimes`, `MoneyText`).
 - **Route files stay thin.** Screens and logic live in `src/features/`.
