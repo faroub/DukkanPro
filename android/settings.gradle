@@ -1,36 +1,4 @@
 pluginManagement {
-  try {
-    def jdk17Path = "/home/faroub/.gradle/jdks/eclipse_adoptium-17-amd64-linux.2"
-    System.setProperty("java.home", jdk17Path)
-
-    def pe = Class.forName("java.lang.ProcessEnvironment")
-    def envField = pe.getDeclaredField("theEnvironment")
-    envField.setAccessible(true)
-    Map env = (Map) envField.get(null)
-
-    def varClass = Class.forName("java.lang.ProcessEnvironment\$Variable")
-    def valClass = Class.forName("java.lang.ProcessEnvironment\$Value")
-    def varValueOf = varClass.getMethod("valueOf", String.class)
-    def valValueOf = valClass.getMethod("valueOf", String.class)
-
-    env.put(varValueOf.invoke(null, "JAVA_HOME"), valValueOf.invoke(null, jdk17Path))
-
-    def entryIterator = env.entrySet().iterator()
-    while (entryIterator.hasNext()) {
-      Object entry = entryIterator.next()
-      Object k = entry.getKey()
-      String keyStr = k.toString()
-      if (k instanceof String ||
-          keyStr == "ANDROID_PREFS_ROOT" ||
-          keyStr == "LD_LIBRARY_PATH" ||
-          keyStr == "RTI_LD_LIBRARY_PATH" ||
-          keyStr == "NDDSHOME" ||
-          keyStr == "CONNEXTDDS_DIR" ||
-          keyStr == "CONNEXTDDS_ARCH") {
-        entryIterator.remove()
-      }
-    }
-  } catch (Throwable ignored) {}
   def reactNativeGradlePlugin = new File(
     providers.exec {
       workingDir(rootDir)
@@ -52,7 +20,6 @@ pluginManagement {
 plugins {
   id("com.facebook.react.settings")
   id("expo-autolinking-settings")
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
@@ -64,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'DukkanOS'
+rootProject.name = 'DukkanPro'
 
 expoAutolinking.useExpoVersionCatalog()
 
