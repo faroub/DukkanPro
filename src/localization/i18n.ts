@@ -4,6 +4,10 @@ import { initReactI18next } from "react-i18next";
 import ar from "@/locales/ar.json";
 import en from "@/locales/en.json";
 import fr from "@/locales/fr.json";
+import { storeLocaleInAsyncStorage } from "@/localization/localeConfig";
+import type { Locale } from "@/localization/types";
+
+const LOCALSTORAGE_KEY = "dukkan_locale";
 
 function buildResourceNamespaces(bundle: any) {
   const namespaces: Record<string, any> = {
@@ -30,7 +34,7 @@ export function updateLayoutDirection(locale: string): void {
 let initialLanguage = "fr";
 if (typeof window !== "undefined" && window.localStorage) {
   try {
-    const stored = window.localStorage.getItem("dukkan_locale");
+    const stored = window.localStorage.getItem(LOCALSTORAGE_KEY);
     if (stored && ["ar", "fr", "en"].includes(stored)) {
       initialLanguage = stored;
     }
@@ -64,9 +68,16 @@ export function changeLocale(newLocale: string): void {
   updateLayoutDirection(newLocale);
   if (typeof window !== "undefined" && window.localStorage) {
     try {
-      window.localStorage.setItem("dukkan_locale", newLocale);
+      window.localStorage.setItem(LOCALSTORAGE_KEY, newLocale);
     } catch (e) {
       // Ignore
     }
   }
+  // Persist to the unified app_settings key so the choice survives on native,
+  // where localStorage is unavailable.
+  storeLocaleInAsyncStorage(newLocale as Locale).catch((error) => {
+    if (__DEV__) {
+      console.warn("Failed to persist locale:", error);
+    }
+  });
 }

@@ -1,27 +1,22 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import { I18nextProvider, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import i18n, { updateLayoutDirection } from "@/localization/i18n";
 import {
     AppThemeProvider,
     useThemePreference,
 } from "@/providers/ThemeProvider";
+import { LocaleProvider } from "@/providers/LocaleProvider";
 
 SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
   const { colorScheme } = useThemePreference();
-  const { t, i18n: currentI18n } = useTranslation();
-
-  useEffect(() => {
-    updateLayoutDirection(currentI18n.language || "fr");
-  }, [currentI18n.language]);
+  const { t } = useTranslation();
 
   return (
     <ErrorBoundary errorMessage={t("error")} retryLabel={t("retry")}>
@@ -118,10 +113,10 @@ function RootNavigator() {
 
 export default function TabLayout() {
   return (
-    <I18nextProvider i18n={i18n}>
+    <LocaleProvider>
       <AppThemeProvider>
         <RootNavigator />
       </AppThemeProvider>
-    </I18nextProvider>
+    </LocaleProvider>
   );
 }

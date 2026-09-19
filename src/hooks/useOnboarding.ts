@@ -1,4 +1,5 @@
 import type { Locale } from "@/localization/types";
+import { LOCALE_STORAGE_KEY } from "@/localization/localeConfig";
 import { dbAll, dbWrite } from "@/database/database";
 
 /**
@@ -88,7 +89,7 @@ export async function saveLocaleLocally(locale: Locale): Promise<void> {
   try {
     await dbWrite(
       "INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)",
-      ["selected_locale", locale],
+      [LOCALE_STORAGE_KEY, locale],
     );
   } catch (error) {
     if (__DEV__) {
@@ -105,7 +106,7 @@ export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
   try {
     const rows = await dbAll<{ value: string }>(
       "SELECT value FROM app_settings WHERE key = ?",
-      ["selected_locale"],
+      [LOCALE_STORAGE_KEY],
     );
     if (rows.length === 0) {
       return "fr";
