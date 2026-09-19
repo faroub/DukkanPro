@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ScrollView,
@@ -21,6 +21,7 @@ import {
     Spacing,
     Typography,
 } from "@/constants/theme";
+import * as businessProfile from "@/database/repositories/businessProfileRepository";
 import { useTheme } from "@/hooks/use-theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

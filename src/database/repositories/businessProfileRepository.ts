@@ -32,7 +32,7 @@ export async function get(): Promise<BusinessProfile | null> {
   const rows: any[] = await executeAll(
     // No WHERE clause — we expect at most one row.
     `SELECT id, business_name, owner_name, business_type, currency,
-     selected_locale, created_at, updated_at
+     selected_locale, phone_number, address, rc_number, created_at, updated_at
      FROM business_profiles`,
   );
   if (rows.length === 0) {
@@ -47,6 +47,9 @@ export async function get(): Promise<BusinessProfile | null> {
     business_type: r.business_type,
     currency: r.currency,
     selected_locale: r.selected_locale as "ar" | "fr" | "en",
+    phone_number: r.phone_number,
+    address: r.address,
+    rc_number: r.rc_number,
     created_at: r.created_at,
     updated_at: r.updated_at,
   };
@@ -70,14 +73,18 @@ export async function create(
   const result = await executeWrite(
     // language=SQLite
     `INSERT INTO business_profiles
-     (business_name, owner_name, business_type, currency, selected_locale, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+     (business_name, owner_name, business_type, currency, selected_locale,
+      phone_number, address, rc_number, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
     [
       profile.business_name,
       profile.owner_name,
       profile.business_type,
       profile.currency,
       profile.selected_locale,
+      profile.phone_number ?? null,
+      profile.address ?? null,
+      profile.rc_number ?? null,
     ],
   );
 
@@ -102,6 +109,9 @@ export async function update(
          business_type = ?,
          currency = ?,
          selected_locale = ?,
+         phone_number = ?,
+         address = ?,
+         rc_number = ?,
          updated_at = datetime('now')
      WHERE id = ?`,
     [
@@ -110,6 +120,9 @@ export async function update(
       profile.business_type,
       profile.currency,
       profile.selected_locale,
+      profile.phone_number ?? null,
+      profile.address ?? null,
+      profile.rc_number ?? null,
       profile.id,
     ],
   );
