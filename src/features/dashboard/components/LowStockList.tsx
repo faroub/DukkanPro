@@ -35,38 +35,14 @@ export function LowStockList({
   lowStockProducts,
   locale,
   lowStockTitle = "Low Stock Alert",
+  lowStockNoLowStock,
   onViewAll,
   onRestockProduct,
 }: LowStockListProps) {
   const router = useRouter();
   const theme = useTheme();
 
-  // Fallback sample data matching Stitch if none currently below threshold
-  const displayProducts: LowStockProductItem[] =
-    lowStockProducts.length > 0
-      ? lowStockProducts.slice(0, 3)
-      : [
-          {
-            id: 1,
-            name: "Lait Candia 1L",
-            sku: "SKU-40291",
-            category: "dairy",
-            stock_quantity: 2,
-            minimum_stock_quantity: 10,
-            unit: "bottles",
-            sale_price_centimes: 12000,
-          },
-          {
-            id: 2,
-            name: "Café Moulu 250g",
-            sku: "SKU-88219",
-            category: "groceries",
-            stock_quantity: 1,
-            minimum_stock_quantity: 8,
-            unit: "unit",
-            sale_price_centimes: 22000,
-          },
-        ];
+  const displayProducts: LowStockProductItem[] = lowStockProducts.slice(0, 3);
 
   const handleViewAll = () => {
     if (onViewAll) {
@@ -121,8 +97,21 @@ export function LowStockList({
       </View>
 
       {/* Product List */}
-      <View style={styles.list}>
-        {displayProducts.map((product) => {
+      {displayProducts.length === 0 ? (
+        <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <MaterialIcons name="check-circle" size={22} color={theme.primary} />
+          <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
+            {lowStockNoLowStock ||
+              (locale === "ar"
+                ? "كل المنتجات فوق الحد الأدنى"
+                : locale === "fr"
+                ? "Tous les produits sont au-dessus du seuil"
+                : "All products are above the low-stock threshold")}
+          </ThemedText>
+        </View>
+      ) : (
+        <View style={styles.list}>
+          {displayProducts.map((product) => {
           const isCritical = product.stock_quantity <= 1;
           const statusText = isCritical
             ? locale === "ar"
@@ -193,7 +182,8 @@ export function LowStockList({
             </View>
           );
         })}
-      </View>
+        </View>
+      )}
     </View>
   );
 }

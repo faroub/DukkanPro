@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Alert,
@@ -9,6 +9,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
@@ -21,6 +23,16 @@ import {
     Spacing,
     Typography,
 } from "@/constants/theme";
+import { executeAll } from "@/database/database";
+import * as exportRepository from "@/database/repositories/exportRepository";
+import {
+    exportCustomers,
+    exportInventoryMovements,
+    exportPayments,
+    exportProducts,
+    exportSaleItems,
+    exportSales,
+} from "@/services/export/csvExportService";
 import { useTheme } from "@/hooks/use-theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -36,8 +48,8 @@ interface TableOption {
   id: ExportTableId;
   icon: keyof typeof MaterialIcons.glyphMap;
   title: string;
-  description: string;
-  bytes: number;
+  /** COUNT(*) query used to show live row counts instead of fabricated numbers. */
+  countQuery: string;
 }
 
 const TABLE_OPTIONS: TableOption[] = [
@@ -45,45 +57,63 @@ const TABLE_OPTIONS: TableOption[] = [
     id: "products",
     icon: "inventory-2",
     title: "Products",
-    description: "24 items, prices, SKUs, inventory counts",
-    bytes: 34000,
+    countQuery: "SELECT COUNT(*) AS c FROM products",
   },
   {
     id: "customers",
     icon: "menu-book",
     title: "Customers & Carnet",
-    description: "48 customers, debt ledger balances",
-    bytes: 22000,
+    countQuery: "SELECT COUNT(*) AS c FROM customers",
   },
   {
     id: "sales",
     icon: "receipt-long",
     title: "Sales History",
-    description: "142 completed sales receipts",
-    bytes: 41000,
+    countQuery: "SELECT COUNT(*) AS c FROM sales",
   },
   {
     id: "saleItems",
     icon: "shopping-basket",
     title: "Sale Items",
-    description: "Itemized sold lines & discounts",
-    bytes: 19000,
+    countQuery: "SELECT COUNT(*) AS c FROM sale_items",
   },
   {
     id: "payments",
     icon: "payments",
     title: "Customer Payments",
-    description: "Ledger settlements & repayments",
-    bytes: 7000,
+    countQuery: "SELECT COUNT(*) AS c FROM customer_payments",
   },
   {
     id: "inventoryMovements",
     icon: "swap-vert",
     title: "Inventory Movements",
-    description: "Stock adjustments, receipts, returns",
-    bytes: 5000,
+    countQuery: "SELECT COUNT(*) AS c FROM inventory_movements",
   },
 ];
+
+/** Fetch the rows for a table and render them as CSV using the export service. */
+async function buildCsvFor(
+  tableId: ExportTableId,
+  t: ReturnType<typeof useTranslation>["t"],
+): Promise<string> {
+  switch (tableId) {
+    case "products":
+      return exportProducts(await exportRepository.getAllProducts(), t);
+    case "customers":
+      return exportCustomers(await exportRepository.getAllCustomers(), t);
+    case "sales":
+      return exportSales(await exportRepository.getAllSales(), t);
+    case "saleItems":
+      return exportSaleItems(await exportRepository.getAllSaleItems(), t);
+    case "payments":
+      return exportPayments(await exportRepository.getAllPayments(), t);
+    case "inventoryMovements":
+      return exportInventoryMovements(
+        await exportRepository.getAllInventoryMovements(),
+        t,
+      );
+  }
+}
 
 /**
  * ExportSettingsScreen - Screen for downloading local backup files in CSV format.
@@ -104,16 +134,32 @@ export function ExportSettingsScreen() {
     "inventoryMovements",
   ]);
   const [isExporting, setIsExporting] = useState(false);
+  const [rowCounts, setRowCounts] = useState<Record<ExportTableId, number>>(
+    () =>
+      TABLE_OPTIONS.reduce(
+        (acc, opt) => ({ ...acc, [opt.id]: 0 }),
+        {} as Record<ExportTableId, number>,
+      ),
+  );
+
+  // Live row counts so the list never shows fabricated "24 items / 142 sales".
+  useEffect(() => {
+    (async () => {
+      const counts = { ...rowCounts };
+      for (const opt of TABLE_OPTIONS) {
+        const rows = await executeAll<{ c: number }>(opt.countQuery);
+        counts[opt.id] = rows[0]?.c ?? 0;
+      }
+      setRowCounts(counts);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isAllSelected = selectedTables.length === TABLE_OPTIONS.length;
 
-  const totalBytes = useMemo(() => {
-    return TABLE_OPTIONS.filter((opt) =>
-      selectedTables.includes(opt.id),
-    ).reduce((sum, opt) => sum + opt.bytes, 0);
-  }, [selectedTables]);
-
-  const totalKb = Math.round(totalBytes / 1024);
+  const selectedRowCount = TABLE_OPTIONS.filter((opt) =>
+    selectedTables.includes(opt.id),
+  ).reduce((sum, opt) => sum + rowCounts[opt.id], 0);
 
   const handleToggleTable = useCallback((id: ExportTableId) => {
     setSelectedTables((prev) =>
@@ -129,6 +175,49 @@ export function ExportSettingsScreen() {
     }
   }, [isAllSelected]);
 
+  const handlePerformExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const exportDir = `${FileSystem.cacheDirectory}dukkan-exports`;
+      await FileSystem.makeDirectoryAsync(exportDir, { intermediates: true });
+
+      const written: string[] = [];
+      for (const tableId of selectedTables) {
+        const csv = await buildCsvFor(tableId, t);
+        const uri = `${exportDir}/dukkan-${tableId}.csv`;
+        await FileSystem.writeAsStringAsync(uri, csv, {
+          encoding: FileSystem.EncodingType.UTF8,
+        });
+        written.push(uri);
+      }
+
+      // expo-sharing takes one URL at a time, so share each file in sequence.
+      const sharingAvailable = await Sharing.isAvailableAsync();
+      if (sharingAvailable) {
+        for (const uri of written) {
+          await Sharing.shareAsync(uri, {
+            mimeType: "text/csv",
+            dialogTitle: t("exportSettings.exportDialogTitle") || "Dukkan OS export",
+          });
+        }
+      } else {
+        showToast(
+          t("exportSettings.sharingUnavailable") ||
+            "Sharing is unavailable; files were written to the app cache.",
+        );
+      }
+
+      showToast(
+        t("exportSettings.exportSuccess") || "Export completed successfully!",
+      );
+    } catch (error) {
+      console.error("CSV export error:", error);
+      showToast(t("errors.exportFailed") || "Export failed");
+    } finally {
+      setIsExporting(false);
+    }
+  }, [selectedTables, t]);
+
   const handleConfirmExport = useCallback(() => {
     if (selectedTables.length === 0) {
       showToast(t("exports.noDataToExport") || "Select at least 1 table");
@@ -136,28 +225,24 @@ export function ExportSettingsScreen() {
     }
 
     Alert.alert(
-      "Export Confirmation",
-      `Export ${selectedTables.length} table(s) (${totalKb} KB) to local CSV storage?`,
+      t("exportSettings.exportConfirmTitle") || "Export Confirmation",
+      t("exportSettings.exportConfirmMessage", {
+        tables: selectedTables.length,
+        rows: selectedRowCount,
+      }) ||
+        `Export ${selectedTables.length} table(s) (${selectedRowCount} rows total) to CSV?`,
       [
         {
           text: t("common.cancel") || "Cancel",
           style: "cancel",
         },
         {
-          text: "Export CSV",
-          onPress: () => {
-            setIsExporting(true);
-            setTimeout(() => {
-              setIsExporting(false);
-              showToast(
-                "Export completed successfully! / Exportation terminée",
-              );
-            }, 500);
-          },
+          text: t("exportSettings.exportButton") || "Export CSV",
+          onPress: handlePerformExport,
         },
       ],
     );
-  }, [selectedTables, totalKb, t]);
+  }, [selectedTables, selectedRowCount, handlePerformExport, t]);
 
   return (
     <ScrollView
@@ -357,7 +442,7 @@ export function ExportSettingsScreen() {
                           ]}
                           numberOfLines={1}
                         >
-                          {item.description}
+                          {`${rowCounts[item.id]} ${t("exportSettings.rows") || "rows"}`}
                         </ThemedText>
                       </View>
                     </View>
@@ -453,7 +538,7 @@ export function ExportSettingsScreen() {
                     { color: theme.textSecondary },
                   ]}
                 >
-                  v1.2.4
+                  v2.4.1
                 </ThemedText>
               </View>
             </View>
@@ -461,7 +546,7 @@ export function ExportSettingsScreen() {
               style={[styles.statusSubtitle, { color: theme.textSecondary }]}
             >
               {selectedTables.length > 0
-                ? `Ready to export ${selectedTables.length} CSV files (approx ${totalKb} KB). Tap confirm below to save to Downloads.`
+                ? `Ready to export ${selectedTables.length} CSV files (${selectedRowCount} ${t("exportSettings.rows") || "rows"}). Tap confirm below to share.`
                 : "Select one or more tables from the list above to proceed."}
             </ThemedText>
           </View>
