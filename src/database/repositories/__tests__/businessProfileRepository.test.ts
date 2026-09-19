@@ -63,10 +63,7 @@ describe("businessProfileRepository", () => {
 
   describe("create()", () => {
     it("creates a new profile and returns it", async () => {
-      const newProfile: Omit<
-        BusinessProfile,
-        "id" | "created_at" | "updated_at"
-      > = {
+      const newProfile: Parameters<typeof create>[0] = {
         business_name: "New Test Shop",
         owner_name: "Tester",
         business_type: "baker",
