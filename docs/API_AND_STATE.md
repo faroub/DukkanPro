@@ -104,10 +104,10 @@ interface BalanceSummary {
 
 | Category | Key Exports |
 |---|---|
-| **Hooks** | `useProducts`, `useLocale`, `useTheme`, `useColorScheme`, `useDebounce`, `useOnboarding` |
-| **Providers** | `AppProviders`, `DatabaseProvider`, `LocaleProvider` |
+| **Hooks** | `useProducts`, `useCustomers`, `useDashboard`, `useOnboarding`, `useTheme`, `useColorScheme`, `useDebounce` |
+| **Providers** | `LocaleProvider`, `AppThemeProvider` |
 | **Services** | `customerBalanceService` |
 | **Utils** | `formatCentimes`, `parseCentimes`, `formatDate`, `formatRelativeDate`, `getTextAlignment`, `getWritingDirection`, `truncateText`, `toArabicIndicDigits`, `toLatinDigits`, `containsArabic`, `containsRTL`, `textStyle` |
 | **Repositories** | `productRepository`, `customerRepository`, `saleRepository`, `inventoryRepository`, `businessProfileRepository`, `exportRepository` |
-| **Types** | `ProductsFilters`, `ProductListItem`, `UseLocaleReturn`, `UseThemeReturn` |
+| **Types** | `ProductsFilters`, `ProductListItem`, `UseThemeReturn` |
 | **Constants** | `CENTIMES_PER_DINAR` from `src/constants/theme.ts` |

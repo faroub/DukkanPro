@@ -1,212 +1,217 @@
-# DukkanOS Application Architecture
+# DukkanPro Application Architecture
 
-DukkanOS is a React Native mobile application built with Expo SDK 57, managing inventory, sales, and customer data for a small business. The architecture follows a clean separation of concerns with distinct layers for presentation, business logic, and data persistence.
+DukkanPro is an offline-first React Native app (Expo SDK 57) for small-business
+inventory, sales, customers, and payments. All business data lives in a local
+SQLite database; there is no backend.
+
+The codebase is organized by **feature**, with thin Expo Router files that only
+render feature screens, and a shared set of UI, data, and service layers.
 
 ## Folder Structure
 
-```mermaid
-graph TD
-    src --> app
-    src --> components
-    src --> hooks
-    src --> database
-    src --> providers
-    src --> utils
-    src --> locales
-    src --> types
-    src --> constants
+```
+src/
+├── app/              # Expo Router routes (thin wrappers around feature screens)
+├── components/       # Shared UI primitives and cross-feature components
+├── constants/        # Theme palette (light/dark)
+├── database/         # SQLite singleton, schema, migrations, repositories
+├── features/         # Feature modules: screens + their local components
+├── hooks/            # Reusable hooks (data, layout, theme)
+├── localization/     # i18n setup and locale helpers
+├── locales/          # ar / fr / en translation bundles
+├── providers/        # Locale and theme React context providers
+├── services/         # Feature-spanning business services
+├── stores/           # Global client state (cart)
+├── types/            # Shared TypeScript types
+└── utils/            # Pure helpers (money, dates, text)
 ```
 
-**`src/app/`** — Expo Router file-based routing
+### `src/app/` — Expo Router file-based routing
 
-- `(tabs)/` — Tab navigator screens (products, sell, customers, more, index)
-- `products/[id].tsx` — Product detail screen
-- `products/new.tsx` — New product screen
-- `edit/[id].tsx` — Product edit screen
-- `_layout.tsx` — Root layout composing all providers
-- `explore.tsx` — Explore screen
-- `onboarding.tsx` — Onboarding flow
-- `index.tsx` — Entry point
+Route files are intentionally minimal: they import a feature screen and render
+it. Navigation wiring lives here, business logic never does.
 
-**`src/components/`** — Reusable UI components
+- `_layout.tsx` — Root layout: providers + Stack navigator (all headers hidden)
+- `index.tsx` — Onboarding gate: checks `useOnboarding.isOnboardingComplete()`,
+  then either shows `OnboardingScreen` or redirects to `/(tabs)`
+- `(tabs)/_layout.tsx` — Tab navigator (home, sell, products, customers, more)
+  with a custom `AppTabBar`
+- `(tabs)/*.tsx` — The five tab screens
+- `products/`, `customers/`, `sales/`, `settings/` — Stack routes grouped by
+  domain (`[id]` detail, `new`, `edit/[id]`, and feature-specific routes such as
+  `products/stock-adjustment`, `customers/record-payment`, `sales/history`,
+  `settings/export`, `settings/data-reset`)
+- `onboarding.tsx`, `explore.tsx`, `+not-found.tsx`
 
-- `ui/` — Base UI components (buttons, inputs, cards, etc.)
-- `AppHeader.tsx` — App header with title and actions
-- `PrimaryButton.tsx` — Primary action button
-- `SecondaryButton.tsx` — Secondary action button
-- `SearchInput.tsx` — Search field component
-- `Card.tsx` — Card component for grouping content
-- `EmptyState.tsx` — Empty state screen
-- `ErrorState.tsx` — Error display component
-- `LoadingState.tsx` — Loading indicator
-- `themed-view.tsx` — Themed view wrapper
-- `hint-row.tsx` — Hint row with title and code snippet
-- `themed-text.tsx` — Text component with theming
-- `animated-icon.tsx` — Splash screen animation
-- `web-badge.tsx` — Expo version badge
+### `src/features/` — Feature modules
 
-**`src/hooks/`** — Custom React hooks
+Each feature folder groups its screens and their private components:
 
-- `useProducts.ts` — Product fetching & filtering state
-- `useLocale.ts` — Locale management and language switching
-- `use-color-scheme.ts` — Theme detection (light/dark)
-- `useDebounce.ts` — Debounced value updates
-- `useOnboarding.ts` — Onboarding state management
+| Feature | Screens |
+|---|---|
+| `catalogue/` | `CatalogueScreen` (+ `CataloguePreview`, `CatalogueSettings`, `ProductSelector`) |
+| `customers/` | `CustomerListScreen`, `CustomerDetailScreen`, `CustomerFormScreen`, `RecordPaymentScreen`, `PaymentReminderPreview` |
+| `dashboard/` | `DashboardScreen` (+ greeting, summary cards, sales chart, low-stock alerts, quick actions, recent sales) |
+| `onboarding/` | `OnboardingScreen`, `EmptyDashboardScreen` (+ wizard steps) |
+| `products/` | `ProductListScreen`, `ProductDetailScreen`, `ProductFormScreen`, `StockAdjustmentScreen`, `LowStockScreen` |
+| `sales/` | `SellScreen`, `SalesHistoryScreen`, `SaleDetailScreen` (cart, checkout sheet, receipt preview, cancel/return dialogs, barcode scanner) |
+| `settings/` | `MoreScreen`, `BusinessSettingsScreen`, `LanguageSettingsScreen`, `ThemeSettingsScreen`, `InventorySettingsScreen`, `ExportSettingsScreen`, `DataResetScreen` |
 
-**`src/database/`** — SQLite database layer
+### `src/components/` — Shared UI
 
-- `database.ts` — Database initialization and setup
-- `schema.ts` — Database schema definitions
-- `migrations.ts` — Migration logic
-- `query.ts` — Database query helpers
-- `repositories/` — Repository pattern for data access
-  - `productRepository.ts`
-  - `customerRepository.ts`
-  - `inventoryRepository.ts`
-  - `exportRepository.ts`
-  - `saleRepository.ts`
-  - `businessProfileRepository.ts`
+- `ui/` — Primitives: `AppHeader`, `AppScreen`, `AppText`, `Button`s
+  (`Primary`, `Secondary`, `Icon`), `Card`, `FormField`, `SearchInput`,
+  `MoneyText`, `StatusBadge`, `EmptyState`, `LoadingState`, `ErrorState`,
+  `ConfirmDialog`, `Collapsible`, `ErrorBoundary`
+- `themed-text.tsx` / `themed-view.tsx` — Theme-aware wrappers
+- `navigation/AppTabBar.tsx` — Custom tab bar
+- `FooterTrademark.tsx` — Screen footer used across customer screens
+- `external-link.tsx` — Web-targeted link (used by `explore`)
+- `animated-icon.tsx` (+ `.web.tsx`) — Splash animation overlay
+- `use-toast.tsx` — `showToast` notifications
+- `index.ts` — Barrel re-exporting the shared components as `@/components`
 
-**`src/providers/`** — React context providers
+### `src/database/` — Data persistence (no context)
 
-- `AppProviders.tsx` — Compose `DatabaseProvider` + `LocaleProvider`
-- `DatabaseProvider.tsx` — SQLite database context
-- `LocaleProvider.tsx` — i18n context via `react-i18next`
+The database is a **module singleton**, not a React context:
 
-**`src/utils/`** — Utility functions (pure, testable)
+- `database.ts` — `getDatabase()` opens `DukkanOS.db` once, sets pragmas
+  (`foreign_keys`, WAL), runs migrations, and seeds dev data (`__DEV__` only).
+  Also re-exports bound query helpers (`dbAll`/`dbRead`/`dbWrite`, aliased as
+  `executeAll`/`executeRead`/`executeWrite`) and `transaction`.
+- `query.ts` — Low-level prepared-statement runners.
+- `schema.ts` — Schema SQL strings.
+- `migrations.ts` — Versioned, idempotent migrations tracked in
+  `_migration_version`.
+- `seed.ts` — Development-only sample data.
+- `repositories/` — One repository per domain: `productRepository`,
+  `customerRepository`, `saleRepository`, `inventoryRepository`,
+  `businessProfileRepository`, `dashboardRepository`, `exportRepository`,
+  `resetRepository`. Each imports the query helpers directly.
 
-- `money.ts` — DZD currency formatting (`formatCentimes`, `parseCentimes`)
-- `dates.ts` — Date formatting & relative dates
-- `text.ts` — Text manipulation (Arabic support, truncation, digit conversion)
-- `testing.ts` — Test utilities & mocks
+Write paths that span multiple tables (e.g. `saleRepository.create`) run inside
+a SQLite transaction so sale header + items + stock deduction + inventory
+movement are all-or-nothing.
 
-**`src/locales/`** — i18n translation files
+### `src/hooks/`
 
-- `en.json` — English translations
-- `fr.json` — French translations
-- `ar.json` — Arabic translations
+- Data/state: `useProducts`, `useCustomers`, `useDashboard`, `useOnboarding`
+- Utilities: `useDebounce`
+- Layout: `useEdgeToEdge` (safe-area padding for edge-to-edge)
+- Theme: `use-theme` (`useTheme()`) and `use-color-scheme` (+ `.web.ts`)
 
-**`src/types/`** — TypeScript type definitions
+### `src/providers/`
 
-- `entities.ts` — Product, Sale, Inventory types
-- `common.ts` — Shared utility types
+- `LocaleProvider.tsx` — Reads the stored/device locale on mount, keeps
+  `I18nextProvider` in sync, and mirrors layout direction.
+- `ThemeProvider.tsx` — `AppThemeProvider` context: theme preference
+  (`system` / `light` / `dark`) persisted in AsyncStorage under
+  `@dukkan_theme_preference`, plus `useThemePreference()`.
 
-**`src/constants/`** — Application constants
+### `src/services/` — Business services
 
-- `theme.ts` — Color themes & palette (light/dark)
+- `catalogue/catalogueService.ts` — Catalogue building/listing
+- `customers/customerBalanceService.ts` — Customer debt and payment recording
+- `export/csvExportService.ts` — CSV export of products/customers/sales
+- `notifications/lowStockNotifier.ts` — Low-stock alert evaluation
 
-## State Flow
+### `src/stores/`
 
-The application state follows a unidirectional data flow:
+- `cartStore.ts` — Zustand store (persisted to AsyncStorage) holding the
+  in-progress sale cart used by `SellScreen`.
 
-1. **Entry Point**: `src/app/index.tsx` renders the Expo Router root
-2. **App Providers**: `src/app/_layout.tsx` wraps everything in `AppProviders`
-3. **Database State**: `DatabaseProvider` manages SQLite database via context
-4. **Locale State**: `LocaleProvider` manages i18n language via `react-i18next`
-5. **Theme State**: `useTheme()` hook reads `useColorScheme()` from React Native
-6. **Product Data**: `useProducts` hook fetches data from `productRepository`
-7. **UI Components**: Consume context via `useLocale`, `useTheme`, or direct props
+### `src/localization/` + `src/locales/`
 
-## Data Layers
+- `i18n.ts` — i18next + react-i18next instance; French fallback; resources from
+  `locales/{ar,fr,en}.json`; `updateLayoutDirection()` pins the document
+  direction; `changeLocale()` switches language and persists the choice.
+- `localeConfig.ts` — Device-locale detection (expo-localization), locale
+  validation, AsyncStorage + `app_settings` persistence, and Intl formatting
+  (currency DZD, dates, numbers).
+- `locales/*.json` — Translation bundles.
 
-### Presentation Layer
+### `src/types/` and `src/utils/`
 
-- **UI components** (`src/components/`) — Dumb components receiving props
-- **Custom hooks** (`src/hooks/`) — Business logic separated from UI
-- **Expo Router screens** (`src/app/`) — Navigation and screen composition
+- `types/entities.ts` — Domain entities (`Product`, `Sale`, `SaleItem`, …)
+- `utils/money.ts` — Integer-centime helpers (`formatCentimes`, `parseCentimes`)
+- `utils/dates.ts` — Date formatting
+- `utils/text.ts` — Text helpers (truncation, Arabic/RTL detection, digit
+  conversion)
 
-### Business Logic Layer
+## Application Bootstrap
 
-- **Repository pattern** (`src/database/repositories/`) — Abstracts data access
-- **Utility functions** (`src/utils/`) — Pure functions for formatting, validation
-- **Custom hooks** (`src/hooks/`) — React state management with side effects
+```
+LocaleProvider                     ← i18n language + stored/device locale
+  └─ AppThemeProvider              ← color scheme (system | light | dark)
+       └─ RootNavigator
+            ├─ ErrorBoundary
+            ├─ SafeAreaProvider
+            │    └─ expo-router ThemeProvider (DarkTheme | DefaultTheme)
+            │         ├─ StatusBar
+            │         ├─ AnimatedSplashOverlay
+            │         └─ Stack (headerShown: false)
+            └─ index.tsx → onboarding gate → /(tabs)
+```
 
-### Data Layer
-
-- **SQLite database** (`src/database/`) — Persistent storage via `expo-sqlite`
-- **i18n system** (`src/locales/`) — Translation management via `i18next`
-- **Persistence** — AsyncStorage/SQLite for user preferences
+1. `src/app/index.tsx` renders the Expo Router root.
+2. `_layout.tsx` wraps the tree in `LocaleProvider` → `AppThemeProvider`.
+3. `index.tsx` checks onboarding status and either shows the onboarding flow or
+   replaces to `/(tabs)`.
 
 ## Key Flows
 
-### Product Listing Flow
+### Sell flow
 
-1. Screen calls `useProducts()` hook
-2. Hook triggers `loadProducts` callback
-3. Repository method (`getAll` or `search`) queries SQLite
-4. Results transformed with `lowStock`/`outOfStock` badges
-5. State updated, UI re-renders with product list
+1. `SellScreen` reads products via `useProducts` and the cart via `cartStore`.
+2. Products are added to the cart (barcode scan or search).
+3. `CheckoutSheet` collects payment details.
+4. `saleRepository.create()` runs an atomic transaction: sale header, sale
+   items (with cost snapshot), stock deduction, inventory movement.
+5. `ReceiptPreview` renders the receipt; the cart is cleared.
 
-### Locale Change Flow
+### Theme switching
 
-1. `changeLocale(newLocale)` called from UI
-2. Validates locale is supported (`ar`, `fr`, `en`)
-3. `i18n.changeLanguage(newLocale)` — dynamic, no reload needed
-4. Locale persisted in SQLite/AsyncStorage
-5. `LocaleProvider` updates context for subtree
+1. `ThemeSettingsScreen` writes the preference to AsyncStorage
+   (`@dukkan_theme_preference`).
+2. `AppThemeProvider` updates the context; `useThemePreference()` drives the
+   expo-router `ThemeProvider` value (`DarkTheme`/`DefaultTheme`) and
+   `StatusBar` style.
 
-### Database Flow
+### Locale switching
 
-1. Component mounts, `DatabaseProvider` init effect runs
-2. `openDatabase()` creates/opens `dukkanos.db`
-3. Schema tables created if not exist (sales, payments, inventory, settings)
-4. Context value exposed via `DatabaseContext`
-5. Repositories use `DatabaseContext` to query data
+1. `LanguageSettingsScreen` calls `changeLocale(newLocale)`.
+2. Locale is validated (`ar`, `fr`, `en`) and applied to i18next.
+3. Choice is persisted to AsyncStorage and the `app_settings` SQLite table.
+4. `updateLayoutDirection()` keeps the document direction **LTR**.
 
-## Navigation
+### Database access
 
-- Uses **Expo Router** with file-based routing
-- Tab navigator defined in `src/app/(tabs)/`
-- Deep linking configured in `app.json`
-- Typed routes enabled (`typedRoutes: true`)
-- Screen options: `headerShown: false` for tab bar
+Repositories import `executeRead`/`executeWrite`/`transaction` from
+`@/database/database` and call them directly — the first call lazily opens the
+singleton (`DukkanOS.db`), runs migrations, and (in development) seeds sample
+data.
 
-## Providers Composition
+## Conventions
 
-```
-<AppProviders>
-  <SafeAreaView>
-    <DatabaseProvider>
-      <LocaleProvider>{children}</LocaleProvider>
-    </DatabaseProvider>
-  </SafeAreaView>
-</AppProviders>
-```
+- **LTR-only layout.** The app stays visually LTR for every language; Arabic
+  may right-align text inside individual components. Enforced by
+  `src/__tests__/ltr-architecture.test.ts` and
+  `scripts/check-no-rtl.ts` (rejects `I18nManager.forceRTL`/`allowRTL` and
+  `flexDirection: "row-reverse"`).
+- **Platform-specific files.** `.web.tsx`/`.web.ts` variants (e.g.
+  `animated-icon.web.tsx`, `use-color-scheme.web.ts`, `SalesChartView.web.tsx`)
+  are selected by Metro on web; the native variant is used otherwise.
+- **Money is integer centimes** everywhere; formatting to DZD happens only at
+  display time (`formatCentimes`, `MoneyText`).
+- **Route files stay thin.** Screens and logic live in `src/features/`.
 
-- `AppProviders` composes `DatabaseProvider` and `LocaleProvider`
-- `DatabaseProvider` opens `dukkanos.db` on mount, creates tables if not exist
-- `LocaleProvider` initializes i18next with French as default language
-- Detects device locale on first launch using `expo-localization`
-- Persists selected locale in SQLite (merchant override)
-- Language switching does NOT trigger RTL layout changes
-- App remains visually LTR regardless of selected language
+## Testing
 
-## Utilities Overview
-
-| Utility | Purpose |
-|---|---|
-| `formatCentimes` | Format integer centimes to DZD string |
-| `parseCentimes` | Parse DZD string back to centimes integer |
-| `formatDate` | Format Date object using locale-specific Intl |
-| `formatRelativeDate` | Format date relative to "today" |
-| `getTextAlignment` | Return CSS `textAlign` for locale |
-| `getWritingDirection` | Return CSS `writingDirection` for locale |
-| `truncateText` | Safely truncate text with ellipsis |
-| `toArabicIndicDigits` | Convert Latin digits to Arabic-Indic |
-| `toLatinDigits` | Convert Arabic-Indic digits to Latin |
-| `containsArabic` | Check if text contains Arabic characters |
-| `containsRTL` | Check if text contains RTL characters |
-| `textStyle` | Generate text style object for locale |
-
-## Types Overview
-
-| Type | Description |
-|---|---|
-| `Product` | Product entity with name, SKU, price, stock, unit |
-| `ProductsFilters` | Filters for product queries (is_active, search, etc.) |
-| `UseLocaleReturn` | Locale state: locale, isRTL, changeLocale, getCurrencyCode |
-| `UseThemeReturn` | Theme state: color scheme, palette colors |
-| `ProductsListItem` | Product list item with badges (lowStock, outOfStock) |
-| `SaleRecord` | Sale record with date, type, amount, payment, status |
-| `InventoryMovement` | Inventory movement record |
-| `ProductsSortOptions` | Sort options for product listing |
+- Jest + `jest-expo` (`package.json` → `test`), setup in `jest.setup.js`.
+- Unit tests for repositories, services, utils, and hooks live in `__tests__/`
+  folders next to the code they cover.
+- `src/__mocks__/expo-sqlite` provides the SQLite mock for tests.
+- Guard suites: `route-architecture.test.ts`, `ltr-architecture.test.ts`,
+  `security-rules.test.ts`, `recharts-guard.test.ts`.
+- `scripts/check-architecture.ts` validates that `src/app/` contains only route
+  and layout files.
