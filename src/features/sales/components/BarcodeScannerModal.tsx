@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Linking,
   Modal,
   Pressable,
   StyleSheet,
@@ -54,7 +55,9 @@ export function BarcodeScannerModal({
   onNavigateToCreateProduct,
   onSearchInCatalog,
 }: BarcodeScannerModalProps) {
-  const [permission, requestPermission] = useCameraPermissions();
+  // `request: true` prompts for camera access when the modal mounts (i.e. when
+  // the user opens the scanner), mirroring the browser permission prompt.
+  const [permission, requestPermission] = useCameraPermissions({ request: true });
   const [manualCode, setManualCode] = useState("");
   const [continuousMode, setContinuousMode] = useState(false);
   const [sessionScanCount, setSessionScanCount] = useState(0);
@@ -127,12 +130,15 @@ export function BarcodeScannerModal({
     [handleCodeFound]
   );
 
-  // Ask for camera access on open, mirroring the browser permission prompt.
-  useEffect(() => {
-    if (visible && permission && !permission.granted && permission.canAskAgain) {
+  // Permission denied permanently: the OS won't show the prompt again, so the
+  // only way back is the system settings screen for this app.
+  const handleRequestPermission = () => {
+    if (permission && !permission.granted && !permission.canAskAgain) {
+      Linking.openSettings();
+    } else {
       requestPermission();
     }
-  }, [visible, permission, requestPermission]);
+  };
 
   // Laser reticle animation while the camera preview is live.
   useEffect(() => {
@@ -258,11 +264,15 @@ export function BarcodeScannerModal({
                         Caméra non autorisée
                       </ThemedText>
                       <ThemedText style={styles.fallbackSub}>
-                        {"Autorisez l'accès à la caméra pour scanner les code-barres."}
+                        {permission.canAskAgain
+                          ? "Autorisez l'accès à la caméra pour scanner les code-barres."
+                          : "L'accès a été refusé. Réactivez la caméra dans les paramètres de l'application."}
                       </ThemedText>
-                      <Pressable style={styles.retryBtn} onPress={() => requestPermission()}>
+                      <Pressable style={styles.retryBtn} onPress={handleRequestPermission}>
                         <ThemedText style={styles.retryBtnText}>
-                          Autoriser la caméra
+                          {permission.canAskAgain
+                            ? "Autoriser la caméra"
+                            : "Ouvrir les paramètres"}
                         </ThemedText>
                       </Pressable>
                     </View>
