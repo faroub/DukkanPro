@@ -51,6 +51,18 @@ describe('formatCentimes', () => {
     expect(result).toMatch(/0.*[A-Z]|[A-Z].*0/);
     expect(result).toMatch(/[A-Z]/);
   });
+
+  it('should format 14000 centimes in EUR currency', () => {
+    const result = formatCentimes(14000, 'fr-DZ', 'EUR');
+    expect(result).toContain('140');
+    expect(result).toContain('€');
+  });
+
+  it('should format 14000 centimes in USD currency', () => {
+    const result = formatCentimes(14000, 'en-DZ', 'USD');
+    expect(result).toContain('140');
+    expect(result).toContain('$');
+  });
 });
 
 describe('parseCentimes', () => {

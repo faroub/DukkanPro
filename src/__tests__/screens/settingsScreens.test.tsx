@@ -32,14 +32,17 @@ describe("Settings Screens Integration Harness", () => {
   });
 
   describe("BusinessSettingsScreen", () => {
-    it("renders business profile form fields", async () => {
+    it("renders business profile form fields and currency options", async () => {
       await seedTestBusinessProfile("Pro Magasin", "0555001122", "Oran");
 
       renderScreen(<BusinessSettingsScreen />);
 
       await waitFor(() => {
-        expect(screen.getAllByText(/Business Name/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/Nom du magasin/i).length).toBeGreaterThan(0);
         expect(screen.getAllByText("Pro Magasin").length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/DZD/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/EUR/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/USD/i).length).toBeGreaterThan(0);
       });
     });
   });
