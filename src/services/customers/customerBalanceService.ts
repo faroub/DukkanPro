@@ -171,11 +171,13 @@ export async function canRecordPayment(
  - Record a payment for a customer in a single SQLite transaction.
  -
  - Payment rules:
-   - Amount must be positive (enforced by canRecordPayment check)
+   - Amount must be positive
    - Payment method: cash or electronic (MVP)
    - Note is optional
    - Confirmation is handled by the caller
- - Block overpayment in MVP
+   - Overpayment is blocked: the debt is re-read inside the transaction so a
+     concurrent payment cannot push the balance negative between the check
+     and the insert (BEGIN IMMEDIATE serializes writers).
  -
  - @param customerId - The customer's ID
  - @param amount - Payment amount in centimes
@@ -189,36 +191,43 @@ export async function recordPayment(
   method: "cash" | "electronic",
   note?: string,
 ): Promise<CustomerPayment | null> {
-  // Check if payment can be recorded (blocks overpayment)
-  const canPay = await canRecordPayment(customerId, amount);
-  if (!canPay) {
+  if (amount <= 0) {
     return null;
   }
 
-  const now = new Date().toISOString();
-
   const db = await getDatabase();
-  const paymentId = await transaction(db, async () =>
-    executeWrite(
+  return await transaction(db, async () => {
+    // Re-check the debt INSIDE the transaction. `transaction` opens with
+    // BEGIN IMMEDIATE, which takes the write lock, so no rival payment can
+    // commit between this read and our INSERT. Checking the debt before the
+    // transaction would be a check-then-act race that allows overpayment.
+    const debt = await getCustomerDebt(customerId);
+    if (amount > debt) {
+      return null;
+    }
+
+    const paymentId = await executeWrite(
       // language=SQLite
       `INSERT INTO customer_payments
          (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
        VALUES
          (?, ?, ?, ?, datetime('now'), datetime('now'))`,
       [customerId, amount, method, note],
-    ),
-  );
+    );
 
-  // Return the newly created payment record
-  return {
-    id: paymentId,
-    customer_id: customerId,
-    amount_centimes: amount,
-    payment_method: method,
-    note: note ?? null,
-    paid_at: now,
-    created_at: now,
-  };
+    const now = new Date().toISOString();
+
+    // Return the newly created payment record
+    return {
+      id: paymentId,
+      customer_id: customerId,
+      amount_centimes: amount,
+      payment_method: method,
+      note: note ?? null,
+      paid_at: now,
+      created_at: now,
+    };
+  });
 }
 
 /**

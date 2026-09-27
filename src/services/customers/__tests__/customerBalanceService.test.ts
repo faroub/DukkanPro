@@ -315,6 +315,38 @@ describe("customerBalanceService", () => {
       );
       expect(result).not.toBeNull();
     });
+
+    it("re-checks debt inside the transaction so a concurrent payment cannot cause overpayment", async () => {
+      // Customer owes 28000 centimes and nothing is paid yet.
+      mockedSales = [mockCompletedSale];
+      mockedPayments = [];
+
+      // Simulate a rival payment committing as our transaction opens: the debt
+      // check must be re-read inside the transaction, so our payment is refused
+      // instead of pushing the balance negative.
+      const database = require("@/database/database");
+      (database.transaction as jest.Mock).mockImplementation(
+        async (_db: unknown, callback: () => Promise<unknown>) => {
+          mockedPayments = [
+            {
+              id: 99,
+              customer_id: 1,
+              amount_centimes: 28000,
+              payment_method: "cash",
+              note: "paid by rival write",
+              paid_at: "2026-09-25T10:00:00Z",
+              created_at: "2026-09-25T10:00:00Z",
+            },
+          ];
+          return callback();
+        },
+      );
+
+      const result = await customerBalanceService.recordPayment(1, 28000, "cash");
+
+      expect(result).toBeNull();
+      expect(database.executeWrite).not.toHaveBeenCalled();
+    });
   });
 
   describe("getCustomerBalanceSummary", () => {

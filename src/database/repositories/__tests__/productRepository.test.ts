@@ -248,6 +248,42 @@ describe("productRepository", () => {
     });
   });
 
+  describe("create() without a SKU", () => {
+    it("returns the product it just created, not another row", async () => {
+      // Seed an existing product first.
+      await create({
+        name: "منتج موجود مسبقاً",
+        sku: "EX-001",
+        category: "اختبار",
+        sale_price_centimes: 100,
+        cost_price_centimes: 50,
+        stock_quantity: 1,
+        minimum_stock_quantity: 1,
+        unit: "قطعة",
+        is_active: true,
+      });
+
+      // SKU is optional in the add-product form, so this is the common path.
+      const created = await create({
+        name: "منتج بدون رمز",
+        sku: null,
+        category: "اختبار",
+        sale_price_centimes: 700,
+        cost_price_centimes: 300,
+        stock_quantity: 4,
+        minimum_stock_quantity: 2,
+        unit: "قطعة",
+        is_active: true,
+      });
+
+      // The returned record must describe the row that was just inserted.
+      expect(created.id).toBeGreaterThan(0);
+      const fetched = await getById(created.id);
+      expect(fetched?.name).toBe("منتج بدون رمز");
+      expect(fetched?.sale_price_centimes).toBe(700);
+    });
+  });
+
   describe("adjustStock()", () => {
     it("creates an inventory movement and updates stock", async () => {
       const created = await create({

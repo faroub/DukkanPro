@@ -91,3 +91,59 @@ describe("CSV export privacy", () => {
     expect(csv).not.toContain("400");
   });
 });
+
+describe("CSV export quoting", () => {
+  it("quotes a value containing a comma exactly once", () => {
+    const csv = exportProducts(
+      [
+        {
+          id: 1,
+          name: "Milk, 1L",
+          sku: "MK-1",
+          category: "Dairy",
+          sale_price_centimes: 500,
+          unit: "pcs",
+        },
+      ],
+      t as never,
+    );
+    const dataLine = csv.split("\n")[1];
+    expect(dataLine).toBe(`"1","Milk, 1L","MK-1","Dairy","500","pcs"`);
+  });
+
+  it("escapes an embedded double quote exactly once, not twice", () => {
+    const csv = exportProducts(
+      [
+        {
+          id: 1,
+          name: 'Soda "Classic"',
+          sku: "SK-1",
+          category: "Soda",
+          sale_price_centimes: 500,
+          unit: "pcs",
+        },
+      ],
+      t as never,
+    );
+    const dataLine = csv.split("\n")[1];
+    expect(dataLine).toBe(`"1","Soda ""Classic""","SK-1","Soda","500","pcs"`);
+  });
+
+  it("keeps a value containing a newline inside a single quoted field", () => {
+    const csv = exportCustomers(
+      [
+        {
+          id: 1,
+          name: "Line one\nLine two",
+          phone: "0550000000",
+        },
+      ],
+      t as never,
+    );
+    // The newline lives inside the quoted field — a CSV parser reads this as
+    // one record with a two-line name. Doubled quoting would corrupt it.
+    expect(csv).toBe(
+      `"customers.id","customers.name","customers.phone"\n"1","Line one\nLine two","0550000000"`,
+    );
+  });
+});
