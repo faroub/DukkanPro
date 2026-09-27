@@ -30,6 +30,7 @@ interface SaleDetailScreenProps {
 
 export function SaleDetailScreen(props?: SaleDetailScreenProps) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const localParams = useLocalSearchParams<{ id?: string }>();
   const { t, i18n } = useTranslation();
   const lang = i18n.language || 'fr';
@@ -230,8 +231,6 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase())
     .join('');
-
-  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.screenWrapper}>

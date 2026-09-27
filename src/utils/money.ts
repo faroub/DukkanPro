@@ -16,14 +16,30 @@ const CENTIMES_PER_DINAR = 100;
 
 export type CurrencyCode = "DZD" | "EUR" | "USD";
 
+// Global cached store currency so all formatCentimes calls default to the active store currency
+let activeStoreCurrency: CurrencyCode = "DZD";
+
+export function setActiveStoreCurrency(currency?: string | CurrencyCode) {
+  if (currency) {
+    const code = currency.toUpperCase() as CurrencyCode;
+    if (code === "DZD" || code === "EUR" || code === "USD") {
+      activeStoreCurrency = code;
+    }
+  }
+}
+
+export function getActiveStoreCurrency(): CurrencyCode {
+  return activeStoreCurrency || "DZD";
+}
+
 /**
  * Returns currency symbol/suffix based on currency code and locale.
  */
 export function getCurrencySymbol(
-  currency: CurrencyCode | string = "DZD",
+  currency?: CurrencyCode | string,
   locale?: string
 ): string {
-  const code = (currency || "DZD").toUpperCase();
+  const code = (currency || activeStoreCurrency || "DZD").toUpperCase();
   const isArabic = locale?.startsWith("ar") || i18n?.language?.startsWith("ar");
 
   switch (code) {
@@ -66,7 +82,7 @@ export function toArabicIndicNumerals(text: string): string {
 
 /**
  * Format centimes amount to a currency display string for the given locale.
- * Default currency is DZD.
+ * Default currency is the active store currency (or DZD).
  *
  * @param centimes - Amount in centimes (integer)
  * @param localeInput - Optional locale string (ar-DZ, fr-DZ, en-DZ, ar, fr, en)
@@ -79,7 +95,7 @@ export function formatCentimes(
   currencyInput?: "DZD" | "EUR" | "USD" | string
 ): string {
   const amount = centimes / CENTIMES_PER_DINAR;
-  const currencyCode = (currencyInput || "DZD").toUpperCase() as CurrencyCode;
+  const currencyCode = (currencyInput || activeStoreCurrency || "DZD").toUpperCase() as CurrencyCode;
 
   let targetLocale = localeInput;
   if (!targetLocale) {
@@ -121,7 +137,7 @@ export function formatCentimes(
  */
 export function format14000Centimes(
   locale: "ar-DZ" | "fr-DZ" | "en-DZ" = "fr-DZ",
-  currency: CurrencyCode = "DZD"
+  currency?: CurrencyCode
 ): string {
   return formatCentimes(14000, locale, currency);
 }

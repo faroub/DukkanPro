@@ -44,20 +44,20 @@ export function PaymentReminderPreview({
   const [channel, setChannel] = useState<"whatsapp" | "sms">("whatsapp");
 
   // Format amount for message
-  const amountDinars = Math.round(currentDebt / 100);
+  const formattedDebt = formatCentimes(currentDebt, lang);
 
   // Generate localized message body
   const messageBody = useMemo(() => {
     switch (lang) {
       case "ar":
-        return `مرحباً ${customerName}،\nرصيدكم المتبقي في المتجر هو ${amountDinars} دج.\nشكراً لزيارتكم ووفائكم المستمر!`;
+        return `مرحباً ${customerName}،\nرصيدكم المتبقي في المتجر هو ${formattedDebt}.\nشكراً لزيارتكم ووفائكم المستمر!`;
       case "en":
-        return `Hello ${customerName},\nYour outstanding balance at the store is ${amountDinars} DZD.\nThank you for your business and see you soon!`;
+        return `Hello ${customerName},\nYour outstanding balance at the store is ${formattedDebt}.\nThank you for your business and see you soon!`;
       case "fr":
       default:
-        return `Bonjour ${customerName},\nVotre solde restant en boutique est de ${amountDinars} DZD.\nMerci pour votre confiance et à très bientôt !`;
+        return `Bonjour ${customerName},\nVotre solde restant en boutique est de ${formattedDebt}.\nMerci pour votre confiance et à très bientôt !`;
     }
-  }, [customerName, amountDinars, lang]);
+  }, [customerName, formattedDebt, lang]);
 
   const handleSend = useCallback(async () => {
     const encodedText = encodeURIComponent(messageBody);

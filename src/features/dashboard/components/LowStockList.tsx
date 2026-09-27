@@ -19,8 +19,9 @@ export interface LowStockProductItem {
 }
 
 interface LowStockListProps {
-  lowStockCount: number;
-  lowStockProducts: LowStockProductItem[];
+  lowStockCount?: number;
+  lowStockProducts?: LowStockProductItem[];
+  products?: LowStockProductItem[];
   locale: "ar" | "fr" | "en";
   textAlignment?: "left" | "right";
   lowStockTitle?: string;
@@ -28,20 +29,25 @@ interface LowStockListProps {
   lowStockNote?: string;
   onViewAll?: () => void;
   onRestockProduct?: (product: LowStockProductItem) => void;
+  onRestock?: (product: LowStockProductItem) => void;
 }
 
 export function LowStockList({
   lowStockProducts,
+  products,
   locale,
   lowStockTitle = "Low Stock Alert",
   lowStockNoLowStock,
   onViewAll,
   onRestockProduct,
+  onRestock,
 }: LowStockListProps) {
   const router = useRouter();
   const theme = useTheme();
 
-  const displayProducts: LowStockProductItem[] = lowStockProducts.slice(0, 3);
+  const list = lowStockProducts || products || [];
+  const displayProducts: LowStockProductItem[] = list.slice(0, 3);
+  const handleRestockCall = onRestockProduct || onRestock;
 
   const handleViewAll = () => {
     if (onViewAll) {

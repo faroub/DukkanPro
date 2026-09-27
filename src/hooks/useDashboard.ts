@@ -17,7 +17,7 @@ import {
 } from "@/database/repositories/dashboardRepository";
 import { getAll } from "@/database/repositories/saleRepository";
 import { getAllPayments } from "@/database/repositories/exportRepository";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // Sales that contribute to dashboard figures; cancelled/returned are excluded.
 const VALID_SALE_STATUSES = ["completed", "partial", "credit"];
@@ -34,6 +34,11 @@ export interface DashboardData {
   todayProfit_centimes: number;
   toCollect_centimes: number;
 
+  // Store activity status
+  totalProductsCount: number;
+  totalSalesCount: number;
+  hasProductsOrSales: boolean;
+
   // Component data
   lowStockCount: number;
   recentSales: any[];
@@ -47,9 +52,13 @@ export interface DashboardData {
   quickActionRecordPayment: string;
 }
 
+export interface DashboardResult extends DashboardData {
+  refetch: () => Promise<void>;
+}
+
 /**
- - Fetch today's revenue and cost of goods sold, all customer debt,
- - low-stock products (active, stock <= threshold), and recent sales.
+ * Fetch today's revenue and cost of goods sold, all customer debt,
+ * low-stock products (active, stock <= threshold), and recent sales.
  */
 export async function fetchDashboardData(
   locale: "ar" | "fr" | "en",
@@ -63,7 +72,6 @@ export async function fetchDashboardData(
   const allPayments = await getAllPayments();
 
   // ---- To collect: outstanding balances from completed sales minus recorded payments ----
-  // recordPayment never reduces sale balances, so payments are subtracted here.
   const completedSaleBalances = (allSales || [])
     .filter((s) => s.status === "completed")
     .reduce(
@@ -85,13 +93,21 @@ export async function fetchDashboardData(
     .slice(0, 5)
     .map((sale) => ({ ...sale, customerName: sale.customer_name ?? undefined }));
 
-  // ---- Low-stock products (active, stock <= minimum threshold) ----
+  // ---- Store counts & Low-stock products ----
   let lowStockCount = 0;
   let lowStockProducts: any[] = [];
+  let totalProductsCount = 0;
+  let totalSalesCount = 0;
+
   try {
     const db = await getDatabase();
+    const pRow: any[] = await db.getAllAsync("SELECT COUNT(*) as c FROM products WHERE is_active = 1");
+    totalProductsCount = pRow[0]?.c || 0;
+
+    const sRow: any[] = await db.getAllAsync("SELECT COUNT(*) as c FROM sales");
+    totalSalesCount = sRow[0]?.c || 0;
+
     const products: any[] = await db.getAllAsync(
-      // language=SQLite
       "SELECT * FROM products WHERE is_active = 1",
     );
     lowStockProducts = (products || []).filter((p: any) => {
@@ -103,7 +119,7 @@ export async function fetchDashboardData(
     });
     lowStockCount = lowStockProducts.length;
   } catch (_err) {
-    // If the DB query fails, keep the empty defaults
+    // If DB query fails, keep empty defaults
   }
 
   let currencyCode = "DZD";
@@ -114,10 +130,12 @@ export async function fetchDashboardData(
     }
   } catch {}
 
+  const hasProductsOrSales = totalProductsCount > 0 || totalSalesCount > 0;
+
   // ---- Build the dashboard data object ----
   return {
     // Greeting & date
-    greeting: "", // will be set by hook caller
+    greeting: "",
     todayDate: new Date().toLocaleDateString(locale, {
       weekday: "short",
       year: "numeric",
@@ -132,13 +150,18 @@ export async function fetchDashboardData(
     todayProfit_centimes: todayRevenue_centimes - historicalCost_centimes,
     toCollect_centimes,
 
+    // Store activity status
+    totalProductsCount,
+    totalSalesCount,
+    hasProductsOrSales,
+
     // Component data
     lowStockCount,
     recentSales,
     lowStockProducts,
     sevenDaySales: await getSevenDaySales(),
 
-    // Quick action keys - will be overridden by deps.t in the hook
+    // Quick action keys
     quickActionNewSale: "dashboard.quick.newSale",
     quickActionAddProduct: "dashboard.quick.addProduct",
     quickActionAddCustomer: "dashboard.quick.addCustomer",
@@ -149,22 +172,15 @@ export async function fetchDashboardData(
 /**
  * Main hook: useDashboard
  *
- - Fetches data from SQLite via repository functions
- - Computes profit = revenue - historical cost
- - Returns DashboardData for the DashboardScreen
- *
- - MUST be called with a `deps` object containing `t` and `locale`
- - The caller (DashboardScreen) provides the translation function and selected locale
- *
- - Refetches when the locale changes; t is read through a ref so that a
- - new `deps` object identity on every render does not trigger a refetch.
+ * - Fetches data from SQLite via repository functions
+ * - Computes profit = revenue - historical cost
+ * - Returns DashboardResult for DashboardScreen including refetch()
  */
 export function useDashboard(deps: {
   t: (key: string) => string;
   locale: "ar" | "fr" | "en";
-}): DashboardData {
+}): DashboardResult {
   const [data, setData] = useState<DashboardData>(() => {
-    // Initial state - will be hydrated after fetch
     return {
       greeting: deps.t("dashboard.greeting"),
       todayDate: new Date().toLocaleDateString(deps.locale, {
@@ -178,6 +194,9 @@ export function useDashboard(deps: {
       todayRevenue_centimes: 0,
       todayProfit_centimes: 0,
       toCollect_centimes: 0,
+      totalProductsCount: 0,
+      totalSalesCount: 0,
+      hasProductsOrSales: false,
       lowStockCount: 0,
       recentSales: [],
       lowStockProducts: [],
@@ -188,16 +207,27 @@ export function useDashboard(deps: {
     };
   });
 
-  // t is read through a ref: its identity may change on every render, but only
-  // locale changes should trigger a refetch.
   const tRef = useRef(deps.t);
   tRef.current = deps.t;
   const locale = deps.locale;
 
+  const refetch = useCallback(async () => {
+    const dashboardData = await fetchDashboardData(locale);
+    setData({
+      ...dashboardData,
+      greeting: tRef.current("dashboard.greeting"),
+      quickActionNewSale: tRef.current(dashboardData.quickActionNewSale),
+      quickActionAddProduct: tRef.current(dashboardData.quickActionAddProduct),
+      quickActionAddCustomer: tRef.current(dashboardData.quickActionAddCustomer),
+      quickActionRecordPayment: tRef.current(
+        dashboardData.quickActionRecordPayment,
+      ),
+    });
+  }, [locale]);
+
   useEffect(() => {
     let isMounted = true;
 
-    // Fetch data async and hydrate state
     (async () => {
       const dashboardData = await fetchDashboardData(locale);
       if (!isMounted) return;
@@ -219,5 +249,8 @@ export function useDashboard(deps: {
     };
   }, [locale]);
 
-  return data;
+  return {
+    ...data,
+    refetch,
+  };
 }

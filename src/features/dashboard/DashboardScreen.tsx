@@ -14,7 +14,7 @@
  * Strictly visual LTR layout across all languages (ar, fr, en).
  */
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Alert,
   Modal,
@@ -26,7 +26,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -66,62 +66,82 @@ export default function DashboardScreenDefault({
     todayRevenue_centimes,
     todayProfit_centimes,
     toCollect_centimes,
+    hasProductsOrSales,
     lowStockCount,
     recentSales,
     lowStockProducts,
     sevenDaySales,
+    refetch,
   } = useDashboard({ t, locale });
+
+  // Auto-refetch SQLite dashboard data whenever the Home tab receives focus
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const alignment = getTextAlignment(locale);
 
-  // Quick Action Sheet state
+  // Bottom action sheet visibility
   const [quickActionVisible, setQuickActionVisible] = useState(false);
 
-  // Notification Modal state
-  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
-
-  // Quick Restock Modal state
+  // Quick Restock modal sheet states
   const [restockModalVisible, setRestockModalVisible] = useState(false);
-  const [selectedRestockProduct, setSelectedRestockProduct] = useState<LowStockProductItem | null>(null);
+  const [selectedRestockProduct, setSelectedRestockProduct] =
+    useState<LowStockProductItem | null>(null);
   const [restockAmount, setRestockAmount] = useState<number>(10);
 
-  // Navigation handlers
+  // Notification center modal
+  const [notificationModalVisible, setNotificationModalVisible] =
+    useState(false);
+
+  // Quick action navigation handlers
   const handleNewSale = () => {
+    setQuickActionVisible(false);
     router.push("/(tabs)/sell" as any);
   };
+
   const handleAddProduct = () => {
+    setQuickActionVisible(false);
     router.push("/products/new" as any);
   };
+
   const handleAddCustomer = () => {
+    setQuickActionVisible(false);
     router.push("/customers/new" as any);
   };
+
   const handleRecordPayment = () => {
-    router.push("/(tabs)/customers" as any);
+    setQuickActionVisible(false);
+    router.push("/customers/record-payment" as any);
   };
+
   const handleSeeAllSales = () => {
     router.push("/sales/history" as any);
   };
+
   const handleViewAllLowStock = () => {
     router.push("/products/low-stock" as any);
   };
 
-  // Quick Restock handlers
-  const handleRestockProduct = (product: LowStockProductItem) => {
-    setSelectedRestockProduct(product);
-    const suggested = Math.max(5, product.minimum_stock_quantity * 2 - product.stock_quantity);
-    setRestockAmount(suggested);
+  const handleRestockProduct = (item: LowStockProductItem) => {
+    setSelectedRestockProduct(item);
+    setRestockAmount(10);
     setRestockModalVisible(true);
   };
 
   const handleConfirmRestock = async () => {
-    if (!selectedRestockProduct) return;
+    if (!selectedRestockProduct || restockAmount <= 0) return;
     try {
-      const newStock = selectedRestockProduct.stock_quantity + restockAmount;
+      const newStock =
+        (selectedRestockProduct.stock_quantity || 0) + restockAmount;
       await updateProductStock(selectedRestockProduct.id, {
         stock_quantity: newStock,
       });
 
       setRestockModalVisible(false);
+      refetch();
       Alert.alert(
         locale === "ar" ? "تم التحديث" : locale === "fr" ? "Stock mis à jour" : "Stock Updated",
         locale === "ar"
@@ -134,11 +154,7 @@ export default function DashboardScreenDefault({
     }
   };
 
-  const isEmptyDashboard =
-    recentSales.length === 0 &&
-    todayRevenue_centimes === 0 &&
-    lowStockProducts.length === 0 &&
-    toCollect_centimes === 0;
+  const isEmptyDashboard = !hasProductsOrSales;
 
   if (isEmptyDashboard) {
     return (
@@ -221,54 +237,17 @@ export default function DashboardScreenDefault({
           recentSales={recentSales}
           locale={locale}
           textAlignment={alignment}
-          recentSalesHeader={t("dashboard.recentSales.title") || (locale === "ar" ? "المبيعات الأخيرة" : "Recent Sales")}
-          recentSalesNoResults={t("dashboard.recentSales.noSales") || "No sales yet today"}
           onSeeAll={handleSeeAllSales}
-          onSelectSale={(id) => router.push(`/sales/${id}` as any)}
         />
 
-        {/* 5. Low-Stock Alert Section */}
+        {/* 5. Low Stock Alert & Inventory Section */}
         <LowStockList
-          lowStockCount={lowStockCount}
-          lowStockProducts={lowStockProducts}
+          products={lowStockProducts}
           locale={locale}
           textAlignment={alignment}
-          lowStockTitle={t("dashboard.lowStock.title") || (locale === "ar" ? "تنبيه نقص المخزون" : "Low Stock Alert")}
-          lowStockNoLowStock={t("dashboard.lowStock.noLowStock") || "Stock level OK"}
-          lowStockNote={t("dashboard.lowStock.note", { count: lowStockCount })}
           onViewAll={handleViewAllLowStock}
-          onRestockProduct={handleRestockProduct}
+          onRestock={handleRestockProduct}
         />
-
-        {/* 6. Primary Action Buttons at Bottom */}
-        <View style={styles.actionTriggersRow}>
-          <TouchableOpacity
-            style={[styles.primarySaleButton, { backgroundColor: theme.primary }]}
-            onPress={handleNewSale}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="New Sale"
-          >
-            <MaterialIcons name="add-circle" size={22} color="#FFFFFF" />
-            <ThemedText style={styles.primarySaleButtonText}>
-              {locale === "ar"
-                ? "عملية بيع جديدة"
-                : locale === "fr"
-                ? "Nouvelle Vente"
-                : "New Sale"}
-            </ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.quickActionsTrigger, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onPress={() => setQuickActionVisible(true)}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Open Quick Actions menu"
-          >
-            <MaterialIcons name="bolt" size={22} color={theme.primary} />
-          </TouchableOpacity>
-        </View>
 
         {/* Footer Trademark */}
         <FooterTrademark />
@@ -468,22 +447,21 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     alignSelf: "center",
-    marginTop: -4,
+    marginBottom: 8,
   },
   modalHeader: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "flex-start",
   },
   modalSubHeader: {
     ...Typography.caption,
     fontSize: 12,
+    fontWeight: "600",
   },
   modalProductTitle: {
     ...Typography.heading3,
-    fontSize: 17,
-    fontWeight: "700",
-    marginTop: 2,
+    fontSize: 18,
   },
   modalCloseBtn: {
     width: 32,
@@ -493,62 +471,55 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalCurrentLevelBox: {
+    padding: Spacing.md,
     borderRadius: BorderRadius.md,
-    padding: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    gap: 4,
   },
   modalCurrentLevelLabel: {
     ...Typography.caption,
-    fontSize: 13,
+    fontSize: 12,
   },
   modalCurrentLevelValue: {
     ...Typography.label,
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 15,
   },
   modalStepperRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 4,
+    justifyContent: "space-between",
   },
   modalStepperLabel: {
-    ...Typography.body,
-    fontSize: 15,
-    fontWeight: "600",
+    ...Typography.label,
+    fontSize: 14,
   },
   stepperContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderRadius: BorderRadius.md,
     padding: 4,
-    gap: 8,
+    gap: 12,
   },
   stepperButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
     alignItems: "center",
     justifyContent: "center",
-    ...Shadows.sm,
   },
   stepperValueText: {
-    ...Typography.heading3,
+    ...Typography.label,
     fontSize: 16,
-    fontWeight: "700",
-    minWidth: 32,
+    minWidth: 24,
     textAlign: "center",
   },
   modalButtonsRow: {
     flexDirection: "row",
     gap: 12,
-    paddingTop: 8,
+    marginTop: 8,
   },
   modalCancelBtn: {
     flex: 1,
-    height: 48,
+    height: 46,
     borderRadius: BorderRadius.md,
     alignItems: "center",
     justifyContent: "center",
@@ -556,16 +527,15 @@ const styles = StyleSheet.create({
   modalCancelBtnText: {
     ...Typography.label,
     fontSize: 14,
-    fontWeight: "600",
   },
   modalConfirmBtn: {
-    flex: 1.2,
-    height: 48,
+    flex: 2,
+    height: 46,
     borderRadius: BorderRadius.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
   },
   modalConfirmBtnText: {
     ...Typography.label,
