@@ -1,43 +1,48 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+/**
+ * BusinessSettingsScreen — Merchant Profile & Shop Configuration
+ *
+ * Fully integrated with Stitch design exports:
+ * - Live Header Card preview with receipt header simulation
+ * - Structured form cards with icons & validation
+ * - WhatsApp phone number integration hint
+ * - Currency selector: DZD (default), EUR, USD
+ *
+ * All state is persisted to SQLite business_profiles table via repository.
+ */
+
+import React, { useState, useEffect, useCallback } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  View,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ToastAndroid,
+  Platform,
+  Alert,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { showToast } from "@/components/use-toast";
 import {
-    BorderRadius,
-    ComponentDimensions,
-    Shadows,
-    Spacing,
-    Typography,
+  Spacing,
+  BorderRadius,
+  Typography,
+  Shadows,
+  ComponentDimensions,
 } from "@/constants/theme";
 import * as businessProfile from "@/database/repositories/businessProfileRepository";
 import { useTheme } from "@/hooks/use-theme";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-/**
- * BusinessSettingsScreen - Screen for managing store profile and receipt headers.
- * Sourced directly from Stitch design `3._business_profile_settings`.
- * - Business name, owner name, business type, phone number, address, and RC
- * - DZD currency displayed as fixed/locked
- * - Clean input wrappers with 48px height and icon prefixes
- * - Ledger sync reassurance card and save feedback
- * - Fully supports dynamic light & dark themes
- */
 export function BusinessSettingsScreen() {
-  const { t } = useTranslation();
-  const router = useRouter();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [businessName, setBusinessName] = useState("");
@@ -46,6 +51,7 @@ export function BusinessSettingsScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [storeAddress, setStoreAddress] = useState("");
   const [rcNumber, setRcNumber] = useState("");
+  const [currency, setCurrency] = useState<"DZD" | "EUR" | "USD">("DZD");
   const [isSaving, setIsSaving] = useState(false);
   const [profileId, setProfileId] = useState<number | null>(null);
 
@@ -60,6 +66,7 @@ export function BusinessSettingsScreen() {
       setPhoneNumber(profile.phone_number ?? "");
       setStoreAddress(profile.address ?? "");
       setRcNumber(profile.rc_number ?? "");
+      setCurrency((profile.currency as any) || "DZD");
     });
   }, []);
 
@@ -74,7 +81,7 @@ export function BusinessSettingsScreen() {
         business_name: businessName.trim(),
         owner_name: ownerName.trim(),
         business_type: businessType.trim() || "grocery",
-        currency: "DZD",
+        currency: currency || "DZD",
         selected_locale: "fr" as const,
         phone_number: phoneNumber.trim() || null,
         address: storeAddress.trim() || null,
@@ -88,20 +95,23 @@ export function BusinessSettingsScreen() {
       }
       showToast(t("settings.profileSaved") || "Profile saved successfully!");
     } catch (error) {
-      showToast(t("errors.saveFailed") || "Failed to save profile");
+      console.error("Failed to save business profile:", error);
+      Alert.alert(
+        t("common.error") || "Error",
+        t("settings.saveFailed") || "Failed to save profile changes."
+      );
     } finally {
       setIsSaving(false);
     }
-  }, [
-    businessName,
-    ownerName,
-    businessType,
-    phoneNumber,
-    storeAddress,
-    rcNumber,
-    profileId,
-    t,
-  ]);
+  }, [businessName, ownerName, businessType, currency, phoneNumber, storeAddress, rcNumber, profileId, t]);
+
+  const showToast = (message: string) => {
+    if (Platform.OS === "android") {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      Alert.alert("", message);
+    }
+  };
 
   return (
     <ScrollView
@@ -109,17 +119,13 @@ export function BusinessSettingsScreen() {
         styles.scrollContainer,
         {
           backgroundColor: theme.background,
-          paddingTop: Math.max(insets.top, Spacing.lg),
-          paddingBottom: insets.bottom + Spacing.xxl,
-          paddingLeft: insets.left + Spacing.lg,
-          paddingRight: insets.right + Spacing.lg,
+          paddingTop: Math.max(insets.top, Spacing.sm),
         },
       ]}
       showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
     >
       <ThemedView style={styles.container}>
-        {/* Breadcrumb Context */}
+        {/* Breadcrumb Back Navigation */}
         <TouchableOpacity
           style={styles.breadcrumb}
           onPress={() => router.back()}
@@ -127,39 +133,47 @@ export function BusinessSettingsScreen() {
         >
           <MaterialIcons
             name="arrow-back"
-            size={18}
-            color={theme.textSecondary}
+            size={20}
+            color={theme.primary}
           />
           <ThemedText
-            style={[styles.breadcrumbText, { color: theme.textSecondary }]}
+            style={[styles.breadcrumbText, { color: theme.primary }]}
           >
-            {t("navigation.back") || "Back to More"}
+            {t("common.back") || "Retour à Plus"}
           </ThemedText>
         </TouchableOpacity>
 
-        {/* Screen Heading */}
+        {/* Section Header */}
         <View style={styles.headerSection}>
           <View
-            style={[styles.badgeRow, { backgroundColor: theme.primaryLight }]}
+            style={[
+              styles.badgeRow,
+              { backgroundColor: theme.primaryLight },
+            ]}
           >
-            <MaterialIcons name="verified" size={16} color={theme.primary} />
+            <MaterialIcons
+              name="verified"
+              size={14}
+              color={theme.primary}
+            />
             <ThemedText style={[styles.badgeText, { color: theme.primary }]}>
-              Active Store Profile
+              {t("settings.activeProfile") || "Active Store Profile"}
             </ThemedText>
           </View>
           <ThemedText
             style={[styles.headingTitle, { color: theme.textPrimary }]}
           >
-            Business Profile & Identity
+            {t("settings.businessProfile") || "Business Profile & Identity"}
           </ThemedText>
           <ThemedText
             style={[styles.headingSubtitle, { color: theme.textSecondary }]}
           >
-            Information displayed on receipts, invoices, and payment reminders.
+            {t("settings.businessProfileSub") ||
+              "Information displayed on receipts, invoices, and payment reminders."}
           </ThemedText>
         </View>
 
-        {/* Store Photo / Header Preview Card */}
+        {/* Live Receipt Card Header Preview */}
         <View
           style={[
             styles.previewCard,
@@ -172,42 +186,51 @@ export function BusinessSettingsScreen() {
               { backgroundColor: theme.primaryLight },
             ]}
           >
-            <MaterialIcons name="storefront" size={28} color={theme.primary} />
+            <MaterialIcons
+              name="storefront"
+              size={32}
+              color={theme.primary}
+            />
           </View>
           <View style={styles.previewInfo}>
             <View style={styles.previewNameRow}>
               <ThemedText
                 style={[styles.previewName, { color: theme.textPrimary }]}
+                numberOfLines={1}
               >
-                {businessName || t("settings.businessNamePlaceholder") || "Your store name"}
+                {businessName.trim() || t("settings.shopNamePlaceholder") || "Dukkan Store"}
               </ThemedText>
               <MaterialIcons
                 name="check-circle"
-                size={18}
+                size={16}
                 color={theme.primary}
               />
             </View>
             <ThemedText
-              style={[styles.previewLocation, { color: theme.textSecondary }]}
+              style={[
+                styles.previewLocation,
+                { color: theme.textSecondary },
+              ]}
+              numberOfLines={1}
             >
-              {storeAddress || t("settings.addressPlaceholder") || "Address not set"} • DZD Account
+              {storeAddress || t("settings.addressPlaceholder") || "Address not set"} • {currency} Account
             </ThemedText>
             <View style={styles.previewReceiptBadge}>
               <MaterialIcons
                 name="receipt-long"
                 size={14}
-                color={theme.primary}
+                color={theme.secondary}
               />
               <ThemedText
-                style={[styles.previewReceiptText, { color: theme.primary }]}
+                style={[styles.previewReceiptText, { color: theme.secondary }]}
               >
-                Receipt Header Preview Active
+                {t("settings.receiptHeaderPreview") || "Receipt Header Preview Active"}
               </ThemedText>
             </View>
           </View>
         </View>
 
-        {/* Form Card */}
+        {/* Form Container Card */}
         <View
           style={[
             styles.formCard,
@@ -220,10 +243,10 @@ export function BusinessSettingsScreen() {
               <ThemedText
                 style={[styles.fieldLabel, { color: theme.textPrimary }]}
               >
-                Business Name
+                {t("settings.businessName") || "Business Name"}
               </ThemedText>
               <ThemedText
-                style={[styles.fieldRequired, { color: theme.textMuted }]}
+                style={[styles.fieldRequired, { color: theme.error }]}
               >
                 Required
               </ThemedText>
@@ -231,7 +254,10 @@ export function BusinessSettingsScreen() {
             <View
               style={[
                 styles.inputWrapper,
-                { backgroundColor: theme.surface, borderColor: theme.border },
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.border,
+                },
               ]}
             >
               <MaterialIcons
@@ -241,7 +267,7 @@ export function BusinessSettingsScreen() {
                 style={styles.inputIcon}
               />
               <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
+                style={[styles.textInput, { color: theme.textPrimary }]}
                 value={businessName}
                 onChangeText={setBusinessName}
                 placeholder="Supérette El-Amel"
@@ -256,10 +282,10 @@ export function BusinessSettingsScreen() {
               <ThemedText
                 style={[styles.fieldLabel, { color: theme.textPrimary }]}
               >
-                Owner / Manager Name
+                {t("settings.ownerName") || "Owner / Manager Name"}
               </ThemedText>
               <ThemedText
-                style={[styles.fieldRequired, { color: theme.textMuted }]}
+                style={[styles.fieldRequired, { color: theme.error }]}
               >
                 Required
               </ThemedText>
@@ -267,7 +293,10 @@ export function BusinessSettingsScreen() {
             <View
               style={[
                 styles.inputWrapper,
-                { backgroundColor: theme.surface, borderColor: theme.border },
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.border,
+                },
               ]}
             >
               <MaterialIcons
@@ -277,7 +306,7 @@ export function BusinessSettingsScreen() {
                 style={styles.inputIcon}
               />
               <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
+                style={[styles.textInput, { color: theme.textPrimary }]}
                 value={ownerName}
                 onChangeText={setOwnerName}
                 placeholder="Karim Belkacem"
@@ -292,13 +321,16 @@ export function BusinessSettingsScreen() {
               <ThemedText
                 style={[styles.fieldLabel, { color: theme.textPrimary }]}
               >
-                Business Type
+                {t("settings.businessType") || "Business Type"}
               </ThemedText>
             </View>
             <View
               style={[
                 styles.inputWrapper,
-                { backgroundColor: theme.surface, borderColor: theme.border },
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.border,
+                },
               ]}
             >
               <MaterialIcons
@@ -308,7 +340,7 @@ export function BusinessSettingsScreen() {
                 style={styles.inputIcon}
               />
               <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
+                style={[styles.textInput, { color: theme.textPrimary }]}
                 value={businessType}
                 onChangeText={setBusinessType}
                 placeholder="Alimentation Générale / Superette"
@@ -317,13 +349,13 @@ export function BusinessSettingsScreen() {
             </View>
           </View>
 
-          {/* 4. Phone Number */}
+          {/* 4. Phone Number (WhatsApp Enabled) */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
               <ThemedText
                 style={[styles.fieldLabel, { color: theme.textPrimary }]}
               >
-                Phone Number
+                {t("settings.phoneNumber") || "Phone Number"}
               </ThemedText>
               <View style={styles.whatsappBadge}>
                 <MaterialIcons name="chat" size={13} color={theme.primary} />
@@ -337,22 +369,25 @@ export function BusinessSettingsScreen() {
             <View
               style={[
                 styles.inputWrapper,
-                { backgroundColor: theme.surface, borderColor: theme.border },
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.border,
+                },
               ]}
             >
               <MaterialIcons
-                name="call"
+                name="phone"
                 size={20}
                 color={theme.textMuted}
                 style={styles.inputIcon}
               />
               <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
+                style={[styles.textInput, { color: theme.textPrimary }]}
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
                 placeholder="+213 550 12 34 56"
                 placeholderTextColor={theme.textMuted}
+                keyboardType="phone-pad"
               />
             </View>
             <ThemedText
@@ -368,23 +403,26 @@ export function BusinessSettingsScreen() {
               <ThemedText
                 style={[styles.fieldLabel, { color: theme.textPrimary }]}
               >
-                Address / Location
+                {t("settings.storeAddress") || "Address / Location"}
               </ThemedText>
             </View>
             <View
               style={[
                 styles.inputWrapper,
-                { backgroundColor: theme.surface, borderColor: theme.border },
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.border,
+                },
               ]}
             >
               <MaterialIcons
-                name="location-on"
+                name="place"
                 size={20}
                 color={theme.textMuted}
                 style={styles.inputIcon}
               />
               <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
+                style={[styles.textInput, { color: theme.textPrimary }]}
                 value={storeAddress}
                 onChangeText={setStoreAddress}
                 placeholder="Rue Didouche Mourad, Alger Centre"
@@ -393,13 +431,13 @@ export function BusinessSettingsScreen() {
             </View>
           </View>
 
-          {/* 6. Commercial Registry (RC) */}
+          {/* 6. Commercial Registry (RC Number) */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
               <ThemedText
                 style={[styles.fieldLabel, { color: theme.textPrimary }]}
               >
-                Commercial Registry (RC)
+                {t("settings.rcNumber") || "Commercial Registry (RC)"}
               </ThemedText>
               <ThemedText
                 style={[styles.fieldLegal, { color: theme.textMuted }]}
@@ -410,17 +448,20 @@ export function BusinessSettingsScreen() {
             <View
               style={[
                 styles.inputWrapper,
-                { backgroundColor: theme.surface, borderColor: theme.border },
+                {
+                  backgroundColor: theme.surfaceAlt,
+                  borderColor: theme.border,
+                },
               ]}
             >
               <MaterialIcons
-                name="badge"
+                name="subtitles"
                 size={20}
                 color={theme.textMuted}
                 style={styles.inputIcon}
               />
               <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
+                style={[styles.textInput, { color: theme.textPrimary }]}
                 value={rcNumber}
                 onChangeText={setRcNumber}
                 placeholder="RC: 16/00-1234567"
@@ -429,50 +470,59 @@ export function BusinessSettingsScreen() {
             </View>
           </View>
 
-          {/* 7. Currency (Locked / Display only) */}
+          {/* 7. Currency Selection */}
           <View style={styles.fieldGroup}>
             <View style={styles.labelRow}>
               <ThemedText
                 style={[styles.fieldLabel, { color: theme.textPrimary }]}
               >
-                Currency
+                {t("settings.currency") || "Currency"}
               </ThemedText>
-              <View style={styles.lockedBadge}>
-                <MaterialIcons name="lock" size={13} color={theme.textMuted} />
-                <ThemedText
-                  style={[styles.lockedText, { color: theme.textMuted }]}
-                >
-                  Display only
-                </ThemedText>
-              </View>
             </View>
-            <View
-              style={[
-                styles.inputWrapper,
-                styles.inputDisabled,
-                {
-                  backgroundColor: theme.surfaceAlt,
-                  borderColor: theme.border,
-                },
-              ]}
-            >
-              <MaterialIcons
-                name="payments"
-                size={20}
-                color={theme.textMuted}
-                style={styles.inputIcon}
-              />
-              <ThemedText
-                style={[styles.disabledText, { color: theme.textSecondary }]}
-              >
-                DZD (Algerian Dinar)
-              </ThemedText>
-              <MaterialIcons name="lock" size={18} color={theme.textMuted} />
+            <View style={styles.currencyChipsRow}>
+              {[
+                { code: "DZD", label: "DZD (د.ج)", sub: "Algerian Dinar" },
+                { code: "EUR", label: "EUR (€)", sub: "Euro" },
+                { code: "USD", label: "USD ($)", sub: "US Dollar" },
+              ].map((item) => {
+                const isSelected = currency === item.code;
+                return (
+                  <TouchableOpacity
+                    key={item.code}
+                    style={[
+                      styles.currencyChip,
+                      {
+                        backgroundColor: isSelected ? theme.primaryLight : theme.surfaceAlt,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                      },
+                    ]}
+                    onPress={() => setCurrency(item.code as any)}
+                    activeOpacity={0.7}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.currencyChipText,
+                        { color: isSelected ? theme.primary : theme.textPrimary },
+                      ]}
+                    >
+                      {item.label}
+                    </ThemedText>
+                    <ThemedText
+                      style={[
+                        styles.currencyChipSub,
+                        { color: isSelected ? theme.primary : theme.textMuted },
+                      ]}
+                    >
+                      {item.sub}
+                    </ThemedText>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
             <ThemedText
               style={[styles.fieldHelper, { color: theme.textSecondary }]}
             >
-              Fixed to Algerian Dinar for regional fiscal & ledger consistency.
+              {t("settings.currencyHelper") || "Selected currency will be used across receipts, sales, and products."}
             </ThemedText>
           </View>
         </View>
@@ -640,65 +690,72 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  lockedBadge: {
+  currencyChipsRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
+    gap: Spacing.sm,
+    marginTop: 4,
   },
-  lockedText: {
-    fontSize: 12,
+  currencyChip: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  currencyChipText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  currencyChipSub: {
+    fontSize: 10,
+    marginTop: 2,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    height: 48,
+    height: ComponentDimensions.inputHeight,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderRadius: BorderRadius.button,
-    paddingHorizontal: 12,
+    paddingHorizontal: Spacing.md,
   },
-  inputDisabled: {},
   inputIcon: {
-    marginRight: 10,
+    marginRight: Spacing.sm,
   },
-  input: {
+  textInput: {
     flex: 1,
-    height: "100%",
-    fontSize: 16,
-  },
-  disabledText: {
-    flex: 1,
-    fontSize: 16,
+    fontSize: 15,
   },
   fieldHelper: {
     fontSize: 12,
-    lineHeight: 16,
+    marginTop: 2,
   },
   actionsContainer: {
     gap: Spacing.sm,
-    paddingTop: Spacing.xs,
+    marginTop: Spacing.xs,
   },
   saveButton: {
+    height: ComponentDimensions.buttonHeight,
+    borderRadius: BorderRadius.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.xs,
-    height: 48,
-    borderRadius: BorderRadius.button,
-    ...Shadows.sm,
+    gap: Spacing.sm,
+    ...Shadows.md,
   },
   saveButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
     color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
   cancelButton: {
+    height: ComponentDimensions.buttonHeight - 4,
     alignItems: "center",
     justifyContent: "center",
-    height: 48,
-    backgroundColor: "transparent",
   },
   cancelButtonText: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
