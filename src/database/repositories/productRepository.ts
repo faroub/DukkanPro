@@ -184,30 +184,11 @@ export async function create(
     ],
   );
 
-  // Re-fetch the newly created row.
-  if (product.sku) {
-    const created = await getBySku(product.sku);
-    if (!created) throw new Error("Product was not created");
-    return created;
-  }
-  // If no SKU, fetch by name (last inserted — approximate; callers should use id).
-  const all = await getAll({ is_active: true });
-  return (
-    all[all.length - 1] || {
-      id: -1,
-      name: product.name,
-      sku: product.sku || "",
-      category: product.category,
-      sale_price_centimes: product.sale_price_centimes,
-      cost_price_centimes: product.cost_price_centimes,
-      stock_quantity: product.stock_quantity,
-      minimum_stock_quantity: product.minimum_stock_quantity,
-      unit: product.unit,
-      is_active: product.is_active,
-      created_at: "",
-      updated_at: "",
-    }
-  );
+  // executeWrite returns lastInsertRowId; re-fetch by that id so the returned
+  // record always describes the row we just inserted.
+  const created = await getById(result);
+  if (!created) throw new Error("Product was not created");
+  return created;
 }
 
 /**

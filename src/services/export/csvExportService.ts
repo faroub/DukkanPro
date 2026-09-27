@@ -27,14 +27,14 @@ function buildCsvRow(values: string[]): string {
 }
 
 /**
- - Escape and quote a string for safe CSV embedding.
+ - Escape a string for safe CSV embedding.
+ -
+ - buildCsvRow wraps every field in double quotes, so only embedded quotes need
+ - escaping here (RFC 4180: a quote inside a quoted field is written twice).
+ - Commas and newlines are safe once the field is quoted.
  */
 function csvSafe(value: string): string {
-  // If the value contains a comma, newline, or double quote, we need to quote it
-  if (value.includes(",") || value.includes("\n") || value.includes('"')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
+  return value.replace(/"/g, '""');
 }
 
 /**
