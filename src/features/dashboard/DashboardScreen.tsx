@@ -62,6 +62,7 @@ export default function DashboardScreenDefault({
     greeting,
     todayDate,
     todayLocale,
+    currencyCode,
     todayRevenue_centimes,
     todayProfit_centimes,
     toCollect_centimes,
@@ -197,6 +198,7 @@ export default function DashboardScreenDefault({
           toCollectValue_centimes={toCollect_centimes}
           lowStockKey={t("dashboard.summary.lowStock") || t("dashboard.lowStock.title") || (locale === "ar" ? "نقص المخزون" : "Low Stock")}
           lowStockCount={lowStockCount}
+          currency={currencyCode}
           locale={locale}
           textAlignment={alignment}
           onPressRevenue={handleSeeAllSales}
@@ -210,6 +212,7 @@ export default function DashboardScreenDefault({
           data={sevenDaySales}
           title={t("dashboard.charts.salesTrend") || (locale === "ar" ? "نشاط المبيعات (7 أيام)" : "7-Day Sales Activity")}
           subtitle={locale === "ar" ? "الأداء الأسبوعي" : "Weekly performance"}
+          currency={currencyCode}
           locale={locale}
         />
 
