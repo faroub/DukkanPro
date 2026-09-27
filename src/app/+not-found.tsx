@@ -2,18 +2,19 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { StyleSheet } from "react-native";
-import { Colors } from '@/constants/theme';
 
 export default function NotFound() {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
       <ThemedView style={styles.content}>
-        <ThemedText style={styles.message}>{t("notFound")}</ThemedText>
+        <ThemedText style={[styles.message, { color: theme.textMuted }]}>{t("notFound")}</ThemedText>
 
         <PrimaryButton
           title={t("notFoundBackToHome")}
@@ -31,7 +32,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing.xl,
-    backgroundColor: Colors.light.background,
   },
   content: {
     alignItems: "center",
@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 18,
-    color: Colors.light.textMuted,
     textAlign: "center",
   },
   button: {

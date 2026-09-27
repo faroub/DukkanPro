@@ -14,13 +14,14 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Shadows,
   Spacing,
   Typography,
 } from "@/constants/theme";
 import { useOnboarding, type OnboardingProfile } from "@/hooks/useOnboarding";
+import { useTheme } from "@/hooks/use-theme";
+import { getCurrencySymbol } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 
 interface EmptyDashboardScreenProps {
@@ -37,7 +38,8 @@ export function EmptyDashboardScreen({
   onOpenSettings,
 }: EmptyDashboardScreenProps) {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const theme = useTheme();
   const [profile, setProfile] = useState<OnboardingProfile | null>(null);
 
   useEffect(() => {
@@ -91,14 +93,24 @@ export function EmptyDashboardScreen({
     });
 
   const ownerName = profile?.ownerName || "Karim Benali";
+  const currencySymbol = getCurrencySymbol(profile?.currency || "DZD", i18n.language);
   const insets = useSafeAreaInsets();
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header Bar matching Stitch */}
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: Math.max(insets.top, Spacing.md),
+            backgroundColor: theme.surface,
+            borderBottomColor: theme.borderLight,
+          },
+        ]}
+      >
         <View style={styles.logoAndBrand}>
-          <View style={styles.logoBadge}>
+          <View style={[styles.logoBadge, { backgroundColor: theme.primaryLight }]}>
             <SymbolView
               name={{
                 ios: "storefront.fill" as any,
@@ -106,14 +118,14 @@ export function EmptyDashboardScreen({
                 web: "storefront" as any,
               }}
               size={20}
-              tintColor={Colors.light.primary}
+              tintColor={theme.primary}
             />
           </View>
           <View style={styles.brandTextWrapper}>
-            <ThemedText style={styles.brandTitle}>
-              Dukkan<ThemedText style={[styles.brandTitle, { color: Colors.light.primary }]}>Pro</ThemedText>
+            <ThemedText style={[styles.brandTitle, { color: theme.textPrimary }]}>
+              Dukkan<ThemedText style={[styles.brandTitle, { color: theme.primary }]}>Pro</ThemedText>
             </ThemedText>
-            <ThemedText style={styles.brandSubtitle}>
+            <ThemedText style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
               {t("onboarding.emptyDashboard.brandSubtitle", {
                 defaultValue: "Empty Dashboard",
               })}
@@ -134,11 +146,11 @@ export function EmptyDashboardScreen({
                 web: "notifications" as any,
               }}
               size={22}
-              tintColor={Colors.light.textSecondary}
+              tintColor={theme.textSecondary}
             />
           </Pressable>
 
-          <View style={styles.avatarCircle}>
+          <View style={[styles.avatarCircle, { backgroundColor: theme.primary }]}>
             <SymbolView
               name={{
                 ios: "person.fill" as any,
@@ -146,7 +158,7 @@ export function EmptyDashboardScreen({
                 web: "person" as any,
               }}
               size={18}
-              tintColor={Colors.light.surface}
+              tintColor="#FFFFFF"
             />
           </View>
         </View>
@@ -157,17 +169,17 @@ export function EmptyDashboardScreen({
         showsVerticalScrollIndicator={false}
       >
         {/* Greeting & Shop Profile Card matching Stitch */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.profileInfo}>
-            <View style={styles.readyBadge}>
-              <Text style={styles.readyBadgeText}>
+            <View style={[styles.readyBadge, { backgroundColor: theme.primaryLight }]}>
+              <Text style={[styles.readyBadgeText, { color: theme.primary }]}>
                 {t("onboarding.emptyDashboard.readyBadge", {
                   defaultValue: "Ready to trade",
                 })}
               </Text>
             </View>
 
-            <ThemedText style={styles.welcomeHeading} numberOfLines={1}>
+            <ThemedText style={[styles.welcomeHeading, { color: theme.textPrimary }]} numberOfLines={1}>
               {t("onboarding.emptyDashboard.welcome", {
                 name: businessName,
                 defaultValue: `Welcome, ${businessName}!`,
@@ -182,9 +194,9 @@ export function EmptyDashboardScreen({
                   web: "storefront" as any,
                 }}
                 size={15}
-                tintColor={Colors.light.textMuted}
+                tintColor={theme.textMuted}
               />
-              <ThemedText style={styles.shopOwnerText} numberOfLines={1}>
+              <ThemedText style={[styles.shopOwnerText, { color: theme.textSecondary }]} numberOfLines={1}>
                 {t("onboarding.emptyDashboard.ownerDetails", {
                   owner: ownerName,
                   city: "Algiers",
@@ -195,7 +207,7 @@ export function EmptyDashboardScreen({
           </View>
 
           <Pressable
-            style={styles.settingsButton}
+            style={[styles.settingsButton, { backgroundColor: theme.backgroundElement }]}
             onPress={handleSettings}
             accessibilityRole="button"
             accessibilityLabel="Store Settings"
@@ -207,23 +219,23 @@ export function EmptyDashboardScreen({
                 web: "tune" as any,
               }}
               size={20}
-              tintColor={Colors.light.textSecondary}
+              tintColor={theme.textSecondary}
             />
           </Pressable>
         </View>
 
         {/* Today's Summary Card matching Stitch */}
-        <View style={styles.summaryCard}>
+        <View style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.summaryHeader}>
             <View style={styles.summaryTitleGroup}>
-              <View style={styles.pulseDot} />
-              <ThemedText style={styles.summaryTitle}>
+              <View style={[styles.pulseDot, { backgroundColor: theme.primary }]} />
+              <ThemedText style={[styles.summaryTitle, { color: theme.textPrimary }]}>
                 {t("onboarding.emptyDashboard.todaySummary", {
                   defaultValue: "Today's Summary",
                 })}
               </ThemedText>
             </View>
-            <ThemedText style={styles.summaryTime}>
+            <ThemedText style={[styles.summaryTime, { color: theme.textSecondary }]}>
               {t("onboarding.emptyDashboard.justNow", {
                 defaultValue: "Just now",
               })}
@@ -232,7 +244,7 @@ export function EmptyDashboardScreen({
 
           <View style={styles.summaryGrid}>
             {/* Sales */}
-            <View style={styles.summaryTile}>
+            <View style={[styles.summaryTile, { backgroundColor: theme.backgroundElement }]}>
               <View style={styles.summaryTileHeader}>
                 <SymbolView
                   name={{
@@ -241,22 +253,22 @@ export function EmptyDashboardScreen({
                     web: "payments" as any,
                   }}
                   size={14}
-                  tintColor={Colors.light.textSecondary}
+                  tintColor={theme.textSecondary}
                 />
-                <Text style={styles.summaryTileLabel}>
+                <Text style={[styles.summaryTileLabel, { color: theme.textSecondary }]}>
                   {t("onboarding.emptyDashboard.salesLabel", {
                     defaultValue: "Sales",
                   })}
                 </Text>
               </View>
               <View style={styles.summaryTileValueRow}>
-                <Text style={styles.summaryTileNumber}>0</Text>
-                <Text style={styles.summaryCurrency}>DZD</Text>
+                <Text style={[styles.summaryTileNumber, { color: theme.textPrimary }]}>0</Text>
+                <Text style={[styles.summaryCurrency, { color: theme.textSecondary }]}>{currencySymbol}</Text>
               </View>
             </View>
 
             {/* Receipts */}
-            <View style={styles.summaryTile}>
+            <View style={[styles.summaryTile, { backgroundColor: theme.backgroundElement }]}>
               <View style={styles.summaryTileHeader}>
                 <SymbolView
                   name={{
@@ -265,21 +277,21 @@ export function EmptyDashboardScreen({
                     web: "receipt_long" as any,
                   }}
                   size={14}
-                  tintColor={Colors.light.textSecondary}
+                  tintColor={theme.textSecondary}
                 />
-                <Text style={styles.summaryTileLabel}>
+                <Text style={[styles.summaryTileLabel, { color: theme.textSecondary }]}>
                   {t("onboarding.emptyDashboard.receiptsLabel", {
                     defaultValue: "Receipts",
                   })}
                 </Text>
               </View>
               <View style={styles.summaryTileValueRow}>
-                <Text style={styles.summaryTileNumber}>0</Text>
+                <Text style={[styles.summaryTileNumber, { color: theme.textPrimary }]}>0</Text>
               </View>
             </View>
 
             {/* Buyers */}
-            <View style={styles.summaryTile}>
+            <View style={[styles.summaryTile, { backgroundColor: theme.backgroundElement }]}>
               <View style={styles.summaryTileHeader}>
                 <SymbolView
                   name={{
@@ -288,24 +300,24 @@ export function EmptyDashboardScreen({
                     web: "group" as any,
                   }}
                   size={14}
-                  tintColor={Colors.light.textSecondary}
+                  tintColor={theme.textSecondary}
                 />
-                <Text style={styles.summaryTileLabel}>
+                <Text style={[styles.summaryTileLabel, { color: theme.textSecondary }]}>
                   {t("onboarding.emptyDashboard.buyersLabel", {
                     defaultValue: "Buyers",
                   })}
                 </Text>
               </View>
               <View style={styles.summaryTileValueRow}>
-                <Text style={styles.summaryTileNumber}>0</Text>
+                <Text style={[styles.summaryTileNumber, { color: theme.textPrimary }]}>0</Text>
               </View>
             </View>
           </View>
         </View>
 
         {/* Empty State Hero Banner matching Stitch */}
-        <View style={styles.heroBanner}>
-          <View style={styles.heroIconCircle}>
+        <View style={[styles.heroBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.heroIconCircle, { backgroundColor: theme.primaryLight }]}>
             <SymbolView
               name={{
                 ios: "archivebox.fill" as any,
@@ -313,17 +325,17 @@ export function EmptyDashboardScreen({
                 web: "inventory_2" as any,
               }}
               size={32}
-              tintColor={Colors.light.primary}
+              tintColor={theme.primary}
             />
           </View>
 
-          <ThemedText style={styles.heroTitle}>
+          <ThemedText style={[styles.heroTitle, { color: theme.textPrimary }]}>
             {t("onboarding.emptyDashboard.heroTitle", {
               defaultValue: "Start by adding your first product",
             })}
           </ThemedText>
 
-          <ThemedText style={styles.heroSubtitle}>
+          <ThemedText style={[styles.heroSubtitle, { color: theme.textSecondary }]}>
             {t("onboarding.emptyDashboard.heroSubtitle", {
               defaultValue:
                 "Create your product catalog to start making sales and recording customer debts easily.",
@@ -331,7 +343,7 @@ export function EmptyDashboardScreen({
           </ThemedText>
 
           <Pressable
-            style={styles.heroCtaButton}
+            style={[styles.heroCtaButton, { backgroundColor: theme.primary }]}
             onPress={handleAddProduct}
             accessibilityRole="button"
             accessibilityLabel={t("onboarding.emptyDashboard.addFirstProduct", {
@@ -345,7 +357,7 @@ export function EmptyDashboardScreen({
                 web: "add_circle" as any,
               }}
               size={20}
-              tintColor={Colors.light.surface}
+              tintColor="#FFFFFF"
             />
             <Text style={styles.heroCtaButtonText}>
               {t("onboarding.emptyDashboard.addFirstProduct", {
@@ -358,12 +370,12 @@ export function EmptyDashboardScreen({
         {/* Quick Action Buttons Section matching Stitch */}
         <View style={styles.quickActionsSection}>
           <View style={styles.quickActionsHeader}>
-            <ThemedText style={styles.quickActionsTitle}>
+            <ThemedText style={[styles.quickActionsTitle, { color: theme.textPrimary }]}>
               {t("onboarding.emptyDashboard.quickActions", {
                 defaultValue: "Quick actions",
               })}
             </ThemedText>
-            <ThemedText style={styles.quickActionsSub}>
+            <ThemedText style={[styles.quickActionsSub, { color: theme.textSecondary }]}>
               {t("onboarding.emptyDashboard.shortcuts", {
                 defaultValue: "Shortcuts",
               })}
@@ -373,11 +385,11 @@ export function EmptyDashboardScreen({
           <View style={styles.quickActionsGrid}>
             {/* Action 1: New Sale */}
             <Pressable
-              style={styles.quickActionTile}
+              style={[styles.quickActionTile, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={handleNewSale}
               accessibilityRole="button"
             >
-              <View style={[styles.actionIconBubble, styles.actionIconPrimary]}>
+              <View style={[styles.actionIconBubble, { backgroundColor: theme.primaryLight }]}>
                 <SymbolView
                   name={{
                     ios: "cart.fill" as any,
@@ -385,15 +397,15 @@ export function EmptyDashboardScreen({
                     web: "point_of_sale" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.primary}
+                  tintColor={theme.primary}
                 />
               </View>
-              <Text style={styles.actionTileTitle}>
+              <Text style={[styles.actionTileTitle, { color: theme.textPrimary }]}>
                 {t("onboarding.emptyDashboard.newSale", {
                   defaultValue: "New Sale",
                 })}
               </Text>
-              <Text style={styles.actionTileSubtitle}>
+              <Text style={[styles.actionTileSubtitle, { color: theme.textMuted }]}>
                 {t("onboarding.emptyDashboard.newSaleSub", {
                   defaultValue: "Quick POS",
                 })}
@@ -402,11 +414,11 @@ export function EmptyDashboardScreen({
 
             {/* Action 2: Add Product */}
             <Pressable
-              style={styles.quickActionTile}
+              style={[styles.quickActionTile, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={handleAddProduct}
               accessibilityRole="button"
             >
-              <View style={styles.actionIconBubble}>
+              <View style={[styles.actionIconBubble, { backgroundColor: theme.backgroundElement }]}>
                 <SymbolView
                   name={{
                     ios: "barcode" as any,
@@ -414,15 +426,15 @@ export function EmptyDashboardScreen({
                     web: "barcode_scanner" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.textPrimary}
+                  tintColor={theme.textPrimary}
                 />
               </View>
-              <Text style={styles.actionTileTitle}>
+              <Text style={[styles.actionTileTitle, { color: theme.textPrimary }]}>
                 {t("onboarding.emptyDashboard.addProduct", {
                   defaultValue: "Add Product",
                 })}
               </Text>
-              <Text style={styles.actionTileSubtitle}>
+              <Text style={[styles.actionTileSubtitle, { color: theme.textMuted }]}>
                 {t("onboarding.emptyDashboard.addProductSub", {
                   defaultValue: "Scan or type",
                 })}
@@ -431,11 +443,11 @@ export function EmptyDashboardScreen({
 
             {/* Action 3: Add Customer */}
             <Pressable
-              style={styles.quickActionTile}
+              style={[styles.quickActionTile, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={handleAddCustomer}
               accessibilityRole="button"
             >
-              <View style={styles.actionIconBubble}>
+              <View style={[styles.actionIconBubble, { backgroundColor: theme.backgroundElement }]}>
                 <SymbolView
                   name={{
                     ios: "person.badge.plus" as any,
@@ -443,15 +455,15 @@ export function EmptyDashboardScreen({
                     web: "person_add" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.textPrimary}
+                  tintColor={theme.textPrimary}
                 />
               </View>
-              <Text style={styles.actionTileTitle}>
+              <Text style={[styles.actionTileTitle, { color: theme.textPrimary }]}>
                 {t("onboarding.emptyDashboard.addCustomer", {
                   defaultValue: "Add Customer",
                 })}
               </Text>
-              <Text style={styles.actionTileSubtitle}>
+              <Text style={[styles.actionTileSubtitle, { color: theme.textMuted }]}>
                 {t("onboarding.emptyDashboard.addCustomerSub", {
                   defaultValue: "Carnet crédit",
                 })}
@@ -462,12 +474,12 @@ export function EmptyDashboardScreen({
 
         {/* Getting Started Guide Pill Card matching Stitch */}
         <Pressable
-          style={styles.guideCard}
+          style={[styles.guideCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
           onPress={handleAddProduct}
           accessibilityRole="button"
         >
           <View style={styles.guideLeft}>
-            <View style={styles.guideIconWrapper}>
+            <View style={[styles.guideIconWrapper, { backgroundColor: theme.warningLight }]}>
               <SymbolView
                 name={{
                   ios: "lightbulb.fill" as any,
@@ -475,17 +487,17 @@ export function EmptyDashboardScreen({
                   web: "lightbulb" as any,
                 }}
                 size={18}
-                tintColor={Colors.light.warning}
+                tintColor={theme.warning}
               />
             </View>
 
             <View style={styles.guideTextWrapper}>
-              <ThemedText style={styles.guideTitle}>
+              <ThemedText style={[styles.guideTitle, { color: theme.textPrimary }]}>
                 {t("onboarding.emptyDashboard.gettingStarted", {
                   defaultValue: "Getting started guide",
                 })}
               </ThemedText>
-              <ThemedText style={styles.guideSubtitle}>
+              <ThemedText style={[styles.guideSubtitle, { color: theme.textSecondary }]}>
                 {t("onboarding.emptyDashboard.step1Of3", {
                   defaultValue: "Step 1 of 3: Add initial stock",
                 })}
@@ -500,7 +512,7 @@ export function EmptyDashboardScreen({
               web: "chevron_right" as any,
             }}
             size={20}
-            tintColor={Colors.light.textMuted}
+            tintColor={theme.textMuted}
           />
         </Pressable>
       </ScrollView>
@@ -511,7 +523,6 @@ export function EmptyDashboardScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
     maxWidth: 480,
     alignSelf: "center",
     width: "100%",
@@ -522,9 +533,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: ComponentDimensions.screenPadding,
     height: 56,
-    backgroundColor: Colors.light.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.borderLight,
   },
   logoAndBrand: {
     flexDirection: "row",
@@ -535,7 +544,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -545,13 +553,11 @@ const styles = StyleSheet.create({
   brandTitle: {
     ...Typography.label,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
     lineHeight: 16,
   },
   brandSubtitle: {
     ...Typography.caption,
     fontSize: 11,
-    color: Colors.light.textSecondary,
     lineHeight: 14,
   },
   headerRight: {
@@ -570,7 +576,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.primary,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -584,11 +589,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: ComponentDimensions.cardPadding,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
   },
   profileInfo: {
@@ -596,7 +599,6 @@ const styles = StyleSheet.create({
     paddingRight: Spacing.sm,
   },
   readyBadge: {
-    backgroundColor: Colors.light.primaryLight,
     alignSelf: "flex-start",
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -606,11 +608,9 @@ const styles = StyleSheet.create({
   readyBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: Colors.light.primaryDark,
   },
   welcomeHeading: {
     ...Typography.heading2,
-    color: Colors.light.textPrimary,
   },
   shopOwnerRow: {
     flexDirection: "row",
@@ -621,23 +621,19 @@ const styles = StyleSheet.create({
   shopOwnerText: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     flex: 1,
   },
   settingsButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.light.backgroundElement,
     justifyContent: "center",
     alignItems: "center",
   },
   summaryCard: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: ComponentDimensions.cardPadding,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
   },
   summaryHeader: {
@@ -655,16 +651,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.light.primary,
   },
   summaryTitle: {
     ...Typography.label,
-    color: Colors.light.textPrimary,
   },
   summaryTime: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   summaryGrid: {
     flexDirection: "row",
@@ -672,7 +665,6 @@ const styles = StyleSheet.create({
   },
   summaryTile: {
     flex: 1,
-    backgroundColor: Colors.light.backgroundElement,
     borderRadius: BorderRadius.md,
     padding: Spacing.sm,
     minHeight: 74,
@@ -686,7 +678,6 @@ const styles = StyleSheet.create({
   summaryTileLabel: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   summaryTileValueRow: {
     flexDirection: "row",
@@ -697,19 +688,15 @@ const styles = StyleSheet.create({
   summaryTileNumber: {
     ...Typography.moneySmall,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   summaryCurrency: {
     fontSize: 10,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   heroBanner: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     alignItems: "center",
     textAlign: "center",
     ...Shadows.sm,
@@ -718,14 +705,12 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: Spacing.md,
   },
   heroTitle: {
     ...Typography.heading3,
-    color: Colors.light.textPrimary,
     textAlign: "center",
     marginBottom: 6,
     maxWidth: 280,
@@ -733,7 +718,6 @@ const styles = StyleSheet.create({
   heroSubtitle: {
     ...Typography.caption,
     fontSize: 13,
-    color: Colors.light.textSecondary,
     textAlign: "center",
     lineHeight: 18,
     marginBottom: Spacing.lg,
@@ -743,7 +727,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 46,
     borderRadius: BorderRadius.button,
-    backgroundColor: Colors.light.primary,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -751,7 +734,7 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   heroCtaButtonText: {
-    color: Colors.light.surface,
+    color: "#FFFFFF",
     ...Typography.label,
     fontSize: 15,
   },
@@ -766,12 +749,10 @@ const styles = StyleSheet.create({
   },
   quickActionsTitle: {
     ...Typography.label,
-    color: Colors.light.textPrimary,
   },
   quickActionsSub: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   quickActionsGrid: {
     flexDirection: "row",
@@ -779,36 +760,28 @@ const styles = StyleSheet.create({
   },
   quickActionTile: {
     flex: 1,
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.md,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
   },
   actionIconBubble: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.light.backgroundElement,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 6,
   },
-  actionIconPrimary: {
-    backgroundColor: Colors.light.primaryLight,
-  },
   actionTileTitle: {
     ...Typography.caption,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
     textAlign: "center",
   },
   actionTileSubtitle: {
     fontSize: 10,
-    color: Colors.light.textMuted,
     textAlign: "center",
     marginTop: 2,
   },
@@ -816,11 +789,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: ComponentDimensions.cardPadding,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
   },
   guideLeft: {
@@ -833,7 +804,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.warningLight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -842,12 +812,10 @@ const styles = StyleSheet.create({
   },
   guideTitle: {
     ...Typography.label,
-    color: Colors.light.textPrimary,
   },
   guideSubtitle: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
 });

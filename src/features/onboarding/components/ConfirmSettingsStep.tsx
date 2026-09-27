@@ -5,12 +5,12 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Shadows,
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "react-i18next";
 
 interface ConfirmSettingsStepProps {
@@ -37,6 +37,7 @@ export function ConfirmSettingsStep({
   totalSteps = 3,
 }: ConfirmSettingsStepProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const categoryNames: Record<string, string> = {
     grocery: t("onboarding.businessType.grocery", {
@@ -48,22 +49,30 @@ export function ConfirmSettingsStep({
     instagram_seller: t("onboarding.businessType.instagram", {
       defaultValue: "Instagram seller",
     }),
-    market_vendor: t("onboarding.businessType.market", {
-      defaultValue: "Market vendor",
+    clothing: t("onboarding.businessType.clothing", {
+      defaultValue: "Clothing & Fashion",
     }),
-    service_seller: t("onboarding.businessType.services", {
-      defaultValue: "Service seller",
+    cosmetics: t("onboarding.businessType.cosmetics", {
+      defaultValue: "Cosmetics & Beauty",
     }),
-    other: t("onboarding.businessType.other", { defaultValue: "Other" }),
+    general_retail: t("onboarding.businessType.general", {
+      defaultValue: "General Retail",
+    }),
   };
 
+  const businessTypeDisplay =
+    categoryNames[businessType] ||
+    t("onboarding.confirm.defaultType", {
+      defaultValue: "General Retail",
+    });
+
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Header Bar */}
+        {/* Top Bar Navigation matching Stitch */}
         <View style={styles.topBar}>
           <Pressable
             style={styles.headerIconButton}
@@ -78,17 +87,17 @@ export function ConfirmSettingsStep({
                 web: "arrow_back" as any,
               }}
               size={22}
-              tintColor={Colors.light.textPrimary}
+              tintColor={theme.textPrimary}
             />
           </Pressable>
 
-          <ThemedText style={styles.headerTitle}>
-            {t("onboarding.confirmSettings.headerTitle", {
-              defaultValue: "Confirm Settings",
+          <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
+            {t("onboarding.confirm.headerTitle", {
+              defaultValue: "Confirmation",
             })}
           </ThemedText>
 
-          <View style={styles.avatarCircle}>
+          <View style={[styles.avatarCircle, { backgroundColor: theme.primary }]}>
             <SymbolView
               name={{
                 ios: "person.fill" as any,
@@ -96,16 +105,16 @@ export function ConfirmSettingsStep({
                 web: "person" as any,
               }}
               size={16}
-              tintColor={Colors.light.surface}
+              tintColor="#FFFFFF"
             />
           </View>
         </View>
 
         {/* Step Progress Indicator */}
         <View style={styles.progressSection}>
-          <View style={styles.stepPill}>
-            <ThemedText style={styles.stepPillText}>
-              {t("onboarding.confirmSettings.stepBadge", {
+          <View style={[styles.stepPill, { backgroundColor: theme.backgroundElement }]}>
+            <ThemedText style={[styles.stepPillText, { color: theme.textSecondary }]}>
+              {t("onboarding.confirm.stepBadge", {
                 step: stepNumber,
                 total: totalSteps,
                 defaultValue: `Step ${stepNumber} of ${totalSteps}`,
@@ -114,33 +123,34 @@ export function ConfirmSettingsStep({
           </View>
 
           <View style={styles.progressBars}>
-            <View style={[styles.bar, styles.barActive]} />
-            <View style={[styles.bar, styles.barActive]} />
-            <View style={[styles.bar, styles.barActive]} />
+            <View style={[styles.bar, styles.barActive, { backgroundColor: theme.primary }]} />
+            <View style={[styles.bar, styles.barActive, { backgroundColor: theme.primary }]} />
+            <View style={[styles.bar, styles.barActive, { backgroundColor: theme.primary }]} />
           </View>
         </View>
 
         {/* Page Titles */}
         <View style={styles.titleSection}>
-          <ThemedText style={styles.title}>
-            {t("onboarding.confirmSettings.title", {
-              defaultValue: "Review & confirm",
+          <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
+            {t("onboarding.confirm.title", {
+              defaultValue: "Confirm & Start Trading",
             })}
           </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            {t("onboarding.confirmSettings.subtitle", {
+
+          <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
+            {t("onboarding.confirm.subtitle", {
               defaultValue:
-                "Double-check your business setup before starting",
+                "Review your shop settings before creating your workspace",
             })}
           </ThemedText>
         </View>
 
-        {/* Central Summary Card Container */}
-        <View style={styles.summaryCard}>
-          {/* Row 1: Business Name */}
+        {/* Summary Card matching Stitch */}
+        <View style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {/* Item 1: Shop Name */}
           <View style={styles.summaryRow}>
             <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
+              <View style={[styles.rowIcon, { backgroundColor: theme.backgroundElement }]}>
                 <SymbolView
                   name={{
                     ios: "storefront.fill" as any,
@@ -148,27 +158,27 @@ export function ConfirmSettingsStep({
                     web: "storefront" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.primary}
+                  tintColor={theme.primary}
                 />
               </View>
+
               <View style={styles.rowText}>
-                <ThemedText style={styles.rowLabel}>
-                  {t("onboarding.confirmSettings.businessNameLabel", {
-                    defaultValue: "Business name",
+                <Text style={[styles.rowLabel, { color: theme.textSecondary }]}>
+                  {t("onboarding.confirm.labelShopName", {
+                    defaultValue: "Shop Name",
                   })}
-                </ThemedText>
-                <ThemedText style={styles.rowValue} numberOfLines={1}>
-                  {businessName || "My Store"}
-                </ThemedText>
+                </Text>
+                <Text style={[styles.rowValue, { color: theme.textPrimary }]}>
+                  {businessName || "Supérette El-Amel"}
+                </Text>
               </View>
             </View>
+
             <Pressable
+              style={[styles.editButton, { backgroundColor: theme.backgroundElement }]}
               onPress={() => onEditStep(1)}
-              style={styles.editButton}
               accessibilityRole="button"
-              accessibilityLabel={t("onboarding.confirmSettings.editBusinessName", {
-                defaultValue: "Edit business name",
-              })}
+              accessibilityLabel="Edit shop name"
             >
               <SymbolView
                 name={{
@@ -177,17 +187,17 @@ export function ConfirmSettingsStep({
                   web: "edit" as any,
                 }}
                 size={16}
-                tintColor={Colors.light.textSecondary}
+                tintColor={theme.textSecondary}
               />
             </Pressable>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.borderLight }]} />
 
-          {/* Row 2: Owner Name */}
+          {/* Item 2: Owner Name */}
           <View style={styles.summaryRow}>
             <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
+              <View style={[styles.rowIcon, { backgroundColor: theme.backgroundElement }]}>
                 <SymbolView
                   name={{
                     ios: "person.fill" as any,
@@ -195,27 +205,27 @@ export function ConfirmSettingsStep({
                     web: "person" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.primary}
+                  tintColor={theme.primary}
                 />
               </View>
+
               <View style={styles.rowText}>
-                <ThemedText style={styles.rowLabel}>
-                  {t("onboarding.confirmSettings.ownerNameLabel", {
-                    defaultValue: "Your name",
+                <Text style={[styles.rowLabel, { color: theme.textSecondary }]}>
+                  {t("onboarding.confirm.labelOwner", {
+                    defaultValue: "Owner / Manager",
                   })}
-                </ThemedText>
-                <ThemedText style={styles.rowValue} numberOfLines={1}>
-                  {ownerName || businessName}
-                </ThemedText>
+                </Text>
+                <Text style={[styles.rowValue, { color: theme.textPrimary }]}>
+                  {ownerName || "Karim Benali"}
+                </Text>
               </View>
             </View>
+
             <Pressable
+              style={[styles.editButton, { backgroundColor: theme.backgroundElement }]}
               onPress={() => onEditStep(1)}
-              style={styles.editButton}
               accessibilityRole="button"
-              accessibilityLabel={t("onboarding.confirmSettings.editOwnerName", {
-                defaultValue: "Edit owner name",
-              })}
+              accessibilityLabel="Edit owner name"
             >
               <SymbolView
                 name={{
@@ -224,17 +234,17 @@ export function ConfirmSettingsStep({
                   web: "edit" as any,
                 }}
                 size={16}
-                tintColor={Colors.light.textSecondary}
+                tintColor={theme.textSecondary}
               />
             </Pressable>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.borderLight }]} />
 
-          {/* Row 3: Business Type */}
+          {/* Item 3: Business Activity */}
           <View style={styles.summaryRow}>
             <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
+              <View style={[styles.rowIcon, { backgroundColor: theme.backgroundElement }]}>
                 <SymbolView
                   name={{
                     ios: "tag.fill" as any,
@@ -242,27 +252,25 @@ export function ConfirmSettingsStep({
                     web: "category" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.primary}
+                  tintColor={theme.primary}
                 />
               </View>
+
               <View style={styles.rowText}>
-                <ThemedText style={styles.rowLabel}>
-                  {t("onboarding.confirmSettings.businessTypeLabel", {
-                    defaultValue: "Business type",
+                <Text style={[styles.rowLabel, { color: theme.textSecondary }]}>
+                  {t("onboarding.confirm.labelType", {
+                    defaultValue: "Business Activity",
                   })}
-                </ThemedText>
-                <ThemedText style={styles.rowValue} numberOfLines={1}>
-                  {categoryNames[businessType] || businessType}
-                </ThemedText>
+                </Text>
+                <Text style={[styles.rowValue, { color: theme.textPrimary }]}>{businessTypeDisplay}</Text>
               </View>
             </View>
+
             <Pressable
+              style={[styles.editButton, { backgroundColor: theme.backgroundElement }]}
               onPress={() => onEditStep(2)}
-              style={styles.editButton}
               accessibilityRole="button"
-              accessibilityLabel={t("onboarding.confirmSettings.editBusinessType", {
-                defaultValue: "Edit business type",
-              })}
+              accessibilityLabel="Edit business type"
             >
               <SymbolView
                 name={{
@@ -271,17 +279,17 @@ export function ConfirmSettingsStep({
                   web: "edit" as any,
                 }}
                 size={16}
-                tintColor={Colors.light.textSecondary}
+                tintColor={theme.textSecondary}
               />
             </Pressable>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.borderLight }]} />
 
-          {/* Row 4: Currency */}
+          {/* Item 4: Operating Currency */}
           <View style={styles.summaryRow}>
             <View style={styles.rowLeft}>
-              <View style={styles.rowIcon}>
+              <View style={[styles.rowIcon, { backgroundColor: theme.backgroundElement }]}>
                 <SymbolView
                   name={{
                     ios: "banknote.fill" as any,
@@ -289,25 +297,25 @@ export function ConfirmSettingsStep({
                     web: "payments" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.primary}
+                  tintColor={theme.primary}
                 />
               </View>
+
               <View style={styles.rowText}>
-                <ThemedText style={styles.rowLabel}>
-                  {t("onboarding.confirmSettings.currencyLabel", {
-                    defaultValue: "Currency",
+                <Text style={[styles.rowLabel, { color: theme.textSecondary }]}>
+                  {t("onboarding.confirm.labelCurrency", {
+                    defaultValue: "Operating Currency",
                   })}
-                </ThemedText>
-                <ThemedText style={styles.rowValue}>
-                  {currency} (Algerian Dinar)
-                </ThemedText>
-                <Text style={styles.currencyNote}>
-                  {t("onboarding.confirmSettings.currencyNote", {
-                    defaultValue: "Default currency for Algeria (locked)",
+                </Text>
+                <Text style={[styles.rowValue, { color: theme.textPrimary }]}>{currency}</Text>
+                <Text style={[styles.currencyNote, { color: theme.textMuted }]}>
+                  {t("onboarding.confirm.currencyNote", {
+                    defaultValue: "Configured in Settings",
                   })}
                 </Text>
               </View>
             </View>
+
             <View style={styles.lockedBadge}>
               <SymbolView
                 name={{
@@ -316,62 +324,62 @@ export function ConfirmSettingsStep({
                   web: "lock" as any,
                 }}
                 size={16}
-                tintColor={Colors.light.textMuted}
+                tintColor={theme.textMuted}
               />
             </View>
           </View>
         </View>
 
-        {/* Soft Informational Note Box */}
-        <View style={styles.infoBox}>
+        {/* Local Storage Reassurance Box matching Stitch */}
+        <View style={[styles.infoBox, { backgroundColor: theme.backgroundElement }]}>
           <SymbolView
             name={{
-              ios: "info-circle" as any,
-              android: "info" as any,
-              web: "info" as any,
+              ios: "shield.checkmark.fill" as any,
+              android: "verified_user" as any,
+              web: "verified_user" as any,
             }}
-            size={18}
-            tintColor={Colors.light.textSecondary}
+            size={20}
+            tintColor={theme.textSecondary}
           />
-          <ThemedText style={styles.infoText}>
-            {t("onboarding.confirmSettings.infoText", {
+          <Text style={[styles.infoText, { color: theme.textSecondary }]}>
+            {t("onboarding.confirm.privacyInfo", {
               defaultValue:
-                "You can update your business name, logo, and receipt details anytime in the Settings tab.",
+                "Your store database will be initialized instantly on your device. Zero cloud lock-in.",
             })}
-          </ThemedText>
+          </Text>
         </View>
 
-        {/* Store Preview Vignette matching Stitch */}
-        <View style={styles.storePreview}>
-          <View style={styles.previewIconBox}>
+        {/* Live Store Banner Header Preview matching Stitch */}
+        <View style={[styles.storePreview, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.previewIconBox, { backgroundColor: theme.primaryLight }]}>
             <SymbolView
               name={{
                 ios: "storefront.fill" as any,
                 android: "storefront" as any,
                 web: "storefront" as any,
               }}
-              size={26}
-              tintColor={Colors.light.primary}
+              size={24}
+              tintColor={theme.primary}
             />
           </View>
+
           <View style={styles.previewContent}>
-            <ThemedText style={styles.previewBadge}>
-              {t("onboarding.confirmSettings.previewReadyBadge", {
-                defaultValue: "READY TO LAUNCH",
+            <Text style={[styles.previewBadge, { color: theme.primary }]}>
+              {t("onboarding.confirm.readyToTrade", {
+                defaultValue: "READY TO TRADE",
               })}
-            </ThemedText>
-            <ThemedText style={styles.previewTitle}>
-              {t("onboarding.confirmSettings.previewTitle", {
-                defaultValue: "Your digital ledger is prepared",
-              })}
-            </ThemedText>
-            <ThemedText style={styles.previewSubtitle}>
-              {t("onboarding.confirmSettings.previewSubtitle", {
-                defaultValue: "Point of Sale, debts & inventory",
-              })}
-            </ThemedText>
+            </Text>
+
+            <Text style={[styles.previewTitle, { color: theme.textPrimary }]} numberOfLines={1}>
+              {businessName || "Supérette El-Amel"}
+            </Text>
+
+            <Text style={[styles.previewSubtitle, { color: theme.textSecondary }]} numberOfLines={1}>
+              {businessTypeDisplay} • {currency}
+            </Text>
           </View>
-          <View style={styles.previewCheckCircle}>
+
+          <View style={[styles.previewCheckCircle, { backgroundColor: theme.primary }]}>
             <SymbolView
               name={{
                 ios: "checkmark" as any,
@@ -379,27 +387,28 @@ export function ConfirmSettingsStep({
                 web: "check" as any,
               }}
               size={14}
-              tintColor={Colors.light.surface}
+              tintColor="#FFFFFF"
             />
           </View>
         </View>
       </ScrollView>
 
-      {/* Action Section matching Stitch */}
+      {/* Action Footer */}
       <View style={styles.footer}>
         <Pressable
-          style={styles.startButton}
+          style={[styles.startButton, { backgroundColor: theme.primary }]}
           onPress={onConfirm}
           accessibilityRole="button"
-          accessibilityLabel={t("onboarding.confirmSettings.startButton", {
-            defaultValue: "Start using Dukkan OS",
+          accessibilityLabel={t("onboarding.confirm.startTrading", {
+            defaultValue: "Confirm & Start Trading",
           })}
         >
           <Text style={styles.startButtonText}>
-            {t("onboarding.confirmSettings.startButton", {
-              defaultValue: "Start using Dukkan OS",
+            {t("onboarding.confirm.startTrading", {
+              defaultValue: "Confirm & Start Trading",
             })}
           </Text>
+
           <SymbolView
             name={{
               ios: "arrow.right" as any,
@@ -407,30 +416,19 @@ export function ConfirmSettingsStep({
               web: "arrow_forward" as any,
             }}
             size={18}
-            tintColor={Colors.light.surface}
+            tintColor="#FFFFFF"
           />
         </Pressable>
 
         {onBack && (
           <Pressable
-            onPress={onBack}
             style={styles.backButton}
+            onPress={onBack}
             accessibilityRole="button"
           >
-            <SymbolView
-              name={{
-                ios: "arrow.left" as any,
-                android: "arrow_back" as any,
-                web: "arrow_back" as any,
-              }}
-              size={16}
-              tintColor={Colors.light.textSecondary}
-            />
-            <ThemedText style={styles.backButtonText}>
-              {t("onboarding.confirmSettings.backToStep2", {
-                defaultValue: "Back to step 2",
-              })}
-            </ThemedText>
+            <Text style={[styles.backButtonText, { color: theme.textSecondary }]}>
+              {t("common.back", { defaultValue: "Back" })}
+            </Text>
           </Pressable>
         )}
       </View>
@@ -441,7 +439,6 @@ export function ConfirmSettingsStep({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
     maxWidth: 480,
     alignSelf: "center",
     width: "100%",
@@ -467,13 +464,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...Typography.bodyLarge,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   avatarCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.primary,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -484,7 +479,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   stepPill: {
-    backgroundColor: Colors.light.backgroundElement,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
@@ -493,7 +487,6 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   progressBars: {
     flexDirection: "row",
@@ -504,28 +497,21 @@ const styles = StyleSheet.create({
     width: 28,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.border,
   },
-  barActive: {
-    backgroundColor: Colors.light.primary,
-  },
+  barActive: {},
   titleSection: {
     marginBottom: Spacing.lg,
   },
   title: {
     ...Typography.heading1,
-    color: Colors.light.textPrimary,
   },
   subtitle: {
     ...Typography.body,
-    color: Colors.light.textSecondary,
     marginTop: 4,
   },
   summaryCard: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     marginBottom: Spacing.lg,
     ...Shadows.sm,
     padding: Spacing.md,
@@ -546,7 +532,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.backgroundElement,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -555,26 +540,22 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     fontSize: 12,
   },
   rowValue: {
     ...Typography.body,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
     marginTop: 2,
   },
   currencyNote: {
     ...Typography.caption,
     fontSize: 11,
-    color: Colors.light.textMuted,
     marginTop: 2,
   },
   editButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.backgroundElement,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -586,14 +567,12 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.light.borderLight,
     marginVertical: 4,
   },
   infoBox: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    backgroundColor: Colors.light.backgroundElement,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.lg,
@@ -602,18 +581,15 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     lineHeight: 16,
   },
   storePreview: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surface,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     marginBottom: Spacing.lg,
     ...Shadows.sm,
   },
@@ -621,7 +597,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -631,26 +606,22 @@ const styles = StyleSheet.create({
   previewBadge: {
     fontSize: 10,
     fontWeight: "700",
-    color: Colors.light.primary,
     letterSpacing: 0.5,
   },
   previewTitle: {
     ...Typography.body,
     fontWeight: "600",
     fontSize: 14,
-    color: Colors.light.textPrimary,
     marginTop: 2,
   },
   previewSubtitle: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   previewCheckCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: Colors.light.primary,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -664,7 +635,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 48,
     borderRadius: BorderRadius.button,
-    backgroundColor: Colors.light.primary,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -672,7 +642,7 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   startButtonText: {
-    color: Colors.light.surface,
+    color: "#FFFFFF",
     ...Typography.body,
     fontWeight: "600",
   },
@@ -686,6 +656,5 @@ const styles = StyleSheet.create({
   backButtonText: {
     ...Typography.label,
     fontSize: 14,
-    color: Colors.light.textSecondary,
   },
 });

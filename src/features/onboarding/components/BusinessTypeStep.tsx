@@ -6,12 +6,12 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Shadows,
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "react-i18next";
 
 interface BusinessTypeStepProps {
@@ -30,6 +30,7 @@ export function BusinessTypeStep({
   totalSteps = 3,
 }: BusinessTypeStepProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [currentType, setCurrentType] = useState(selectedType);
 
   const businessCategories = [
@@ -39,10 +40,10 @@ export function BusinessTypeStep({
         defaultValue: "Grocery shop",
       }),
       subtitle: t("onboarding.businessType.grocerySub", {
-        defaultValue: "Alimentation générale / البقالة",
+        defaultValue: "Alimentation Générale • Fast barcode POS",
       }),
-      iconIos: "cart.fill",
-      iconAndroid: "storefront",
+      icon: "storefront",
+      popular: true,
     },
     {
       id: "bakery",
@@ -50,10 +51,10 @@ export function BusinessTypeStep({
         defaultValue: "Home bakery",
       }),
       subtitle: t("onboarding.businessType.bakerySub", {
-        defaultValue: "Gâteaux & Pâtisserie maison / حلويات منزلية",
+        defaultValue: "Boulangerie & Pâtisserie • Custom orders",
       }),
-      iconIos: "birthday.cake.fill",
-      iconAndroid: "bakery_dining",
+      icon: "shopping_bag",
+      popular: false,
     },
     {
       id: "instagram_seller",
@@ -61,41 +62,43 @@ export function BusinessTypeStep({
         defaultValue: "Instagram seller",
       }),
       subtitle: t("onboarding.businessType.instagramSub", {
-        defaultValue: "Vente en ligne & Réseaux / متجر إنستغرام",
+        defaultValue: "Vente en ligne • Social commerce & delivery",
       }),
-      iconIos: "camera.fill",
-      iconAndroid: "photo_camera",
+      icon: "share",
+      popular: true,
     },
     {
-      id: "market_vendor",
-      name: t("onboarding.businessType.market", {
-        defaultValue: "Market vendor",
+      id: "clothing",
+      name: t("onboarding.businessType.clothing", {
+        defaultValue: "Clothing & Fashion",
       }),
-      subtitle: t("onboarding.businessType.marketSub", {
-        defaultValue: "Marché & Vendeur ambulant / بائع في السوق",
+      subtitle: t("onboarding.businessType.clothingSub", {
+        defaultValue: "Habillement • Size & color variants",
       }),
-      iconIos: "bag.fill",
-      iconAndroid: "store",
+      icon: "checkroom",
+      popular: false,
     },
     {
-      id: "service_seller",
-      name: t("onboarding.businessType.services", {
-        defaultValue: "Service seller",
+      id: "cosmetics",
+      name: t("onboarding.businessType.cosmetics", {
+        defaultValue: "Cosmetics & Beauty",
       }),
-      subtitle: t("onboarding.businessType.servicesSub", {
-        defaultValue: "Prestation de services / خدمات",
+      subtitle: t("onboarding.businessType.cosmeticsSub", {
+        defaultValue: "Cosmétiques & Parfumerie",
       }),
-      iconIos: "wrench.and.screwdriver.fill",
-      iconAndroid: "handyman",
+      icon: "content_cut",
+      popular: false,
     },
     {
-      id: "other",
-      name: t("onboarding.businessType.other", { defaultValue: "Other" }),
-      subtitle: t("onboarding.businessType.otherSub", {
-        defaultValue: "Autre activité / نشاط آخر",
+      id: "general_retail",
+      name: t("onboarding.businessType.general", {
+        defaultValue: "General Retail",
       }),
-      iconIos: "ellipsis.circle.fill",
-      iconAndroid: "more_horiz",
+      subtitle: t("onboarding.businessType.generalSub", {
+        defaultValue: "Commerce général • Flexible ledger",
+      }),
+      icon: "category",
+      popular: false,
     },
   ];
 
@@ -104,12 +107,12 @@ export function BusinessTypeStep({
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Header Bar */}
+        {/* Top Bar Navigation matching Stitch */}
         <View style={styles.topBar}>
           <Pressable
             style={styles.headerIconButton}
@@ -124,17 +127,17 @@ export function BusinessTypeStep({
                 web: "arrow_back" as any,
               }}
               size={22}
-              tintColor={Colors.light.textPrimary}
+              tintColor={theme.textPrimary}
             />
           </Pressable>
 
-          <ThemedText style={styles.headerTitle}>
+          <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
             {t("onboarding.businessType.headerTitle", {
               defaultValue: "Business Type",
             })}
           </ThemedText>
 
-          <View style={styles.avatarCircle}>
+          <View style={[styles.avatarCircle, { backgroundColor: theme.primary }]}>
             <SymbolView
               name={{
                 ios: "person.fill" as any,
@@ -142,15 +145,15 @@ export function BusinessTypeStep({
                 web: "person" as any,
               }}
               size={16}
-              tintColor={Colors.light.surface}
+              tintColor="#FFFFFF"
             />
           </View>
         </View>
 
         {/* Step Progress Indicator */}
         <View style={styles.progressSection}>
-          <View style={styles.stepPill}>
-            <ThemedText style={styles.stepPillText}>
+          <View style={[styles.stepPill, { backgroundColor: theme.backgroundElement }]}>
+            <ThemedText style={[styles.stepPillText, { color: theme.textSecondary }]}>
               {t("onboarding.businessType.stepBadge", {
                 step: stepNumber,
                 total: totalSteps,
@@ -160,91 +163,93 @@ export function BusinessTypeStep({
           </View>
 
           <View style={styles.progressBars}>
-            <View style={[styles.bar, styles.barActive]} />
-            <View style={[styles.bar, styles.barActive]} />
-            <View style={styles.bar} />
+            <View style={[styles.bar, { backgroundColor: theme.primary }]} />
+            <View style={[styles.bar, styles.barActive, { backgroundColor: theme.primary }]} />
+            <View style={[styles.bar, { backgroundColor: theme.border }]} />
           </View>
         </View>
 
         {/* Page Titles */}
         <View style={styles.titleSection}>
-          <ThemedText style={styles.title}>
+          <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
             {t("onboarding.businessType.title", {
-              defaultValue: "What type of business?",
+              defaultValue: "What type of shop do you run?",
             })}
           </ThemedText>
-          <ThemedText style={styles.subtitle}>
+
+          <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
             {t("onboarding.businessType.subtitle", {
               defaultValue:
-                "Choose the category that best matches your daily activity",
+                "This pre-configures your product categories and unit defaults",
             })}
           </ThemedText>
         </View>
 
-        {/* 6 Category Cards matching Stitch */}
-        <View style={styles.cardsGrid}>
-          {businessCategories.map((cat) => {
-            const isSelected = currentType === cat.id;
+        {/* Selection Grid Cards matching Stitch */}
+        <View style={styles.cardsContainer}>
+          {businessCategories.map((item) => {
+            const isSelected = currentType === item.id;
 
             return (
               <Pressable
-                key={cat.id}
-                onPress={() => setCurrentType(cat.id)}
+                key={item.id}
                 style={[
-                  styles.categoryCard,
-                  isSelected
-                    ? styles.categoryCardSelected
-                    : styles.categoryCardUnselected,
+                  styles.typeCard,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  isSelected && { backgroundColor: theme.primaryLight, borderColor: theme.primary },
                 ]}
-                accessibilityRole="radio"
+                onPress={() => setCurrentType(item.id)}
+                accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
               >
-                <View style={styles.cardLeft}>
-                  <View
-                    style={[
-                      styles.iconBubble,
-                      isSelected
-                        ? styles.iconBubbleSelected
-                        : styles.iconBubbleUnselected,
-                    ]}
-                  >
-                    <SymbolView
-                      name={{
-                        ios: cat.iconIos as any,
-                        android: cat.iconAndroid as any,
-                        web: cat.iconAndroid as any,
-                      }}
-                      size={22}
-                      tintColor={
-                        isSelected
-                          ? Colors.light.primary
-                          : Colors.light.textSecondary
-                      }
-                    />
-                  </View>
-
-                  <View style={styles.textContainer}>
-                    <ThemedText
-                      style={[
-                        styles.catName,
-                        isSelected && styles.catNameSelected,
-                      ]}
-                    >
-                      {cat.name}
-                    </ThemedText>
-                    <ThemedText style={styles.catSubtitle}>
-                      {cat.subtitle}
-                    </ThemedText>
-                  </View>
-                </View>
-
-                {/* Right Selection Circle */}
                 <View
                   style={[
-                    styles.checkCircle,
-                    isSelected
-                      ? styles.checkCircleSelected
-                      : styles.checkCircleUnselected,
+                    styles.iconBox,
+                    { backgroundColor: theme.backgroundElement },
+                    isSelected && { backgroundColor: theme.primaryLight },
+                  ]}
+                >
+                  <SymbolView
+                    name={{
+                      ios: "storefront" as any,
+                      android: item.icon as any,
+                      web: item.icon as any,
+                    }}
+                    size={24}
+                    tintColor={
+                      isSelected ? theme.primary : theme.textPrimary
+                    }
+                  />
+                </View>
+
+                <View style={styles.cardContent}>
+                  <View style={styles.cardTitleRow}>
+                    <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
+                      {item.name}
+                    </Text>
+
+                    {item.popular && (
+                      <View style={[styles.popularBadge, { backgroundColor: theme.primaryLight }]}>
+                        <Text style={[styles.popularBadgeText, { color: theme.primary }]}>
+                          {t("onboarding.businessType.popular", {
+                            defaultValue: "Popular",
+                          })}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text style={[styles.cardSub, { color: theme.textSecondary }]}>
+                    {item.subtitle}
+                  </Text>
+                </View>
+
+                {/* Radio Circle Indicator */}
+                <View
+                  style={[
+                    styles.radioCircle,
+                    { borderColor: theme.border, backgroundColor: theme.backgroundElement },
+                    isSelected && { backgroundColor: theme.primary, borderColor: theme.primary },
                   ]}
                 >
                   {isSelected && (
@@ -255,7 +260,7 @@ export function BusinessTypeStep({
                         web: "check" as any,
                       }}
                       size={14}
-                      tintColor={Colors.light.surface}
+                      tintColor="#FFFFFF"
                     />
                   )}
                 </View>
@@ -264,30 +269,31 @@ export function BusinessTypeStep({
           })}
         </View>
 
-        {/* Helper Note matching Stitch */}
-        <View style={styles.helperMessage}>
+        {/* Reassurance Micro Banner */}
+        <View style={[styles.microBanner, { backgroundColor: theme.backgroundElement }]}>
           <SymbolView
             name={{
-              ios: "info-circle" as any,
+              ios: "info.circle.fill" as any,
               android: "info" as any,
               web: "info" as any,
             }}
             size={18}
-            tintColor={Colors.light.primary}
+            tintColor={theme.primary}
           />
-          <ThemedText style={styles.helperText}>
-            {t("onboarding.businessType.helperText", {
+
+          <Text style={[styles.microBannerText, { color: theme.textSecondary }]}>
+            {t("onboarding.businessType.flexibleNote", {
               defaultValue:
-                "You can change your category or add custom products anytime in Settings.",
+                "Don't worry, you can easily add custom categories and items anytime later.",
             })}
-          </ThemedText>
+          </Text>
         </View>
       </ScrollView>
 
-      {/* CTA Footer matching Stitch */}
+      {/* Action Footer */}
       <View style={styles.footer}>
         <Pressable
-          style={styles.continueButton}
+          style={[styles.continueButton, { backgroundColor: theme.primary }]}
           onPress={handleContinue}
           accessibilityRole="button"
           accessibilityLabel={t("onboarding.businessType.continue", {
@@ -299,6 +305,7 @@ export function BusinessTypeStep({
               defaultValue: "Continue",
             })}
           </Text>
+
           <SymbolView
             name={{
               ios: "arrow.right" as any,
@@ -306,28 +313,20 @@ export function BusinessTypeStep({
               web: "arrow_forward" as any,
             }}
             size={18}
-            tintColor={Colors.light.surface}
+            tintColor="#FFFFFF"
           />
         </Pressable>
 
         {onBack && (
           <Pressable
-            onPress={onBack}
             style={styles.backButton}
+            onPress={onBack}
             accessibilityRole="button"
           >
-            <SymbolView
-              name={{
-                ios: "arrow.left" as any,
-                android: "arrow_back" as any,
-                web: "arrow_back" as any,
-              }}
-              size={16}
-              tintColor={Colors.light.textSecondary}
-            />
-            <ThemedText style={styles.backButtonText}>
-              {t("onboarding.businessType.back", { defaultValue: "Back" })}
-            </ThemedText>
+            <Text style={[styles.backButtonText, { color: theme.textSecondary }]}>
+              {t("common.back", { defaultValue: "Back" })}
+            </Text>
+            <Text style={[styles.backSubText, { color: theme.textMuted }]}>• Step {stepNumber}</Text>
           </Pressable>
         )}
       </View>
@@ -338,7 +337,6 @@ export function BusinessTypeStep({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
     maxWidth: 480,
     alignSelf: "center",
     width: "100%",
@@ -364,13 +362,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...Typography.bodyLarge,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   avatarCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.primary,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -381,7 +377,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   stepPill: {
-    backgroundColor: Colors.light.backgroundElement,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
@@ -390,7 +385,6 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   progressBars: {
     flexDirection: "row",
@@ -401,113 +395,87 @@ const styles = StyleSheet.create({
     width: 12,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.border,
   },
   barActive: {
     width: 28,
-    backgroundColor: Colors.light.primary,
   },
   titleSection: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   title: {
     ...Typography.heading1,
-    color: Colors.light.textPrimary,
   },
   subtitle: {
     ...Typography.body,
-    color: Colors.light.textSecondary,
-    marginTop: 4,
-  },
-  cardsGrid: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  categoryCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    ...Shadows.sm,
-    minHeight: 70,
-  },
-  categoryCardUnselected: {
-    backgroundColor: Colors.light.surface,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  categoryCardSelected: {
-    backgroundColor: "#F4FAF6",
-    borderColor: Colors.light.primary,
-    borderWidth: 2,
-  },
-  cardLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-    flex: 1,
-  },
-  iconBubble: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  iconBubbleUnselected: {
-    backgroundColor: Colors.light.backgroundElement,
-  },
-  iconBubbleSelected: {
-    backgroundColor: Colors.light.primaryLight,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  catName: {
-    ...Typography.body,
-    fontWeight: "600",
-    color: Colors.light.textPrimary,
-  },
-  catNameSelected: {
-    color: Colors.light.primaryDark,
-    fontWeight: "700",
-  },
-  catSubtitle: {
-    ...Typography.caption,
-    color: Colors.light.textSecondary,
     marginTop: 2,
-    fontSize: 12,
   },
-  checkCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkCircleUnselected: {
-    backgroundColor: Colors.light.backgroundElement,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  checkCircleSelected: {
-    backgroundColor: Colors.light.primary,
-  },
-  helperMessage: {
-    flexDirection: "row",
-    alignItems: "center",
+  cardsContainer: {
     gap: Spacing.sm,
-    backgroundColor: Colors.light.backgroundElement,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
     marginBottom: Spacing.md,
   },
-  helperText: {
+  typeCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.md,
+    borderWidth: 1,
+    ...Shadows.sm,
+  },
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: Spacing.md,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  cardTitle: {
+    ...Typography.label,
+    fontSize: 15,
+  },
+  popularBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: BorderRadius.full,
+  },
+  popularBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  cardSub: {
+    ...Typography.caption,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  radioCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: Spacing.sm,
+  },
+  microBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.sm,
+  },
+  microBannerText: {
     flex: 1,
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     lineHeight: 16,
   },
   footer: {
@@ -517,7 +485,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   continueButton: {
-    backgroundColor: Colors.light.primary,
     height: 48,
     borderRadius: BorderRadius.button,
     flexDirection: "row",
@@ -527,7 +494,7 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   continueButtonText: {
-    color: Colors.light.surface,
+    color: "#FFFFFF",
     ...Typography.body,
     fontWeight: "600",
   },
@@ -541,6 +508,8 @@ const styles = StyleSheet.create({
   backButtonText: {
     ...Typography.label,
     fontSize: 14,
-    color: Colors.light.textSecondary,
+  },
+  backSubText: {
+    fontSize: 12,
   },
 });
