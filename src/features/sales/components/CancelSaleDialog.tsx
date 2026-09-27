@@ -12,7 +12,8 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/themed-text';
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { cancel } from '@/database/repositories/saleRepository';
 import { formatCentimes } from '@/utils/money';
 
@@ -37,10 +38,10 @@ export function CancelSaleDialog({
   onCancelSuccess,
 }: CancelSaleDialogProps) {
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
   const lang = i18n.language || 'fr';
   const isArabic = lang.startsWith('ar');
   const isFrench = lang.startsWith('fr');
-  const localeParam = isArabic ? 'ar-DZ' : isFrench ? 'fr-DZ' : 'en-DZ';
 
   const quickReasons = [
     {
@@ -136,7 +137,7 @@ export function CancelSaleDialog({
   const receiptTag =
     saleDetails?.receipt_no || `#REC-${saleId}`;
   const totalAmountStr = saleDetails?.total_centimes
-    ? formatCentimes(saleDetails.total_centimes, localeParam)
+    ? formatCentimes(saleDetails.total_centimes, lang)
     : '';
 
   return (
@@ -149,25 +150,25 @@ export function CancelSaleDialog({
       <TouchableWithoutFeedback onPress={onRequestClose}>
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: theme.surface }]}>
               {/* Header Icon + Title */}
               <View style={styles.header}>
-                <View style={styles.warningIconCircle}>
+                <View style={[styles.warningIconCircle, { backgroundColor: theme.errorLight }]}>
                   <MaterialIcons
                     name="warning"
                     size={28}
-                    color={Colors.light.error}
+                    color={theme.error}
                   />
                 </View>
-                <ThemedText style={styles.title}>
+                <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
                   {isArabic
                     ? 'هل تريد إلغاء هذا البيع؟'
                     : isFrench
                     ? 'Annuler cette vente ?'
                     : 'Cancel this sale?'}
                 </ThemedText>
-                <View style={styles.saleChip}>
-                  <ThemedText style={styles.saleChipText}>
+                <View style={[styles.saleChip, { backgroundColor: theme.surfaceAlt }]}>
+                  <ThemedText style={[styles.saleChipText, { color: theme.textSecondary }]}>
                     {receiptTag}
                     {totalAmountStr ? ` • ${totalAmountStr}` : ''}
                     {saleDetails?.customer_name
@@ -178,22 +179,22 @@ export function CancelSaleDialog({
               </View>
 
               {/* Warning Callout Box */}
-              <View style={styles.callout}>
+              <View style={[styles.callout, { backgroundColor: theme.warningLight, borderColor: theme.border }]}>
                 <MaterialIcons
                   name="inventory"
                   size={20}
-                  color={Colors.light.secondary}
+                  color={theme.secondary}
                   style={styles.calloutIcon}
                 />
                 <View style={styles.calloutContent}>
-                  <ThemedText style={styles.calloutTitle}>
+                  <ThemedText style={[styles.calloutTitle, { color: theme.secondary }]}>
                     {isArabic
                       ? 'ستتم استعادة المخزون تلقائياً'
                       : isFrench
                       ? 'Le stock sera restauré'
                       : 'Stock will be restored'}
                   </ThemedText>
-                  <ThemedText style={styles.calloutBody}>
+                  <ThemedText style={[styles.calloutBody, { color: theme.secondary }]}>
                     {isArabic
                       ? 'تتم استعادة المنتجات إلى المخزون تلقائياً، واستبعاد هذه المعاملة من الحسابات والإيرادات نهائياً.'
                       : isFrench
@@ -206,14 +207,14 @@ export function CancelSaleDialog({
               {/* Reason Selection */}
               <View style={styles.reasonSection}>
                 <View style={styles.reasonLabelRow}>
-                  <ThemedText style={styles.reasonLabel}>
+                  <ThemedText style={[styles.reasonLabel, { color: theme.textPrimary }]}>
                     {isArabic
                       ? 'سبب الإلغاء *'
                       : isFrench
                       ? "Motif de l'annulation *"
                       : 'Reason for cancellation *'}
                   </ThemedText>
-                  <ThemedText style={styles.requiredBadge}>
+                  <ThemedText style={[styles.requiredBadge, { color: theme.error }]}>
                     {isArabic ? 'إجباري' : isFrench ? 'Requis' : 'Required'}
                   </ThemedText>
                 </View>
@@ -227,7 +228,8 @@ export function CancelSaleDialog({
                         key={item.key}
                         style={[
                           styles.reasonChip,
-                          isSelected && styles.reasonChipSelected,
+                          { backgroundColor: theme.surfaceAlt },
+                          isSelected && { backgroundColor: theme.primaryLight, borderColor: theme.primary },
                         ]}
                         onPress={() => handleSelectQuickReason(item)}
                         activeOpacity={0.7}
@@ -236,13 +238,14 @@ export function CancelSaleDialog({
                           <MaterialIcons
                             name="check"
                             size={14}
-                            color={Colors.light.primary}
+                            color={theme.primary}
                           />
                         )}
                         <ThemedText
                           style={[
                             styles.reasonChipText,
-                            isSelected && styles.reasonChipTextSelected,
+                            { color: theme.textSecondary },
+                            isSelected && { color: theme.primary, fontWeight: '600' },
                           ]}
                         >
                           {item.label}
@@ -266,8 +269,8 @@ export function CancelSaleDialog({
                       ? 'Ou écrivez un motif personnalisé...'
                       : 'Or enter custom cancellation note...'
                   }
-                  placeholderTextColor={Colors.light.textMuted}
-                  style={styles.textInput}
+                  placeholderTextColor={theme.textMuted}
+                  style={[styles.textInput, { backgroundColor: theme.surfaceAlt, color: theme.textPrimary }]}
                   multiline
                   numberOfLines={2}
                 />
@@ -278,6 +281,7 @@ export function CancelSaleDialog({
                 <TouchableOpacity
                   style={[
                     styles.confirmButton,
+                    { backgroundColor: theme.error },
                     (!reason.trim() || isSubmitting) && styles.disabledButton,
                   ]}
                   onPress={handleConfirmCancel}
@@ -309,7 +313,7 @@ export function CancelSaleDialog({
                   accessibilityRole="button"
                   accessibilityLabel="Keep sale"
                 >
-                  <ThemedText style={styles.dismissButtonText}>
+                  <ThemedText style={[styles.dismissButtonText, { color: theme.textSecondary }]}>
                     {isArabic
                       ? 'الاحتفاظ بالبيع'
                       : isFrench
@@ -320,13 +324,13 @@ export function CancelSaleDialog({
               </View>
 
               {/* Security Audit Footer */}
-              <View style={styles.auditFooter}>
+              <View style={[styles.auditFooter, { borderTopColor: theme.border }]}>
                 <MaterialIcons
                   name="verified-user"
                   size={14}
-                  color={Colors.light.textMuted}
+                  color={theme.textMuted}
                 />
-                <ThemedText style={styles.auditFooterText}>
+                <ThemedText style={[styles.auditFooterText, { color: theme.textMuted }]}>
                   {isArabic
                     ? 'عملية مسجلة في سجل النظام المحلي الآمن'
                     : isFrench
@@ -353,7 +357,6 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 440,
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     ...Shadows.lg,
@@ -367,7 +370,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.light.errorLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -375,11 +377,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
     textAlign: 'center',
   },
   saleChip: {
-    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: BorderRadius.pill,
@@ -387,17 +387,14 @@ const styles = StyleSheet.create({
   saleChipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
   },
   callout: {
-    backgroundColor: Colors.light.warningLight,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.sm,
     borderWidth: 1,
-    borderColor: '#FDE68A',
   },
   calloutIcon: {
     marginTop: 2,
@@ -409,11 +406,9 @@ const styles = StyleSheet.create({
   calloutTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.light.secondary,
   },
   calloutBody: {
     fontSize: 12,
-    color: Colors.light.secondary,
     lineHeight: 17,
   },
   reasonSection: {
@@ -428,12 +423,10 @@ const styles = StyleSheet.create({
   reasonLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.textPrimary,
   },
   requiredBadge: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.light.error,
   },
   chipsWrap: {
     flexDirection: 'row',
@@ -442,7 +435,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reasonChip: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.pill,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -452,26 +444,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  reasonChipSelected: {
-    backgroundColor: Colors.light.primaryLight,
-    borderColor: Colors.light.primary,
-  },
+  reasonChipSelected: {},
   reasonChipText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     fontWeight: '500',
   },
-  reasonChipTextSelected: {
-    color: Colors.light.primary,
-    fontWeight: '600',
-  },
+  reasonChipTextSelected: {},
   textInput: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.md,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 13,
-    color: Colors.light.textPrimary,
     minHeight: 48,
     textAlignVertical: 'top',
   },
@@ -482,7 +465,6 @@ const styles = StyleSheet.create({
   confirmButton: {
     height: 48,
     borderRadius: BorderRadius.button,
-    backgroundColor: Colors.light.error,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -502,7 +484,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dismissButtonText: {
-    color: Colors.light.textSecondary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -512,11 +493,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
     paddingTop: 10,
   },
   auditFooterText: {
     fontSize: 11,
-    color: Colors.light.textMuted,
   },
 });

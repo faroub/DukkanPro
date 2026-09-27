@@ -8,6 +8,7 @@
 
 import { BusinessProfile } from "../../types/entities";
 import { executeAll, executeWrite } from "../database";
+import { setActiveStoreCurrency } from "@/utils/money";
 
 export type BusinessProfileFilters = {
   is_active?: boolean;
@@ -49,8 +50,10 @@ export async function get(): Promise<BusinessProfile | null> {
   if (rows.length === 0) {
     return null;
   }
-  // Return the first (and only) row, mapped to the interface.
   const r = rows[0];
+  if (r.currency) {
+    setActiveStoreCurrency(r.currency);
+  }
   return {
     id: r.id,
     business_name: r.business_name,
@@ -77,7 +80,9 @@ export async function create(
   // Check if a profile already exists.
   const existing: BusinessProfile | null = await get();
   if (existing) {
-    // Already has one — return it (idempotent).
+    if (existing.currency) {
+      setActiveStoreCurrency(existing.currency);
+    }
     return existing;
   }
 
@@ -98,6 +103,10 @@ export async function create(
       profile.rc_number ?? null,
     ],
   );
+
+  if (profile.currency) {
+    setActiveStoreCurrency(profile.currency);
+  }
 
   // Re-fetch the newly inserted row.
   const created = await get();
@@ -137,6 +146,9 @@ export async function update(
       profile.id,
     ],
   );
+  if (profile.currency) {
+    setActiveStoreCurrency(profile.currency);
+  }
   const updated = await get();
   if (!updated) throw new Error("Business profile was not updated");
   return updated;

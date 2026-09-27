@@ -18,7 +18,7 @@ import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { recordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { getById as getCustomerById } from "@/database/repositories/customerRepository";
-import { formatCentimes } from "@/utils/money";
+import { formatCentimes, getActiveStoreCurrency, getCurrencySymbol } from "@/utils/money";
 
 interface RecordPaymentScreenProps {
   customerId: number;
@@ -184,7 +184,7 @@ export function RecordPaymentScreen({
         {/* Payment Amount Input Section */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
-            {t("customers:paymentAmount")} (DZD)
+            {t("customers:paymentAmount")} ({getActiveStoreCurrency()})
           </ThemedText>
 
           <View style={styles.inputContainer}>
@@ -202,7 +202,7 @@ export function RecordPaymentScreen({
               placeholder="0"
               placeholderTextColor={theme.textMuted}
             />
-            <ThemedText style={styles.currencyBadge}>DZD</ThemedText>
+            <ThemedText style={styles.currencyBadge}>{getCurrencySymbol(undefined, i18n.language)}</ThemedText>
           </View>
 
           {/* Quick Amount Chips */}
@@ -221,7 +221,7 @@ export function RecordPaymentScreen({
                     parsedDinars === debtDinars && styles.quickFillTextActive,
                   ]}
                 >
-                  {t("customers:fullAmount")} ({debtDinars} DZD)
+                  {t("customers:fullAmount")} ({formatCentimes(currentDebt, i18n.language as any)})
                 </ThemedText>
               </TouchableOpacity>
             )}
@@ -242,7 +242,7 @@ export function RecordPaymentScreen({
                       styles.quickFillTextActive,
                   ]}
                 >
-                  50% ({Math.round(debtDinars / 2)} DZD)
+                  50% ({formatCentimes(Math.round(currentDebt / 2), i18n.language as any)})
                 </ThemedText>
               </TouchableOpacity>
             )}
@@ -260,7 +260,7 @@ export function RecordPaymentScreen({
                   parsedDinars === 1000 && styles.quickFillTextActive,
                 ]}
               >
-                1000 DZD
+                {formatCentimes(100000, i18n.language as any)}
               </ThemedText>
             </TouchableOpacity>
 
@@ -277,7 +277,7 @@ export function RecordPaymentScreen({
                   parsedDinars === 2000 && styles.quickFillTextActive,
                 ]}
               >
-                2000 DZD
+                {formatCentimes(200000, i18n.language as any)}
               </ThemedText>
             </TouchableOpacity>
           </View>
