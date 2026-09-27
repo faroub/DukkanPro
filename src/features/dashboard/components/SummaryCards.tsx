@@ -7,6 +7,8 @@ import { ThemedText } from "@/components/themed-text";
 import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
+import { getCurrencySymbol, type CurrencyCode } from "@/utils/money";
+
 interface SummaryCardsProps {
   revenueKey: string;
   revenueValue_centimes: number;
@@ -19,6 +21,7 @@ interface SummaryCardsProps {
   salesCount?: number;
   debtCustomersCount?: number;
   profitPercent?: string;
+  currency?: CurrencyCode | string;
   locale: "ar" | "fr" | "en";
   textAlignment?: "left" | "right";
   onPressRevenue?: () => void;
@@ -39,6 +42,7 @@ export function SummaryCards({
   salesCount = 14,
   debtCustomersCount = 5,
   profitPercent = "+22%",
+  currency = "DZD",
   locale,
   onPressRevenue,
   onPressProfit,
@@ -47,6 +51,7 @@ export function SummaryCards({
 }: SummaryCardsProps) {
   const router = useRouter();
   const theme = useTheme();
+  const currencySymbol = getCurrencySymbol(currency, locale);
 
   const handleRevenuePress = () => {
     if (onPressRevenue) onPressRevenue();
@@ -106,7 +111,7 @@ export function SummaryCards({
               {formatAmount(revenueDZD)}
             </ThemedText>
             <ThemedText style={[styles.currencyLabel, { color: theme.primary }]}>
-              DZD
+              {currencySymbol}
             </ThemedText>
           </View>
           <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
@@ -144,7 +149,7 @@ export function SummaryCards({
               {formatAmount(profitDZD)}
             </ThemedText>
             <ThemedText style={[styles.currencyLabel, { color: theme.primary }]}>
-              DZD
+              {currencySymbol}
             </ThemedText>
           </View>
           <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
@@ -184,7 +189,7 @@ export function SummaryCards({
               {formatAmount(toCollectDZD)}
             </ThemedText>
             <ThemedText style={[styles.currencyLabel, { color: theme.secondary }]}>
-              DZD
+              {currencySymbol}
             </ThemedText>
           </View>
           <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>

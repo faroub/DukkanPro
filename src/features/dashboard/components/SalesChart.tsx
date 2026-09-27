@@ -12,6 +12,7 @@ interface SalesChartProps {
   data?: { date: string; total: number }[];
   title?: string;
   subtitle?: string;
+  currency?: string;
   locale?: "ar" | "fr" | "en";
 }
 
@@ -74,6 +75,7 @@ export function SalesChart({
   data = [],
   title,
   subtitle,
+  currency = "DZD",
   locale = "fr",
 }: SalesChartProps) {
   const theme = useTheme();
@@ -285,7 +287,7 @@ export function SalesChart({
             {locale === "ar" ? "الإجمالي" : locale === "fr" ? "Total Mois" : "Monthly Total"}
           </ThemedText>
           <ThemedText style={[styles.metricValue, { color: theme.primary }]}>
-            {formatCentimes(totalSumCentimes)}
+            {formatCentimes(totalSumCentimes, locale, currency)}
           </ThemedText>
         </View>
 
@@ -296,7 +298,7 @@ export function SalesChart({
             {locale === "ar" ? "المعدل اليومي" : locale === "fr" ? "Moy. / Jour" : "Daily Avg"}
           </ThemedText>
           <ThemedText style={[styles.metricValue, { color: theme.textPrimary }]}>
-            {avgDZD} DZD
+            {formatCentimes(avgDZD * 100, locale, currency)}
           </ThemedText>
         </View>
 
@@ -307,7 +309,7 @@ export function SalesChart({
             {locale === "ar" ? "أعلى يوم" : locale === "fr" ? "Pic Max" : "Peak Day"}
           </ThemedText>
           <ThemedText style={[styles.metricValue, { color: theme.textPrimary }]}>
-            {peakDZD} DZD
+            {formatCentimes(peakDZD * 100, locale, currency)}
           </ThemedText>
         </View>
       </View>

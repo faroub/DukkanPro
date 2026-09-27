@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -19,6 +19,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { BarcodeScannerModal } from '@/features/sales/components/BarcodeScannerModal';
+import { get as getBusinessProfile } from '@/database/repositories/businessProfileRepository';
+import { formatCentimes, getCurrencySymbol } from '@/utils/money';
 
 export interface ProductFormData {
   name: string;
@@ -73,6 +75,14 @@ export function ProductForm({
 }: ProductFormProps) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
+
+  const [storeCurrency, setStoreCurrency] = useState<string>('DZD');
+
+  useEffect(() => {
+    getBusinessProfile().then((p) => {
+      if (p?.currency) setStoreCurrency(p.currency);
+    });
+  }, []);
 
   const [name, setName] = useState(initialValues?.name || '');
   const [sku, setSku] = useState(initialValues?.sku || '');
@@ -432,7 +442,7 @@ export function ProductForm({
             </View>
             <View style={[styles.badgeNeutral, { backgroundColor: theme.surfaceAlt }]}>
               <ThemedText style={[styles.badgeNeutralText, { color: theme.textSecondary }]}>
-                {t('products:dzdCurrency', 'DZD Currency')}
+                {storeCurrency}
               </ThemedText>
             </View>
           </View>
@@ -460,7 +470,7 @@ export function ProductForm({
                   placeholderTextColor={theme.textMuted}
                   keyboardType="decimal-pad"
                 />
-                <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>DZD</ThemedText>
+                <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>{getCurrencySymbol(storeCurrency, i18n.language)}</ThemedText>
               </View>
             </View>
 
@@ -486,7 +496,7 @@ export function ProductForm({
                   placeholderTextColor={theme.textMuted}
                   keyboardType="decimal-pad"
                 />
-                <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>DZD</ThemedText>
+                <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>{getCurrencySymbol(storeCurrency, i18n.language)}</ThemedText>
               </View>
             </View>
           </View>
@@ -500,7 +510,7 @@ export function ProductForm({
                   {t('products:estimatedProfit', 'Estimated Profit')}
                 </ThemedText>
                 <ThemedText style={[styles.profitAmount, { color: theme.primary }]}>
-                  {profitDinars.toLocaleString()} DZD ({marginPercentage.toFixed(1)}%)
+                  {formatCentimes(Math.round(profitDinars * 100), i18n.language, storeCurrency)} ({marginPercentage.toFixed(1)}%)
                 </ThemedText>
               </View>
             </View>

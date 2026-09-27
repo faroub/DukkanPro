@@ -1,5 +1,5 @@
 import { SymbolView } from "expo-symbols";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import {
   FlatList,
   Modal,
@@ -22,7 +22,8 @@ import {
   Typography,
 } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { formatCentimes } from "@/utils/money";
+import { formatCentimes, getCurrencySymbol } from "@/utils/money";
+import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
 import { useTranslation } from "react-i18next";
 import { useCustomers } from "@/hooks/useCustomers";
 
@@ -69,6 +70,14 @@ export function CheckoutSheet({
 
   // Fetch real customers from SQLite
   const { customers } = useCustomers({ onlyActive: true });
+
+  const [storeCurrency, setStoreCurrency] = useState<string>("DZD");
+
+  useEffect(() => {
+    getBusinessProfile().then((p) => {
+      if (p?.currency) setStoreCurrency(p.currency);
+    });
+  }, []);
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
   const changeDue = Math.max(0, amountReceived - cartTotal);
@@ -397,7 +406,7 @@ export function CheckoutSheet({
                       }}
                       keyboardType="decimal-pad"
                     />
-                    <Text style={[styles.currencySuffix, { color: theme.textSecondary }]}>DZD</Text>
+                    <Text style={[styles.currencySuffix, { color: theme.textSecondary }]}>{getCurrencySymbol(storeCurrency, i18n.language)}</Text>
                   </View>
                 </View>
 
@@ -415,19 +424,19 @@ export function CheckoutSheet({
                     style={[styles.quickChip, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
                     onPress={() => handleQuickAddCash(50000)}
                   >
-                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+500 DZD</Text>
+                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+500 {getCurrencySymbol(storeCurrency, i18n.language)}</Text>
                   </Pressable>
                   <Pressable
                     style={[styles.quickChip, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
                     onPress={() => handleQuickAddCash(100000)}
                   >
-                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+1,000 DZD</Text>
+                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+1,000 {getCurrencySymbol(storeCurrency, i18n.language)}</Text>
                   </Pressable>
                   <Pressable
                     style={[styles.quickChip, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}
                     onPress={() => handleQuickAddCash(200000)}
                   >
-                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+2,000 DZD</Text>
+                    <Text style={[styles.quickChipText, { color: theme.textPrimary }]}>+2,000 {getCurrencySymbol(storeCurrency, i18n.language)}</Text>
                   </Pressable>
                 </View>
 
@@ -437,7 +446,7 @@ export function CheckoutSheet({
                     {t("receipt:change_due", { defaultValue: "Monnaie à rendre" })}
                   </ThemedText>
                   <Text style={[styles.changeDueAmount, { color: theme.primary }]}>
-                    {formatCentimes(changeDue)}
+                    {formatCentimes(changeDue, i18n.language, storeCurrency)}
                   </Text>
                 </View>
               </View>
@@ -481,7 +490,7 @@ export function CheckoutSheet({
                     <Text
                       style={[styles.currencySuffix, { color: theme.textSecondary }]}
                     >
-                      DZD
+                      {getCurrencySymbol(storeCurrency, i18n.language)}
                     </Text>
                   </View>
                 </View>

@@ -9,6 +9,7 @@
  * - Remains LTR regardless of selected language
  */
 import { getDatabase } from "@/database/database";
+import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
 import {
   getSevenDaySales,
   getTodayCost,
@@ -26,6 +27,7 @@ export interface DashboardData {
   greeting: string;
   todayDate: string;
   todayLocale: "ar" | "fr" | "en";
+  currencyCode: string;
 
   // Financial summaries (all in centimes, displayed via formatCentimes)
   todayRevenue_centimes: number;
@@ -104,6 +106,14 @@ export async function fetchDashboardData(
     // If the DB query fails, keep the empty defaults
   }
 
+  let currencyCode = "DZD";
+  try {
+    const profile = await getBusinessProfile();
+    if (profile?.currency) {
+      currencyCode = profile.currency;
+    }
+  } catch {}
+
   // ---- Build the dashboard data object ----
   return {
     // Greeting & date
@@ -115,6 +125,7 @@ export async function fetchDashboardData(
       day: "numeric",
     }),
     todayLocale: locale,
+    currencyCode,
 
     // Financial summaries
     todayRevenue_centimes,
@@ -163,6 +174,7 @@ export function useDashboard(deps: {
         day: "numeric",
       }),
       todayLocale: deps.locale,
+      currencyCode: "DZD",
       todayRevenue_centimes: 0,
       todayProfit_centimes: 0,
       toCollect_centimes: 0,
