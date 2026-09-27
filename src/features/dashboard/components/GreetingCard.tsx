@@ -120,8 +120,7 @@ export function GreetingCard({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: Spacing.sm,
-    marginBottom: Spacing.md,
+    paddingVertical: Spacing.xs,
   },
   topRow: {
     flexDirection: "row",

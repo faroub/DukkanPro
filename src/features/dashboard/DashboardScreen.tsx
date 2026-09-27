@@ -152,11 +152,17 @@ export default function DashboardScreenDefault({
 
   return (
     <ThemedView type="background" style={styles.container}>
-      <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + Spacing.md, 36) }]}
-        showsVerticalScrollIndicator={false}
+      {/* 1. Fixed Top Bar with Safe Area Inset */}
+      <View
+        style={[
+          styles.fixedHeader,
+          {
+            paddingTop: Math.max(insets.top, Spacing.sm),
+            backgroundColor: theme.background,
+            borderBottomColor: theme.borderLight,
+          },
+        ]}
       >
-        {/* 1. Header / Store Greeting */}
         <GreetingCard
           greeting={greeting}
           todayDate={todayDate}
@@ -166,7 +172,12 @@ export default function DashboardScreenDefault({
           onProfilePress={() => router.push("/(tabs)/more" as any)}
           onOpenNotifications={() => setNotificationModalVisible(true)}
         />
+      </View>
 
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* 1.5. Prominent Low-Stock Home Screen Alert Banner */}
         <LowStockAlertBanner
           lowStockProducts={lowStockProducts}
@@ -393,6 +404,11 @@ export default function DashboardScreenDefault({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  fixedHeader: {
+    paddingHorizontal: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    zIndex: 10,
   },
   scrollContent: {
     padding: Spacing.md,
