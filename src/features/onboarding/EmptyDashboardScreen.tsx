@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: ComponentDimensions.screenPadding,
-    height: 56,
+    paddingBottom: Spacing.sm,
     borderBottomWidth: 1,
   },
   logoAndBrand: {
