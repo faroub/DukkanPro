@@ -151,8 +151,9 @@ export async function search(
 
 /**
  - Create a new product.
- - If a product with the same SKU already exists, the existing one is returned
-   (idempotent). If no SKU is provided, a new product is created.
+ - Throws Error("DUPLICATE_SKU") if a product with the same SKU already exists,
+   so the caller can tell the merchant the code is taken instead of silently
+   returning the pre-existing row. If no SKU is provided, no check is made.
  */
 export async function create(
   product: Omit<Product, "id" | "created_at" | "updated_at">,
@@ -161,7 +162,7 @@ export async function create(
   if (product.sku) {
     const existing: Product | null = await getBySku(product.sku);
     if (existing) {
-      return existing;
+      throw new Error("DUPLICATE_SKU");
     }
   }
 

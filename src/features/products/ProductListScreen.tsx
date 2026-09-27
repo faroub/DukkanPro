@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RefreshControl, ScrollView, StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 
 export function ProductListScreen({ route, navigation }: any) {
   const { t, i18n } = useTranslation();
@@ -91,6 +91,15 @@ export function ProductListScreen({ route, navigation }: any) {
     reload();
     setRefreshing(false);
   }, [reload]);
+
+  // Refetch when the screen gains focus so a product added or edited on another
+  // route shows up on return without a manual pull-to-refresh. `useProducts`
+  // keeps the existing rows while fetching, so the list never blanks out.
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
 
   const insets = useSafeAreaInsets();
 

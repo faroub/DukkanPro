@@ -159,8 +159,8 @@ describe("productRepository", () => {
       expect(created?.name).toBe("تمر");
     });
 
-    it("is idempotent when same SKU provided — returns existing product", async () => {
-      const p1 = await create({
+    it("throws when a product with the same SKU already exists", async () => {
+      await create({
         name: "تمر Dup",
         sku: "DT-DUP",
         category: "فواكه مجففة",
@@ -171,18 +171,22 @@ describe("productRepository", () => {
         unit: "كغ",
         is_active: true,
       });
-      const p2 = await create({
-        name: "تمر Dup",
-        sku: "DT-DUP",
-        category: "فواكه مجففة",
-        sale_price_centimes: 2000,
-        cost_price_centimes: 1500,
-        stock_quantity: 50,
-        minimum_stock_quantity: 10,
-        unit: "كغ",
-        is_active: true,
-      });
-      expect(p1?.id).toBe(p2?.id);
+
+      // The add-product form must tell the merchant the SKU is taken instead of
+      // silently returning the pre-existing row.
+      await expect(
+        create({
+          name: "تمر Dup 2",
+          sku: "DT-DUP",
+          category: "فواكه مجففة",
+          sale_price_centimes: 999,
+          cost_price_centimes: 500,
+          stock_quantity: 1,
+          minimum_stock_quantity: 1,
+          unit: "كغ",
+          is_active: true,
+        }),
+      ).rejects.toThrow("DUPLICATE_SKU");
     });
   });
 

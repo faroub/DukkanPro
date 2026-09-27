@@ -18,6 +18,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
 import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { BarcodeScannerModal } from '@/features/sales/components/BarcodeScannerModal';
 
 export interface ProductFormData {
   name: string;
@@ -61,8 +62,6 @@ const DEFAULT_UNITS = [
   { value: 'Other', label: 'Other' },
 ];
 
-const THRESHOLD_PRESETS = [0, 3, 5, 10, 20, 50];
-
 export function ProductForm({
   productId,
   initialValues,
@@ -97,8 +96,6 @@ export function ProductForm({
       : '5'
   );
   const [unit, setUnit] = useState(initialValues?.unit || 'Piece');
-  const [allowNegativeStock, setAllowNegativeStock] = useState(false);
-  const [targetRestockBatch, setTargetRestockBatch] = useState('12');
   const [isActive, setIsActive] = useState(initialValues?.is_active !== false);
 
   const [categoriesList, setCategoriesList] = useState<string[]>(() => {
@@ -110,6 +107,7 @@ export function ProductForm({
   });
 
   const [isNewCatModalVisible, setIsNewCatModalVisible] = useState(false);
+  const [isScannerVisible, setScannerVisible] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [isUnitModalVisible, setIsUnitModalVisible] = useState(false);
 
@@ -182,10 +180,6 @@ export function ProductForm({
     setStockQuantity((prev) => Math.max(0, prev + delta));
   };
 
-  const handlePresetSelect = (presetVal: number) => {
-    setMinStockAlert(presetVal.toString());
-  };
-
   const handleSubmit = async () => {
     setNameTouched(true);
     if (!isNameValid) {
@@ -213,7 +207,12 @@ export function ProductForm({
       });
       onClose();
     } catch (err: any) {
-      setErrorMsg(err?.message || t('common:error', 'Error'));
+      // The data layer throws a stable machine code; the UI owns the translation.
+      setErrorMsg(
+        err?.message === 'DUPLICATE_SKU'
+          ? t('products:skuAlreadyExists', 'A product with this SKU already exists')
+          : err?.message || t('common:error', 'Error'),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -353,9 +352,7 @@ export function ProductForm({
               />
               <TouchableOpacity
                 style={styles.inputIconRight}
-                onPress={() => {
-                  Alert.alert(t('products:scanBarcode', 'Scan Barcode'), 'Ready to scan EAN-13 barcodes.');
-                }}
+                onPress={() => setScannerVisible(true)}
               >
                 <Ionicons name="barcode-outline" size={22} color={theme.primary} />
               </TouchableOpacity>
@@ -674,113 +671,6 @@ export function ProductForm({
               {t('products:alertsWhenLow', 'Alerts you on the POS and dashboard when stock dips to or below this level')}
             </ThemedText>
           </View>
-
-          {/* Product-Specific Rule 2: Out of Stock Policy / Allow Negative Stock */}
-          <View style={styles.formGroup}>
-            <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
-              {t('products:sellingPolicyLabel', 'Out-of-Stock Selling Policy')}
-            </ThemedText>
-
-            <View style={styles.policyChoicesContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.policyCard,
-                  {
-                    backgroundColor: !allowNegativeStock ? theme.primaryLight : theme.surfaceAlt,
-                    borderColor: !allowNegativeStock ? theme.primary : theme.borderLight,
-                  },
-                ]}
-                onPress={() => setAllowNegativeStock(false)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={!allowNegativeStock ? 'radio-button-on' : 'radio-button-off'}
-                  size={20}
-                  color={!allowNegativeStock ? theme.primary : theme.textMuted}
-                />
-                <View style={styles.policyTextContainer}>
-                  <ThemedText
-                    style={[
-                      styles.policyTitle,
-                      { color: !allowNegativeStock ? theme.primary : theme.textPrimary },
-                    ]}
-                  >
-                    {t('products:strictPolicy', 'Strict: Block sales when stock is 0')}
-                  </ThemedText>
-                  <ThemedText style={[styles.policyDesc, { color: theme.textSecondary }]}>
-                    {t('products:strictPolicyDesc', 'Guarantees physical inventory count accuracy at all times.')}
-                  </ThemedText>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.policyCard,
-                  {
-                    backgroundColor: allowNegativeStock ? theme.primaryLight : theme.surfaceAlt,
-                    borderColor: allowNegativeStock ? theme.primary : theme.borderLight,
-                  },
-                ]}
-                onPress={() => setAllowNegativeStock(true)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={allowNegativeStock ? 'radio-button-on' : 'radio-button-off'}
-                  size={20}
-                  color={allowNegativeStock ? theme.primary : theme.textMuted}
-                />
-                <View style={styles.policyTextContainer}>
-                  <ThemedText
-                    style={[
-                      styles.policyTitle,
-                      { color: allowNegativeStock ? theme.primary : theme.textPrimary },
-                    ]}
-                  >
-                    {t('products:allowNegativePolicy', 'Allow Negative Stock (Sell even when 0)')}
-                  </ThemedText>
-                  <ThemedText style={[styles.policyDesc, { color: theme.textSecondary }]}>
-                    {t('products:allowNegativeDesc', 'Fast checkout for fast-moving items before supplier delivery is registered.')}
-                  </ThemedText>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Product-Specific Rule 3: Target Restock Batch Size */}
-          <View style={styles.formGroup}>
-            <View style={styles.labelRow}>
-              <ThemedText style={[styles.label, { color: theme.textPrimary }]}>
-                {t('products:targetRestockQty', 'Recommended Restock Batch')}
-              </ThemedText>
-              <ThemedText style={[styles.safeFloorText, { color: theme.textMuted }]}>
-                {t('common:optional', 'Optional')}
-              </ThemedText>
-            </View>
-            <View style={styles.inputWithSuffixWrapper}>
-              <TextInput
-                style={[
-                  styles.textInput,
-                  styles.inputWithSuffix,
-                  {
-                    backgroundColor: theme.surfaceAlt,
-                    borderColor: theme.borderLight,
-                    color: theme.textPrimary,
-                  },
-                ]}
-                value={targetRestockBatch}
-                onChangeText={setTargetRestockBatch}
-                keyboardType="number-pad"
-                placeholder="12"
-                placeholderTextColor={theme.textMuted}
-              />
-              <ThemedText style={[styles.inputSuffix, { color: theme.textMuted }]}>
-                {unit}
-              </ThemedText>
-            </View>
-            <ThemedText style={[styles.captionHint, { color: theme.textSecondary }]}>
-              {t('products:targetRestockQtyOptional', 'Suggested order batch size when replenishing from wholesalers')}
-            </ThemedText>
-          </View>
         </ThemedView>
 
         {/* Action Buttons */}
@@ -927,6 +817,22 @@ export function ProductForm({
           </ThemedView>
         </View>
       </Modal>
+
+      {/* Barcode scanner: fills the SKU field with the scanned code */}
+      <BarcodeScannerModal
+        visible={isScannerVisible}
+        onScan={(code) => {
+          setSku(code);
+          setScannerVisible(false);
+        }}
+        onClose={() => setScannerVisible(false)}
+        // No products list is passed on purpose: codes scanned while creating a
+        // product are new by definition, so they always take the "unmatched"
+        // path below and never reach the cart-oriented matched UI.
+        onNavigateToCreateProduct={(code) => {
+          setSku(code);
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -1224,49 +1130,9 @@ const styles = StyleSheet.create({
   safeFloorText: {
     fontSize: 11,
   },
-  presetChipsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
-    marginBottom: 4,
-  },
-  presetChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-  },
-  presetChipText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
   captionHint: {
     fontSize: 11,
     marginTop: 2,
-    lineHeight: 15,
-  },
-  policyChoicesContainer: {
-    gap: Spacing.sm,
-    marginTop: 4,
-  },
-  policyCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.sm,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1.5,
-  },
-  policyTextContainer: {
-    flex: 1,
-    gap: 2,
-  },
-  policyTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  policyDesc: {
-    fontSize: 11,
     lineHeight: 15,
   },
   currentStockCard: {
