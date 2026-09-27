@@ -5,7 +5,6 @@ import { View, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { ProductForm, ProductFormData } from './components/ProductForm';
-import { executeRead, executeWrite } from '@/database/database';
 import { getById, create, update, archive } from '@/database/repositories/productRepository';
 import { Product } from '@/types/entities';
 import { Colors } from '@/constants/theme';
