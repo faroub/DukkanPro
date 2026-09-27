@@ -226,7 +226,7 @@ export function ProductForm({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Top Header */}
-      <View style={[{ flex: 1, backgroundColor: theme.surface }, styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, Spacing.md), backgroundColor: theme.surface, borderBottomColor: theme.borderLight }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={[styles.backButton, { backgroundColor: theme.surfaceAlt }]}
