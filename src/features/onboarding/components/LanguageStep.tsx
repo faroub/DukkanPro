@@ -6,12 +6,12 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Shadows,
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "react-i18next";
 
 interface LanguageStepProps {
@@ -24,6 +24,7 @@ export function LanguageStep({
   selectedLocale = "fr",
 }: LanguageStepProps) {
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
   const [locale, setLocale] = useState<"ar" | "fr" | "en">(selectedLocale);
 
   const handleSelectLanguage = (code: "ar" | "fr" | "en") => {
@@ -63,57 +64,50 @@ export function LanguageStep({
   ];
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.innerWrapper}>
         {/* Brand Header */}
         <View style={styles.header}>
-          <View style={styles.logoBadge}>
+          <View style={[styles.logoBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <SymbolView
               name={{
                 ios: "storefront.fill" as any,
                 android: "storefront" as any,
                 web: "storefront" as any,
               }}
-              size={44}
-              tintColor={Colors.light.primary}
+              size={48}
+              tintColor={theme.primary}
             />
           </View>
 
-          <ThemedText style={styles.title}>
-            {t("onboarding.welcome.title", { defaultValue: "Dukkan OS" })}
+          <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
+            Dukkan<ThemedText style={[styles.title, { color: theme.primary }]}>OS</ThemedText>
           </ThemedText>
-          <ThemedText style={styles.subtitle}>
+
+          <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
             {t("onboarding.welcome.subtitle", {
-              defaultValue: "Your simple business companion",
+              defaultValue: "Choose your primary operating language",
             })}
           </ThemedText>
 
-          <View style={styles.arabicPill}>
-            <Text style={styles.arabicPillText}>
+          {/* Quick Arabic Callout Pill */}
+          <View style={[styles.arabicPill, { backgroundColor: theme.surface, borderColor: theme.borderLight }]}>
+            <Text style={[styles.arabicPillText, { color: theme.primary }]}>
               {t("onboarding.welcome.arabicPill", {
-                defaultValue: "رفيق أعمالك البسيط",
+                defaultValue: "يدعم العربية والفرنسية والإنجليزية بالكامل",
               })}
             </Text>
           </View>
         </View>
 
-        {/* Language Selection Section */}
+        {/* Language Selection List matching Stitch */}
         <View style={styles.optionsSection}>
           <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>
-              {t("onboarding.welcome.sectionTitle", {
-                defaultValue: "Select Language • اختر اللغة",
+            <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+              {t("onboarding.welcome.selectLanguage", {
+                defaultValue: "OPERATING LANGUAGE / لغة التشغيل",
               })}
             </ThemedText>
-            <SymbolView
-              name={{
-                ios: "globe" as any,
-                android: "language" as any,
-                web: "language" as any,
-              }}
-              size={18}
-              tintColor={Colors.light.textMuted}
-            />
           </View>
 
           <View style={styles.cardsContainer}>
@@ -123,68 +117,54 @@ export function LanguageStep({
               return (
                 <Pressable
                   key={lang.code}
-                  onPress={() => handleSelectLanguage(lang.code)}
                   style={[
-                    styles.card,
-                    isSelected ? styles.cardSelected : styles.cardUnselected,
+                    styles.langCard,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    isSelected && { backgroundColor: theme.primaryLight, borderColor: theme.primary },
                   ]}
-                  accessibilityRole="radio"
+                  onPress={() => handleSelectLanguage(lang.code)}
+                  accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
                 >
-                  <View style={styles.cardLeft}>
+                  <View style={styles.langLeft}>
                     <View
                       style={[
-                        styles.langBadge,
-                        isSelected && styles.langBadgeSelected,
+                        styles.badgeCircle,
+                        { backgroundColor: theme.backgroundElement },
+                        isSelected && { backgroundColor: theme.primary },
                       ]}
                     >
                       <Text
                         style={[
-                          styles.langBadgeText,
-                          isSelected && styles.langBadgeTextSelected,
+                          styles.badgeText,
+                          { color: theme.textPrimary },
+                          isSelected && { color: "#FFFFFF" },
                         ]}
                       >
                         {lang.badge}
                       </Text>
                     </View>
 
-                    <View style={styles.nameContainer}>
-                      <View style={styles.titleRow}>
-                        <Text
-                          style={[
-                            styles.langName,
-                            isSelected && styles.langNameSelected,
-                            lang.isRtlText && styles.rtlAlign,
-                          ]}
-                        >
-                          {lang.name}
-                        </Text>
-                        {lang.isDefault && (
-                          <View style={styles.defaultTag}>
-                            <Text style={styles.defaultTagText}>
-                              {t("onboarding.welcome.defaultBadge", {
-                                defaultValue: "DÉFAUT",
-                              })}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
+                    <View style={styles.langTextWrapper}>
                       <Text
                         style={[
-                          styles.langSubtitle,
-                          isSelected && styles.langSubtitleSelected,
+                          styles.langName,
+                          { color: theme.textPrimary },
+                          lang.isRtlText && styles.rtlText,
                         ]}
                       >
-                        {lang.subtitle}
+                        {lang.name}
                       </Text>
+                      <Text style={[styles.langSub, { color: theme.textSecondary }]}>{lang.subtitle}</Text>
                     </View>
                   </View>
 
-                  {/* Radio Indicator matching Stitch */}
+                  {/* Radio Indicator */}
                   <View
                     style={[
                       styles.radioIndicator,
-                      isSelected && styles.radioIndicatorSelected,
+                      { borderColor: theme.border },
+                      isSelected && { backgroundColor: theme.primary, borderColor: theme.primary },
                     ]}
                   >
                     {isSelected && (
@@ -195,7 +175,7 @@ export function LanguageStep({
                           web: "check" as any,
                         }}
                         size={14}
-                        tintColor={Colors.light.surface}
+                        tintColor="#FFFFFF"
                       />
                     )}
                   </View>
@@ -205,9 +185,9 @@ export function LanguageStep({
           </View>
         </View>
 
-        {/* Reassurance Micro-Card matching Stitch */}
-        <View style={styles.trustCard}>
-          <View style={styles.trustIconWrapper}>
+        {/* Reassurance Micro-Card */}
+        <View style={[styles.trustCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.trustIconWrapper, { backgroundColor: theme.primaryLight }]}>
             <SymbolView
               name={{
                 ios: "checkmark.shield.fill" as any,
@@ -215,16 +195,16 @@ export function LanguageStep({
                 web: "verified_user" as any,
               }}
               size={20}
-              tintColor={Colors.light.primary}
+              tintColor={theme.primary}
             />
           </View>
           <View style={styles.trustContent}>
-            <ThemedText style={styles.trustTitle}>
+            <ThemedText style={[styles.trustTitle, { color: theme.textPrimary }]}>
               {t("onboarding.welcome.offlineTitle", {
                 defaultValue: "Offline-ready & Secure",
               })}
             </ThemedText>
-            <ThemedText style={styles.trustSubtitle}>
+            <ThemedText style={[styles.trustSubtitle, { color: theme.textSecondary }]}>
               {t("onboarding.welcome.offlineDesc", {
                 defaultValue:
                   "Work seamlessly with or without internet connection",
@@ -237,7 +217,7 @@ export function LanguageStep({
       {/* Continue CTA */}
       <View style={styles.footer}>
         <Pressable
-          style={styles.continueButton}
+          style={[styles.continueButton, { backgroundColor: theme.primary }]}
           onPress={handleContinue}
           accessibilityRole="button"
           accessibilityLabel={t("onboarding.welcome.continue", {
@@ -261,11 +241,11 @@ export function LanguageStep({
               web: "arrow_forward" as any,
             }}
             size={18}
-            tintColor={Colors.light.surface}
+            tintColor="#FFFFFF"
           />
         </Pressable>
 
-        <ThemedText style={styles.settingsNote}>
+        <ThemedText style={[styles.settingsNote, { color: theme.textMuted }]}>
           {t("onboarding.welcome.changeLanguageNote", {
             defaultValue: "You can change your language anytime in Settings",
           })}
@@ -278,7 +258,6 @@ export function LanguageStep({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
     justifyContent: "space-between",
     paddingHorizontal: ComponentDimensions.screenPadding,
     paddingTop: Spacing.xl,
@@ -300,22 +279,18 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: BorderRadius.xl,
-    backgroundColor: Colors.light.surface,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: Spacing.md,
     ...Shadows.md,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   title: {
     ...Typography.heading1,
-    color: Colors.light.textPrimary,
     textAlign: "center",
   },
   subtitle: {
     ...Typography.bodyLarge,
-    color: Colors.light.textSecondary,
     marginTop: 4,
     textAlign: "center",
   },
@@ -324,14 +299,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 4,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.borderLight,
     ...Shadows.sm,
   },
   arabicPillText: {
     ...Typography.label,
-    color: Colors.light.primaryDark,
     textAlign: "center",
   },
   optionsSection: {
@@ -347,130 +319,73 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...Typography.label,
     fontSize: 12,
-    color: Colors.light.textSecondary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
   cardsContainer: {
     gap: Spacing.sm,
   },
-  card: {
+  langCard: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    borderRadius: BorderRadius.xl,
     padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    ...Shadows.sm,
-    minHeight: 72,
-  },
-  cardUnselected: {
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
+    ...Shadows.sm,
   },
-  cardSelected: {
-    backgroundColor: Colors.light.primaryLight,
-    borderColor: Colors.light.primary,
-    borderWidth: 2,
-  },
-  cardLeft: {
+  langLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
     flex: 1,
   },
-  langBadge: {
+  badgeCircle: {
     width: 40,
     height: 40,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.backgroundElement,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },
-  langBadgeSelected: {
-    backgroundColor: Colors.light.primary,
-  },
-  langBadgeText: {
-    ...Typography.label,
+  badgeText: {
+    fontSize: 15,
     fontWeight: "700",
-    fontSize: 16,
-    color: Colors.light.textPrimary,
   },
-  langBadgeTextSelected: {
-    color: Colors.light.surface,
-  },
-  nameContainer: {
-    justifyContent: "center",
+  langTextWrapper: {
     flex: 1,
   },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-  },
   langName: {
-    ...Typography.body,
+    ...Typography.bodyLarge,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
-  langNameSelected: {
-    color: Colors.light.primaryDark,
-    fontWeight: "700",
+  rtlText: {
+    textAlign: "left",
   },
-  rtlAlign: {
-    textAlign: "right",
-  },
-  defaultTag: {
-    backgroundColor: Colors.light.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-  },
-  defaultTagText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: Colors.light.surface,
-    letterSpacing: 0.5,
-  },
-  langSubtitle: {
+  langSub: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
+    fontSize: 12,
     marginTop: 2,
   },
-  langSubtitleSelected: {
-    color: Colors.light.primary,
-  },
   radioIndicator: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 2,
-    borderColor: Colors.light.border,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "transparent",
-  },
-  radioIndicatorSelected: {
-    borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primary,
   },
   trustCard: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
-    backgroundColor: Colors.light.surface,
+    borderRadius: BorderRadius.xl,
     padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
     ...Shadows.sm,
   },
   trustIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.primaryLight,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -478,41 +393,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   trustTitle: {
-    ...Typography.body,
-    fontWeight: "600",
-    fontSize: 14,
-    color: Colors.light.textPrimary,
+    ...Typography.label,
   },
   trustSubtitle: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   footer: {
-    marginTop: Spacing.lg,
-    paddingTop: Spacing.xs,
+    gap: Spacing.sm,
   },
   continueButton: {
-    backgroundColor: Colors.light.primary,
-    height: 48,
+    height: ComponentDimensions.buttonHeight,
     borderRadius: BorderRadius.button,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     gap: Spacing.sm,
-    ...Shadows.sm,
+    ...Shadows.md,
   },
   continueButtonText: {
-    color: Colors.light.surface,
-    ...Typography.body,
-    fontWeight: "600",
+    color: "#FFFFFF",
+    ...Typography.label,
+    fontSize: 16,
   },
   settingsNote: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textMuted,
     textAlign: "center",
-    marginTop: Spacing.sm,
   },
 });

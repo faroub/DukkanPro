@@ -2,8 +2,8 @@ import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useEdgeToEdge } from "@/hooks/useEdgeToEdge";
+import { useTheme } from "@/hooks/use-theme";
 
-import { Colors } from "@/constants/theme";
 import { BusinessNameStep } from "@/features/onboarding/components/BusinessNameStep";
 import { BusinessTypeStep } from "@/features/onboarding/components/BusinessTypeStep";
 import { ConfirmSettingsStep } from "@/features/onboarding/components/ConfirmSettingsStep";
@@ -13,21 +13,11 @@ import type { Locale } from "@/localization/types";
 
 /**
  * Onboarding Screen - Multi-step Stitch onboarding flow for Dukkan OS
- *
- * Steps:
- * 0. Welcome & Language Selection (Français / العربية / English)
- * 1. Business Name & Owner Name
- * 2. Business Type Selection (Grocery, Bakery, Instagram seller, etc.)
- * 3. Settings Confirmation (Summary card & DZD currency)
- *
- * Rules:
- * - Layout is ALWAYS LTR
- * - Arabic text within elements can be right-aligned
- * - Local offline persistence to SQLite
  */
 export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
   const router = useRouter();
-  const { insets, style } = useEdgeToEdge();
+  const theme = useTheme();
+  const { insets } = useEdgeToEdge();
 
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [profile, setProfile] = useState<{
@@ -84,7 +74,7 @@ export function OnboardingScreen({ onComplete }: { onComplete?: () => void }) {
       style={[
         styles.screen,
         {
-          backgroundColor: Colors.light.background,
+          backgroundColor: theme.background,
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
         },

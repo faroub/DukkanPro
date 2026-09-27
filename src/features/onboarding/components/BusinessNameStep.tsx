@@ -15,12 +15,12 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import {
   BorderRadius,
-  Colors,
   ComponentDimensions,
   Shadows,
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "react-i18next";
 
 interface BusinessNameStepProps {
@@ -45,6 +45,7 @@ export function BusinessNameStep({
   totalSteps = 3,
 }: BusinessNameStepProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [businessName, setBusinessName] = useState(initialBusinessName);
   const [ownerName, setOwnerName] = useState(initialOwnerName);
   const [selectedCategory, setSelectedCategory] = useState("grocery");
@@ -61,200 +62,200 @@ export function BusinessNameStep({
     {
       id: "bakery",
       label: t("onboarding.businessName.catBakery", {
-        defaultValue: "Bakery & Café",
-      }),
-      icon: "bakery_dining",
-    },
-    {
-      id: "pharmacy",
-      label: t("onboarding.businessName.catPharmacy", {
-        defaultValue: "Pharmacy",
-      }),
-      icon: "local_pharmacy",
-    },
-    {
-      id: "retail",
-      label: t("onboarding.businessName.catRetail", {
-        defaultValue: "General Goods",
+        defaultValue: "Bakery & Sweets",
       }),
       icon: "shopping_bag",
+    },
+    {
+      id: "clothing",
+      label: t("onboarding.businessName.catClothing", {
+        defaultValue: "Clothing & Fashion",
+      }),
+      icon: "checkroom",
+    },
+    {
+      id: "general",
+      label: t("onboarding.businessName.catGeneral", {
+        defaultValue: "General Store",
+      }),
+      icon: "category",
     },
   ];
 
   const handleContinue = () => {
     if (!businessName.trim()) {
       setError(
-        t("errors.requiredField", {
-          defaultValue: "Business name is required",
+        t("onboarding.businessName.errorRequired", {
+          defaultValue: "Business name is required to start your store",
         })
       );
       return;
     }
+
     setError(null);
     onContinue({
       businessName: businessName.trim(),
-      ownerName: ownerName.trim() || businessName.trim(),
+      ownerName: ownerName.trim(),
       category: selectedCategory,
     });
   };
 
-  const previewName =
+  const previewTitle =
     businessName.trim() ||
     t("onboarding.businessName.defaultShopName", {
       defaultValue: "Supérette El-Amel",
     });
 
-  const previewOwner = ownerName.trim()
-    ? t("onboarding.businessName.managedBy", {
-        owner: ownerName.trim(),
-        defaultValue: `Managed by ${ownerName.trim()}`,
-      })
-    : t("onboarding.businessName.ownerNotSet", {
-        defaultValue: "Owner name not set",
-      });
+  const previewOwner =
+    ownerName.trim() ||
+    t("onboarding.businessName.defaultOwner", {
+      defaultValue: "Karim Benali",
+    });
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Top Header Bar matching Stitch */}
-        <View style={styles.topBar}>
-          <Pressable
-            style={styles.headerIconButton}
-            onPress={onBack}
-            accessibilityRole="button"
-            accessibilityLabel={t("common.back", { defaultValue: "Back" })}
-          >
-            <SymbolView
-              name={{
-                ios: "arrow.left" as any,
-                android: "arrow_back" as any,
-                web: "arrow_back" as any,
-              }}
-              size={22}
-              tintColor={Colors.light.textPrimary}
-            />
-          </Pressable>
+      <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Top Bar Navigation matching Stitch */}
+          <View style={styles.topBar}>
+            <Pressable
+              style={styles.headerIconButton}
+              onPress={onBack}
+              accessibilityRole="button"
+              accessibilityLabel={t("common.back", { defaultValue: "Back" })}
+            >
+              <SymbolView
+                name={{
+                  ios: "arrow.left" as any,
+                  android: "arrow_back" as any,
+                  web: "arrow_back" as any,
+                }}
+                size={22}
+                tintColor={theme.textPrimary}
+              />
+            </Pressable>
 
-          <ThemedText style={styles.headerTitle}>
-            {t("onboarding.businessName.headerTitle", {
-              defaultValue: "Business Name",
-            })}
-          </ThemedText>
+            <ThemedText style={[styles.headerTitle, { color: theme.textPrimary }]}>
+              {t("onboarding.businessName.headerTitle", {
+                defaultValue: "Business Name",
+              })}
+            </ThemedText>
 
-          <View style={styles.avatarCircle}>
-            <SymbolView
-              name={{
-                ios: "person.fill" as any,
-                android: "person" as any,
-                web: "person" as any,
-              }}
-              size={16}
-              tintColor={Colors.light.surface}
-            />
+            <View style={[styles.avatarCircle, { backgroundColor: theme.primary }]}>
+              <SymbolView
+                name={{
+                  ios: "person.fill" as any,
+                  android: "person" as any,
+                  web: "person" as any,
+                }}
+                size={16}
+                tintColor="#FFFFFF"
+              />
+            </View>
           </View>
-        </View>
 
-        {/* Step Progress Indicator */}
-        <View style={styles.progressSection}>
-          <View style={styles.stepPill}>
-            <ThemedText style={styles.stepPillText}>
-              {t("onboarding.businessName.stepBadge", {
-                step: stepNumber,
-                total: totalSteps,
-                defaultValue: `Step ${stepNumber} of ${totalSteps}`,
+          {/* Step Progress Indicator */}
+          <View style={styles.progressSection}>
+            <View style={[styles.stepPill, { backgroundColor: theme.backgroundElement }]}>
+              <ThemedText style={[styles.stepPillText, { color: theme.textSecondary }]}>
+                {t("onboarding.businessName.stepBadge", {
+                  step: stepNumber,
+                  total: totalSteps,
+                  defaultValue: `Step ${stepNumber} of ${totalSteps}`,
+                })}
+              </ThemedText>
+            </View>
+
+            <View style={styles.progressBars}>
+              <View style={[styles.bar, styles.barActive, { backgroundColor: theme.primary }]} />
+              <View style={[styles.bar, { backgroundColor: theme.border }]} />
+              <View style={[styles.bar, { backgroundColor: theme.border }]} />
+            </View>
+          </View>
+
+          {/* Page Titles */}
+          <View style={styles.titleSection}>
+            <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
+              {t("onboarding.businessName.title", {
+                defaultValue: "Tell us about your business",
+              })}
+            </ThemedText>
+            <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
+              {t("onboarding.businessName.subtitle", {
+                defaultValue:
+                  "Enter your shop details to personalize your workspace",
               })}
             </ThemedText>
           </View>
 
-          <View style={styles.progressBars}>
-            <View style={[styles.bar, styles.barActive]} />
-            <View style={styles.bar} />
-            <View style={styles.bar} />
-          </View>
-        </View>
-
-        {/* Page Titles */}
-        <View style={styles.titleSection}>
-          <ThemedText style={styles.title}>
-            {t("onboarding.businessName.title", {
-              defaultValue: "Tell us about your business",
-            })}
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            {t("onboarding.businessName.subtitle", {
-              defaultValue:
-                "Enter your shop details to personalize your workspace",
-            })}
-          </ThemedText>
-        </View>
-
-        {/* Engaging Visual Accent Tile matching Stitch */}
-        <View style={styles.accentTile}>
-          <View style={styles.accentIconBox}>
-            <SymbolView
-              name={{
-                ios: "storefront.fill" as any,
-                android: "storefront" as any,
-                web: "storefront" as any,
-              }}
-              size={32}
-              tintColor={Colors.light.primary}
-            />
-          </View>
-
-          <View style={styles.accentContent}>
-            <View style={styles.previewNameRow}>
-              <ThemedText style={styles.accentTitle} numberOfLines={1}>
-                {previewName}
-              </ThemedText>
+          {/* Engaging Visual Accent Tile matching Stitch */}
+          <View style={[styles.accentTile, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.accentIconBox, { backgroundColor: theme.primaryLight }]}>
+              <SymbolView
+                name={{
+                  ios: "storefront.fill" as any,
+                  android: "storefront" as any,
+                  web: "storefront" as any,
+                }}
+                size={24}
+                tintColor={theme.primary}
+              />
             </View>
 
-            <ThemedText style={styles.accentSubtitle} numberOfLines={1}>
-              {previewOwner}
-            </ThemedText>
-
-            <View style={styles.accentBadge}>
-              <View style={styles.accentBadgeDot} />
-              <ThemedText style={styles.accentBadgeText}>
-                {t("onboarding.businessName.previewBadge", {
-                  defaultValue: "Personalized POS setup",
+            <View style={styles.accentContent}>
+              <View style={styles.previewNameRow}>
+                <Text style={[styles.accentTitle, { color: theme.textPrimary }]} numberOfLines={1}>
+                  {previewTitle}
+                </Text>
+              </View>
+              <Text style={[styles.accentSubtitle, { color: theme.textSecondary }]} numberOfLines={1}>
+                {t("onboarding.businessName.previewSub", {
+                  owner: previewOwner,
+                  defaultValue: `Managed by ${previewOwner}`,
                 })}
-              </ThemedText>
+              </Text>
+              <View style={[styles.accentBadge, { backgroundColor: theme.primaryLight }]}>
+                <View style={[styles.accentBadgeDot, { backgroundColor: theme.primary }]} />
+                <Text style={[styles.accentBadgeText, { color: theme.primary }]}>
+                  {t("onboarding.businessName.livePreview", {
+                    defaultValue: "Receipt Header Preview",
+                  })}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Main Form Card Container */}
-        <View style={styles.mainCard}>
-          {/* Field 1: Business Name */}
-          <View style={styles.fieldGroup}>
-            <View style={styles.labelRow}>
-              <ThemedText style={styles.fieldLabel}>
-                {t("onboarding.businessName.businessNameLabel", {
-                  defaultValue: "Business name",
-                })}
-              </ThemedText>
-              <ThemedText style={styles.requiredBadge}>
-                {t("onboarding.businessName.required", {
-                  defaultValue: "Required",
-                })}
-              </ThemedText>
-            </View>
+          {/* Form Fields Card matching Stitch */}
+          <View style={[styles.mainCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            {/* Field 1: Business Name */}
+            <View style={styles.fieldGroup}>
+              <View style={styles.labelRow}>
+                <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>
+                  {t("onboarding.businessName.nameLabel", {
+                    defaultValue: "Shop / Business Name",
+                  })}
+                </ThemedText>
+                <Text style={[styles.requiredBadge, { color: theme.textMuted }]}>
+                  {t("onboarding.businessName.required", {
+                    defaultValue: "Required",
+                  })}
+                </Text>
+              </View>
 
-            <View
-              style={[
-                styles.inputWrapper,
-                error ? styles.inputWrapperError : null,
-              ]}
-            >
-              <View style={styles.inputIcon}>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  error ? { borderColor: theme.error } : null,
+                ]}
+              >
                 <SymbolView
                   name={{
                     ios: "storefront" as any,
@@ -262,44 +263,43 @@ export function BusinessNameStep({
                     web: "storefront" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.textMuted}
+                  tintColor={theme.textMuted}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={[styles.textInput, { color: theme.textPrimary }]}
+                  value={businessName}
+                  onChangeText={(val) => {
+                    setBusinessName(val);
+                    if (error) setError(null);
+                  }}
+                  placeholder={t("onboarding.businessName.namePlaceholder", {
+                    defaultValue: "e.g., Supérette El-Amel",
+                  })}
+                  placeholderTextColor={theme.textMuted}
+                  autoCapitalize="words"
+                  autoCorrect={false}
                 />
               </View>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t("onboarding.businessName.businessNamePlaceholder", {
-                  defaultValue: "e.g., Supérette El-Amel, Pâtisserie Yasmine",
-                })}
-                placeholderTextColor={Colors.light.textMuted}
-                value={businessName}
-                onChangeText={(val) => {
-                  setBusinessName(val);
-                  if (error) setError(null);
-                }}
-                autoCapitalize="words"
-                returnKeyType="next"
-              />
-            </View>
-            {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
-          </View>
-
-          {/* Field 2: Owner Name */}
-          <View style={styles.fieldGroup}>
-            <View style={styles.labelRow}>
-              <ThemedText style={styles.fieldLabel}>
-                {t("onboarding.businessName.ownerNameLabel", {
-                  defaultValue: "Your name",
-                })}
-              </ThemedText>
-              <ThemedText style={styles.optionalBadge}>
-                {t("onboarding.businessName.optional", {
-                  defaultValue: "Optional",
-                })}
-              </ThemedText>
+              {error && <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>}
             </View>
 
-            <View style={styles.inputWrapper}>
-              <View style={styles.inputIcon}>
+            {/* Field 2: Owner / Manager Name */}
+            <View style={styles.fieldGroup}>
+              <View style={styles.labelRow}>
+                <ThemedText style={[styles.fieldLabel, { color: theme.textPrimary }]}>
+                  {t("onboarding.businessName.ownerLabel", {
+                    defaultValue: "Owner / Manager Name",
+                  })}
+                </ThemedText>
+                <Text style={[styles.optionalBadge, { color: theme.textMuted }]}>
+                  {t("onboarding.businessName.optional", {
+                    defaultValue: "Optional",
+                  })}
+                </Text>
+              </View>
+
+              <View style={[styles.inputWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <SymbolView
                   name={{
                     ios: "person" as any,
@@ -307,152 +307,143 @@ export function BusinessNameStep({
                     web: "person" as any,
                   }}
                   size={20}
-                  tintColor={Colors.light.textMuted}
+                  tintColor={theme.textMuted}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={[styles.textInput, { color: theme.textPrimary }]}
+                  value={ownerName}
+                  onChangeText={setOwnerName}
+                  placeholder={t("onboarding.businessName.ownerPlaceholder", {
+                    defaultValue: "e.g., Karim Benali",
+                  })}
+                  placeholderTextColor={theme.textMuted}
+                  autoCapitalize="words"
+                  autoCorrect={false}
                 />
               </View>
-              <TextInput
-                style={styles.textInput}
-                placeholder={t("onboarding.businessName.ownerNamePlaceholder", {
-                  defaultValue: "e.g., Karim Benali",
+            </View>
+
+            {/* Quick Category Selector Chips matching Stitch */}
+            <View style={styles.categorySection}>
+              <Text style={[styles.categoryHeaderLabel, { color: theme.textPrimary }]}>
+                {t("onboarding.businessName.quickCategory", {
+                  defaultValue: "Shop Type / Activity",
                 })}
-                placeholderTextColor={Colors.light.textMuted}
-                value={ownerName}
-                onChangeText={setOwnerName}
-                autoCapitalize="words"
-                returnKeyType="done"
-              />
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryScroll}
+              >
+                {categories.map((cat) => {
+                  const isSelected = selectedCategory === cat.id;
+                  return (
+                    <Pressable
+                      key={cat.id}
+                      style={[
+                        styles.categoryChip,
+                        isSelected
+                          ? [styles.categoryChipSelected, { backgroundColor: theme.primaryLight, borderColor: theme.primary }]
+                          : [styles.categoryChipUnselected, { backgroundColor: theme.backgroundElement }],
+                      ]}
+                      onPress={() => setSelectedCategory(cat.id)}
+                      accessibilityRole="button"
+                    >
+                      <SymbolView
+                        name={{
+                          ios: "cart" as any,
+                          android: cat.icon as any,
+                          web: cat.icon as any,
+                        }}
+                        size={16}
+                        tintColor={
+                          isSelected ? theme.primary : theme.textSecondary
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.categoryChipText,
+                          isSelected
+                            ? [styles.categoryChipTextSelected, { color: theme.primary }]
+                            : [styles.categoryChipTextUnselected, { color: theme.textSecondary }],
+                        ]}
+                      >
+                        {cat.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
           </View>
 
-          {/* Category Quick Selector Pill Bar matching Stitch */}
-          <View style={styles.categorySection}>
-            <ThemedText style={styles.categoryHeaderLabel}>
-              {t("onboarding.businessName.categoryLabel", {
-                defaultValue: "Select store category",
+          {/* Micro Trust Banner matching Stitch */}
+          <View style={[styles.trustBanner, { backgroundColor: theme.backgroundElement }]}>
+            <View style={[styles.trustIconWrapper, { backgroundColor: theme.primaryLight }]}>
+              <SymbolView
+                name={{
+                  ios: "lock.shield.fill" as any,
+                  android: "security" as any,
+                  web: "security" as any,
+                }}
+                size={16}
+                tintColor={theme.primary}
+              />
+            </View>
+            <Text style={[styles.trustText, { color: theme.textSecondary }]}>
+              {t("onboarding.businessName.trustText", {
+                defaultValue:
+                  "Your shop profile is stored 100% locally on this device. Privacy guaranteed.",
               })}
-            </ThemedText>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={true}
-              contentContainerStyle={styles.categoryScroll}
-            >
-              {categories.map((cat) => {
-                const isSelected = selectedCategory === cat.id;
-                return (
-                  <Pressable
-                    key={cat.id}
-                    onPress={() => setSelectedCategory(cat.id)}
-                    style={[
-                      styles.categoryChip,
-                      isSelected
-                        ? styles.categoryChipSelected
-                        : styles.categoryChipUnselected,
-                    ]}
-                  >
-                    <SymbolView
-                      name={{
-                        ios: "tag" as any,
-                        android: cat.icon as any,
-                        web: cat.icon as any,
-                      }}
-                      size={16}
-                      tintColor={
-                        isSelected ? Colors.light.primary : Colors.light.textSecondary
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.categoryChipText,
-                        isSelected
-                          ? styles.categoryChipTextSelected
-                          : styles.categoryChipTextUnselected,
-                      ]}
-                    >
-                      {cat.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
+            </Text>
           </View>
-        </View>
+        </ScrollView>
 
-        {/* Reassurance Offline Banner matching Stitch */}
-        <View style={styles.trustBanner}>
-          <View style={styles.trustIconWrapper}>
-            <SymbolView
-              name={{
-                ios: "checkmark.shield.fill" as any,
-                android: "verified_user" as any,
-                web: "verified_user" as any,
-              }}
-              size={18}
-              tintColor={Colors.light.primary}
-            />
-          </View>
-          <ThemedText style={styles.trustText}>
-            {t("onboarding.businessName.trustText", {
-              defaultValue:
-                "Your ledger and customer contacts are kept fully encrypted, offline-capable, and private to your device.",
-            })}
-          </ThemedText>
-        </View>
-      </ScrollView>
-
-      {/* CTA Footer matching Stitch */}
-      <View style={styles.footer}>
-        <Pressable
-          style={[
-            styles.continueButton,
-            !businessName.trim() && styles.continueButtonDisabled,
-          ]}
-          onPress={handleContinue}
-          disabled={!businessName.trim()}
-          accessibilityRole="button"
-          accessibilityLabel={t("onboarding.businessName.continue", {
-            defaultValue: "Continue",
-          })}
-        >
-          <Text style={styles.continueButtonText}>
-            {t("onboarding.businessName.continue", {
+        {/* Action Footer */}
+        <View style={styles.footer}>
+          <Pressable
+            style={[
+              styles.continueButton,
+              { backgroundColor: theme.primary },
+              !businessName.trim() && [styles.continueButtonDisabled, { backgroundColor: theme.border }],
+            ]}
+            onPress={handleContinue}
+            accessibilityRole="button"
+            accessibilityLabel={t("onboarding.businessName.continue", {
               defaultValue: "Continue",
             })}
-          </Text>
-          <SymbolView
-            name={{
-              ios: "arrow.right" as any,
-              android: "arrow_forward" as any,
-              web: "arrow_forward" as any,
-            }}
-            size={18}
-            tintColor={Colors.light.surface}
-          />
-        </Pressable>
-
-        {onBack && (
-          <Pressable
-            onPress={onBack}
-            style={styles.backButton}
-            accessibilityRole="button"
           >
+            <Text style={styles.continueButtonText}>
+              {t("onboarding.businessName.continue", {
+                defaultValue: "Continue",
+              })}
+            </Text>
             <SymbolView
               name={{
-                ios: "arrow.left" as any,
-                android: "arrow_back" as any,
-                web: "arrow_back" as any,
+                ios: "arrow.right" as any,
+                android: "arrow_forward" as any,
+                web: "arrow_forward" as any,
               }}
-              size={16}
-              tintColor={Colors.light.textSecondary}
+              size={18}
+              tintColor="#FFFFFF"
             />
-            <ThemedText style={styles.backButtonText}>
-              {t("onboarding.businessName.back", { defaultValue: "Back" })}{" "}
-              <Text style={styles.backSubText}>
-                {t("onboarding.businessName.backSub", { defaultValue: "/ Retour" })}
-              </Text>
-            </ThemedText>
           </Pressable>
-        )}
-      </View>
+
+          {onBack && (
+            <Pressable
+              style={styles.backButton}
+              onPress={onBack}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                {t("common.back", { defaultValue: "Back" })}
+              </Text>
+              <Text style={[styles.backSubText, { color: theme.textMuted }]}>• Step {stepNumber}</Text>
+            </Pressable>
+          )}
+        </View>
+      </ThemedView>
     </KeyboardAvoidingView>
   );
 }
@@ -460,7 +451,6 @@ export function BusinessNameStep({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
     maxWidth: 480,
     alignSelf: "center",
     width: "100%",
@@ -486,13 +476,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...Typography.bodyLarge,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   avatarCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.primary,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -503,7 +491,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   stepPill: {
-    backgroundColor: Colors.light.backgroundElement,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
@@ -512,7 +499,6 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   progressBars: {
     flexDirection: "row",
@@ -523,32 +509,26 @@ const styles = StyleSheet.create({
     width: 12,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.border,
   },
   barActive: {
     width: 28,
-    backgroundColor: Colors.light.primary,
   },
   titleSection: {
     marginBottom: Spacing.sm,
   },
   title: {
     ...Typography.heading1,
-    color: Colors.light.textPrimary,
   },
   subtitle: {
     ...Typography.body,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   accentTile: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     padding: Spacing.sm,
     marginBottom: Spacing.md,
     ...Shadows.sm,
@@ -557,7 +537,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -573,18 +552,15 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontWeight: "700",
     fontSize: 14,
-    color: Colors.light.textPrimary,
   },
   accentSubtitle: {
     ...Typography.caption,
-    color: Colors.light.textSecondary,
     marginTop: 1,
   },
   accentBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.primaryLight,
     alignSelf: "flex-start",
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -595,18 +571,14 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.primary,
   },
   accentBadgeText: {
     fontSize: 10,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   mainCard: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     marginBottom: Spacing.md,
     ...Shadows.sm,
     padding: Spacing.md,
@@ -622,43 +594,34 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     ...Typography.label,
-    color: Colors.light.textPrimary,
   },
   requiredBadge: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textMuted,
   },
   optionalBadge: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textMuted,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     borderRadius: BorderRadius.md,
     height: 48,
     paddingHorizontal: Spacing.sm,
   },
-  inputWrapperError: {
-    borderColor: Colors.light.error,
-  },
+  inputWrapperError: {},
   inputIcon: {
     marginRight: Spacing.sm,
   },
   textInput: {
     flex: 1,
     ...Typography.body,
-    color: Colors.light.textPrimary,
     paddingVertical: 0,
   },
   errorText: {
     ...Typography.caption,
-    color: Colors.light.error,
     marginTop: 4,
   },
   categorySection: {
@@ -667,7 +630,6 @@ const styles = StyleSheet.create({
   categoryHeaderLabel: {
     ...Typography.label,
     fontSize: 13,
-    color: Colors.light.textPrimary,
     marginBottom: Spacing.xs,
   },
   categoryScroll: {
@@ -683,31 +645,24 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: BorderRadius.full,
   },
-  categoryChipUnselected: {
-    backgroundColor: Colors.light.backgroundElement,
-  },
+  categoryChipUnselected: {},
   categoryChipSelected: {
-    backgroundColor: Colors.light.primaryLight,
     borderWidth: 1,
-    borderColor: Colors.light.primary,
   },
   categoryChipText: {
     ...Typography.caption,
     fontSize: 13,
   },
   categoryChipTextUnselected: {
-    color: Colors.light.textSecondary,
     fontWeight: "500",
   },
   categoryChipTextSelected: {
-    color: Colors.light.primaryDark,
     fontWeight: "700",
   },
   trustBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    backgroundColor: Colors.light.backgroundElement,
     padding: Spacing.sm,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
@@ -716,7 +671,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.primaryLight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -724,7 +678,6 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     lineHeight: 16,
   },
   footer: {
@@ -734,7 +687,6 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   continueButton: {
-    backgroundColor: Colors.light.primary,
     height: 48,
     borderRadius: BorderRadius.button,
     flexDirection: "row",
@@ -743,11 +695,9 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     ...Shadows.sm,
   },
-  continueButtonDisabled: {
-    backgroundColor: Colors.light.disabledBackground,
-  },
+  continueButtonDisabled: {},
   continueButtonText: {
-    color: Colors.light.surface,
+    color: "#FFFFFF",
     ...Typography.body,
     fontWeight: "600",
   },
@@ -761,10 +711,8 @@ const styles = StyleSheet.create({
   backButtonText: {
     ...Typography.label,
     fontSize: 14,
-    color: Colors.light.textSecondary,
   },
   backSubText: {
-    color: Colors.light.textMuted,
     fontSize: 12,
   },
 });
