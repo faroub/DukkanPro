@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   saveButton: {
-    height: ComponentDimensions.buttonHeight,
+    height: ComponentDimensions.primaryButtonHeight,
     borderRadius: BorderRadius.lg,
     flexDirection: "row",
     alignItems: "center",
@@ -750,7 +750,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   cancelButton: {
-    height: ComponentDimensions.buttonHeight - 4,
+    height: ComponentDimensions.primaryButtonHeight - 4,
     alignItems: "center",
     justifyContent: "center",
   },

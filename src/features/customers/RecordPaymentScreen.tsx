@@ -22,8 +22,8 @@ import { formatCentimes, getActiveStoreCurrency, getCurrencySymbol } from "@/uti
 
 interface RecordPaymentScreenProps {
   customerId: number;
-  customerName: string;
-  currentDebt: number; // in centimes
+  customerName?: string;
+  currentDebt?: number; // in centimes
 }
 
 export function RecordPaymentScreen({

@@ -13,6 +13,8 @@ export interface ProductFormScreenProps {
   route?: any;
   navigation?: any;
   onClose?: () => void;
+  onCancel?: () => void;
+  onSave?: (formData: ProductFormData) => Promise<void>;
   mode?: 'create' | 'edit';
   productId?: number;
 }
@@ -21,6 +23,8 @@ export function ProductFormScreen({
   route,
   navigation,
   onClose,
+  onCancel,
+  onSave: propOnSave,
   mode: propMode,
   productId: propProductId,
 }: ProductFormScreenProps) {
@@ -41,10 +45,12 @@ export function ProductFormScreen({
   const handleClose = useCallback(() => {
     if (onClose) {
       onClose();
+    } else if (onCancel) {
+      onCancel();
     } else {
       router.back();
     }
-  }, [onClose, router]);
+  }, [onClose, onCancel, router]);
 
   // Load product if editing
   useEffect(() => {
@@ -73,6 +79,10 @@ export function ProductFormScreen({
 
   const handleSave = useCallback(
     async (formData: ProductFormData) => {
+      if (propOnSave) {
+        await propOnSave(formData);
+        return;
+      }
       if (mode === 'create') {
         await create({
           name: formData.name,

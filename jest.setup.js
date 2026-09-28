@@ -5,7 +5,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 jest.mock('expo-camera', () => ({
   useCameraPermissions: () => [{ granted: true, canAskAgain: true }, jest.fn()],
-  CameraView: ({ children }: any) => children,
+  CameraView: ({ children }) => children,
 }));
 
 export const mockRouter = {
@@ -16,9 +16,9 @@ export const mockRouter = {
   canGoBack: jest.fn(() => true),
 };
 
-export let mockLocalSearchParams: Record<string, string> = {};
+export let mockLocalSearchParams = {};
 
-export function setMockSearchParams(params: Record<string, string>) {
+export function setMockSearchParams(params) {
   mockLocalSearchParams = params;
 }
 
@@ -44,17 +44,18 @@ jest.mock('expo-router', () => {
       navigate: mockRouter.push,
       setOptions: jest.fn(),
     }),
-    useFocusEffect: (callback: () => void) => {
+    useFocusEffect: (callback) => {
       mockReact.useEffect(() => {
         callback();
       }, []);
     },
     router: mockRouter,
-    Link: ({ children, onPress }: any) => {
+    Link: ({ children, onPress }) => {
       const { TouchableOpacity } = require('react-native');
-      return <TouchableOpacity onPress={onPress}>{children}</TouchableOpacity>;
+      const React = require('react');
+      return React.createElement(TouchableOpacity, { onPress }, children);
     },
-    Stack: Object.assign(({ children }: any) => children, { Screen: () => null }),
-    Tabs: Object.assign(({ children }: any) => children, { Screen: () => null }),
+    Stack: Object.assign(({ children }) => children, { Screen: () => null }),
+    Tabs: Object.assign(({ children }) => children, { Screen: () => null }),
   };
 });
