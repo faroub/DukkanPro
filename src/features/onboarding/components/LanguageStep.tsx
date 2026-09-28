@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   continueButton: {
-    height: ComponentDimensions.buttonHeight,
+    height: ComponentDimensions.primaryButtonHeight,
     borderRadius: BorderRadius.button,
     flexDirection: "row",
     justifyContent: "center",
