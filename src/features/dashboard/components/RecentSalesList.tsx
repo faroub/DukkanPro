@@ -114,6 +114,21 @@ export function RecentSalesList({
           <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
             {recentSalesNoResults}
           </ThemedText>
+          <TouchableOpacity
+            style={[styles.emptyCtaButton, { backgroundColor: theme.primary }]}
+            onPress={() => router.push("/(tabs)/sell" as any)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <MaterialIcons name="add-shopping-cart" size={16} color="#FFFFFF" />
+            <ThemedText style={styles.emptyCtaText}>
+              {locale === "ar"
+                ? "تسجيل بيع جديد"
+                : locale === "fr"
+                ? "Nouvelle vente"
+                : "New Sale"}
+            </ThemedText>
+          </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.list}>
@@ -267,12 +282,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "dashed",
     paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
     alignItems: "center",
     gap: 8,
   },
   emptyText: {
     ...Typography.caption,
     fontSize: 13,
+  },
+  emptyCtaButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.md,
+    marginTop: 4,
+  },
+  emptyCtaText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
   },
   saleCard: {
     borderRadius: BorderRadius.lg,

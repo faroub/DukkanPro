@@ -8,14 +8,14 @@
  * - All user-facing strings wrapped in t('dashboard.*') i18n pattern
  * - Remains LTR regardless of selected language
  */
-import { getDatabase } from "@/database/database";
 import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
 import {
   getSevenDaySales,
   getTodayCost,
   getTodayRevenue,
 } from "@/database/repositories/dashboardRepository";
-import { getAll } from "@/database/repositories/saleRepository";
+import { getAll as getAllSales } from "@/database/repositories/saleRepository";
+import { getAll as getAllProducts } from "@/database/repositories/productRepository";
 import { getAllPayments } from "@/database/repositories/exportRepository";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -68,7 +68,7 @@ export async function fetchDashboardData(
   const historicalCost_centimes = await getTodayCost();
 
   // ---- All sales & payments feed debt and the recent-sales list ----
-  const allSales = await getAll();
+  const allSales = await getAllSales();
   const allPayments = await getAllPayments();
 
   // ---- To collect: outstanding balances from completed sales minus recorded payments ----
@@ -93,24 +93,16 @@ export async function fetchDashboardData(
     .slice(0, 5)
     .map((sale) => ({ ...sale, customerName: sale.customer_name ?? undefined }));
 
-  // ---- Store counts & Low-stock products ----
+  // ---- Active products & low stock products ----
+  let totalProductsCount = 0;
   let lowStockCount = 0;
   let lowStockProducts: any[] = [];
-  let totalProductsCount = 0;
-  let totalSalesCount = 0;
 
   try {
-    const db = await getDatabase();
-    const pRow: any[] = await db.getAllAsync("SELECT COUNT(*) as c FROM products WHERE is_active = 1");
-    totalProductsCount = pRow[0]?.c || 0;
+    const activeProducts = await getAllProducts({ is_active: true });
+    totalProductsCount = (activeProducts || []).length;
 
-    const sRow: any[] = await db.getAllAsync("SELECT COUNT(*) as c FROM sales");
-    totalSalesCount = sRow[0]?.c || 0;
-
-    const products: any[] = await db.getAllAsync(
-      "SELECT * FROM products WHERE is_active = 1",
-    );
-    lowStockProducts = (products || []).filter((p: any) => {
+    lowStockProducts = (activeProducts || []).filter((p: any) => {
       const minThreshold =
         p.minimum_stock_quantity !== undefined && p.minimum_stock_quantity !== null
           ? p.minimum_stock_quantity
@@ -119,8 +111,10 @@ export async function fetchDashboardData(
     });
     lowStockCount = lowStockProducts.length;
   } catch (_err) {
-    // If DB query fails, keep empty defaults
+    // Keep empty defaults if query fails
   }
+
+  const totalSalesCount = (allSales || []).length;
 
   let currencyCode = "DZD";
   try {

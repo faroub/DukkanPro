@@ -232,6 +232,85 @@ export default function DashboardScreenDefault({
           locale={locale}
         />
 
+        {/* 3.5. Quick Operations Grid */}
+        <View style={styles.shortcutsSection}>
+          <View style={styles.shortcutsHeader}>
+            <ThemedText style={[styles.shortcutsTitle, { color: theme.textPrimary }]}>
+              {locale === "ar" ? "اختصارات سريعة" : locale === "fr" ? "Raccourcis rapides" : "Quick Operations"}
+            </ThemedText>
+          </View>
+
+          <View style={styles.shortcutsGrid}>
+            <TouchableOpacity
+              style={[styles.shortcutTile, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={handleNewSale}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+            >
+              <View style={[styles.shortcutIconBox, { backgroundColor: theme.primaryLight }]}>
+                <MaterialIcons name="point-of-sale" size={22} color={theme.primary} />
+              </View>
+              <ThemedText style={[styles.shortcutLabel, { color: theme.textPrimary }]}>
+                {locale === "ar" ? "بيع جديد" : locale === "fr" ? "Nouvelle vente" : "New Sale"}
+              </ThemedText>
+              <ThemedText style={[styles.shortcutSub, { color: theme.textSecondary }]}>
+                {locale === "ar" ? "كاسا سريعة" : locale === "fr" ? "Caisse POS" : "Quick POS"}
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.shortcutTile, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={handleAddProduct}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+            >
+              <View style={[styles.shortcutIconBox, { backgroundColor: theme.surfaceAlt }]}>
+                <MaterialIcons name="add-box" size={22} color={theme.primary} />
+              </View>
+              <ThemedText style={[styles.shortcutLabel, { color: theme.textPrimary }]}>
+                {locale === "ar" ? "إضافة منتج" : locale === "fr" ? "Nouveau produit" : "Add Product"}
+              </ThemedText>
+              <ThemedText style={[styles.shortcutSub, { color: theme.textSecondary }]}>
+                {locale === "ar" ? "إضافة مخزون" : locale === "fr" ? "Catalogue" : "Catalog"}
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.shortcutTile, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={handleAddCustomer}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+            >
+              <View style={[styles.shortcutIconBox, { backgroundColor: theme.surfaceAlt }]}>
+                <MaterialIcons name="person-add" size={22} color={theme.primary} />
+              </View>
+              <ThemedText style={[styles.shortcutLabel, { color: theme.textPrimary }]}>
+                {locale === "ar" ? "إضافة زبون" : locale === "fr" ? "Nouveau client" : "Add Customer"}
+              </ThemedText>
+              <ThemedText style={[styles.shortcutSub, { color: theme.textSecondary }]}>
+                {locale === "ar" ? "دفتر الديون" : locale === "fr" ? "Carnet crédit" : "Credit Book"}
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.shortcutTile, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={handleRecordPayment}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+            >
+              <View style={[styles.shortcutIconBox, { backgroundColor: theme.warningLight }]}>
+                <MaterialIcons name="payments" size={22} color={theme.secondary} />
+              </View>
+              <ThemedText style={[styles.shortcutLabel, { color: theme.textPrimary }]}>
+                {locale === "ar" ? "تحصيل ديون" : locale === "fr" ? "Règlement" : "Pay Debt"}
+              </ThemedText>
+              <ThemedText style={[styles.shortcutSub, { color: theme.textSecondary }]}>
+                {locale === "ar" ? "استلام دفعة" : locale === "fr" ? "Encaissement" : "Receipt"}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* 4. Recent Sales Section */}
         <RecentSalesList
           recentSales={recentSales}
@@ -395,6 +474,50 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.md,
     paddingBottom: 100,
+  },
+  shortcutsSection: {
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  shortcutsHeader: {
+    paddingHorizontal: 2,
+    marginBottom: 4,
+  },
+  shortcutsTitle: {
+    ...Typography.heading3,
+    fontSize: 17,
+    fontWeight: "700",
+  },
+  shortcutsGrid: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  shortcutTile: {
+    flex: 1,
+    padding: Spacing.sm + 2,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    ...Shadows.sm,
+  },
+  shortcutIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  shortcutLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  shortcutSub: {
+    fontSize: 10,
+    textAlign: "center",
+    marginTop: 2,
   },
   actionTriggersRow: {
     flexDirection: "row",
