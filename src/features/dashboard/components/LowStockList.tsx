@@ -108,11 +108,25 @@ export function LowStockList({
           <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
             {lowStockNoLowStock ||
               (locale === "ar"
-                ? "كل المنتجات فوق الحد الأدنى"
+                ? "كل المنتجات فوق الحد الأدنى للمخزون"
                 : locale === "fr"
                 ? "Tous les produits sont au-dessus du seuil"
-                : "All products are above the low-stock threshold")}
+                : "All products are above threshold")}
           </ThemedText>
+          <TouchableOpacity
+            style={[styles.manageCatalogBtn, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}
+            onPress={() => router.push("/(tabs)/products" as any)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <ThemedText style={[styles.manageCatalogText, { color: theme.textPrimary }]}>
+              {locale === "ar"
+                ? "المنتجات"
+                : locale === "fr"
+                ? "Catalogue"
+                : "Catalog"}
+            </ThemedText>
+          </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.list}>
@@ -241,8 +255,18 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...Typography.caption,
-    fontSize: 13,
+    fontSize: 12,
     flex: 1,
+  },
+  manageCatalogBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  manageCatalogText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
   card: {
     borderRadius: BorderRadius.lg,
