@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "دكان OS"
+    "title": "DukkanPro"
   },
   "tabs": {
     "home": "الرئيسية",
@@ -567,7 +567,7 @@
       "changeLanguageNote": "يمكنك تغيير لغتك في أي وقت من الإعدادات",
       "defaultBadge": "افتراضي",
       "arabic": "العربية",
-      "arabicSub": "العربية الفصحى",
+      "arabicSub": "العربية",
       "french": "Français",
       "frenchSub": "الفرنسية",
       "english": "English",
