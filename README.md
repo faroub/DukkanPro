@@ -1,56 +1,70 @@
-# Welcome to your Expo app 👋
+# Dukkan OS — Offline-First Merchant Management App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Dukkan OS** is an offline-first mobile application built with **React Native** and **Expo SDK 57** designed specifically for small retail merchants, grocers, and shopkeepers.
 
-## Get started
+All business data (products, sales, customers, debt ledgers) is stored locally in an on-device **SQLite** database (`DukkanOS.db`) using atomic transactions and WAL journal mode. Zero cloud dependency.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🚀 Key Features
 
-2. Start the app
+- **🛒 Point of Sale (POS & Caisse):** Fast product search, barcode scanning, cart management, instant checkout, and print/share receipts.
+- **📦 Inventory & Catalogue:** Stock level tracking, low-stock threshold alert banners, quick counter restock modals, and stock movement audit logs.
+- **👥 Customer Debt Ledger (*Carnet Crédit*):** Customer directory, credit sales tracking, partial/full debt payment recording, and automated WhatsApp/SMS debt reminder message previews.
+- **💱 Multi-Currency Support:** Seamless support for **Algerian Dinar (DZD)** (Default), **Euro (€)**, and **US Dollar ($)** across all price displays, cart totals, receipts, and financial cards.
+- **🌍 Multi-Language & LTR Layout:** Localized in **French (FR)**, **Arabic (AR)**, and **English (EN)** with strict visual LTR layout preservation (supporting Arabic right-aligned text within components).
+- **🎨 Dynamic Theming:** Light and Dark mode UI components that adapt dynamically via `useTheme()`.
+- **📊 Business Analytics:** Bento summary cards (today's revenue, estimated net profit, debt to collect, low stock count), 7-day sales activity chart, and quick operation shortcuts.
+- **💾 Data Control & Export:** CSV export for products, customers, and sales, plus factory data reset capabilities.
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 🛠 Tech Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **Framework:** React Native + Expo SDK 57 (Expo Router file-based routing)
+- **Database:** `expo-sqlite` (SQLite singleton with WAL mode and foreign key constraints)
+- **State Management:** Zustand (`cartStore` for POS cart) + React Context (`LocaleProvider`, `AppThemeProvider`)
+- **Localization:** `i18next` + `react-i18next` + `expo-localization`
+- **Testing:** Jest + `jest-expo` + React Native Testing Library (`@testing-library/react-native`)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 📱 Quick Start
 
-When you're ready, run:
-
+### 1. Install Dependencies
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Type Check
+```bash
+npx tsc --noemit
+```
 
-### Other setup steps
+### 3. Run Automated Tests
+```bash
+npm test
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### 4. Run on Android Emulator / Device
+```bash
+npx expo run:android
+```
+*Note: Ensure an Android emulator (e.g. Pixel 8) or connected physical device is running.*
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📚 Documentation Index
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Detailed engineering documentation is available in the `docs/` folder:
 
-## Join the community
+- **[Architecture Guide (`docs/ARCHITECTURE.md`)](docs/ARCHITECTURE.md):** Folder structure, data flow, SQLite transaction patterns, and LTR architecture rules.
+- **[API & State Reference (`docs/API_AND_STATE.md`)](docs/API_AND_STATE.md):** Hook APIs, money formatting utilities, customer balance service, and repositories.
+- **[Automated Testing Guide (`docs/TESTING.md`)](docs/TESTING.md):** Testing harness, database reset helpers, and Jest runner conventions.
+- **[Manual Testing Plan (`docs/MANUAL_TESTING_PLAN.md`)](docs/MANUAL_TESTING_PLAN.md):** Step-by-step manual test cases covering onboarding, POS, inventory, debt management, and multi-currency features.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📄 License & Trademark
+
+© mzilab. All rights reserved.
