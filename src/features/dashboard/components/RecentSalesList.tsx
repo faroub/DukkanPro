@@ -3,6 +3,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
+import { useTranslation } from "react-i18next";
 import { ThemedText } from "@/components/themed-text";
 import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -40,8 +41,11 @@ export function RecentSalesList({
 }: RecentSalesListProps) {
   const router = useRouter();
   const theme = useTheme();
+  const { t } = useTranslation();
 
-  const displaySales: SaleItemData[] = recentSales.slice(0, 3);
+  const displaySales: SaleItemData[] = (recentSales || []).slice(0, 3);
+  const headerText = recentSalesHeader !== "Recent Sales" ? recentSalesHeader : t("dashboard.recentSales.title", { defaultValue: "Recent Sales" });
+  const noResultsText = recentSalesNoResults !== "No sales yet today" ? recentSalesNoResults : t("dashboard.recentSales.noResults", { defaultValue: "No sales yet today" });
 
   const handleSeeAll = () => {
     if (onSeeAll) {
@@ -77,14 +81,15 @@ export function RecentSalesList({
       <View style={styles.headerRow}>
         <View style={styles.titleWithBadge}>
           <ThemedText style={[styles.sectionTitle, { color: theme.textPrimary }]}>
-            {recentSalesHeader}
+            {headerText}
           </ThemedText>
           {displaySales.length > 0 && (
             <View style={[styles.newBadge, { backgroundColor: theme.primaryLight }]}>
               <ThemedText style={[styles.newBadgeText, { color: theme.primary }]}>
-                {locale === "ar"
-                  ? `${displaySales.length} جديد`
-                  : `${displaySales.length} new`}
+                {t("dashboard.recentSales.newCount", {
+                  count: displaySales.length,
+                  defaultValue: `${displaySales.length} new`,
+                })}
               </ThemedText>
             </View>
           )}
@@ -97,7 +102,7 @@ export function RecentSalesList({
           accessibilityLabel="See all recent sales"
         >
           <ThemedText style={[styles.seeAllText, { color: theme.primary }]}>
-            {locale === "ar" ? "عرض الكل" : locale === "fr" ? "Voir tout" : "See all"}
+            {t("dashboard.recentSales.seeAll", { defaultValue: "See all" })}
           </ThemedText>
           <MaterialIcons
             name="chevron-right"
@@ -112,7 +117,7 @@ export function RecentSalesList({
         <View style={[styles.emptyState, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <MaterialIcons name="receipt-long" size={28} color={theme.textSecondary} />
           <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
-            {recentSalesNoResults}
+            {noResultsText}
           </ThemedText>
           <TouchableOpacity
             style={[styles.emptyCtaButton, { backgroundColor: theme.primary }]}
@@ -122,11 +127,7 @@ export function RecentSalesList({
           >
             <MaterialIcons name="add-shopping-cart" size={16} color="#FFFFFF" />
             <ThemedText style={styles.emptyCtaText}>
-              {locale === "ar"
-                ? "تسجيل بيع جديد"
-                : locale === "fr"
-                ? "Nouvelle vente"
-                : "New Sale"}
+              {t("dashboard.recentSales.newSaleCta", { defaultValue: "Record New Sale" })}
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -159,20 +160,10 @@ export function RecentSalesList({
             : theme.primary;
 
           const badgeLabel = isCancelled
-            ? locale === "ar"
-              ? "ملغى"
-              : "Cancelled"
+            ? t("dashboard.recentSales.cancelled", { defaultValue: "Cancelled" })
             : isPartialOrCredit
-            ? locale === "ar"
-              ? "دين جزئي"
-              : locale === "fr"
-              ? "Crédit"
-              : "Partial"
-            : locale === "ar"
-            ? "مدفوع"
-            : locale === "fr"
-            ? "Payé"
-            : "Paid";
+            ? t("dashboard.recentSales.partial", { defaultValue: "Partial" })
+            : t("dashboard.recentSales.paid", { defaultValue: "Paid" });
 
           return (
             <TouchableOpacity

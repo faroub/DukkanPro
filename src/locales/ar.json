@@ -45,25 +45,50 @@
   "dashboard": {
     "greeting": "مرحباً",
     "summary": {
-      "revenue": "الإيرادات",
+      "revenue": "مبيعات اليوم",
       "profit": "الربح التقديري",
-      "toCollect": "المبالغ المستحقة",
+      "toCollect": "ديون للتحصيل",
       "lowStock": "نقص المخزون"
     },
     "recentSales": {
       "title": "المبيعات الأخيرة",
-      "noSales": "لا توجد مبيعات حديثة"
+      "noSales": "لا توجد مبيعات حديثة",
+      "seeAll": "عرض الكل",
+      "newCount": "{{count}} جديد",
+      "noResults": "لا توجد مبيعات اليوم حتى الآن",
+      "newSaleCta": "تسجيل بيع جديد",
+      "paid": "مدفوع",
+      "partial": "دين جزئي",
+      "cancelled": "ملغى",
+      "itemsCount": "{{count}} منتجات"
     },
     "lowStock": {
-      "title": "مخزون منخفض",
-      "noLowStock": "لا توجد منتجات منخفضة المخزون",
-      "note": "عدد المنتجات التي تحتاج إلى إعادة تخزين: {{count}}"
+      "title": "تنبيه نقص المخزون",
+      "noLowStock": "جميع المنتجات متوفرة بمستوى جيدة",
+      "note": "{{count}} منتج بحاجة إلى إعادة التموين",
+      "viewAll": "عرض الكل",
+      "allHealthy": "كل المنتجات فوق الحد الأدنى للمخزون",
+      "manageCatalog": "إدارة المنتجات",
+      "critical": "حرج",
+      "low": "منخفض",
+      "unitsLeft": "متبقي {{count}} وحدات"
     },
     "quick": {
       "newSale": "بيع جديد",
       "addProduct": "إضافة منتج",
       "addCustomer": "إضافة زبون",
       "recordPayment": "تسجيل دفعة"
+    },
+    "shortcuts": {
+      "title": "اختصارات سريعة",
+      "newSale": "بيع جديد",
+      "newSaleSub": "كاسا سريعة",
+      "addProduct": "إضافة منتج",
+      "addProductSub": "إضافة مخزون",
+      "addCustomer": "إضافة زبون",
+      "addCustomerSub": "دفتر الديون",
+      "payDebt": "تحصيل ديون",
+      "payDebtSub": "استلام دفعة"
     },
     "title": "لوحة التحكم",
     "totalSales": "إجمالي المبيعات",
@@ -77,7 +102,12 @@
     "noSalesYet": "لا مبيعات بعد",
     "newSale": "مبيعة جديدة",
     "charts": {
-      "salesTrend": "اتجاه المبيعات خلال 7 أيام"
+      "salesTrend": "نشاط المبيعات (7 أيام)",
+      "subtitle": "الأداء الأسبوعي",
+      "monthlyTotal": "الإجمالي",
+      "dailyAvg": "المعدل اليومي",
+      "peakDay": "أعلى يوم",
+      "noSalesMonth": "لا توجد مبيعات مسجلة هذا الشهر"
     }
   },
   "common": {

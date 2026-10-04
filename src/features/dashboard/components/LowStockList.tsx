@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -44,10 +45,18 @@ export function LowStockList({
 }: LowStockListProps) {
   const router = useRouter();
   const theme = useTheme();
+  const { t } = useTranslation();
 
   const list = lowStockProducts || products || [];
   const displayProducts: LowStockProductItem[] = list.slice(0, 3);
   const handleRestockCall = onRestockProduct || onRestock;
+
+  const headerText = lowStockTitle !== "Low Stock Alert" ? lowStockTitle : t("dashboard.lowStock.title", { defaultValue: "Low Stock Alert" });
+  const viewAllText = t("dashboard.lowStock.viewAll", { defaultValue: "View all" });
+  const emptyText = lowStockNoLowStock || t("dashboard.lowStock.allHealthy", { defaultValue: "All products are above threshold" });
+  const catalogText = t("dashboard.lowStock.manageCatalog", { defaultValue: "Catalog" });
+  const criticalText = t("dashboard.lowStock.critical", { defaultValue: "Critical" });
+  const lowText = t("dashboard.lowStock.low", { defaultValue: "Low Stock" });
 
   const handleViewAll = () => {
     if (onViewAll) {
@@ -80,7 +89,7 @@ export function LowStockList({
         <View style={styles.titleRow}>
           <View style={[styles.amberDot, { backgroundColor: theme.secondary }]} />
           <ThemedText style={[styles.sectionTitle, { color: theme.textPrimary }]}>
-            {lowStockTitle}
+            {headerText}
           </ThemedText>
         </View>
 
@@ -91,7 +100,7 @@ export function LowStockList({
           accessibilityLabel="View all low stock products"
         >
           <ThemedText style={[styles.viewAllText, { color: theme.primary }]}>
-            {locale === "ar" ? "عرض الكل" : locale === "fr" ? "Voir tout" : "View all"}
+            {viewAllText}
           </ThemedText>
           <MaterialIcons
             name="chevron-right"
@@ -106,12 +115,7 @@ export function LowStockList({
         <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <MaterialIcons name="check-circle" size={22} color={theme.primary} />
           <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
-            {lowStockNoLowStock ||
-              (locale === "ar"
-                ? "كل المنتجات فوق الحد الأدنى للمخزون"
-                : locale === "fr"
-                ? "Tous les produits sont au-dessus du seuil"
-                : "All products are above threshold")}
+            {emptyText}
           </ThemedText>
           <TouchableOpacity
             style={[styles.manageCatalogBtn, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}
@@ -120,11 +124,7 @@ export function LowStockList({
             accessibilityRole="button"
           >
             <ThemedText style={[styles.manageCatalogText, { color: theme.textPrimary }]}>
-              {locale === "ar"
-                ? "المنتجات"
-                : locale === "fr"
-                ? "Catalogue"
-                : "Catalog"}
+              {catalogText}
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -132,17 +132,7 @@ export function LowStockList({
         <View style={styles.list}>
           {displayProducts.map((product) => {
           const isCritical = product.stock_quantity <= 1;
-          const statusText = isCritical
-            ? locale === "ar"
-              ? "حرج"
-              : locale === "fr"
-              ? "Critique"
-              : "Critical"
-            : locale === "ar"
-              ? "منخفض"
-              : locale === "fr"
-              ? "Faible"
-              : "Low Stock";
+          const statusText = isCritical ? criticalText : lowText;
 
           const subTextColor = isCritical ? theme.error : theme.secondary;
           const badgeBg = isCritical ? theme.errorLight : theme.warningLight;
