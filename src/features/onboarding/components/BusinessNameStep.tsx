@@ -439,7 +439,9 @@ export function BusinessNameStep({
               <Text style={[styles.backButtonText, { color: theme.textSecondary }]}>
                 {t("common.back", { defaultValue: "Back" })}
               </Text>
-              <Text style={[styles.backSubText, { color: theme.textMuted }]}>• Step {stepNumber}</Text>
+              <Text style={[styles.backSubText, { color: theme.textMuted }]}>
+                {t("onboarding.businessName.stepBadgeSub", { step: stepNumber, defaultValue: `• Step ${stepNumber}` })}
+              </Text>
             </Pressable>
           )}
         </View>
