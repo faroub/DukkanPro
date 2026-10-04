@@ -104,7 +104,7 @@ export function LanguageStep({
         <View style={styles.optionsSection}>
           <View style={styles.sectionHeader}>
             <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-              {t("onboarding.welcome.selectLanguage", {
+              {t("onboarding.welcome.sectionTitle", {
                 defaultValue: "OPERATING LANGUAGE / لغة التشغيل",
               })}
             </ThemedText>
