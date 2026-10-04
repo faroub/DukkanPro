@@ -2,7 +2,7 @@
 
 DukkanPro is an offline-first React Native app (Expo SDK 57) for small-business
 inventory, sales, customers, and payments. All business data lives in a local
-SQLite database (`DukkanOS.db`); there is no cloud backend.
+SQLite database (`DukkanPro.db`); there is no cloud backend.
 
 The codebase is organized by **feature**, with thin Expo Router files that only
 render feature screens, and a shared set of UI, data, and service layers.
@@ -65,7 +65,7 @@ Each feature folder groups its screens and private components:
 
 The database is a **module singleton**, not a React context:
 
-- `database.ts` — `getDatabase()` opens `DukkanOS.db` once, sets pragmas
+- `database.ts` — `getDatabase()` opens `DukkanPro.db` once, sets pragmas
   (`foreign_keys = ON`, WAL mode), runs migrations, and seeds dev data (`__DEV__` only).
 - `query.ts` — Low-level prepared-statement runners (`executeAll`, `executeRead`, `executeWrite`).
 - `schema.ts` — Schema SQL strings.

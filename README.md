@@ -2,7 +2,7 @@
 
 **Dukkan OS** is an offline-first mobile application built with **React Native** and **Expo SDK 57** designed specifically for small retail merchants, grocers, and shopkeepers.
 
-All business data (products, sales, customers, debt ledgers) is stored locally in an on-device **SQLite** database (`DukkanOS.db`) using atomic transactions and WAL journal mode. Zero cloud dependency.
+All business data (products, sales, customers, debt ledgers) is stored locally in an on-device **SQLite** database (`DukkanPro.db`) using atomic transactions and WAL journal mode. Zero cloud dependency.
 
 ---
 

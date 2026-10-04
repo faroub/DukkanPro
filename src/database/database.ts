@@ -18,11 +18,11 @@ import { seed } from "./seed";
 import { executeAll, executeRead, executeWrite, transaction } from "./query";
 
 // Use a persistent database file in the app's document cache.
-// On Android: /data/user/.../files/DukkanOS.db
-// On iOS:     Library/DukkanOS.db
+// On Android: /data/user/.../files/DukkanPro.db
+// On iOS:     Library/DukkanPro.db
 // On web:     expo-sqlite uses a relative path indexedDB-like store.
-const DATABASE_NAME = "DukkanOS.db";
-const DATABASE_DESCRIPTION = "Dukkan OS — offline-first business app";
+const DATABASE_NAME = "DukkanPro.db";
+const DATABASE_DESCRIPTION = "DukkanPro — offline-first business app";
 
 let database: SQLiteDatabase | null = null;
 let databasePromise: Promise<SQLiteDatabase> | null = null;
