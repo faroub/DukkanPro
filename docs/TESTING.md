@@ -1,130 +1,81 @@
-# DukkanOS Testing Guide
+# Dukkan OS Testing Guide
 
 ## Test Runner
 
-Run all tests:
+Run all automated Jest tests:
 ```bash
 npm test
 ```
 
-This uses Jest with the `jest-expo` preset configured in `package.json`.
+This executes Jest with the `jest-expo` preset configured in `package.json`.
+
+---
 
 ## Test Configuration
 
-The project uses:
-- **Jest** for test runner
-- **React Native Testing Library** (`@testing-library/react-native`) for UI tests
+The testing setup uses:
+- **Jest** test runner
+- **React Native Testing Library** (`@testing-library/react-native`)
 - **jest-expo** preset for Expo SDK 57 compatibility
-- **@testing-library/jest-dom** for custom jest matchers
+- **`jest.setup.js`** for mocking native Expo modules (`expo-camera`, `@react-native-async-storage/async-storage`, `expo-router`)
 
-## Test File Conventions
+---
 
-- Unit tests: `src/**/__tests__/*.test.ts` or `src/**/*.test.ts`
-- Component tests: `src/components/**/*.test.tsx`
-- Hook tests: `src/hooks/__tests__/*.test.ts`
-- Repository tests: `src/database/repositories/__tests__/*.test.ts`
+## Testing Harness (`src/testing/screenTestHarness.tsx`)
+
+A dedicated screen testing harness is provided in `src/testing/screenTestHarness.tsx`:
+
+- **`renderScreen(ui: React.ReactElement)`**: Renders a screen wrapped in `SafeAreaProvider`, `LocaleProvider`, and `AppThemeProvider`.
+- **`resetTestDb()`**: Wipes and re-initializes SQLite test database tables before each test.
+- **`seedTestProduct()`**: Seeds test product records into SQLite.
+- **`seedTestCustomer()`**: Seeds test customer records into SQLite.
+- **`seedTestSale()`**: Seeds test sale records into SQLite.
+- **`seedTestBusinessProfile()`**: Seeds store business profile into SQLite.
+
+### Example Integration Test
+
+```typescript
+import React from "react";
+import { waitFor, screen } from "@testing-library/react-native";
+import { ProductListScreen } from "@/features/products/ProductListScreen";
+import { renderScreen, resetTestDb, seedTestProduct } from "@/testing/screenTestHarness";
+
+describe("ProductListScreen", () => {
+  beforeEach(async () => {
+    await resetTestDb();
+  });
+
+  it("renders list of products from catalogue", async () => {
+    await seedTestProduct("Lait Candia 1L", 12000, 9000, 50, 10);
+    renderScreen(<ProductListScreen />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Lait Candia 1L").length).toBeGreaterThan(0);
+    });
+  });
+});
+```
+
+---
 
 ## Running Specific Tests
 
 ```bash
 # Run all tests
-yarn test
+npm test
 
-# Run tests in a specific file
-yarn test -- --testPathPattern=useProducts
+# Run a specific test suite
+npx jest src/__tests__/screens/dashboardScreen.test.tsx
 
 # Run tests matching a pattern
-yarn test -- --testNamePattern="product repository"
-
-# Watch mode
-yarn test --watch
+npx jest --testNamePattern="ProductListScreen"
 ```
 
-## Async UI Testing
+---
 
-Always use asynchronous queries when asserting UI changes or async updates:
+## TypeScript Type Check
 
-```javascript
-// Good - use findBy queries for async updates
-await screen.findByText('Loading complete');
-await waitFor(() => expect(element).toBeVisible());
-
-// Bad - avoid synchronous getBy queries for async operations
-const button = screen.getByText('Submit'); // May fail if not rendered yet
-```
-
-## Mocking Native Modules
-
-### Mocking Expo Native Modules
-
-All native modules are mocked using `jest-expo` defaults. Add manual mocks in `__mocks__` directories if needed:
-
-```javascript
-// __mocks__/expo-sqlite.ts
-export const mockDB = {
-  exec: jest.fn(),
-  fetch: jest.fn(),
-  getAll: jest.fn(),
-};
-
-export default {
-  Database: jest.fn(() => mockDB),
-};
-```
-
-### Mocking External APIs
-
-Use `jest.mock()` for external API calls:
-
-```javascript
-// Mock fetch for API calls
-jest.mock('fetch', () => ({
-  ...jest.requireActual('fetch'),
-  get: jest.fn().mockResolvedValue({
-    ok: true,
-    json: async () => ({ data: {} }),
-  }),
-});
-```
-
-### useEffect Cleanup
-
-Ensure all async operations and native lifecycle listeners have proper cleanups:
-
-```javascript
-useEffect(() => {
-  const subscription = someNativeModule.addListener('event', handler);
-  
-  return () => {
-    subscription.remove();
-  };
-}, [deps]);
-```
-
-## Testing Hooks
-
-Use `renderHook` from `@testing-library/react-native`:
-
-```javascript
-import { renderHook } from '@testing-library/react-native';
-import { useProducts } from '../useProducts';
-
-describe('useProducts', () => {
-  it('should initialize with loading state', async () => {
-    const { result } = await renderHook(() => useProducts({}));
-    expect(result.current.loading).toBe(true);
-  });
-});
-```
-
-## Updating Snapshots
-
-When UI changes require snapshot updates:
-
+Verify TypeScript type safety across the project:
 ```bash
-# Update all snapshots
-yarn test -- -u
-
-# Update specific snapshot
-yarn test -- --testPathPattern=ProductCard -u
+npx tsc --noemit
 ```
