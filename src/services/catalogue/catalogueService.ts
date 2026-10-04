@@ -35,7 +35,7 @@ export function generateCatalogueText(
   const { showPrices, hideOutOfStock, contact, address, shopName, welcomeNote } = options;
   const lines: string[] = [];
 
-  const storeTitle = shopName || "Dukkan OS Catalogue";
+  const storeTitle = shopName || "DukkanPro Catalogue";
   lines.push(`🛒 *${storeTitle}*`);
   if (address) lines.push(`📍 ${address}`);
   if (contact) lines.push(`📞 ${contact}`);
@@ -326,7 +326,7 @@ export async function shareCataloguePDF(
     // Fallback on web or when expo-sharing is unavailable: native share sheet with text representation
     const text = generateCatalogueText(options, products, t);
     await Share.share({
-      title: `${options.shopName || "Dukkan OS"} Catalogue`,
+      title: `${options.shopName || "DukkanPro"} Catalogue`,
       message: text,
     });
     return { success: true, method: "native-share" };
@@ -334,7 +334,7 @@ export async function shareCataloguePDF(
     // If printToFileAsync fails, fallback gracefully to text share
     const text = generateCatalogueText(options, products, t);
     await Share.share({
-      title: `${options.shopName || "Dukkan OS"} Catalogue`,
+      title: `${options.shopName || "DukkanPro"} Catalogue`,
       message: text,
     });
     return { success: true, method: "fallback-share" };
@@ -352,7 +352,7 @@ export async function shareCatalogueText(
 ): Promise<{ success: boolean }> {
   const text = generateCatalogueText(options, products, t);
   await Share.share({
-    title: `${options.shopName || "Dukkan OS"} Catalogue`,
+    title: `${options.shopName || "DukkanPro"} Catalogue`,
     message: text,
   });
   return { success: true };
@@ -385,7 +385,7 @@ export async function exportCataloguePDF(
   ];
 
   const lines: string[] = [];
-  lines.push("Dukkan OS Catalogue");
+  lines.push("DukkanPro Catalogue");
   lines.push("");
   lines.push("Contact: " + options.contact);
   lines.push("Address: " + options.address);
@@ -400,7 +400,7 @@ export async function exportCataloguePDF(
 
     const availabilityKey = product.stock > 0 ? "available" : "outOfStock";
     const priceLine = options.showPrices
-      ? "Price: " + formatCentimes(product.price_centimes) + " DZD"
+      ? "Price: " + formatCentimes(product.price_centimes)
       : "";
 
     lines.push("• " + product.name + " (" + (product.category || "") + ")");
