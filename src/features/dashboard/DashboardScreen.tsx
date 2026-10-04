@@ -226,8 +226,8 @@ export default function DashboardScreenDefault({
         {/* 3. 7-Day Sales Trend Bar Chart */}
         <SalesChart
           data={sevenDaySales}
-          title={t("dashboard.charts.salesTrend") || (locale === "ar" ? "نشاط المبيعات (7 أيام)" : "7-Day Sales Activity")}
-          subtitle={locale === "ar" ? "الأداء الأسبوعي" : "Weekly performance"}
+          title={t("dashboard.charts.salesTrend", { defaultValue: "7-Day Sales Activity" })}
+          subtitle={t("dashboard.charts.subtitle", { defaultValue: "Weekly performance" })}
           currency={currencyCode}
           locale={locale}
         />
@@ -236,7 +236,7 @@ export default function DashboardScreenDefault({
         <View style={styles.shortcutsSection}>
           <View style={styles.shortcutsHeader}>
             <ThemedText style={[styles.shortcutsTitle, { color: theme.textPrimary }]}>
-              {locale === "ar" ? "اختصارات سريعة" : locale === "fr" ? "Raccourcis rapides" : "Quick Operations"}
+              {t("dashboard.shortcuts.title", { defaultValue: "Quick Operations" })}
             </ThemedText>
           </View>
 
@@ -251,10 +251,10 @@ export default function DashboardScreenDefault({
                 <MaterialIcons name="point-of-sale" size={22} color={theme.primary} />
               </View>
               <ThemedText style={[styles.shortcutLabel, { color: theme.textPrimary }]}>
-                {locale === "ar" ? "بيع جديد" : locale === "fr" ? "Nouvelle vente" : "New Sale"}
+                {t("dashboard.shortcuts.newSale", { defaultValue: "New Sale" })}
               </ThemedText>
               <ThemedText style={[styles.shortcutSub, { color: theme.textSecondary }]}>
-                {locale === "ar" ? "كاسا سريعة" : locale === "fr" ? "Caisse POS" : "Quick POS"}
+                {t("dashboard.shortcuts.newSaleSub", { defaultValue: "Quick POS" })}
               </ThemedText>
             </TouchableOpacity>
 
@@ -268,10 +268,10 @@ export default function DashboardScreenDefault({
                 <MaterialIcons name="add-box" size={22} color={theme.primary} />
               </View>
               <ThemedText style={[styles.shortcutLabel, { color: theme.textPrimary }]}>
-                {locale === "ar" ? "إضافة منتج" : locale === "fr" ? "Nouveau produit" : "Add Product"}
+                {t("dashboard.shortcuts.addProduct", { defaultValue: "Add Product" })}
               </ThemedText>
               <ThemedText style={[styles.shortcutSub, { color: theme.textSecondary }]}>
-                {locale === "ar" ? "إضافة مخزون" : locale === "fr" ? "Catalogue" : "Catalog"}
+                {t("dashboard.shortcuts.addProductSub", { defaultValue: "Catalog" })}
               </ThemedText>
             </TouchableOpacity>
 
@@ -285,10 +285,10 @@ export default function DashboardScreenDefault({
                 <MaterialIcons name="person-add" size={22} color={theme.primary} />
               </View>
               <ThemedText style={[styles.shortcutLabel, { color: theme.textPrimary }]}>
-                {locale === "ar" ? "إضافة زبون" : locale === "fr" ? "Nouveau client" : "Add Customer"}
+                {t("dashboard.shortcuts.addCustomer", { defaultValue: "Add Customer" })}
               </ThemedText>
               <ThemedText style={[styles.shortcutSub, { color: theme.textSecondary }]}>
-                {locale === "ar" ? "دفتر الديون" : locale === "fr" ? "Carnet crédit" : "Credit Book"}
+                {t("dashboard.shortcuts.addCustomerSub", { defaultValue: "Credit Book" })}
               </ThemedText>
             </TouchableOpacity>
 
@@ -302,10 +302,10 @@ export default function DashboardScreenDefault({
                 <MaterialIcons name="payments" size={22} color={theme.secondary} />
               </View>
               <ThemedText style={[styles.shortcutLabel, { color: theme.textPrimary }]}>
-                {locale === "ar" ? "تحصيل ديون" : locale === "fr" ? "Règlement" : "Pay Debt"}
+                {t("dashboard.shortcuts.payDebt", { defaultValue: "Pay Debt" })}
               </ThemedText>
               <ThemedText style={[styles.shortcutSub, { color: theme.textSecondary }]}>
-                {locale === "ar" ? "استلام دفعة" : locale === "fr" ? "Encaissement" : "Receipt"}
+                {t("dashboard.shortcuts.payDebtSub", { defaultValue: "Receipt" })}
               </ThemedText>
             </TouchableOpacity>
           </View>

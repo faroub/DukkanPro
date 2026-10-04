@@ -47,23 +47,48 @@
     "summary": {
       "revenue": "Chiffre d'affaires",
       "profit": "Bénéfice estimé",
-      "toCollect": "À encaisser",
-      "lowStock": "Stock faible"
+      "toCollect": "Créances à recouvrer",
+      "lowStock": "Alerte stock"
     },
     "recentSales": {
       "title": "Ventes récentes",
-      "noSales": "Aucune vente récente"
+      "noSales": "Aucune vente récente",
+      "seeAll": "Voir tout",
+      "newCount": "{{count}} nouveaux",
+      "noResults": "Aucune vente aujourd'hui",
+      "newSaleCta": "Nouvelle vente",
+      "paid": "Payé",
+      "partial": "Partiel",
+      "cancelled": "Annulé",
+      "itemsCount": "{{count}} articles"
     },
     "lowStock": {
-      "title": "Stock bas",
+      "title": "Alerte Stock Faible",
       "noLowStock": "Aucun produit en stock bas",
-      "note": "{{count}} produit(s) à réapprovisionner"
+      "note": "{{count}} produit(s) à réapprovisionner",
+      "viewAll": "Voir tout",
+      "allHealthy": "Tous les produits sont au-dessus du seuil",
+      "manageCatalog": "Gérer le catalogue",
+      "critical": "Critique",
+      "low": "Stock faible",
+      "unitsLeft": "{{count}} unités restantes"
     },
     "quick": {
       "newSale": "Nouvelle vente",
       "addProduct": "Ajouter un produit",
       "addCustomer": "Ajouter un client",
       "recordPayment": "Enregistrer un paiement"
+    },
+    "shortcuts": {
+      "title": "Raccourcis rapides",
+      "newSale": "Nouvelle vente",
+      "newSaleSub": "Caisse POS",
+      "addProduct": "Nouveau produit",
+      "addProductSub": "Catalogue",
+      "addCustomer": "Nouveau client",
+      "addCustomerSub": "Carnet crédit",
+      "payDebt": "Règlement",
+      "payDebtSub": "Encaissement"
     },
     "title": "Tableau de bord",
     "totalSales": "Ventes totales",
@@ -77,7 +102,12 @@
     "noSalesYet": "Pas de ventes encore",
     "newSale": "Nouvelle vente",
     "charts": {
-      "salesTrend": "Tendance des ventes sur 7 jours"
+      "salesTrend": "Activité des ventes (7 jours)",
+      "subtitle": "Performance hebdomadaire",
+      "monthlyTotal": "Total Mois",
+      "dailyAvg": "Moy. / Jour",
+      "peakDay": "Pic Max",
+      "noSalesMonth": "Aucune vente enregistrée ce mois-ci"
     }
   },
   "common": {

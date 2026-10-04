@@ -45,25 +45,50 @@
   "dashboard": {
     "greeting": "Hello",
     "summary": {
-      "revenue": "Revenue",
+      "revenue": "Today's Sales",
       "profit": "Estimated profit",
       "toCollect": "To collect",
       "lowStock": "Low stock"
     },
     "recentSales": {
-      "title": "Recent sales",
-      "noSales": "No recent sales"
+      "title": "Recent Sales",
+      "noSales": "No recent sales",
+      "seeAll": "See all",
+      "newCount": "{{count}} new",
+      "noResults": "No sales yet today",
+      "newSaleCta": "Record New Sale",
+      "paid": "Paid",
+      "partial": "Partial",
+      "cancelled": "Cancelled",
+      "itemsCount": "{{count}} items"
     },
     "lowStock": {
-      "title": "Low stock",
+      "title": "Low Stock Alert",
       "noLowStock": "No low-stock products",
-      "note": "{{count}} product(s) need restocking"
+      "note": "{{count}} product(s) need restocking",
+      "viewAll": "View all",
+      "allHealthy": "All products are above threshold",
+      "manageCatalog": "Manage Catalog",
+      "critical": "Critical",
+      "low": "Low Stock",
+      "unitsLeft": "{{count}} units left"
     },
     "quick": {
       "newSale": "New sale",
       "addProduct": "Add product",
       "addCustomer": "Add customer",
       "recordPayment": "Record payment"
+    },
+    "shortcuts": {
+      "title": "Quick Operations",
+      "newSale": "New Sale",
+      "newSaleSub": "Quick POS",
+      "addProduct": "Add Product",
+      "addProductSub": "Catalog",
+      "addCustomer": "Add Customer",
+      "addCustomerSub": "Credit Book",
+      "payDebt": "Pay Debt",
+      "payDebtSub": "Receipt"
     },
     "title": "Dashboard",
     "totalSales": "Total Sales",
@@ -77,7 +102,12 @@
     "noSalesYet": "No sales yet",
     "newSale": "New Sale",
     "charts": {
-      "salesTrend": "7-day sales trend"
+      "salesTrend": "7-Day Sales Activity",
+      "subtitle": "Weekly performance",
+      "monthlyTotal": "Monthly Total",
+      "dailyAvg": "Daily Avg",
+      "peakDay": "Peak Day",
+      "noSalesMonth": "No sales recorded this month"
     }
   },
   "common": {
