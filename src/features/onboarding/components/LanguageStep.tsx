@@ -81,7 +81,7 @@ export function LanguageStep({
           </View>
 
           <ThemedText style={[styles.title, { color: theme.textPrimary }]}>
-            Dukkan<ThemedText style={[styles.title, { color: theme.primary }]}>OS</ThemedText>
+            Dukkan<ThemedText style={[styles.title, { color: theme.primary }]}>Pro</ThemedText>
           </ThemedText>
 
           <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>

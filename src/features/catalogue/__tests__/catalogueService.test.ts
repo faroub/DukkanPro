@@ -140,6 +140,6 @@ describe("Catalogue Service - Public Output & Privacy", () => {
     );
 
     expect(result.type).toBe("text");
-    expect(result.text).toContain("Dukkan OS Catalogue");
+    expect(result.text).toContain("DukkanPro Catalogue");
   });
 });

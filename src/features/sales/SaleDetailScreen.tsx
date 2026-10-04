@@ -112,7 +112,7 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
       sale.customer_name ||
       (isArabic ? 'زبون عام' : isFrench ? 'Client comptoir' : 'Walk-in Customer');
 
-    const shareContent = `🧾 Dukkan OS - ${receiptNo}\n📅 ${dateStr}\n👤 ${customerStr}\n------------------------\n${itemsLines}\n------------------------\n💰 Total: ${totalStr}\n💵 Payé: ${paidStr}\nStatut: ${sale.status.toUpperCase()}`;
+    const shareContent = `🧾 DukkanPro - ${receiptNo}\n📅 ${dateStr}\n👤 ${customerStr}\n------------------------\n${itemsLines}\n------------------------\n💰 Total: ${totalStr}\n💵 Payé: ${paidStr}\nStatut: ${sale.status.toUpperCase()}`;
 
     try {
       await Share.share({
