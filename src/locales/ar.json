@@ -558,8 +558,8 @@
     "skip": "تخطي",
     "welcome": {
       "title": "DukkanPro",
-      "subtitle": "رفيق أعمالك البسيط",
-      "arabicPill": "رفيق أعمالك البسيط",
+      "subtitle": "رفيق أعمالك",
+      "arabicPill": "رفيق أعمالك",
       "sectionTitle": "اختر لغة العرض",
       "offlineTitle": "يعمل دون إنترنت وآمن",
       "offlineDesc": "اعمل بسلاسة تامة مع أو بدون اتصال بالإنترنت",

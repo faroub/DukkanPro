@@ -558,9 +558,9 @@
     "skip": "Sauter",
     "welcome": {
       "title": "DukkanPro",
-      "subtitle": "Votre compagnon de commerce simple",
-      "arabicPill": "رفيق أعمالك البسيط",
-      "sectionTitle": "Sélectionner la langue • اختر اللغة",
+      "subtitle": "Votre compagnon de commerce",
+      "arabicPill": "Votre compagnon de commerce",
+      "sectionTitle": "Sélectionner la langue",
       "offlineTitle": "Prêt hors-ligne & Sécurisé",
       "offlineDesc": "Travaillez sans interruption avec ou sans connexion internet",
       "continue": "Continuer",

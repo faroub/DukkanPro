@@ -558,20 +558,20 @@
     "skip": "Skip",
     "welcome": {
       "title": "DukkanPro",
-      "subtitle": "Your simple business companion",
-      "arabicPill": "رفيق أعمالك البسيط",
-      "sectionTitle": "Select Language • اختر اللغة",
+      "subtitle": "Your business companion",
+      "arabicPill": "Your business companion",
+      "sectionTitle": "Select Language",
       "offlineTitle": "Offline-ready & Secure",
       "offlineDesc": "Work seamlessly with or without internet connection",
       "continue": "Continue",
       "changeLanguageNote": "You can change your language anytime in Settings",
       "defaultBadge": "DEFAULT",
       "arabic": "العربية",
-      "arabicSub": "Arabe",
+      "arabicSub": "Arabic",
       "french": "Français",
       "frenchSub": "French",
       "english": "English",
-      "englishSub": "Anglais"
+      "englishSub": "English"
     },
     "businessName": {
       "headerTitle": "Business Name",
