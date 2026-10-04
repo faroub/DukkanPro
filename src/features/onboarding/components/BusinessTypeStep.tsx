@@ -1,6 +1,6 @@
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -22,6 +22,15 @@ interface BusinessTypeStepProps {
   totalSteps?: number;
 }
 
+const PRESET_IDS = [
+  "grocery",
+  "bakery",
+  "instagram_seller",
+  "clothing",
+  "cosmetics",
+  "general_retail",
+];
+
 export function BusinessTypeStep({
   onContinue,
   onBack,
@@ -31,7 +40,10 @@ export function BusinessTypeStep({
 }: BusinessTypeStepProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [currentType, setCurrentType] = useState(selectedType);
+
+  const isPreset = PRESET_IDS.includes(selectedType);
+  const [currentType, setCurrentType] = useState<string>(isPreset ? selectedType : "custom");
+  const [customTypeName, setCustomTypeName] = useState<string>(isPreset ? "" : selectedType);
 
   const businessCategories = [
     {
@@ -100,10 +112,29 @@ export function BusinessTypeStep({
       icon: "category",
       popular: false,
     },
+    {
+      id: "custom",
+      name: t("onboarding.businessType.custom", {
+        defaultValue: "Custom Shop Activity / Other",
+      }),
+      subtitle: t("onboarding.businessType.customSub", {
+        defaultValue: "Define your specific shop type (e.g., Quincaillerie, Kiosque, Mobile Shop)",
+      }),
+      icon: "edit",
+      popular: false,
+    },
   ];
 
   const handleContinue = () => {
-    onContinue({ businessType: currentType });
+    const finalType =
+      currentType === "custom"
+        ? customTypeName.trim() ||
+          t("onboarding.businessType.customDefault", {
+            defaultValue: "Custom Shop",
+          })
+        : currentType;
+
+    onContinue({ businessType: finalType });
   };
 
   return (
@@ -111,6 +142,7 @@ export function BusinessTypeStep({
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Top Bar Navigation matching Stitch */}
         <View style={styles.topBar}>
@@ -180,7 +212,7 @@ export function BusinessTypeStep({
           <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
             {t("onboarding.businessType.subtitle", {
               defaultValue:
-                "This pre-configures your product categories and unit defaults",
+                "Select a preset or define a custom shop activity for your workspace",
             })}
           </ThemedText>
         </View>
@@ -269,6 +301,40 @@ export function BusinessTypeStep({
           })}
         </View>
 
+        {/* Custom Shop Type Entry Input Field */}
+        {currentType === "custom" && (
+          <View style={[styles.customInputCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.customInputLabel, { color: theme.textPrimary }]}>
+              {t("onboarding.businessType.customInputLabel", {
+                defaultValue: "Custom Shop Activity Name *",
+              })}
+            </Text>
+            <View style={[styles.customInputWrapper, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+              <SymbolView
+                name={{
+                  ios: "pencil" as any,
+                  android: "edit" as any,
+                  web: "edit" as any,
+                }}
+                size={18}
+                tintColor={theme.primary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.customTextInput, { color: theme.textPrimary }]}
+                value={customTypeName}
+                onChangeText={setCustomTypeName}
+                placeholder={t("onboarding.businessType.customPlaceholder", {
+                  defaultValue: "e.g., Quincaillerie, Kiosque, Mobile Repair...",
+                })}
+                placeholderTextColor={theme.textMuted}
+                autoCapitalize="words"
+                autoCorrect={false}
+              />
+            </View>
+          </View>
+        )}
+
         {/* Reassurance Micro Banner */}
         <View style={[styles.microBanner, { backgroundColor: theme.backgroundElement }]}>
           <SymbolView
@@ -284,7 +350,7 @@ export function BusinessTypeStep({
           <Text style={[styles.microBannerText, { color: theme.textSecondary }]}>
             {t("onboarding.businessType.flexibleNote", {
               defaultValue:
-                "Don't worry, you can easily add custom categories and items anytime later.",
+                "Don't worry, you can easily change your shop activity or categories in Settings anytime.",
             })}
           </Text>
         </View>
@@ -463,6 +529,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginLeft: Spacing.sm,
+  },
+  customInputCard: {
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.md,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+    gap: 8,
+    ...Shadows.sm,
+  },
+  customInputLabel: {
+    ...Typography.label,
+    fontSize: 13,
+  },
+  customInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 48,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.sm,
+  },
+  inputIcon: {
+    marginRight: Spacing.xs,
+  },
+  customTextInput: {
+    flex: 1,
+    ...Typography.body,
+    fontSize: 14,
   },
   microBanner: {
     flexDirection: "row",
