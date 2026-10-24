@@ -1,14 +1,14 @@
 /**
  * dashboardRepository — Repository for dashboard summary data.
  *
- - All methods use atomic reads from the SQLite database.
- - Revenue/profit are computed from completed sales only.
- - Customer debt excludes cancelled and returned sales.
- - Stock counts exclude inactive/archived products.
+ * - All methods use atomic reads from the SQLite database.
+ * - Revenue/profit are computed from completed sales only.
+ * - Customer debt excludes cancelled and returned sales.
+ * - Stock counts exclude inactive/archived products.
  */
 
 import { executeAll, executeRead } from "../database";
-import { Sale, SaleItem } from "../../types/entities";
+import { Sale } from "../../types/entities";
 
 export type DashboardResult = {
   todayRevenue: number;    // centimes
@@ -24,21 +24,18 @@ export type DashboardResult = {
 /**
  * Timestamp bounds of the merchant's local calendar day, as a half-open
  * interval [start, end) in the "YYYY-MM-DD HH:MM:SS" format used by sold_at.
- *
- * sold_at is stored in UTC (datetime('now')), so the bounds are derived from
- * local midnight to keep sales made between 23:00 and 00:00 local time on the
- * correct calendar day (e.g. Algeria is UTC+1).
+ * Uses Date-part calendar arithmetic to remain accurate on DST transition days.
  */
 function localDayBounds(): [string, string] {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const fmt = (d: Date) => d.toISOString().slice(0, 19).replace("T", " ");
   return [fmt(start), fmt(end)];
 }
 
 /**
- - Get today's revenue from completed sales (centimes).
+ * Get today's revenue from completed sales (centimes).
  * "Today" means the merchant's local calendar day.
  */
 export async function getTodayRevenue(): Promise<number> {
@@ -56,7 +53,7 @@ export async function getTodayRevenue(): Promise<number> {
 }
 
 /**
- - Get today's cost of goods sold (centimes).
+ * Get today's cost of goods sold (centimes).
  * Computed as historical cost of items sold in completed sales today.
  */
 export async function getTodayCost(): Promise<number> {
@@ -75,7 +72,7 @@ export async function getTodayCost(): Promise<number> {
 }
 
 /**
- - Get today's estimated profit (centimes).
+ * Get today's estimated profit (centimes).
  * Profit = Revenue - Cost of Goods Sold
  */
 export async function getTodayProfit(): Promise<number> {
@@ -85,7 +82,7 @@ export async function getTodayProfit(): Promise<number> {
 }
 
 /**
- - Get outstanding customer debt (centimes).
+ * Get outstanding customer debt (centimes).
  * Customer debt = valid unpaid sale balances - recorded payments.
  * Cancelled and returned sales are excluded from debt calculation.
  */
@@ -101,7 +98,7 @@ export async function getOutstandingDebt(): Promise<number> {
 }
 
 /**
- - Get count of products at or below minimum stock quantity.
+ * Get count of products at or below minimum stock quantity.
  */
 export async function getLowStockCount(): Promise<number> {
   const rows: any[] = await executeAll(
@@ -115,7 +112,7 @@ export async function getLowStockCount(): Promise<number> {
 }
 
 /**
- - Get recent sales (completed), limited by count.
+ * Get recent sales (completed), limited by count.
  */
 export async function getRecentSales(limit: number): Promise<Sale[]> {
   const rows: any[] = await executeAll(
@@ -154,7 +151,7 @@ export async function getRecentSales(limit: number): Promise<Sale[]> {
 }
 
 /**
- - Get products at or below minimum stock quantity, limited by count.
+ * Get products at or below minimum stock quantity, limited by count.
  */
 export async function getLowStockProducts(limit: number): Promise<any[]> {
   const rows: any[] = await executeAll(
@@ -183,7 +180,7 @@ export async function getLowStockProducts(limit: number): Promise<any[]> {
 }
 
 /**
- - Local calendar day key ("YYYY-MM-DD") for a Date, using the device timezone.
+ * Local calendar day key ("YYYY-MM-DD") for a Date, using the device timezone.
  */
 function localDateKey(d: Date): string {
   const y = d.getFullYear();
@@ -193,17 +190,12 @@ function localDateKey(d: Date): string {
 }
 
 /**
- - Get seven-day sales trend: daily total revenue for the last 7 local days.
- *
- - sold_at is stored in UTC (datetime('now')), so SQL DATE() would bucket by UTC
- - day and misplace sales made between 23:00 and 00:00 local time (e.g. Algeria
- - is UTC+1). Sales are therefore fetched as raw timestamps and bucketed in JS
- - by the merchant's local calendar day.
+ * Get seven-day sales trend: daily total revenue for the last 7 local days.
+ * Uses Date-part calendar arithmetic to remain accurate on DST transition days.
  */
 export async function getSevenDaySales(): Promise<{ date: string; total: number }[]> {
   const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const fetchSince = new Date(todayStart.getTime() - 6 * 24 * 60 * 60 * 1000);
+  const fetchSince = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
   const fmt = (d: Date) => d.toISOString().slice(0, 19).replace("T", " ");
 
   const rows: any[] = await executeAll(
@@ -219,7 +211,8 @@ export async function getSevenDaySales(): Promise<{ date: string; total: number 
   // Seed one bucket per day, oldest first, so the chart is chronological.
   const totals = new Map<string, number>();
   for (let i = 6; i >= 0; i--) {
-    totals.set(localDateKey(new Date(todayStart.getTime() - i * 24 * 60 * 60 * 1000)), 0);
+    const dayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    totals.set(localDateKey(dayDate), 0);
   }
 
   for (const row of rows) {

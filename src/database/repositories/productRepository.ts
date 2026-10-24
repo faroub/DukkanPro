@@ -21,6 +21,10 @@ export type ProductResult = {
   error?: string;
 };
 
+function escapeLike(query: string): string {
+  return query.replace(/[%_\\]/g, "\\$&");
+}
+
 /**
  - Retrieve all products, optionally filtered by is_active and/or category.
  */
@@ -44,8 +48,8 @@ export async function getAll(filters: ProductFilters = {}): Promise<Product[]> {
     params.push(category);
   }
   if (search) {
-    conditions.push(`(name LIKE ? OR sku LIKE ?)`);
-    const likeQuery = `%${search}%`;
+    conditions.push(`(name LIKE ? ESCAPE '\\' OR sku LIKE ? ESCAPE '\\')`);
+    const likeQuery = `%${escapeLike(search)}%`;
     params.push(likeQuery, likeQuery);
   }
   if (conditions.length > 0) {

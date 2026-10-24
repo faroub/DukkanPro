@@ -28,6 +28,10 @@ export type SaleFilters = {
   search?: string;
 };
 
+function escapeLike(query: string): string {
+  return query.replace(/[%_\\]/g, "\\$&");
+}
+
 /**
  * Retrieve all sales headers with items attached, optionally filtered.
  */
@@ -63,8 +67,8 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
     params.push(filters.endDate);
   }
   if (filters.search) {
-    conditions.push(`(c.name LIKE ? OR s.note LIKE ? OR s.id LIKE ?)`);
-    const likeQuery = `%${filters.search}%`;
+    conditions.push(`(c.name LIKE ? ESCAPE '\\' OR s.note LIKE ? ESCAPE '\\' OR s.id LIKE ? ESCAPE '\\')`);
+    const likeQuery = `%${escapeLike(filters.search)}%`;
     params.push(likeQuery, likeQuery, likeQuery);
   }
 

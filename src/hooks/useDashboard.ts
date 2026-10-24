@@ -9,20 +9,17 @@
  * - Remains LTR regardless of selected language
  */
 import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
+import { getAll as getAllCustomers } from "@/database/repositories/customerRepository";
 import {
   getSevenDaySales,
   getTodayCost,
   getTodayRevenue,
 } from "@/database/repositories/dashboardRepository";
-import { getAll as getAllSales } from "@/database/repositories/saleRepository";
-import { getAll as getAllProducts } from "@/database/repositories/productRepository";
-import { getAll as getAllCustomers } from "@/database/repositories/customerRepository";
-import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { getAllPayments } from "@/database/repositories/exportRepository";
+import { getAll as getAllProducts } from "@/database/repositories/productRepository";
+import { getAll as getAllSales } from "@/database/repositories/saleRepository";
+import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-// Sales that contribute to dashboard figures; cancelled/returned are excluded.
-const VALID_SALE_STATUSES = ["completed", "partial", "credit"];
 
 export interface DashboardData {
   // Greeting & date
@@ -89,9 +86,12 @@ export async function fetchDashboardData(
 
   // ---- Recent sales (getAll already returns newest first) ----
   const recentSales = (allSales || [])
-    .filter((s) => VALID_SALE_STATUSES.includes(s.status))
+    .filter((s) => s.status === "completed")
     .slice(0, 5)
-    .map((sale) => ({ ...sale, customerName: sale.customer_name ?? undefined }));
+    .map((sale) => ({
+      ...sale,
+      customerName: sale.customer_name ?? undefined,
+    }));
 
   // ---- Active products & low stock products ----
   let totalProductsCount = 0;
@@ -104,7 +104,8 @@ export async function fetchDashboardData(
 
     lowStockProducts = (activeProducts || []).filter((p: any) => {
       const minThreshold =
-        p.minimum_stock_quantity !== undefined && p.minimum_stock_quantity !== null
+        p.minimum_stock_quantity !== undefined &&
+        p.minimum_stock_quantity !== null
           ? p.minimum_stock_quantity
           : 5;
       return (p.stock_quantity || 0) <= minThreshold;
@@ -212,7 +213,9 @@ export function useDashboard(deps: {
       greeting: tRef.current("dashboard.greeting"),
       quickActionNewSale: tRef.current(dashboardData.quickActionNewSale),
       quickActionAddProduct: tRef.current(dashboardData.quickActionAddProduct),
-      quickActionAddCustomer: tRef.current(dashboardData.quickActionAddCustomer),
+      quickActionAddCustomer: tRef.current(
+        dashboardData.quickActionAddCustomer,
+      ),
       quickActionRecordPayment: tRef.current(
         dashboardData.quickActionRecordPayment,
       ),
@@ -230,8 +233,12 @@ export function useDashboard(deps: {
         ...dashboardData,
         greeting: tRef.current("dashboard.greeting"),
         quickActionNewSale: tRef.current(dashboardData.quickActionNewSale),
-        quickActionAddProduct: tRef.current(dashboardData.quickActionAddProduct),
-        quickActionAddCustomer: tRef.current(dashboardData.quickActionAddCustomer),
+        quickActionAddProduct: tRef.current(
+          dashboardData.quickActionAddProduct,
+        ),
+        quickActionAddCustomer: tRef.current(
+          dashboardData.quickActionAddCustomer,
+        ),
         quickActionRecordPayment: tRef.current(
           dashboardData.quickActionRecordPayment,
         ),
