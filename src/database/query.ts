@@ -1,9 +1,45 @@
 import { type SQLiteDatabase } from "expo-sqlite";
 
 /**
- * Execute a read-only statement and return the first row.
+ * Single-threaded promise-chain Async Mutex.
+ * Serializes all SQLite database reads, writes, and transactions on the singleton connection.
+ * Prevents:
+ * 1. Concurrent transaction collision (BEGIN IMMEDIATE throwing when a transaction is already active).
+ * 2. Silent data loss from non-transactional writes executing inside an unrelated open transaction.
  */
-export async function executeRead<T>(
+export class AsyncMutex {
+  private queue: Promise<any> = Promise.resolve();
+
+  public runExclusive<T>(fn: () => Promise<T>): Promise<T> {
+    let resolveOuter!: (val: T) => void;
+    let rejectOuter!: (err: any) => void;
+
+    const resultPromise = new Promise<T>((res, rej) => {
+      resolveOuter = res;
+      rejectOuter = rej;
+    });
+
+    const task = async () => {
+      try {
+        const res = await fn();
+        resolveOuter(res);
+      } catch (err) {
+        rejectOuter(err);
+      }
+    };
+
+    this.queue = this.queue.then(task, task);
+    return resultPromise;
+  }
+}
+
+export const dbMutex = new AsyncMutex();
+
+/**
+ * Low-level un-mutexed prepared statement runners.
+ * Used directly inside transaction callbacks where the connection lock is already held.
+ */
+export async function rawExecuteRead<T>(
   db: SQLiteDatabase,
   sql: string,
   params: Array<any> = [],
@@ -15,10 +51,7 @@ export async function executeRead<T>(
   return result as T[];
 }
 
-/**
- * Execute a statement and return all rows (array).
- */
-export async function executeAll<T>(
+export async function rawExecuteAll<T>(
   db: SQLiteDatabase,
   sql: string,
   params: Array<any> = [],
@@ -30,10 +63,7 @@ export async function executeAll<T>(
   return results as T[];
 }
 
-/**
- * Execute a write statement (INSERT / UPDATE / DELETE) and return the last inserted rowID.
- */
-export async function executeWrite(
+export async function rawExecuteWrite(
   db: SQLiteDatabase,
   sql: string,
   params: Array<any> = [],
@@ -45,10 +75,7 @@ export async function executeWrite(
   return result.lastInsertRowId;
 }
 
-/**
- * Run a function inside a SQLite transaction.
- */
-export async function transaction<T>(
+export async function rawTransaction<T>(
   db: SQLiteDatabase,
   fn: (db: SQLiteDatabase) => Promise<T>,
 ): Promise<T> {
@@ -58,7 +85,14 @@ export async function transaction<T>(
     await db.execAsync("COMMIT");
     return result;
   } catch (error) {
-    await db.execAsync("ROLLBACK");
+    try {
+      await db.execAsync("ROLLBACK");
+    } catch {}
     throw error;
   }
 }
+
+/**
+ * Backward compatibility exports
+ */
+export { rawExecuteRead as executeRead, rawExecuteAll as executeAll, rawExecuteWrite as executeWrite, rawTransaction as transaction };
