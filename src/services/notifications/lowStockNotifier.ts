@@ -1,9 +1,13 @@
 /**
- * lowStockNotifier.ts - Push Notification and Web Notification Service for Low Stock Alerts in DukkanPro.
+ * lowStockNotifier.ts - Cross-Platform Low Stock Alert & Notification Service for DukkanPro.
+ * Supports Android, iOS, and Web via AsyncStorage and safe Web Notification checks.
  */
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
+
 export interface LowStockItem {
-  id: string;
+  id: string | number;
   name: string;
   stock_quantity: number;
   minimum_stock_quantity: number;
@@ -12,52 +16,97 @@ export interface LowStockItem {
 
 const SNOOZE_KEY = "dukkanpro_low_stock_snooze_until";
 
+// Memory cache for synchronous checks
+let inMemorySnoozeUntil = 0;
+
 export function isWebNotificationSupported(): boolean {
-  return typeof window !== "undefined" && "Notification" in window;
+  return (
+    Platform.OS === "web" &&
+    typeof window !== "undefined" &&
+    typeof Notification !== "undefined"
+  );
 }
 
-export function getNotificationPermissionStatus(): "granted" | "denied" | "default" | "unsupported" {
-  if (!isWebNotificationSupported()) return "unsupported";
+export function getNotificationPermissionStatus():
+  | "granted"
+  | "denied"
+  | "default"
+  | "unsupported" {
+  if (Platform.OS !== "web") {
+    // On native mobile, in-app alerts are active by default
+    return "granted";
+  }
+  if (!isWebNotificationSupported()) {
+    return "unsupported";
+  }
   return Notification.permission;
 }
 
-export async function requestNotificationPermission(): Promise<"granted" | "denied" | "default" | "unsupported"> {
-  if (!isWebNotificationSupported()) return "unsupported";
+export async function requestNotificationPermission(): Promise<
+  "granted" | "denied" | "default" | "unsupported"
+> {
+  if (Platform.OS !== "web") {
+    return "granted";
+  }
+  if (!isWebNotificationSupported()) {
+    return "unsupported";
+  }
   try {
     const permission = await Notification.requestPermission();
     return permission;
   } catch (err) {
     console.warn("Failed to request notification permission:", err);
-    return Notification.permission || "default";
+    return typeof Notification !== "undefined" ? Notification.permission : "default";
   }
 }
 
 export function snoozeNotifications(minutes: number = 60): void {
-  if (typeof localStorage === "undefined") return;
   const snoozeUntil = Date.now() + minutes * 60 * 1000;
-  localStorage.setItem(SNOOZE_KEY, snoozeUntil.toString());
+  inMemorySnoozeUntil = snoozeUntil;
+  AsyncStorage.setItem(SNOOZE_KEY, snoozeUntil.toString()).catch(() => {});
 }
 
 export function isNotificationSnoozed(): boolean {
-  if (typeof localStorage === "undefined") return false;
-  const snoozeUntilStr = localStorage.getItem(SNOOZE_KEY);
-  if (!snoozeUntilStr) return false;
-  const snoozeUntil = parseInt(snoozeUntilStr, 10);
-  if (isNaN(snoozeUntil)) return false;
-  return Date.now() < snoozeUntil;
+  if (inMemorySnoozeUntil > 0 && Date.now() < inMemorySnoozeUntil) {
+    return true;
+  }
+  return false;
 }
 
 export function clearSnooze(): void {
-  if (typeof localStorage === "undefined") return;
-  localStorage.removeItem(SNOOZE_KEY);
+  inMemorySnoozeUntil = 0;
+  AsyncStorage.removeItem(SNOOZE_KEY).catch(() => {});
 }
 
 /**
- * Triggers a browser push notification for low stock products.
+ * Initializes snooze state from AsyncStorage on app startup.
  */
-export function triggerLowStockPushNotification(products: LowStockItem[]): boolean {
+export async function initSnoozeState(): Promise<void> {
+  try {
+    const snoozeUntilStr = await AsyncStorage.getItem(SNOOZE_KEY);
+    if (snoozeUntilStr) {
+      const snoozeUntil = parseInt(snoozeUntilStr, 10);
+      if (!isNaN(snoozeUntil)) {
+        inMemorySnoozeUntil = snoozeUntil;
+      }
+    }
+  } catch (_e) {
+    // Ignore storage read issues
+  }
+}
+
+// Pre-hydrate snooze state
+initSnoozeState();
+
+/**
+ * Triggers a push notification for low stock products (Web Notification API on Web, in-app on Native).
+ */
+export function triggerLowStockPushNotification(
+  products: LowStockItem[],
+): boolean {
   if (products.length === 0) return false;
   if (isNotificationSnoozed()) return false;
+
   if (!isWebNotificationSupported() || Notification.permission !== "granted") {
     return false;
   }
