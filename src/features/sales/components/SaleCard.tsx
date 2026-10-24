@@ -99,8 +99,8 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
     badgeColor = Colors.light.secondary;
     badgeText = isArabic ? 'جزئي' : isFrench ? 'Partiel' : 'Partial';
     const dueAmount = formatCentimes(sale.remaining_balance_centimes || 0, localeParam);
-    subStatusText = isArabic ? `المتبقي: ${dueAmount}` : `Dû: ${dueAmount}`;
-    subStatusColor = Colors.light.error;
+    subStatusText = isArabic ? `المتبقي عند البيع: ${dueAmount}` : isFrench ? `Initial à la vente: ${dueAmount}` : `At-sale initial: ${dueAmount}`;
+    subStatusColor = Colors.light.secondary;
   } else if (isCredit) {
     iconName = 'menu-book';
     iconColor = Colors.light.primaryDark;
@@ -108,7 +108,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
     badgeBg = Colors.light.surfaceAlt;
     badgeColor = Colors.light.primaryDark;
     badgeText = isArabic ? 'دين' : isFrench ? 'Crédit' : 'Credit';
-    subStatusText = isArabic ? 'على دفتر الديون' : isFrench ? 'Carnet de dette' : 'Unpaid credit';
+    subStatusText = isArabic ? 'مسجل في دفتر الكريدي' : isFrench ? 'Inscrit au carnet client' : 'Recorded in customer ledger';
     subStatusColor = Colors.light.textSecondary;
   } else {
     // Paid completed
@@ -244,12 +244,12 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
               color={Colors.light.primary}
             />
             <ThemedText style={styles.partialBannerText}>
-              {isArabic ? 'المدفوع: ' : isFrench ? 'Payé : ' : 'Paid: '}
+              {isArabic ? 'المدفوع بالكاسة: ' : isFrench ? 'Payé à la caisse : ' : 'Paid at checkout: '}
               {formatCentimes(sale.amount_paid_centimes || 0, localeParam)}
             </ThemedText>
           </View>
           <ThemedText style={styles.partialDueText}>
-            {isArabic ? 'المتبقي: ' : isFrench ? 'Reste : ' : 'Due: '}
+            {isArabic ? 'المتبقي عند البيع: ' : isFrench ? 'Initial à la vente : ' : 'At-sale initial: '}
             {formatCentimes(sale.remaining_balance_centimes || 0, localeParam)}
           </ThemedText>
         </View>
@@ -296,13 +296,13 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   leftColumn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
     gap: Spacing.md,
     marginRight: Spacing.sm,
@@ -311,70 +311,70 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   infoWrapper: {
     flex: 1,
     gap: 3,
   },
   titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   customerName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.light.textPrimary,
     flexShrink: 1,
   },
   strikeText: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
     color: Colors.light.textMuted,
   },
   badge: {
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.4,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   metaText: {
     fontSize: 12,
     color: Colors.light.textSecondary,
   },
   receiptCode: {
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.light.textPrimary,
   },
   rightColumn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   amountBlock: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   totalText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.light.textPrimary,
     letterSpacing: -0.2,
   },
   totalTextCancelled: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
     color: Colors.light.textMuted,
   },
   subStatusText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 1,
   },
   itemsBanner: {
@@ -382,8 +382,8 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   itemsBannerText: {
@@ -396,13 +396,13 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   partialBannerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   partialBannerText: {
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   },
   partialDueText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.light.error,
   },
   noteBanner: {
@@ -419,14 +419,14 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   noteBannerText: {
     fontSize: 12,
     color: Colors.light.textSecondary,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     flex: 1,
   },
 });

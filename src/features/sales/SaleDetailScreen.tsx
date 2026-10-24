@@ -16,6 +16,7 @@ import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { getSaleById } from '@/database/repositories/saleRepository';
+import { getCustomerDebt } from '@/services/customers/customerBalanceService';
 import { Sale, SaleItem } from '@/types/entities';
 export type SaleWithItems = Sale & { customer_name?: string | null; items: SaleItem[] };
 import { CancelSaleDialog } from '@/features/sales/components/CancelSaleDialog';
@@ -47,6 +48,7 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
   const saleId = parseInt(String(rawId), 10);
 
   const [sale, setSale] = useState<SaleWithItems | null>(null);
+  const [customerDebt, setCustomerDebt] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -73,6 +75,10 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
         );
       } else {
         setSale(data as SaleWithItems);
+        if (data.customer_id) {
+          const debt = await getCustomerDebt(data.customer_id);
+          setCustomerDebt(debt);
+        }
       }
     } catch (err: any) {
       console.error('Failed to load sale:', err);
@@ -161,8 +167,7 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
   const isPartial =
     !isCancelled &&
     !isReturned &&
-    (
-      (sale.remaining_balance_centimes > 0 && sale.amount_paid_centimes > 0));
+    (sale.remaining_balance_centimes > 0 && sale.amount_paid_centimes > 0);
   const isCredit =
     !isCancelled &&
     !isReturned &&
@@ -328,16 +333,16 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
           {remainingDueStr && (
             <View style={styles.balanceAlertBanner}>
               <MaterialIcons
-                name="error-outline"
+                name="info-outline"
                 size={16}
-                color={Colors.light.error}
+                color={Colors.light.secondary}
               />
               <ThemedText style={styles.balanceAlertText}>
                 {isArabic
-                  ? `المتبقي في دفتر الديون: ${remainingDueStr}`
+                  ? `الرصيد الأولي عند البيع: ${remainingDueStr}`
                   : isFrench
-                  ? `Reste dû au carnet : ${remainingDueStr}`
-                  : `Remaining balance due: ${remainingDueStr}`}
+                  ? `Solde initial du reçu : ${remainingDueStr}`
+                  : `At-sale initial balance: ${remainingDueStr}`}
               </ThemedText>
             </View>
           )}
@@ -556,21 +561,33 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
             <ThemedText style={styles.totalValue}>{totalStr}</ThemedText>
           </View>
 
-          {/* Paid */}
+          {/* Paid at Checkout */}
           <View style={styles.breakdownRow}>
             <ThemedText style={styles.breakdownLabel}>
-              {isArabic ? 'المبلغ المدفوع' : isFrench ? 'Montant payé' : 'Amount Paid'}
+              {isArabic ? 'المدفوع عند البيع (في الكاسة)' : isFrench ? 'Payé à la caisse' : 'Paid at checkout'}
             </ThemedText>
             <ThemedText style={styles.paidValue}>{amountPaidStr}</ThemedText>
           </View>
 
-          {/* Remaining Balance if any */}
+          {/* Initial Balance at Sale Time */}
           {remainingDueStr && (
             <View style={styles.breakdownRow}>
               <ThemedText style={styles.dueLabel}>
-                {isArabic ? 'المتبقي في الديون' : isFrench ? 'Reste dû (Crédit)' : 'Remaining Due'}
+                {isArabic ? 'الرصيد الأولي غير المدفوع' : isFrench ? 'Solde initial du reçu' : 'At-sale initial balance'}
               </ThemedText>
               <ThemedText style={styles.dueValue}>{remainingDueStr}</ThemedText>
+            </View>
+          )}
+
+          {/* Customer Current Overall Debt if Customer is linked */}
+          {customerDebt !== null && (
+            <View style={[styles.breakdownRow, { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: Colors.light.border }]}>
+              <ThemedText style={{ fontSize: 13, fontWeight: '700', color: Colors.light.textPrimary }}>
+                {isArabic ? 'الدين الحالي الكلي للزبون' : isFrench ? 'Dette actuelle globale du client' : "Customer's Current Total Debt"}
+              </ThemedText>
+              <ThemedText style={{ fontSize: 13, fontWeight: '700', color: customerDebt > 0 ? Colors.light.secondary : Colors.light.primary }}>
+                {formatCentimes(customerDebt, localeParam)}
+              </ThemedText>
             </View>
           )}
         </View>
@@ -802,17 +819,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.light.warningLight,
+    backgroundColor: Colors.light.surfaceAlt,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: Colors.light.border,
   },
   balanceAlertText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.secondary,
+    color: Colors.light.textSecondary,
     flex: 1,
   },
   voidAlertCard: {
@@ -1013,12 +1030,12 @@ const styles = StyleSheet.create({
   dueLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.error,
+    color: Colors.light.secondary,
   },
   dueValue: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.light.error,
+    color: Colors.light.secondary,
   },
   actionsContainer: {
     gap: Spacing.sm,
