@@ -1,6 +1,4 @@
 import React from "react";
-import { waitFor, screen } from "@testing-library/react-native";
-
 import { CustomerListScreen } from "@/features/customers/CustomerListScreen";
 import { CustomerFormScreen } from "@/features/customers/CustomerFormScreen";
 import { CustomerDetailScreen } from "@/features/customers/CustomerDetailScreen";
@@ -24,21 +22,19 @@ describe("Customer Screens Integration Harness", () => {
     it("renders list of customers from database", async () => {
       await seedTestCustomer({ name: "Mustapha Customer", phone: "0661223344" });
 
-      renderScreen(<CustomerListScreen />);
+      const screen = await renderScreen(<CustomerListScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText("Mustapha Customer").length).toBeGreaterThan(0);
-      });
+      const elements = await screen.findAllByText("Mustapha Customer");
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 
   describe("CustomerFormScreen", () => {
     it("renders form inputs for adding a customer", async () => {
-      renderScreen(<CustomerFormScreen />);
+      const screen = await renderScreen(<CustomerFormScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Nouveau Client/i).length).toBeGreaterThan(0);
-      });
+      const elements = await screen.findAllByText(/Nouveau Client/i);
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 
@@ -48,11 +44,10 @@ describe("Customer Screens Integration Harness", () => {
       await seedTestSale({ customerId: customer.id, paymentMethod: "credit", amountPaidCentimes: 0 });
       setMockSearchParams({ id: String(customer.id) });
 
-      renderScreen(<CustomerDetailScreen customerId={customer.id} />);
+      const screen = await renderScreen(<CustomerDetailScreen customerId={customer.id} />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText("Khaled Debtor").length).toBeGreaterThan(0);
-      });
+      const elements = await screen.findAllByText("Khaled Debtor");
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 
@@ -61,11 +56,10 @@ describe("Customer Screens Integration Harness", () => {
       const customer = await seedTestCustomer({ name: "Salim Payer" });
       setMockSearchParams({ id: String(customer.id), customerId: String(customer.id) });
 
-      renderScreen(<RecordPaymentScreen customerId={customer.id} />);
+      const screen = await renderScreen(<RecordPaymentScreen customerId={customer.id} />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Enregistrer un paiement/i).length).toBeGreaterThan(0);
-      });
+      const elements = await screen.findAllByText(/Enregistrer un paiement/i);
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 });

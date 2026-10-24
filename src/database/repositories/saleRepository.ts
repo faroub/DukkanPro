@@ -7,7 +7,7 @@
  * - Overselling is strictly prevented: items exceeding stock are rejected.
  * - Cash over-tender is clamped to the sale total, tracking change separately.
  * - Partial/credit sales require a customer to prevent anonymous, uncollectable debt.
- * - Cancelling or returning a sale reverses customer payments and restores exact stock.
+ * - Cancelling or returning a sale restores exact stock and preserves historical settlement fields.
  */
 
 import { Sale } from "../../types/entities";
@@ -143,9 +143,9 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
  * Retrieve today's completed sales.
  */
 export async function getTodaySales(): Promise<Sale[]> {
-  const sales = await getAll();
+  const sales = await getAll({ status: "completed" });
   const todayStr = new Date().toISOString().slice(0, 10);
-  return sales.filter((s) => s.status === "completed" && s.sold_at.startsWith(todayStr));
+  return sales.filter((s) => s.sold_at.startsWith(todayStr));
 }
 
 /**
@@ -431,7 +431,7 @@ export async function create(saleInput: {
 
 /**
  * Cancel a sale atomically.
- * Restores stock, creates reverse inventory movements, and reverses any customer payments.
+ * Restores exact stock, creates reverse inventory movements, and preserves historical settlement fields.
  */
 export async function cancel(id: number, reason: string): Promise<void> {
   const db = await getDatabase();
@@ -482,41 +482,11 @@ export async function cancel(id: number, reason: string): Promise<void> {
       );
     }
 
-    // H1 Fix: Reverse customer ledger payment if customer made payments in customer_payments
-    if (saleHeader.customer_id) {
-      const pRows: any[] = await executeRead(
-        tx,
-        `SELECT SUM(amount_centimes) as total_paid FROM customer_payments WHERE customer_id = ?`,
-        [saleHeader.customer_id],
-      );
-      const totalCustomerPaid = pRows[0]?.total_paid || 0;
-
-      if (totalCustomerPaid > 0) {
-        const refundAmount = Math.min(totalCustomerPaid, saleHeader.total_centimes);
-        if (refundAmount > 0) {
-          await executeWrite(
-            tx,
-            `INSERT INTO customer_payments
-             (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
-             VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-            [
-              saleHeader.customer_id,
-              -refundAmount,
-              "cash",
-              `Refund for cancelled sale #REC-${id}: ${reason}`,
-            ],
-          );
-        }
-      }
-    }
-
-    // 2. Set sale status to cancelled and zero out balance/paid fields
+    // 2. Set sale status to cancelled while preserving historical settlement values
     await executeWrite(
       tx,
       `UPDATE sales
           SET status = ?,
-              amount_paid_centimes = 0,
-              remaining_balance_centimes = 0,
               updated_at = datetime('now')
         WHERE id = ?`,
       ["cancelled", id],
@@ -526,7 +496,7 @@ export async function cancel(id: number, reason: string): Promise<void> {
 
 /**
  * Return a sale atomically.
- * Restores stock, creates reverse inventory movements, and reverses any customer payments.
+ * Restores exact stock, creates reverse inventory movements, and preserves historical settlement fields.
  */
 export async function returnSale(id: number, reason: string): Promise<void> {
   const db = await getDatabase();
@@ -577,41 +547,11 @@ export async function returnSale(id: number, reason: string): Promise<void> {
       );
     }
 
-    // H1 Fix: Reverse customer ledger payment if customer made payments in customer_payments
-    if (saleHeader.customer_id) {
-      const pRows: any[] = await executeRead(
-        tx,
-        `SELECT SUM(amount_centimes) as total_paid FROM customer_payments WHERE customer_id = ?`,
-        [saleHeader.customer_id],
-      );
-      const totalCustomerPaid = pRows[0]?.total_paid || 0;
-
-      if (totalCustomerPaid > 0) {
-        const refundAmount = Math.min(totalCustomerPaid, saleHeader.total_centimes);
-        if (refundAmount > 0) {
-          await executeWrite(
-            tx,
-            `INSERT INTO customer_payments
-             (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
-             VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-            [
-              saleHeader.customer_id,
-              -refundAmount,
-              "cash",
-              `Refund for returned sale #REC-${id}: ${reason}`,
-            ],
-          );
-        }
-      }
-    }
-
-    // 2. Set sale status to returned and zero out balance/paid fields
+    // 2. Set sale status to returned while preserving historical settlement values
     await executeWrite(
       tx,
       `UPDATE sales
           SET status = ?,
-              amount_paid_centimes = 0,
-              remaining_balance_centimes = 0,
               updated_at = datetime('now')
         WHERE id = ?`,
       ["returned", id],

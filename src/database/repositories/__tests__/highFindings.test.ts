@@ -40,61 +40,48 @@ describe("High Findings Safeguards (H1, H2, H3)", () => {
   });
 
   describe("H1: Cancel/Return Payment Reversal & Debt Reconciliation", () => {
-    it("reverses customer payments on sale cancellation so orphaned payments do not absorb future sales", async () => {
-      const customer = await createCustomer(dummyCustomer("Farid Customer"));
+    it("cancelling an unrelated cash sale B leaves customer A's credit sale A settled (debt = 0)", async () => {
+      const customer = await createCustomer(dummyCustomer("Farid Discriminating Test"));
       const product = await createProduct(
         dummyProduct({
-          name: "Test Juice",
-          sale_price_centimes: 10000,
+          name: "Test Product",
+          sale_price_centimes: 10000, // 100 DZD
           cost_price_centimes: 6000,
           stock_quantity: 50,
         })
       );
 
-      // 1. Credit sale of 100 DZD (10000 centimes)
-      const sale = await create({
+      // 1. Credit sale A for 100 DZD
+      const saleA = await create({
         customerId: customer.id,
         paymentMethod: "credit",
         items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 10000 }],
         amountPaidCentimes: 0,
       });
 
-      // Customer debt is 100 DZD
-      expect(await getCustomerDebt(customer.id)).toBe(10000);
-
-      // 2. Customer repays 100 DZD via ledger payment
-      await recordPayment(customer.id, 10000, "cash", "Settling bill");
-
-      // Customer debt is now 0 DZD
+      // Customer repays sale A in full -> debt = 0
+      await recordPayment(customer.id, 10000, "cash", "Repaying sale A");
       expect(await getCustomerDebt(customer.id)).toBe(0);
 
-      // 3. Merchant cancels the sale
-      await cancel(sale.id, "Customer returned goods");
-
-      // 4. Verify a negative refund payment entry was logged for customer
-      const payments = await getCustomerPayments(customer.id);
-      expect(payments).toHaveLength(2);
-      expect(payments.map((p) => p.amount_centimes)).toContain(-10000);
-
-      // 5. Debt for customer should be 0 DZD
-      const debtAfterCancel = await getCustomerDebt(customer.id);
-      expect(debtAfterCancel).toBe(0);
-
-      // 6. New credit sale of 50 DZD to the same customer
-      await create({
+      // 2. Separate fully-paid cash sale B (100 DZD) for the same customer -> debt = 0
+      const saleB = await create({
         customerId: customer.id,
-        paymentMethod: "credit",
-        items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 5000 }],
-        amountPaidCentimes: 0,
+        paymentMethod: "cash",
+        items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 10000 }],
+        amountPaidCentimes: 10000,
       });
+      expect(await getCustomerDebt(customer.id)).toBe(0);
 
-      // 7. Customer debt must be EXACTLY 50 DZD (not absorbed by orphaned payment)
-      const newDebt = await getCustomerDebt(customer.id);
-      expect(newDebt).toBe(5000);
+      // 3. Cancel Cash Sale B
+      await cancel(saleB.id, "Cancelling cash sale B");
+
+      // 4. Cancelling B MUST leave A settled (debt remains 0)!
+      const debtAfterCancelB = await getCustomerDebt(customer.id);
+      expect(debtAfterCancelB).toBe(0);
     });
 
-    it("reverses customer payments on sale return", async () => {
-      const customer = await createCustomer(dummyCustomer("Karim Returner"));
+    it("returning an unrelated cash sale B leaves customer A's credit sale A settled (debt = 0)", async () => {
+      const customer = await createCustomer(dummyCustomer("Karim Return Test"));
       const product = await createProduct(
         dummyProduct({
           name: "Test Water",
@@ -104,21 +91,31 @@ describe("High Findings Safeguards (H1, H2, H3)", () => {
         })
       );
 
-      const sale = await create({
+      // 1. Credit sale A for 40 DZD
+      const saleA = await create({
         customerId: customer.id,
         paymentMethod: "credit",
         items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 4000 }],
         amountPaidCentimes: 0,
       });
 
-      await recordPayment(customer.id, 4000, "cash", "Full payment");
+      // Customer repays sale A in full
+      await recordPayment(customer.id, 4000, "cash", "Full repayment for A");
+      expect(await getCustomerDebt(customer.id)).toBe(0);
 
-      await returnSale(sale.id, "Defective packaging");
+      // 2. Separate cash sale B for 40 DZD
+      const saleB = await create({
+        customerId: customer.id,
+        paymentMethod: "cash",
+        items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 4000 }],
+        amountPaidCentimes: 4000,
+      });
+      expect(await getCustomerDebt(customer.id)).toBe(0);
 
-      const payments = await getCustomerPayments(customer.id);
-      expect(payments).toHaveLength(2);
-      expect(payments.map((p) => p.amount_centimes)).toContain(-4000);
+      // 3. Return Sale B
+      await returnSale(saleB.id, "Defective packaging on B");
 
+      // 4. Returning B MUST leave A settled (debt remains 0)!
       const debt = await getCustomerDebt(customer.id);
       expect(debt).toBe(0);
     });
