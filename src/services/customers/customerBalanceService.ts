@@ -1,12 +1,19 @@
 /**
- * customerBalanceService — Customer debt and payment service
+ * customerBalanceService — Customer debt, credit and payment service
  *
  * Rules:
- * - Debt = valid unpaid sale balances minus recorded payments
- * - Cancelled and returned sales are excluded from debt calculation
- * - Debt is calculated dynamically from sales and payments (no mutable field)
- * - Overpayment is blocked in MVP
- * - All financial changes use SQLite transactions and explicit tx handle passing
+ * - Signed balance = (completed sales' remaining balances)
+ *                   − (money already taken on cancelled/returned sales)
+ *                   − (net customer payments: repayments positive, refunds negative)
+ * - Debt   = max(0, balance)   — what the customer still owes
+ * - Credit = max(0, −balance) — what the merchant owes the customer
+ * - Cancelled and returned sales no longer count toward debt, but any money the
+ *   customer actually paid on them (upfront checkout payment, recorded within
+ *   the sale's total) surfaces as customer credit.
+ * - Overpayment is blocked; refunds cannot exceed the available credit.
+ * - All financial changes use SQLite transactions with explicit tx handle passing.
+ * - Refunds are stored as negative customer_payments rows and are an explicit
+ *   merchant action — cancellations never reverse payments automatically.
  */
 
 import { type SQLiteDatabase } from "expo-sqlite";
@@ -31,8 +38,8 @@ async function getSalesByCustomer(
              s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
              s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
        FROM sales s
-       WHERE s.customer_id = ?
-       ORDER BY s.sold_at DESC`;
+      WHERE s.customer_id = ?
+      ORDER BY s.sold_at DESC`;
 
   const rows: any[] = tx
     ? await executeRead(tx, sql, [customerId])
@@ -68,6 +75,7 @@ async function getSalesByCustomer(
 
 /**
  * Retrieve all customer payments from the customer_payments table.
+ * Refund rows carry a negative amount_centimes.
  */
 export async function getCustomerPayments(
   customerId: number,
@@ -100,31 +108,72 @@ export async function getCustomerPayments(
 }
 
 /**
- * Calculate the customer's current debt.
+ * Compute the customer's SIGNED balance in centimes.
+ *
+ *   balance = Σ(completed sales' remaining_balance)
+ *           − Σ(min(amount_paid, total) of cancelled/returned sales)
+ *           − Σ(net customer payments)
+ *
+ * - Positive: the customer owes the merchant (debt).
+ * - Negative: the merchant owes the customer (credit), e.g. after cancelling a
+ *   sale the customer had already paid for (upfront or via repayments).
+ * - Cancelled/returned sales contribute only the money actually taken on them,
+ *   clamped to the sale total (guards against legacy over-tendered rows).
+ */
+export async function getCustomerBalance(
+  customerId: number,
+  tx?: SQLiteDatabase,
+): Promise<number> {
+  const sql = `SELECT
+      COALESCE((SELECT SUM(remaining_balance_centimes)
+                FROM sales
+                WHERE customer_id = ? AND status = 'completed'), 0) AS completed_remaining,
+      COALESCE((SELECT SUM(MIN(amount_paid_centimes, total_centimes))
+                FROM sales
+                WHERE customer_id = ? AND status IN ('cancelled', 'returned')), 0) AS cancelled_taken,
+      COALESCE((SELECT SUM(amount_centimes)
+                FROM customer_payments
+                WHERE customer_id = ?), 0) AS net_payments`;
+
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, [customerId, customerId, customerId])
+    : await executeRead(sql, [customerId, customerId, customerId]);
+
+  const { completed_remaining, cancelled_taken, net_payments } = rows[0];
+
+  return (
+    (completed_remaining as number) -
+    (cancelled_taken as number) -
+    (net_payments as number)
+  );
+}
+
+/**
+ * The customer's current debt (what they owe the merchant), >= 0.
  */
 export async function getCustomerDebt(
   customerId: number,
   tx?: SQLiteDatabase,
 ): Promise<number> {
-  const completedSales = await getSalesByCustomer(customerId, "completed", tx);
+  const balance = await getCustomerBalance(customerId, tx);
+  return Math.max(0, balance);
+}
 
-  const totalSaleBalance = completedSales.reduce(
-    (sum, sale) => sum + Math.max(0, sale.remaining_balance_centimes),
-    0,
-  );
-
-  const payments = await getCustomerPayments(customerId, tx);
-
-  const totalPaid = payments.reduce(
-    (sum, payment) => sum + payment.amount_centimes,
-    0,
-  );
-
-  return Math.max(0, totalSaleBalance - totalPaid);
+/**
+ * The customer's current credit (what the merchant owes the customer), >= 0.
+ * Created when a sale the customer already paid for is cancelled or returned.
+ */
+export async function getCustomerCredit(
+  customerId: number,
+  tx?: SQLiteDatabase,
+): Promise<number> {
+  const balance = await getCustomerBalance(customerId, tx);
+  return Math.max(0, -balance);
 }
 
 /**
  * Check if a payment can be recorded for a customer.
+ * Blocks overpayment: the payment cannot exceed the customer's current debt.
  */
 export async function canRecordPayment(
   customerId: number,
@@ -140,6 +189,7 @@ export async function canRecordPayment(
 
 /**
  * Record a payment for a customer in a single SQLite transaction.
+ * Returns null (no row written) when the payment would overpay the debt.
  */
 export async function recordPayment(
   customerId: number,
@@ -147,7 +197,7 @@ export async function recordPayment(
   method: "cash" | "electronic",
   note?: string,
 ): Promise<CustomerPayment | null> {
-  if (amount <= 0) {
+  if (!Number.isSafeInteger(amount) || amount <= 0) {
     return null;
   }
 
@@ -183,16 +233,85 @@ export async function recordPayment(
 }
 
 /**
+ * Record a refund for a customer in a single SQLite transaction.
+ *
+ * A refund returns money the merchant owes the customer (customer credit),
+ * e.g. after cancelling a sale the customer had already paid for. It is stored
+ * as a NEGATIVE customer_payments row, keeping the real payment method (how the
+ * money was handed back) — refunds are distinguished by their sign, not by a
+ * fake payment method.
+ *
+ * The available credit is re-read inside the transaction, so concurrent
+ * refunds cannot exceed the credit between the check and the insert.
+ *
+ * Returns the recorded refund (negative amount), or null (no row written) when
+ * the amount is invalid or exceeds the customer's available credit.
+ */
+export async function recordRefund(
+  customerId: number,
+  amount: number,
+  method: "cash" | "electronic",
+  note?: string,
+): Promise<CustomerPayment | null> {
+  if (!Number.isSafeInteger(amount) || amount <= 0) {
+    return null;
+  }
+
+  const db = await getDatabase();
+  return await transaction(db, async (tx) => {
+    // Re-check the credit INSIDE the transaction using explicit tx handle
+    const credit = await getCustomerCredit(customerId, tx);
+    if (amount > credit) {
+      return null;
+    }
+
+    const refundId = await executeWrite(
+      tx,
+      `INSERT INTO customer_payments
+         (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
+       VALUES
+         (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      [customerId, -amount, method, note],
+    );
+
+    const now = new Date().toISOString();
+
+    return {
+      id: refundId,
+      customer_id: customerId,
+      amount_centimes: -amount,
+      payment_method: method,
+      note: note ?? null,
+      paid_at: now,
+      created_at: now,
+    };
+  });
+}
+
+/**
  * Get summary of a customer's financial status.
  */
 export async function getCustomerBalanceSummary(customerId: number) {
-  const debt = await getCustomerDebt(customerId);
-  const payments = await getCustomerPayments(customerId);
+  const [balance, payments] = await Promise.all([
+    getCustomerBalance(customerId),
+    getCustomerPayments(customerId),
+  ]);
+
+  const totalPaid = payments
+    .filter((p) => p.amount_centimes > 0)
+    .reduce((sum, p) => sum + p.amount_centimes, 0);
+  const totalRefunded = payments
+    .filter((p) => p.amount_centimes < 0)
+    .reduce((sum, p) => sum - p.amount_centimes, 0);
 
   return {
     customerId,
-    debt_centimes: debt,
-    total_paid_centime: payments.reduce((sum, p) => sum + p.amount_centimes, 0),
+    balance_centimes: balance,
+    debt_centimes: Math.max(0, balance),
+    credit_centimes: Math.max(0, -balance),
+    total_paid_centimes: totalPaid,
+    total_refunded_centimes: totalRefunded,
+    net_payments_centimes: totalPaid - totalRefunded,
     paymentCount: payments.length,
   };
 }

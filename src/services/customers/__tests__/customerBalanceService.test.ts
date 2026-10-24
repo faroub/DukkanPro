@@ -1,378 +1,312 @@
 /// <reference types="jest" />
-// @ts-nocheck
-import * as customerRepository from "@/database/repositories/customerRepository";
-import * as saleRepository from "@/database/repositories/saleRepository";
+/**
+ * customerBalanceService tests — run against the REAL SQLite engine (sql.js),
+ * exercising actual SQL semantics instead of mocking query results.
+ */
+import { getDatabase } from "@/database/database";
+import {
+  create as createSale,
+  cancel as cancelSale,
+  returnSale,
+} from "@/database/repositories/saleRepository";
+import { create as createProduct } from "@/database/repositories/productRepository";
+import { create as createCustomer } from "@/database/repositories/customerRepository";
 import * as customerBalanceService from "@/services/customers/customerBalanceService";
 import { beforeEach, describe, expect, it } from "@jest/globals";
 
-let mockedSales: any[] = [];
-let mockedPayments: any[] = [];
+let customerCounter = 0;
 
-// Mock the database module - service imports executeRead/executeWrite from here
-jest.mock("@/database/database", () => ({
-  executeRead: jest.fn((sql: string, ...params: any[]) => {
-    // Mock SQL query results based on common patterns
-    if (sql.includes("sales") && sql.includes("customer_id")) {
-      // Return columns that the service's getSalesByCustomer expects
-      return mockedSales;
-    }
-    if (sql.includes("customer_payments") && sql.includes("customer_id")) {
-      return mockedPayments;
-    }
-    return [];
-  }),
-  executeWrite: jest.fn().mockResolvedValue(1),
-  getDatabase: jest.fn().mockResolvedValue({}),
-  transaction: jest.fn(async (_db: unknown, callback: () => Promise<unknown>) =>
-    callback(),
-  ),
-}));
+async function resetAll() {
+  const db = await getDatabase();
+  await db.execAsync(
+    `DELETE FROM sale_items; DELETE FROM customer_payments; DELETE FROM inventory_movements; DELETE FROM sales; DELETE FROM products; DELETE FROM customers;`,
+  );
+}
 
-jest.mock("@/database/repositories/saleRepository", () => ({
-  getByCustomerId: jest.fn(),
-}));
+async function makeProduct(sku: string) {
+  return createProduct({
+    name: `Item ${sku}`,
+    sku,
+    sale_price_centimes: 10000,
+    cost_price_centimes: 5000,
+    stock_quantity: 1000,
+    minimum_stock_quantity: 0,
+    unit: "pcs",
+  } as any);
+}
 
-jest.mock("@/database/repositories/customerRepository", () => ({
-  create: jest.fn(),
-  getById: jest.fn(),
-  getAll: jest.fn(),
-  update: jest.fn(),
-  archive: jest.fn(),
-}));
+async function makeCustomer() {
+  customerCounter += 1;
+  return createCustomer({
+    name: `Customer ${customerCounter}`,
+    phone: `05${String(customerCounter).padStart(8, "0")}`,
+  } as any);
+}
 
-const mockCompletedSale: any = {
-  id: 1,
-  customer_id: 1,
-  status: "completed",
-  subtotal_centimes: 28000,
-  discount_centimes: 0,
-  total_centimes: 28000,
-  amount_paid_centimes: 0,
-  remaining_balance_centimes: 28000,
-  payment_method: "cash",
-  note: null,
-  sold_at: "2026-09-01T10:00:00Z",
-  created_at: "2026-09-01T10:00:00Z",
-};
-
-const mockCancelledSale: any = {
-  id: 2,
-  customer_id: 1,
-  status: "cancelled",
-  subtotal_centimes: 5000,
-  discount_centimes: 0,
-  total_centimes: 5000,
-  amount_paid_centimes: 0,
-  remaining_balance_centimes: 0,
-  payment_method: "cash",
-  note: "Cancelled by customer",
-  sold_at: "2026-09-02T10:00:00Z",
-  created_at: "2026-09-02T10:00:00Z",
-};
-
-const mockReturnedSale: any = {
-  id: 3,
-  customer_id: 1,
-  status: "returned",
-  subtotal_centimes: 3000,
-  discount_centimes: 0,
-  total_centimes: 3000,
-  amount_paid_centimes: 0,
-  remaining_balance_centimes: 0,
-  payment_method: "cash",
-  note: "Returned by customer",
-  sold_at: "2026-09-03T10:00:00Z",
-  created_at: "2026-09-03T10:00:00Z",
-};
-
-const mockPayment1: any = {
-  id: 1,
-  customer_id: 1,
-  amount_centimes: 40000,
-  payment_method: "cash",
-  note: "Partial payment",
-  paid_at: "2026-09-15T10:00:00Z",
-  created_at: "2026-09-15T10:00:00Z",
-};
-
-const mockPayment2: any = {
-  id: 2,
-  customer_id: 1,
-  amount_centimes: 20000,
-  payment_method: "electronic",
-  note: "Salary contribution",
-  paid_at: "2026-09-20T10:00:00Z",
-  created_at: "2026-09-20T10:00:00Z",
-};
+async function makeCreditSale(
+  customerId: number,
+  productId: number,
+  quantity = 1,
+  unitPrice = 10000,
+) {
+  return createSale({
+    customerId,
+    paymentMethod: "credit",
+    items: [{ productId, quantity, unitSalePriceCentimes: unitPrice }],
+  });
+}
 
 describe("customerBalanceService", () => {
-  beforeEach(() => {
-    // Clear all mocks before each test
-    jest.clearAllMocks();
-    mockedSales = [];
-    mockedPayments = [];
+  beforeEach(async () => {
+    await resetAll();
   });
 
   describe("getCustomerDebt", () => {
     it("should calculate debt from completed sales balance minus payments", async () => {
-      // Mock: one completed sale with 28000 centimes (280 DZD), no payments
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
-      mockedSales = [mockCompletedSale];
+      const product = await makeProduct("BS1");
+      const customer = await makeCustomer();
+      // Completed credit sale: 28000 owed, nothing repaid.
+      await makeCreditSale(customer.id, product.id, 1, 28000);
 
-      const debt = await customerBalanceService.getCustomerDebt(1);
-      // Debt = 28000 - 0 = 28000
+      const debt = await customerBalanceService.getCustomerDebt(customer.id);
       expect(debt).toBe(28000);
     });
 
     it("should exclude cancelled sales from debt calculation", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCancelledSale,
-      ]);
-      mockedSales = [mockCancelledSale];
+      const product = await makeProduct("BS2");
+      const customer = await makeCustomer();
+      const sale = await makeCreditSale(customer.id, product.id, 1, 5000);
+      await cancelSale(sale.id, "test cancel");
 
-      const debt = await customerBalanceService.getCustomerDebt(1);
-      // Cancelled sales should be excluded, so debt = 0
+      const debt = await customerBalanceService.getCustomerDebt(customer.id);
       expect(debt).toBe(0);
     });
 
     it("should exclude returned sales from debt calculation", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockReturnedSale,
-      ]);
-      mockedSales = [mockReturnedSale];
+      const product = await makeProduct("BS3");
+      const customer = await makeCustomer();
+      const sale = await makeCreditSale(customer.id, product.id, 1, 3000);
+      await returnSale(sale.id, "test return");
 
-      const debt = await customerBalanceService.getCustomerDebt(1);
-      // Returned sales should be excluded, so debt = 0
+      const debt = await customerBalanceService.getCustomerDebt(customer.id);
       expect(debt).toBe(0);
     });
 
     it("should handle multiple completed sales", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-        { ...mockCompletedSale, id: 2, total_centimes: 15000 },
-      ]);
-      mockedSales = [
-        mockCompletedSale,
-        {
-          ...mockCompletedSale,
-          id: 2,
-          total_centimes: 15000,
-          remaining_balance_centimes: 15000,
-        },
-      ];
+      const product = await makeProduct("BS4");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
+      await makeCreditSale(customer.id, product.id, 1, 5000);
+      await customerBalanceService.recordPayment(customer.id, 10000, "cash");
 
-      const debt = await customerBalanceService.getCustomerDebt(1);
-      // Debt = 28000 + 15000 - 0 = 43000
-      expect(debt).toBe(43000);
+      const debt = await customerBalanceService.getCustomerDebt(customer.id);
+      expect(debt).toBe(15000);
     });
 
     it("should block overpayment (debt cannot be negative)", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
-      mockedSales = [mockCompletedSale];
-      mockedSales = [mockCompletedSale];
-
-      // Make a payment larger than debt
-      const result = await customerBalanceService.recordPayment(
-        1,
-        999999,
+      const product = await makeProduct("BS5");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
+      // A 30000 payment is blocked; only 20000 lands on the ledger.
+      const blocked = await customerBalanceService.recordPayment(
+        customer.id,
+        30000,
         "cash",
       );
-      // Should block overpayment and return null or indicate failure
-      expect(result).toBeNull();
+      expect(blocked).toBeNull();
+
+      const debt = await customerBalanceService.getCustomerDebt(customer.id);
+      expect(debt).toBe(20000);
     });
 
     it("should return 0 debt when no sales exist", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([]);
-
-      const debt = await customerBalanceService.getCustomerDebt(1);
+      const customer = await makeCustomer();
+      const debt = await customerBalanceService.getCustomerDebt(customer.id);
       expect(debt).toBe(0);
     });
   });
 
   describe("getCustomerPayments", () => {
     it("should retrieve payments for a customer", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([]);
+      const product = await makeProduct("BS6");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
+      await customerBalanceService.recordPayment(customer.id, 5000, "cash");
 
-      const payments = await customerBalanceService.getCustomerPayments(1);
-      expect(payments).toEqual([]);
+      const payments = await customerBalanceService.getCustomerPayments(
+        customer.id,
+      );
+      expect(payments).toHaveLength(1);
+      expect(payments[0].amount_centimes).toBe(5000);
     });
 
     it("should return empty array when no payments exist", async () => {
-      const payments = await customerBalanceService.getCustomerPayments(1);
+      const customer = await makeCustomer();
+      const payments = await customerBalanceService.getCustomerPayments(
+        customer.id,
+      );
       expect(payments).toEqual([]);
     });
   });
 
   describe("canRecordPayment", () => {
     it("should allow payment when amount <= debt", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
-      mockedSales = [mockCompletedSale];
-      mockedSales = [mockCompletedSale];
+      const product = await makeProduct("BS7");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
 
-      const result = await customerBalanceService.canRecordPayment(1, 28000);
-      expect(result).toBe(true);
+      expect(
+        await customerBalanceService.canRecordPayment(customer.id, 20000),
+      ).toBe(true);
+      expect(
+        await customerBalanceService.canRecordPayment(customer.id, 10000),
+      ).toBe(true);
     });
 
     it("should block overpayment when amount > debt", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
-      mockedSales = [mockCompletedSale];
+      const product = await makeProduct("BS8");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
 
-      const result = await customerBalanceService.canRecordPayment(1, 99999);
-      expect(result).toBe(false);
+      expect(
+        await customerBalanceService.canRecordPayment(customer.id, 25000),
+      ).toBe(false);
     });
 
     it("should block zero amount payment", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
-      mockedSales = [mockCompletedSale];
+      const product = await makeProduct("BS9");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
 
-      const result = await customerBalanceService.canRecordPayment(1, 0);
-      expect(result).toBe(false);
+      expect(
+        await customerBalanceService.canRecordPayment(customer.id, 0),
+      ).toBe(false);
     });
 
     it("should block negative amount payment", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
+      const product = await makeProduct("BS10");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
 
-      const result = await customerBalanceService.canRecordPayment(1, -100);
-      expect(result).toBe(false);
+      expect(
+        await customerBalanceService.canRecordPayment(customer.id, -500),
+      ).toBe(false);
     });
   });
 
   describe("recordPayment", () => {
     it("should record a payment successfully", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
-      mockedSales = [mockCompletedSale];
+      const product = await makeProduct("BS11");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
 
-      (customerRepository.create as jest.Mock).mockResolvedValueOnce({
-        id: 1,
-        customer_id: 1,
-        business_name: "Test",
-        owner_name: "Test",
-        business_type: "grocery",
-        currency: "DZD",
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
-
-      const result = await customerBalanceService.recordPayment(
-        1,
-        20000,
+      const payment = await customerBalanceService.recordPayment(
+        customer.id,
+        15000,
         "cash",
       );
-      // Should record the payment successfully
-      expect(result).not.toBeNull();
+      expect(payment).not.toBeNull();
+      expect(payment!.amount_centimes).toBe(15000);
+      expect(await customerBalanceService.getCustomerDebt(customer.id)).toBe(
+        5000,
+      );
     });
 
-    it("should return null when payment would overceed debt", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
-      mockedSales = [mockCompletedSale];
+    it("should return null when payment would exceed debt", async () => {
+      const product = await makeProduct("BS12");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
 
-      const result = await customerBalanceService.recordPayment(
-        1,
-        99999,
+      const blocked = await customerBalanceService.recordPayment(
+        customer.id,
+        25000,
         "cash",
       );
-      // Should return null when payment exceeds debt
-      expect(result).toBeNull();
+      expect(blocked).toBeNull();
+      expect(await customerBalanceService.getCustomerDebt(customer.id)).toBe(
+        20000,
+      );
     });
 
     it("should record electronic payment", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
-      mockedSales = [mockCompletedSale];
+      const product = await makeProduct("BS13");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 10000);
 
-      (customerRepository.create as jest.Mock).mockResolvedValueOnce({
-        id: 1,
-        customer_id: 1,
-        business_name: "Test",
-        owner_name: "Test",
-        business_type: "grocery",
-        currency: "DZD",
-        created_at: new Date(),
-        updated_at: new Date(),
-      });
-
-      const result = await customerBalanceService.recordPayment(
-        1,
-        20000,
+      const payment = await customerBalanceService.recordPayment(
+        customer.id,
+        10000,
         "electronic",
       );
-      expect(result).not.toBeNull();
+      expect(payment).not.toBeNull();
+      expect(payment!.payment_method).toBe("electronic");
     });
 
     it("re-checks debt inside the transaction so a concurrent payment cannot cause overpayment", async () => {
-      // Customer owes 28000 centimes and nothing is paid yet.
-      mockedSales = [mockCompletedSale];
-      mockedPayments = [];
+      const product = await makeProduct("BS14");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
 
-      // Simulate a rival payment committing as our transaction opens: the debt
-      // check must be re-read inside the transaction, so our payment is refused
-      // instead of pushing the balance negative.
-      const database = require("@/database/database");
-      (database.transaction as jest.Mock).mockImplementation(
-        async (_db: unknown, callback: () => Promise<unknown>) => {
-          mockedPayments = [
-            {
-              id: 99,
-              customer_id: 1,
-              amount_centimes: 28000,
-              payment_method: "cash",
-              note: "paid by rival write",
-              paid_at: "2026-09-25T10:00:00Z",
-              created_at: "2026-09-25T10:00:00Z",
-            },
-          ];
-          return callback();
-        },
+      // Two 15000 payments launched together against 20000 of debt:
+      // only one may succeed.
+      const results = await Promise.all([
+        customerBalanceService.recordPayment(customer.id, 15000, "cash"),
+        customerBalanceService.recordPayment(customer.id, 15000, "cash"),
+      ]);
+      const succeeded = results.filter((r) => r !== null);
+      expect(succeeded).toHaveLength(1);
+      expect(await customerBalanceService.getCustomerDebt(customer.id)).toBe(
+        5000,
       );
-
-      const result = await customerBalanceService.recordPayment(1, 28000, "cash");
-
-      expect(result).toBeNull();
-      expect(database.executeWrite).not.toHaveBeenCalled();
     });
   });
 
   describe("getCustomerBalanceSummary", () => {
     it("should return balance summary with debt, total paid, and payment count", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([
-        mockCompletedSale,
-      ]);
+      const product = await makeProduct("BS15");
+      const customer = await makeCustomer();
+      await makeCreditSale(customer.id, product.id, 1, 20000);
+      await customerBalanceService.recordPayment(customer.id, 5000, "cash");
 
-      const summary = await customerBalanceService.getCustomerBalanceSummary(1);
-      // Summary should have debt, totalPaid, and paymentCount
-      expect(summary).toMatchObject({
-        debt_centimes: expect.any(Number),
-        total_paid_centime: expect.any(Number),
-        paymentCount: expect.any(Number),
-      });
+      const summary = await customerBalanceService.getCustomerBalanceSummary(
+        customer.id,
+      );
+      expect(summary.debt_centimes).toBe(15000);
+      expect(summary.balance_centimes).toBe(15000);
+      expect(summary.credit_centimes).toBe(0);
+      expect(summary.total_paid_centimes).toBe(5000);
+      expect(summary.total_refunded_centimes).toBe(0);
+      expect(summary.paymentCount).toBe(1);
     });
 
     it("should return zero summary for customer with no sales or payments", async () => {
-      (saleRepository.getByCustomerId as jest.Mock).mockResolvedValueOnce([]);
+      const customer = await makeCustomer();
+      const summary = await customerBalanceService.getCustomerBalanceSummary(
+        customer.id,
+      );
+      expect(summary.debt_centimes).toBe(0);
+      expect(summary.balance_centimes).toBe(0);
+      expect(summary.credit_centimes).toBe(0);
+      expect(summary.total_paid_centimes).toBe(0);
+      expect(summary.paymentCount).toBe(0);
+    });
 
-      const summary = await customerBalanceService.getCustomerBalanceSummary(1);
-      expect(summary).toMatchObject({
-        debt_centimes: 0,
-        total_paid_centime: 0,
-        paymentCount: 0,
-      });
+    it("should report credit in the summary after cancelling a repaid sale", async () => {
+      const product = await makeProduct("BS16");
+      const customer = await makeCustomer();
+      const sale = await makeCreditSale(customer.id, product.id, 1, 10000);
+      await customerBalanceService.recordPayment(customer.id, 10000, "cash");
+      await cancelSale(sale.id, "mistake");
+
+      const summary = await customerBalanceService.getCustomerBalanceSummary(
+        customer.id,
+      );
+      expect(summary.balance_centimes).toBe(-10000);
+      expect(summary.credit_centimes).toBe(10000);
+      expect(summary.debt_centimes).toBe(0);
+      expect(summary.total_paid_centimes).toBe(10000);
+      expect(summary.total_refunded_centimes).toBe(0);
+      expect(summary.net_payments_centimes).toBe(10000);
     });
   });
 });

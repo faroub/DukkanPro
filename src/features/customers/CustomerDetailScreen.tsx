@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
@@ -19,7 +19,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { getById } from "@/database/repositories/customerRepository";
 import { getAll as getAllSales } from "@/database/repositories/saleRepository";
 import {
-  getCustomerDebt,
+  getCustomerBalance,
   getCustomerPayments,
 } from "@/services/customers/customerBalanceService";
 import { Customer, CustomerPayment, Sale } from "@/types/entities";
@@ -47,6 +47,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   const [refreshing, setRefreshing] = useState(false);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [debtCentimes, setDebtCentimes] = useState(0);
+  const [creditCentimes, setCreditCentimes] = useState(0);
   const [sales, setSales] = useState<Sale[]>([]);
   const [payments, setPayments] = useState<CustomerPayment[]>([]);
   const [activeTab, setActiveTab] = useState<
@@ -60,15 +61,16 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
       return;
     }
     try {
-      const [cust, debt, customerSales, customerPayments] = await Promise.all([
+      const [cust, balance, customerSales, customerPayments] = await Promise.all([
         getById(effectiveCustomerId),
-        getCustomerDebt(effectiveCustomerId),
+        getCustomerBalance(effectiveCustomerId),
         getAllSales({ customerId: effectiveCustomerId }),
         getCustomerPayments(effectiveCustomerId),
       ]);
 
       setCustomer(cust);
-      setDebtCentimes(debt);
+      setDebtCentimes(Math.max(0, balance));
+      setCreditCentimes(Math.max(0, -balance));
       setSales(customerSales.filter((s) => s.status === "completed"));
       setPayments(customerPayments);
     } catch (err) {
@@ -79,9 +81,14 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
     }
   }, [effectiveCustomerId]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // Reload on navigation focus so returning from the refund/payment screens
+  // immediately reflects the new balance and payment history (the stack keeps
+  // this screen mounted, so a mount-only useEffect would show stale data).
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   // Credit sales (sales with remaining balance or total > amount paid or credit method)
   const creditSales = useMemo(() => {
@@ -116,12 +123,13 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
     });
 
     payments.forEach((payment) => {
+      const isRefund = payment.amount_centimes < 0;
       items.push({
         id: `payment-${payment.id}`,
         type: "payment",
         date: payment.paid_at || payment.created_at,
         amountCentimes: payment.amount_centimes,
-        title: `${t("customers:payment")} #${payment.id}`,
+        title: `${isRefund ? t("customers:refund") : t("customers:payment")} #${payment.id}`,
         subtitle:
           payment.payment_method === "electronic"
             ? t("customers:edahabia")
@@ -149,6 +157,18 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
         customerId: String(customer.id),
         customerName: customer.name,
         currentDebt: String(debtCentimes),
+      },
+    } as any);
+  };
+
+  const handleRecordRefund = () => {
+    if (!customer) return;
+    router.push({
+      pathname: "/customers/record-refund",
+      params: {
+        customerId: String(customer.id),
+        customerName: customer.name,
+        currentCredit: String(creditCentimes),
       },
     } as any);
   };
@@ -192,6 +212,7 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
   }
 
   const hasDebt = debtCentimes > 0;
+  const hasCredit = creditCentimes > 0;
   const initials = customer.name
     ? customer.name
         .split(" ")
@@ -303,15 +324,21 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
           {/* Amount Display */}
           <View style={styles.amountDisplayBlock}>
             <ThemedText style={styles.heroDebtLabel}>
-              {t("customers:currentDebt")}
+              {hasCredit
+                ? t("customers:customerCredit")
+                : t("customers:currentDebt")}
             </ThemedText>
             <ThemedText
               style={[
                 styles.heroDebtAmount,
-                hasDebt ? styles.heroDebtAmountActive : styles.heroDebtAmountSettled,
+                hasCredit
+                  ? styles.heroCreditAmount
+                  : hasDebt
+                  ? styles.heroDebtAmountActive
+                  : styles.heroDebtAmountSettled,
               ]}
             >
-              {formatCentimes(debtCentimes, i18n.language as any)}
+              {formatCentimes(hasCredit ? creditCentimes : debtCentimes, i18n.language as any)}
             </ThemedText>
           </View>
 
@@ -348,6 +375,19 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
               {t("customers:recordPayment")}
             </ThemedText>
           </TouchableOpacity>
+
+          {hasCredit && (
+            <TouchableOpacity
+              style={[styles.primaryActionBtn, styles.refundActionBtn]}
+              onPress={handleRecordRefund}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="arrow-undo-outline" size={20} color="#FFFFFF" />
+              <ThemedText style={styles.primaryActionBtnText}>
+                {t("customers:recordRefund")}
+              </ThemedText>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={styles.secondaryActionBtn}
@@ -525,7 +565,9 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                     </View>
                     <View style={styles.recordTexts}>
                       <ThemedText style={styles.recordTitle}>
-                        {t("customers:payment")} #{payment.id}
+                        {payment.amount_centimes < 0
+                          ? `${t("customers:refund")} #${payment.id}`
+                          : `${t("customers:payment")} #${payment.id}`}
                       </ThemedText>
                       <ThemedText style={styles.recordSubtitle}>
                         {new Date(payment.paid_at).toLocaleDateString()} •{" "}
@@ -535,8 +577,16 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                       </ThemedText>
                     </View>
                   </View>
-                  <ThemedText style={styles.recordAmountPayment}>
-                    -{formatCentimes(payment.amount_centimes, i18n.language as any)}
+                  <ThemedText
+                    style={
+                      payment.amount_centimes < 0
+                        ? styles.recordAmountRefund
+                        : styles.recordAmountPayment
+                    }
+                  >
+                    {payment.amount_centimes < 0
+                      ? `+${formatCentimes(Math.abs(payment.amount_centimes), i18n.language as any)}`
+                      : `-${formatCentimes(payment.amount_centimes, i18n.language as any)}`}
                   </ThemedText>
                 </View>
               ))
@@ -592,11 +642,18 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
                     style={
                       item.type === "sale"
                         ? styles.recordAmountSale
+                        : item.amountCentimes < 0
+                        ? styles.recordAmountRefund
                         : styles.recordAmountPayment
                     }
                   >
-                    {item.type === "sale" ? "+" : "-"}
-                    {formatCentimes(item.amountCentimes, i18n.language as any)}
+                    {item.type === "sale" || item.amountCentimes < 0 ? "+" : "-"}
+                    {formatCentimes(
+                      item.amountCentimes < 0
+                        ? Math.abs(item.amountCentimes)
+                        : item.amountCentimes,
+                      i18n.language as any
+                    )}
                   </ThemedText>
                 </View>
               ))
@@ -796,6 +853,9 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     heroDebtAmountActive: {
       color: theme.error,
     },
+    heroCreditAmount: {
+      color: theme.positive,
+    },
     heroDebtAmountSettled: {
       color: theme.primary,
     },
@@ -860,6 +920,10 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     },
     primaryActionBtnDisabled: {
       opacity: 0.5,
+    },
+    refundActionBtn: {
+      flex: 1,
+      backgroundColor: theme.positive,
     },
     primaryActionBtnText: {
       ...Typography.label,
@@ -996,6 +1060,11 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       ...Typography.label,
       fontWeight: "700",
       color: theme.error,
+    },
+    recordAmountRefund: {
+      ...Typography.label,
+      fontWeight: "700",
+      color: theme.positive,
     },
     recordAmountPayment: {
       ...Typography.label,

@@ -18,6 +18,14 @@ export const mockRouter = {
 
 export let mockLocalSearchParams = {};
 
+// Registered useFocusEffect callbacks — lets tests simulate a screen
+// regaining focus (e.g. returning from a pushed screen) without remounting.
+let mockFocusCallbacks = [];
+
+export function triggerMockFocus() {
+  mockFocusCallbacks.forEach((cb) => cb());
+}
+
 export function setMockSearchParams(params) {
   mockLocalSearchParams = params;
 }
@@ -29,6 +37,7 @@ export function resetMockRouter() {
   mockRouter.setParams.mockReset();
   mockRouter.canGoBack.mockReturnValue(true);
   mockLocalSearchParams = {};
+  mockFocusCallbacks = [];
 }
 
 jest.mock('expo-router', () => {
@@ -46,7 +55,11 @@ jest.mock('expo-router', () => {
     }),
     useFocusEffect: (callback) => {
       mockReact.useEffect(() => {
+        mockFocusCallbacks.push(callback);
         callback();
+        return () => {
+          mockFocusCallbacks = mockFocusCallbacks.filter((cb) => cb !== callback);
+        };
       }, []);
     },
     router: mockRouter,

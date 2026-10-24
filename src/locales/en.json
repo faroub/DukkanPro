@@ -1022,7 +1022,19 @@
     "updateInfoSubtitle": "Update the customer's information",
     "whatsappNotInstalled": "WhatsApp is not installed.",
     "whatsappRecommended": "Recommended",
-    "withDebtCount": "With debt"
+    "withDebtCount": "With debt",
+    "customerCredit": "Customer credit",
+    "recordRefund": "Refund",
+    "refund": "Refund",
+    "refundAmount": "Refund amount",
+    "refundMethod": "Refund method",
+    "refundSuccess": "Refund recorded",
+    "refundCleared": "{{amount}} refunded to {{customer}}",
+    "refundExceedsCredit": "The refund exceeds the customer's available credit",
+    "remainingCreditAfter": "Credit remaining after refund",
+    "confirmRefund": "Confirm refund",
+    "refundNotePlaceholder": "Refund reason (optional)",
+    "noCreditToRefund": "This customer has no credit to refund. Credit appears when an already-paid sale is cancelled or returned."
   },
   "payments": {
     "title": "Payments",
