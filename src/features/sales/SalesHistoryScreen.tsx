@@ -27,6 +27,13 @@ import {
 } from '@/features/sales/components/SaleFilterTabs';
 import { formatCentimes } from '@/utils/money';
 
+function getLocalDateKey(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function SalesHistoryScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -49,26 +56,26 @@ export function SalesHistoryScreen() {
       if (searchQuery.trim()) {
         data = await search(searchQuery.trim());
       } else {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = getLocalDateKey();
 
         switch (activeFilter) {
           case 'today':
             data = await getSalesByDateRange(todayStr, todayStr);
             break;
           case 'week': {
-            const past = new Date();
-            past.setDate(past.getDate() - 7);
+            const now = new Date();
+            const past = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
             data = await getSalesByDateRange(
-              past.toISOString().split('T')[0],
+              getLocalDateKey(past),
               todayStr,
             );
             break;
           }
           case 'month': {
-            const past = new Date();
-            past.setMonth(past.getMonth() - 1);
+            const now = new Date();
+            const past = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
             data = await getSalesByDateRange(
-              past.toISOString().split('T')[0],
+              getLocalDateKey(past),
               todayStr,
             );
             break;
