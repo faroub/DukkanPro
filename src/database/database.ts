@@ -8,6 +8,7 @@
  * - Prevents concurrent transaction collision and silent data loss from interleaved writes.
  */
 
+import { AsyncLocalStorage } from "async_hooks";
 import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import { runMigrations } from "./migrations";
 import { schema } from "./schema";
@@ -24,6 +25,8 @@ const DATABASE_NAME = "DukkanPro.db";
 
 let database: SQLiteDatabase | null = null;
 let databasePromise: Promise<SQLiteDatabase> | null = null;
+
+export const transactionContext = new AsyncLocalStorage<SQLiteDatabase>();
 
 /**
  * Returns the singleton SQLite database instance, opening it if needed.
@@ -81,8 +84,7 @@ function isSQLiteDatabase(obj: any): obj is SQLiteDatabase {
 
 /**
  * Execute a read query returning all rows.
- * Overloaded for both standalone usage executeAll(sql, params) and
- * transactional usage executeAll(db, sql, params).
+ * Re-entrant inside active transactions; serialized via dbMutex for standalone queries.
  */
 export async function executeAll<T>(
   firstArg: SQLiteDatabase | string,
@@ -92,6 +94,12 @@ export async function executeAll<T>(
   if (isSQLiteDatabase(firstArg)) {
     return rawExecuteAll<T>(firstArg, secondArg as string, thirdArg);
   }
+
+  const activeTxDb = transactionContext.getStore();
+  if (activeTxDb) {
+    return rawExecuteAll<T>(activeTxDb, firstArg as string, (secondArg as any[]) || []);
+  }
+
   const sql = firstArg as string;
   const params = (secondArg as any[]) || [];
   return dbMutex.runExclusive(async () => {
@@ -102,8 +110,7 @@ export async function executeAll<T>(
 
 /**
  * Execute a read query returning first row.
- * Overloaded for both standalone usage executeRead(sql, params) and
- * transactional usage executeRead(db, sql, params).
+ * Re-entrant inside active transactions; serialized via dbMutex for standalone queries.
  */
 export async function executeRead<T>(
   firstArg: SQLiteDatabase | string,
@@ -113,6 +120,12 @@ export async function executeRead<T>(
   if (isSQLiteDatabase(firstArg)) {
     return rawExecuteRead<T>(firstArg, secondArg as string, thirdArg);
   }
+
+  const activeTxDb = transactionContext.getStore();
+  if (activeTxDb) {
+    return rawExecuteRead<T>(activeTxDb, firstArg as string, (secondArg as any[]) || []);
+  }
+
   const sql = firstArg as string;
   const params = (secondArg as any[]) || [];
   return dbMutex.runExclusive(async () => {
@@ -123,8 +136,7 @@ export async function executeRead<T>(
 
 /**
  * Execute a write query (INSERT / UPDATE / DELETE).
- * Overloaded for both standalone usage executeWrite(sql, params) and
- * transactional usage executeWrite(db, sql, params).
+ * Re-entrant inside active transactions; serialized via dbMutex for standalone queries.
  */
 export async function executeWrite(
   firstArg: SQLiteDatabase | string,
@@ -134,6 +146,12 @@ export async function executeWrite(
   if (isSQLiteDatabase(firstArg)) {
     return rawExecuteWrite(firstArg, secondArg as string, thirdArg);
   }
+
+  const activeTxDb = transactionContext.getStore();
+  if (activeTxDb) {
+    return rawExecuteWrite(activeTxDb, firstArg as string, (secondArg as any[]) || []);
+  }
+
   const sql = firstArg as string;
   const params = (secondArg as any[]) || [];
   return dbMutex.runExclusive(async () => {
@@ -152,7 +170,9 @@ export async function transaction<T>(
   const fn = isSQLiteDatabase(firstArg) ? secondArg! : firstArg;
   return dbMutex.runExclusive(async () => {
     const db = await getDatabase();
-    return rawTransaction(db, fn);
+    return transactionContext.run(db, async () => {
+      return rawTransaction(db, fn);
+    });
   });
 }
 
