@@ -2,27 +2,25 @@
  * Database.ts — Database initialization and singleton connection for Dukkan OS.
  *
  * - Uses expo-sqlite (Expo SDK 57 compatible).
- - Enables foreign keys and WAL mode on every connection.
- - Exposes a single database instance via getDatabase().
- - Provides `executeRead` and `executeWrite` helpers that return prepared-statement
-   runners. Callers must not perform raw SQL string concatenation; use the provided
-   helpers or import `schema.sql` strings and pass them as callbacks.
- - Transactions are provided via `transaction()`.
- - Seed data loads only in development (__DEV__).
+ * - Enables foreign keys and WAL mode on every connection.
+ * - Exposes a single database instance via getDatabase().
+ * - Serializes ALL reads, writes, and transactions through an AsyncMutex queue.
+ * - Prevents concurrent transaction collision and silent data loss from interleaved writes.
  */
 
 import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 import { runMigrations } from "./migrations";
 import { schema } from "./schema";
 import { seed } from "./seed";
-import { executeAll, executeRead, executeWrite, transaction } from "./query";
+import {
+  dbMutex,
+  rawExecuteAll,
+  rawExecuteRead,
+  rawExecuteWrite,
+  rawTransaction,
+} from "./query";
 
-// Use a persistent database file in the app's document cache.
-// On Android: /data/user/.../files/DukkanPro.db
-// On iOS:     Library/DukkanPro.db
-// On web:     expo-sqlite uses a relative path indexedDB-like store.
 const DATABASE_NAME = "DukkanPro.db";
-const DATABASE_DESCRIPTION = "DukkanPro — offline-first business app";
 
 let database: SQLiteDatabase | null = null;
 let databasePromise: Promise<SQLiteDatabase> | null = null;
@@ -43,8 +41,6 @@ export async function getDatabase() {
     const db = await openDatabaseAsync(DATABASE_NAME);
 
     // --- Setup pragmas on every fresh connection ---
-    // Foreign keys must be set on every connection (SQLite does not persist across connections).
-    // WAL mode improves concurrent read/write performance.
     await db.execAsync(`
       PRAGMA foreign_keys = ON;
       PRAGMA journal_mode = WAL;
@@ -79,27 +75,85 @@ export async function closeDatabase(): Promise<void> {
   }
 }
 
-/**
- * Re-export query helpers for convenience, now binding them to the default database
- */
-export async function dbAll<T>(sql: string, params: any[] = []): Promise<T[]> {
-  const db = await getDatabase();
-  return executeAll<T>(db, sql, params);
-}
-
-export async function dbRead<T>(sql: string, params: any[] = []): Promise<T[]> {
-  const db = await getDatabase();
-  return executeRead<T>(db, sql, params);
-}
-
-export async function dbWrite(sql: string, params: any[] = []): Promise<number> {
-  const db = await getDatabase();
-  return executeWrite(db, sql, params);
+function isSQLiteDatabase(obj: any): obj is SQLiteDatabase {
+  return obj && typeof obj === "object" && typeof obj.runAsync === "function";
 }
 
 /**
- * Expose the schema SQL strings externally so callers can build their own queries
- * without writing raw strings. Import { schema } from "@/database/schema".
+ * Execute a read query returning all rows.
+ * Overloaded for both standalone usage executeAll(sql, params) and
+ * transactional usage executeAll(db, sql, params).
  */
-export { schema, transaction };
-export { dbAll as executeAll, dbRead as executeRead, dbWrite as executeWrite };
+export async function executeAll<T>(
+  firstArg: SQLiteDatabase | string,
+  secondArg?: string | any[],
+  thirdArg: any[] = [],
+): Promise<T[]> {
+  if (isSQLiteDatabase(firstArg)) {
+    return rawExecuteAll<T>(firstArg, secondArg as string, thirdArg);
+  }
+  const sql = firstArg as string;
+  const params = (secondArg as any[]) || [];
+  return dbMutex.runExclusive(async () => {
+    const db = await getDatabase();
+    return rawExecuteAll<T>(db, sql, params);
+  });
+}
+
+/**
+ * Execute a read query returning first row.
+ * Overloaded for both standalone usage executeRead(sql, params) and
+ * transactional usage executeRead(db, sql, params).
+ */
+export async function executeRead<T>(
+  firstArg: SQLiteDatabase | string,
+  secondArg?: string | any[],
+  thirdArg: any[] = [],
+): Promise<T[]> {
+  if (isSQLiteDatabase(firstArg)) {
+    return rawExecuteRead<T>(firstArg, secondArg as string, thirdArg);
+  }
+  const sql = firstArg as string;
+  const params = (secondArg as any[]) || [];
+  return dbMutex.runExclusive(async () => {
+    const db = await getDatabase();
+    return rawExecuteRead<T>(db, sql, params);
+  });
+}
+
+/**
+ * Execute a write query (INSERT / UPDATE / DELETE).
+ * Overloaded for both standalone usage executeWrite(sql, params) and
+ * transactional usage executeWrite(db, sql, params).
+ */
+export async function executeWrite(
+  firstArg: SQLiteDatabase | string,
+  secondArg?: string | any[],
+  thirdArg: any[] = [],
+): Promise<number> {
+  if (isSQLiteDatabase(firstArg)) {
+    return rawExecuteWrite(firstArg, secondArg as string, thirdArg);
+  }
+  const sql = firstArg as string;
+  const params = (secondArg as any[]) || [];
+  return dbMutex.runExclusive(async () => {
+    const db = await getDatabase();
+    return rawExecuteWrite(db, sql, params);
+  });
+}
+
+/**
+ * Run a function inside a SQLite transaction, serialized via dbMutex.
+ */
+export async function transaction<T>(
+  firstArg: SQLiteDatabase | ((db: SQLiteDatabase) => Promise<T>),
+  secondArg?: (db: SQLiteDatabase) => Promise<T>,
+): Promise<T> {
+  const fn = isSQLiteDatabase(firstArg) ? secondArg! : firstArg;
+  return dbMutex.runExclusive(async () => {
+    const db = await getDatabase();
+    return rawTransaction(db, fn);
+  });
+}
+
+export { dbMutex, executeAll as dbAll, executeRead as dbRead, executeWrite as dbWrite, schema };

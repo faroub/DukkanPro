@@ -33,6 +33,12 @@ yarn-error.*
 # local env files
 .env*.local
 
+# MCP & AI agent local configs
+.mcp.json
+.claude/
+.continue/
+.stitch/
+
 # typescript
 *.tsbuildinfo
 
@@ -41,4 +47,3 @@ example
 # generated native folders
 # /ios
 # /android
-
