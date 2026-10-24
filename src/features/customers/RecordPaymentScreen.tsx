@@ -204,6 +204,13 @@ export function RecordPaymentScreen({
             />
             <ThemedText style={styles.currencyBadge}>{getCurrencySymbol(undefined, i18n.language)}</ThemedText>
           </View>
+          <ThemedText style={[styles.inputHintText, { color: theme.textMuted }]}>
+            {i18n.language?.startsWith("ar")
+              ? "أدخل المبلغ بالدينار (مثال: 1500 لدفع 1500 دج)"
+              : i18n.language?.startsWith("fr")
+              ? "Saisissez le montant en DZD (ex: 1500 pour 1 500 DZD)"
+              : "Enter amount in DZD (e.g. 1500 for 1,500 DZD)"}
+          </ThemedText>
 
           {/* Quick Amount Chips */}
           <View style={styles.quickFillContainer}>
@@ -586,6 +593,11 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       fontSize: 14,
       fontWeight: "700",
       color: theme.textSecondary,
+    },
+    inputHintText: {
+      fontSize: 11,
+      marginTop: 4,
+      textAlign: "center",
     },
     quickFillContainer: {
       flexDirection: "row",
