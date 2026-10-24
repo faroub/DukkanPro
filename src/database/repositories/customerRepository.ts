@@ -71,6 +71,10 @@ export async function getById(id: number): Promise<Customer | null> {
   };
 }
 
+function escapeLike(query: string): string {
+  return query.replace(/[%_\\]/g, "\\$&");
+}
+
 /**
  - Search customers by name or phone substring.
  */
@@ -79,8 +83,9 @@ export async function search(
   filters: CustomerFilters = {},
 ): Promise<Customer[]> {
   const { is_active } = filters;
-  let sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE (name LIKE ? OR phone LIKE ?)`;
-  const params: unknown[] = [`%${query}%`, `%${query}%`];
+  const escaped = escapeLike(query);
+  let sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE (name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\')`;
+  const params: unknown[] = [`%${escaped}%`, `%${escaped}%`];
 
   if (is_active !== undefined) {
     sql += ` AND is_active = ?`;

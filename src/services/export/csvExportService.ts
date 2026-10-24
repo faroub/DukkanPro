@@ -1,11 +1,12 @@
 /**
- * csvExportService — CSV export functionality for Dukkan OS.
+ * csvExportService — CSV export functionality for DukkanPro.
  *
- - All CSV headers are translated using the selected i18n locale.
- - Money values are stored and exported as integer centimes.
- - No cost prices, profit margins, or internal stock quantities in
-   customer-facing exports.
- - Uses expo-file-system for writing and expo-sharing for sharing.
+ * - All CSV headers are translated using the selected i18n locale.
+ * - Money values are stored and exported as integer centimes.
+ * - No cost prices, profit margins, or internal stock quantities in
+ *   customer-facing exports.
+ * - Formula injection characters (=, +, -, @, \t, \r) are neutralized.
+ * - Uses expo-file-system for writing and expo-sharing for sharing.
  */
 
 import * as FileSystem from "expo-file-system";
@@ -13,34 +14,32 @@ import * as Sharing from "expo-sharing";
 import { useTranslation } from "react-i18next";
 
 /**
- - Convert a number to integer centimes string (no decimals).
+ * Convert a number to integer centimes string (no decimals).
  */
 function formatCentimes(value: number): string {
   return Math.round(value).toString();
 }
 
 /**
- - Build a CSV row from an array of string values.
+ * Build a CSV row from an array of string values.
  */
 function buildCsvRow(values: string[]): string {
   return values.map((v) => `"${v}"`).join(",");
 }
 
 /**
- - Escape a string for safe CSV embedding.
- -
- - buildCsvRow wraps every field in double quotes, so only embedded quotes need
- - escaping here (RFC 4180: a quote inside a quoted field is written twice).
- - Commas and newlines are safe once the field is quoted.
+ * Escape a string for safe CSV embedding and neutralize formula injection.
  */
 function csvSafe(value: string): string {
-  return value.replace(/"/g, '""');
+  const escaped = value.replace(/"/g, '""');
+  if (/^[=+@\-\t\r]/.test(escaped)) {
+    return `'${escaped}`;
+  }
+  return escaped;
 }
 
 /**
- - Generate CSV for products.
- - Fields: id, name, sku, category, sale price (DZD), unit.
- - Excludes: cost_price_centimes, stock_quantity (internal data).
+ * Generate CSV for products.
  */
 export function exportProducts(products: any[], t: ReturnType<typeof useTranslation>["t"]): string {
   const header = [
@@ -70,9 +69,7 @@ export function exportProducts(products: any[], t: ReturnType<typeof useTranslat
 }
 
 /**
- - Generate CSV for customers.
- - Fields: id, name, phone.
- - Excludes: debt, cost prices, notes (customer-facing data only).
+ * Generate CSV for customers.
  */
 export function exportCustomers(customers: any[], t: ReturnType<typeof useTranslation>["t"]): string {
   const header = [
@@ -96,9 +93,7 @@ export function exportCustomers(customers: any[], t: ReturnType<typeof useTransl
 }
 
 /**
- - Generate CSV for sales.
- - Fields: id, date, customer, payment method, subtotal, total, status.
- - Excludes: cost prices, profit margins, internal balances.
+ * Generate CSV for sales.
  */
 export function exportSales(sales: any[], t: ReturnType<typeof useTranslation>["t"]): string {
   const header = [
@@ -131,9 +126,7 @@ export function exportSales(sales: any[], t: ReturnType<typeof useTranslation>["
 }
 
 /**
- - Generate CSV for sale items.
- - Fields: id, product name, quantity, unit price, line total.
- - Excludes: unit cost price (historical cost not for customer-facing export).
+ * Generate CSV for sale items.
  */
 export function exportSaleItems(saleItems: any[], t: ReturnType<typeof useTranslation>["t"]): string {
   const header = [
@@ -161,8 +154,7 @@ export function exportSaleItems(saleItems: any[], t: ReturnType<typeof useTransl
 }
 
 /**
- - Generate CSV for customer payments.
- - Fields: id, amount, payment method, date.
+ * Generate CSV for customer payments.
  */
 export function exportPayments(payments: any[], t: ReturnType<typeof useTranslation>["t"]): string {
   const header = [
@@ -188,9 +180,7 @@ export function exportPayments(payments: any[], t: ReturnType<typeof useTranslat
 }
 
 /**
- - Generate CSV for inventory movements.
- - Fields: id, product, movement type, quantity, note, date.
- - Excludes: internal product cost, stock levels.
+ * Generate CSV for inventory movements.
  */
 export function exportInventoryMovements(movements: any[], t: ReturnType<typeof useTranslation>["t"]): string {
   const header = [
