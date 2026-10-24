@@ -59,12 +59,12 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
     conditions.push(`s.remaining_balance_centimes > 0`);
   }
   if (filters.startDate) {
-    conditions.push(`s.sold_at >= ?`);
-    params.push(filters.startDate);
+    conditions.push(`substr(s.sold_at, 1, 10) >= ?`);
+    params.push(filters.startDate.slice(0, 10));
   }
   if (filters.endDate) {
-    conditions.push(`s.sold_at <= ?`);
-    params.push(filters.endDate);
+    conditions.push(`substr(s.sold_at, 1, 10) <= ?`);
+    params.push(filters.endDate.slice(0, 10));
   }
   if (filters.search) {
     conditions.push(`(c.name LIKE ? ESCAPE '\\' OR s.note LIKE ? ESCAPE '\\' OR s.id LIKE ? ESCAPE '\\')`);
@@ -143,9 +143,8 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
  * Retrieve today's completed sales.
  */
 export async function getTodaySales(): Promise<Sale[]> {
-  const sales = await getAll({ status: "completed" });
   const todayStr = new Date().toISOString().slice(0, 10);
-  return sales.filter((s) => s.sold_at.startsWith(todayStr));
+  return getAll({ startDate: todayStr, endDate: todayStr, status: "completed" });
 }
 
 /**

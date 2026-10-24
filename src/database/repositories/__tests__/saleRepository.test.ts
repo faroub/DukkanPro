@@ -446,5 +446,29 @@ describe("saleRepository", () => {
         expect(sale.status).toBe("completed");
       }
     });
+
+    it("includes midday sales made on the end date when filtering by YYYY-MM-DD date range", async () => {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      await create({
+        customerId: 1,
+        paymentMethod: "cash",
+        note: "Midday Sale Test",
+        items: [
+          {
+            productId: 1,
+            quantity: 1,
+            unitSalePriceCentimes: 1000,
+          },
+        ],
+      });
+
+      const filteredSales = await getAll({
+        startDate: todayStr,
+        endDate: todayStr,
+      });
+
+      expect(filteredSales.length).toBeGreaterThan(0);
+      expect(filteredSales.some((s) => s.note === "Midday Sale Test")).toBe(true);
+    });
   });
 });
