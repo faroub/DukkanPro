@@ -243,6 +243,8 @@
     "deleteTitle": "أرشفة المنتج",
     "archiveSuccess": "تم أرشفة المنتج بنجاح",
     "adjustmentSuccess": "تم تعديل المخزون بنجاح",
+    "stockUpdated": "تم التحديث",
+    "restockSuccess": "تمت إضافة {{amount}} إلى {{name}}",
     "noProductsInList": "لا توجد منتجات في القائمة",
     "noInventoryHistory": "لا توجد حركات مخزون",
     "movementIn": "دخول",

@@ -243,6 +243,8 @@
     "deleteTitle": "Archive Product",
     "archiveSuccess": "Product archived successfully",
     "adjustmentSuccess": "Stock adjusted successfully",
+    "stockUpdated": "Stock Updated",
+    "restockSuccess": "Added {{amount}} units to {{name}}",
     "noProductsInList": "No products in list",
     "noInventoryHistory": "No inventory history",
     "movementIn": "In",

@@ -143,12 +143,12 @@ export default function DashboardScreenDefault({
       setRestockModalVisible(false);
       await refetch();
       Alert.alert(
-        locale === "ar" ? "تم التحديث" : locale === "fr" ? "Stock mis à jour" : "Stock Updated",
-        locale === "ar"
-          ? `تمت إضافة ${restockAmount} إلى ${selectedRestockProduct.name}`
-          : locale === "fr"
-            ? `Ajouté ${restockAmount} unités à ${selectedRestockProduct.name}`
-            : `Added ${restockAmount} units to ${selectedRestockProduct.name}`,
+        t("products:stockUpdated", { defaultValue: "Stock Updated" }),
+        t("products:restockSuccess", {
+          name: selectedRestockProduct.name,
+          amount: restockAmount,
+          defaultValue: `Added ${restockAmount} units to ${selectedRestockProduct.name}`,
+        }),
       );
     } catch (e: any) {
       console.error("Failed to update stock", e);

@@ -52,6 +52,8 @@ export interface DashboardData {
 }
 
 export interface DashboardResult extends DashboardData {
+  loading?: boolean;
+  error?: string | null;
   refetch: () => Promise<void>;
 }
 
@@ -200,36 +202,19 @@ export function useDashboard(deps: {
   tRef.current = deps.t;
   const locale = deps.locale;
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const refetch = useCallback(async () => {
-    const dashboardData = await fetchDashboardData(locale);
-    setData({
-      ...dashboardData,
-      greeting: tRef.current("dashboard.greeting"),
-      quickActionNewSale: tRef.current(dashboardData.quickActionNewSale),
-      quickActionAddProduct: tRef.current(dashboardData.quickActionAddProduct),
-      quickActionAddCustomer: tRef.current(
-        dashboardData.quickActionAddCustomer,
-      ),
-      quickActionRecordPayment: tRef.current(
-        dashboardData.quickActionRecordPayment,
-      ),
-    });
-  }, [locale]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
+    setLoading(true);
+    setError(null);
+    try {
       const dashboardData = await fetchDashboardData(locale);
-      if (!isMounted) return;
-
       setData({
         ...dashboardData,
         greeting: tRef.current("dashboard.greeting"),
         quickActionNewSale: tRef.current(dashboardData.quickActionNewSale),
-        quickActionAddProduct: tRef.current(
-          dashboardData.quickActionAddProduct,
-        ),
+        quickActionAddProduct: tRef.current(dashboardData.quickActionAddProduct),
         quickActionAddCustomer: tRef.current(
           dashboardData.quickActionAddCustomer,
         ),
@@ -237,6 +222,48 @@ export function useDashboard(deps: {
           dashboardData.quickActionRecordPayment,
         ),
       });
+    } catch (err: any) {
+      console.error("Dashboard refetch error:", err);
+      setError(err?.message || "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  }, [locale]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const dashboardData = await fetchDashboardData(locale);
+        if (!isMounted) return;
+
+        setData({
+          ...dashboardData,
+          greeting: tRef.current("dashboard.greeting"),
+          quickActionNewSale: tRef.current(dashboardData.quickActionNewSale),
+          quickActionAddProduct: tRef.current(
+            dashboardData.quickActionAddProduct,
+          ),
+          quickActionAddCustomer: tRef.current(
+            dashboardData.quickActionAddCustomer,
+          ),
+          quickActionRecordPayment: tRef.current(
+            dashboardData.quickActionRecordPayment,
+          ),
+        });
+      } catch (err: any) {
+        console.error("Dashboard initial load error:", err);
+        if (isMounted) {
+          setError(err?.message || "Failed to load dashboard data");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     })();
 
     return () => {
@@ -246,6 +273,8 @@ export function useDashboard(deps: {
 
   return {
     ...data,
+    loading,
+    error,
     refetch,
   };
 }

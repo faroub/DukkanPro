@@ -140,12 +140,12 @@ export function LowStockScreen() {
 
       setModalVisible(false);
       Alert.alert(
-        locale === "ar" ? "تم التحديث" : locale === "fr" ? "Stock mis à jour" : "Stock Updated",
-        locale === "ar"
-          ? `تمت إضافة ${restockQuantity} إلى ${selectedProduct.name}`
-          : locale === "fr"
-            ? `Ajouté ${restockQuantity} unités à ${selectedProduct.name}`
-            : `Added ${restockQuantity} units to ${selectedProduct.name}`,
+        t("products:stockUpdated", { defaultValue: "Stock Updated" }),
+        t("products:restockSuccess", {
+          name: selectedProduct.name,
+          amount: restockQuantity,
+          defaultValue: `Added ${restockQuantity} units to ${selectedProduct.name}`,
+        }),
       );
     } catch (e: any) {
       console.error("Error updating stock", e);
