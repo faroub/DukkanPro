@@ -18,7 +18,7 @@ import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
 import { getLowStockProducts } from "@/database/repositories/dashboardRepository";
-import { update } from "@/database/repositories/productRepository";
+import { adjustStock, getAll as getAllProducts } from "@/database/repositories/productRepository";
 import { formatCentimes } from "@/utils/money";
 
 interface LowStockItem {
@@ -112,30 +112,48 @@ export function LowStockScreen() {
   };
 
   const handleConfirmRestock = async () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || restockQuantity <= 0) return;
     try {
-      const newStock = selectedProduct.stock_quantity + restockQuantity;
-      await update(selectedProduct.id, {
-        stock_quantity: newStock,
-      });
-
-      // Update local state
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === selectedProduct.id ? { ...p, stock_quantity: newStock } : p
-        )
+      await adjustStock(
+        selectedProduct.id,
+        restockQuantity,
+        "Quick restock from low stock screen",
       );
+
+      // Refresh product list from database
+      const activeProducts = await getAllProducts({ is_active: true });
+      const lowStock: LowStockItem[] = (activeProducts || [])
+        .filter((p) => (p.stock_quantity || 0) <= (p.minimum_stock_quantity || 5))
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          sku: p.sku ?? undefined,
+          category: p.category ?? undefined,
+          sale_price_centimes: p.sale_price_centimes,
+          cost_price_centimes: p.cost_price_centimes,
+          stock_quantity: p.stock_quantity,
+          minimum_stock_quantity: p.minimum_stock_quantity,
+          unit: p.unit ?? undefined,
+          is_active: p.is_active,
+        }));
+      setProducts(lowStock);
 
       setModalVisible(false);
       Alert.alert(
         locale === "ar" ? "تم التحديث" : locale === "fr" ? "Stock mis à jour" : "Stock Updated",
         locale === "ar"
           ? `تمت إضافة ${restockQuantity} إلى ${selectedProduct.name}`
-          : `Added ${restockQuantity} units to ${selectedProduct.name}`
+          : locale === "fr"
+            ? `Ajouté ${restockQuantity} unités à ${selectedProduct.name}`
+            : `Added ${restockQuantity} units to ${selectedProduct.name}`,
       );
-    } catch (e) {
+    } catch (e: any) {
       console.error("Error updating stock", e);
       setModalVisible(false);
+      Alert.alert(
+        t("common:error", { defaultValue: "Error" }),
+        e?.message || "Failed to update stock",
+      );
     }
   };
 

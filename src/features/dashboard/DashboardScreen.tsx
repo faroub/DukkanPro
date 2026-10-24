@@ -41,7 +41,7 @@ import { RecentSalesList } from "@/features/dashboard/components/RecentSalesList
 import { SalesChart } from "@/features/dashboard/components/SalesChart";
 import { SummaryCards } from "@/features/dashboard/components/SummaryCards";
 import { EmptyDashboardScreen } from "@/features/onboarding/EmptyDashboardScreen";
-import { update as updateProductStock } from "@/database/repositories/productRepository";
+import { adjustStock } from "@/database/repositories/productRepository";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useTheme } from "@/hooks/use-theme";
 import { getTextAlignment } from "@/utils/text";
@@ -134,23 +134,29 @@ export default function DashboardScreenDefault({
   const handleConfirmRestock = async () => {
     if (!selectedRestockProduct || restockAmount <= 0) return;
     try {
-      const newStock =
-        (selectedRestockProduct.stock_quantity || 0) + restockAmount;
-      await updateProductStock(selectedRestockProduct.id, {
-        stock_quantity: newStock,
-      });
+      await adjustStock(
+        selectedRestockProduct.id,
+        restockAmount,
+        "Quick restock from dashboard",
+      );
 
       setRestockModalVisible(false);
-      refetch();
+      await refetch();
       Alert.alert(
         locale === "ar" ? "تم التحديث" : locale === "fr" ? "Stock mis à jour" : "Stock Updated",
         locale === "ar"
           ? `تمت إضافة ${restockAmount} إلى ${selectedRestockProduct.name}`
-          : `Added ${restockAmount} units to ${selectedRestockProduct.name}`
+          : locale === "fr"
+            ? `Ajouté ${restockAmount} unités à ${selectedRestockProduct.name}`
+            : `Added ${restockAmount} units to ${selectedRestockProduct.name}`,
       );
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to update stock", e);
       setRestockModalVisible(false);
+      Alert.alert(
+        t("common:error", { defaultValue: "Error" }),
+        e?.message || "Failed to update stock",
+      );
     }
   };
 
