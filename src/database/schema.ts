@@ -148,6 +148,7 @@ export const schema = {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `,
+
   // ============================================================
   // app_settings — Key-value store for app configuration
   // ============================================================
@@ -159,4 +160,16 @@ export const schema = {
     )
   `,
 
+  // ============================================================
+  // indexes — Performance indexes for query scalability (migration 11)
+  // ============================================================
+  indexes: `
+    CREATE INDEX IF NOT EXISTS idx_sales_sold_at ON sales(sold_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_sales_customer_id ON sales(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status);
+    CREATE INDEX IF NOT EXISTS idx_sales_remaining_balance ON sales(remaining_balance_centimes);
+    CREATE INDEX IF NOT EXISTS idx_sale_items_sale_id ON sale_items(sale_id);
+    CREATE INDEX IF NOT EXISTS idx_customer_payments_customer_id ON customer_payments(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
+  `,
 };

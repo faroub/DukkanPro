@@ -18,7 +18,7 @@ import {
 import { getAllPayments } from "@/database/repositories/exportRepository";
 import { getAll as getAllProducts } from "@/database/repositories/productRepository";
 import { getAll as getAllSales } from "@/database/repositories/saleRepository";
-import { getCustomerDebt } from "@/services/customers/customerBalanceService";
+import { getCustomerDebt, getTotalShopDebt } from "@/services/customers/customerBalanceService";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface DashboardData {
@@ -70,16 +70,10 @@ export async function fetchDashboardData(
   const allSales = await getAllSales();
   const allPayments = await getAllPayments();
 
-  // ---- To collect: sum of per-customer debts ----
+  // ---- To collect: sum of per-customer debts in ONE grouped query ----
   let toCollect_centimes = 0;
   try {
-    const activeCustomers = await getAllCustomers({ is_active: true });
-    for (const c of activeCustomers) {
-      const debt = await getCustomerDebt(c.id);
-      if (debt > 0) {
-        toCollect_centimes += debt;
-      }
-    }
+    toCollect_centimes = await getTotalShopDebt();
   } catch (_err) {
     toCollect_centimes = 0;
   }

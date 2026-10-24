@@ -172,6 +172,39 @@ export async function getCustomerCredit(
 }
 
 /**
+ * Calculate the total outstanding customer debt for the whole shop in ONE grouped query.
+ * Replaces N+1 per-customer queries with a single atomic aggregation.
+ */
+export async function getTotalShopDebt(tx?: SQLiteDatabase): Promise<number> {
+  const sql = `
+    SELECT COALESCE(SUM(c_debt), 0) AS total_debt
+      FROM (
+        SELECT c.id,
+               MAX(0, COALESCE(s.total_sales_balance, 0) - COALESCE(p.total_payments, 0)) AS c_debt
+          FROM customers c
+          LEFT JOIN (
+            SELECT customer_id, SUM(remaining_balance_centimes) AS total_sales_balance
+              FROM sales
+             WHERE status = 'completed' AND remaining_balance_centimes > 0
+             GROUP BY customer_id
+          ) s ON s.customer_id = c.id
+          LEFT JOIN (
+            SELECT customer_id, SUM(amount_centimes) AS total_payments
+              FROM customer_payments
+             GROUP BY customer_id
+          ) p ON p.customer_id = c.id
+         WHERE c.is_active = 1
+      )
+  `;
+
+  const rows: any[] = tx
+    ? await executeRead<{ total_debt: number }>(tx, sql)
+    : await executeRead<{ total_debt: number }>(sql);
+
+  return rows[0]?.total_debt ?? 0;
+}
+
+/**
  * Check if a payment can be recorded for a customer.
  * Blocks overpayment: the payment cannot exceed the customer's current debt.
  */

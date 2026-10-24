@@ -56,6 +56,10 @@ const ALL_MIGRATIONS: Migration[] = [
     version: 10,
     sql: schema.businessProfilesContact,
   },
+  {
+    version: 11,
+    sql: schema.indexes,
+  },
 ];
 
 /**

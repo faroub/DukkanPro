@@ -85,18 +85,24 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
   }
 
   const saleIds = saleRows.map((s) => s.id);
-  const placeholders = saleIds.map(() => "?").join(",");
+  const CHUNK_SIZE = 200; // Chunk IDs into batches of 200 to stay well under SQLite parameter limits
+  const itemRows: any[] = [];
 
-  const itemRows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT si.id, si.sale_id, si.product_id, si.product_name_snapshot, si.quantity,
-            si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes,
-            si.created_at
-       FROM sale_items si
-      WHERE si.sale_id IN (${placeholders})
-      ORDER BY si.id ASC`,
-    saleIds,
-  );
+  for (let i = 0; i < saleIds.length; i += CHUNK_SIZE) {
+    const chunk = saleIds.slice(i, i + CHUNK_SIZE);
+    const placeholders = chunk.map(() => "?").join(",");
+    const rows: any[] = await executeAll(
+      // language=SQLite
+      `SELECT si.id, si.sale_id, si.product_id, si.product_name_snapshot, si.quantity,
+              si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes,
+              si.created_at
+         FROM sale_items si
+        WHERE si.sale_id IN (${placeholders})
+        ORDER BY si.id ASC`,
+      chunk,
+    );
+    itemRows.push(...rows);
+  }
 
   const itemsBySaleId = new Map<number, any[]>();
   for (const item of itemRows) {
