@@ -1,6 +1,4 @@
 import React from "react";
-import { waitFor, screen } from "@testing-library/react-native";
-
 import { ProductListScreen } from "@/features/products/ProductListScreen";
 import { ProductFormScreen } from "@/features/products/ProductFormScreen";
 import ProductDetailScreen from "@/features/products/ProductDetailScreen";
@@ -23,21 +21,19 @@ describe("Product Screens Integration Harness", () => {
     it("renders list of products from catalogue", async () => {
       await seedTestProduct({ name: "Farine 1kg", sale_price_centimes: 6000 });
 
-      renderScreen(<ProductListScreen />);
+      const screen = await renderScreen(<ProductListScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText("Farine 1kg").length).toBeGreaterThan(0);
-      });
+      const elements = await screen.findAllByText("Farine 1kg");
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 
   describe("ProductFormScreen", () => {
     it("renders form inputs for adding a product", async () => {
-      renderScreen(<ProductFormScreen onSave={jest.fn()} onCancel={jest.fn()} />);
+      const screen = await renderScreen(<ProductFormScreen onSave={jest.fn()} onCancel={jest.fn()} />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Nouveau Produit/i).length).toBeGreaterThan(0);
-      });
+      const elements = await screen.findAllByText(/Nouveau Produit/i);
+      expect(elements.length).toBeGreaterThan(0);
     });
   });
 
@@ -46,12 +42,12 @@ describe("Product Screens Integration Harness", () => {
       const product = await seedTestProduct({ name: "Huile d'Olive 1L", stock_quantity: 45 });
       setMockSearchParams({ id: String(product.id) });
 
-      renderScreen(<ProductDetailScreen productId={product.id} />);
+      const screen = await renderScreen(<ProductDetailScreen productId={product.id} />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText("Huile d'Olive 1L").length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/45/i).length).toBeGreaterThan(0);
-      });
+      const titleElements = await screen.findAllByText("Huile d'Olive 1L");
+      expect(titleElements.length).toBeGreaterThan(0);
+      const stockElements = await screen.findAllByText(/45/i);
+      expect(stockElements.length).toBeGreaterThan(0);
     });
   });
 
@@ -60,11 +56,9 @@ describe("Product Screens Integration Harness", () => {
       const product = await seedTestProduct({ name: "Sucre 1kg", stock_quantity: 10 });
       setMockSearchParams({ id: String(product.id), productId: String(product.id) });
 
-      renderScreen(<StockAdjustmentScreen />);
+      const screen = await renderScreen(<StockAdjustmentScreen />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Ajuster le stock")).toBeTruthy();
-      });
+      expect(await screen.findByText("Ajuster le stock")).toBeTruthy();
     });
   });
 });

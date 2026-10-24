@@ -1,5 +1,5 @@
 import React from "react";
-import { waitFor, screen, fireEvent } from "@testing-library/react-native";
+import { fireEvent } from "@testing-library/react-native";
 
 import SellScreen from "@/features/sales/SellScreen";
 import { SalesHistoryScreen } from "@/features/sales/SalesHistoryScreen";
@@ -26,38 +26,34 @@ describe("Sales Screens Integration Harness", () => {
     it("renders available products and adds item to cart", async () => {
       await seedTestProduct({ name: "Jus d'Orange", sale_price_centimes: 15000, stock_quantity: 20 });
 
-      renderScreen(<SellScreen />);
+      const screen = await renderScreen(<SellScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText("Jus d'Orange").length).toBeGreaterThan(0);
-      });
+      const productTiles = await screen.findAllByText("Jus d'Orange");
+      expect(productTiles.length).toBeGreaterThan(0);
 
       // Tap product to add to cart
-      fireEvent.press(screen.getAllByText("Jus d'Orange")[0]);
+      fireEvent.press(productTiles[0]);
 
       // Verify item appears in cart total
-      await waitFor(() => {
-        expect(screen.getAllByText("150 DZD").length).toBeGreaterThan(0);
-      });
+      const totalElements = await screen.findAllByText("150 DZD");
+      expect(totalElements.length).toBeGreaterThan(0);
     });
 
     it("completes checkout transaction and displays payment options", async () => {
       await seedTestProduct({ name: "Eau Minerale", sale_price_centimes: 5000, stock_quantity: 30 });
 
-      renderScreen(<SellScreen />);
+      const screen = await renderScreen(<SellScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText("Eau Minerale").length).toBeGreaterThan(0);
-      });
+      const productTiles = await screen.findAllByText("Eau Minerale");
+      expect(productTiles.length).toBeGreaterThan(0);
 
       // Add product to cart
-      fireEvent.press(screen.getAllByText("Eau Minerale")[0]);
+      fireEvent.press(productTiles[0]);
 
       // Press view cart button
-      await waitFor(() => {
-        expect(screen.getByText("Voir le panier")).toBeTruthy();
-      });
-      fireEvent.press(screen.getByText("Voir le panier"));
+      const viewCartBtn = await screen.findByText("Voir le panier");
+      expect(viewCartBtn).toBeTruthy();
+      fireEvent.press(viewCartBtn);
     });
   });
 
@@ -66,12 +62,10 @@ describe("Sales Screens Integration Harness", () => {
       const customer = await seedTestCustomer({ name: "Billel Buyer" });
       await seedTestSale({ customerId: customer.id, amountPaidCentimes: 24000 });
 
-      renderScreen(<SalesHistoryScreen />);
+      const screen = await renderScreen(<SalesHistoryScreen />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Billel Buyer")).toBeTruthy();
-        expect(screen.getByText("240 DZD")).toBeTruthy();
-      });
+      expect(await screen.findByText("Billel Buyer")).toBeTruthy();
+      expect(await screen.findByText("240 DZD")).toBeTruthy();
     });
   });
 
@@ -82,12 +76,11 @@ describe("Sales Screens Integration Harness", () => {
 
       setMockSearchParams({ id: String(sale.id) });
 
-      renderScreen(<SaleDetailScreen />);
+      const screen = await renderScreen(<SaleDetailScreen />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Omar Details")).toBeTruthy();
-        expect(screen.getAllByText("240 DZD").length).toBeGreaterThan(0);
-      });
+      expect(await screen.findByText("Omar Details")).toBeTruthy();
+      const priceElements = await screen.findAllByText("240 DZD");
+      expect(priceElements.length).toBeGreaterThan(0);
     });
   });
 });

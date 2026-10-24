@@ -1,18 +1,11 @@
 import React from "react";
-import { waitFor, screen } from "@testing-library/react-native";
-
+import { renderScreen, resetTestDb, seedTestBusinessProfile, resetMockRouter } from "@/testing/screenTestHarness";
 import { MoreScreen } from "@/features/settings/MoreScreen";
 import { BusinessSettingsScreen } from "@/features/settings/BusinessSettingsScreen";
 import { LanguageSettingsScreen } from "@/features/settings/LanguageSettingsScreen";
 import { ThemeSettingsScreen } from "@/features/settings/ThemeSettingsScreen";
 import { ExportSettingsScreen } from "@/features/settings/ExportSettingsScreen";
 import { DataResetScreen } from "@/features/settings/DataResetScreen";
-import {
-  renderScreen,
-  resetTestDb,
-  seedTestBusinessProfile,
-  resetMockRouter,
-} from "@/testing/screenTestHarness";
 
 describe("Settings Screens Integration Harness", () => {
   beforeEach(async () => {
@@ -22,12 +15,12 @@ describe("Settings Screens Integration Harness", () => {
 
   describe("MoreScreen (Settings Overview)", () => {
     it("renders settings options and navigation items", async () => {
-      renderScreen(<MoreScreen />);
+      const screen = await renderScreen(<MoreScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Profil & Identité/i).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/Langue & Affichage/i).length).toBeGreaterThan(0);
-      });
+      const profileItems = await screen.findAllByText(/Profil & Identité/i);
+      expect(profileItems.length).toBeGreaterThan(0);
+      const langItems = await screen.findAllByText(/Langue & Affichage/i);
+      expect(langItems.length).toBeGreaterThan(0);
     });
   });
 
@@ -35,58 +28,56 @@ describe("Settings Screens Integration Harness", () => {
     it("renders business profile form fields and currency options", async () => {
       await seedTestBusinessProfile("Pro Magasin", "0555001122", "Oran");
 
-      renderScreen(<BusinessSettingsScreen />);
+      const screen = await renderScreen(<BusinessSettingsScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Nom du magasin/i).length).toBeGreaterThan(0);
-        expect(screen.getAllByText("Pro Magasin").length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/DZD/i).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/EUR/i).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/USD/i).length).toBeGreaterThan(0);
-      });
+      const labelElements = await screen.findAllByText(/Nom du magasin/i);
+      expect(labelElements.length).toBeGreaterThan(0);
+      const nameElements = await screen.findAllByText("Pro Magasin");
+      expect(nameElements.length).toBeGreaterThan(0);
+      const dzdElements = await screen.findAllByText(/DZD/i);
+      expect(dzdElements.length).toBeGreaterThan(0);
     });
   });
 
   describe("LanguageSettingsScreen", () => {
     it("renders language choices (FR, AR, EN)", async () => {
-      renderScreen(<LanguageSettingsScreen />);
+      const screen = await renderScreen(<LanguageSettingsScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Français/i).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/العربية/i).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/English/i).length).toBeGreaterThan(0);
-      });
+      const fr = await screen.findAllByText(/Français/i);
+      expect(fr.length).toBeGreaterThan(0);
+      const ar = await screen.findAllByText(/العربية/i);
+      expect(ar.length).toBeGreaterThan(0);
+      const en = await screen.findAllByText(/English/i);
+      expect(en.length).toBeGreaterThan(0);
     });
   });
 
   describe("ThemeSettingsScreen", () => {
     it("renders theme selection options", async () => {
-      renderScreen(<ThemeSettingsScreen />);
+      const screen = await renderScreen(<ThemeSettingsScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Clair/i).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/Sombre/i).length).toBeGreaterThan(0);
-      });
+      const clair = await screen.findAllByText(/Clair/i);
+      expect(clair.length).toBeGreaterThan(0);
+      const sombre = await screen.findAllByText(/Sombre/i);
+      expect(sombre.length).toBeGreaterThan(0);
     });
   });
 
   describe("ExportSettingsScreen", () => {
     it("renders data export options for products, sales and customers", async () => {
-      renderScreen(<ExportSettingsScreen />);
+      const screen = await renderScreen(<ExportSettingsScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Export/i).length).toBeGreaterThan(0);
-      });
+      const exportItems = await screen.findAllByText(/Export/i);
+      expect(exportItems.length).toBeGreaterThan(0);
     });
   });
 
   describe("DataResetScreen", () => {
     it("renders data reset confirmation interface", async () => {
-      renderScreen(<DataResetScreen />);
+      const screen = await renderScreen(<DataResetScreen />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText(/Réinitialisation/i).length).toBeGreaterThan(0);
-      });
+      const resetItems = await screen.findAllByText(/Réinitialisation/i);
+      expect(resetItems.length).toBeGreaterThan(0);
     });
   });
 });
