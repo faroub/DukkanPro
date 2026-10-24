@@ -81,6 +81,43 @@ export async function search(
 }
 
 /**
+ * Retrieve top selling products ordered by total quantity sold in completed sales.
+ * Falls back to active products if no sales exist yet.
+ */
+export async function getTopSellingProducts(limit: number = 6): Promise<Product[]> {
+  const rows: any[] = await executeAll(
+    // language=SQLite
+    `SELECT p.id, p.name, p.sku, p.category, p.sale_price_centimes, p.cost_price_centimes,
+            p.stock_quantity, p.minimum_stock_quantity, p.unit, p.is_active,
+            p.created_at, p.updated_at,
+            COALESCE(SUM(si.quantity), 0) AS total_sold
+       FROM products p
+       LEFT JOIN sale_items si ON si.product_id = p.id
+       LEFT JOIN sales s ON s.id = si.sale_id AND s.status = 'completed'
+      WHERE p.is_active = 1
+      GROUP BY p.id
+      ORDER BY total_sold DESC, p.name ASC
+      LIMIT ?`,
+    [limit],
+  );
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    sku: r.sku,
+    category: r.category,
+    sale_price_centimes: r.sale_price_centimes,
+    cost_price_centimes: r.cost_price_centimes,
+    stock_quantity: r.stock_quantity,
+    minimum_stock_quantity: r.minimum_stock_quantity,
+    unit: r.unit,
+    is_active: r.is_active !== 0,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+  }));
+}
+
+/**
  * Retrieve a single product by id.
  */
 export async function getById(id: number): Promise<Product | null> {

@@ -1,5 +1,5 @@
 import { SymbolView } from "expo-symbols";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -25,6 +25,7 @@ import {
     Typography,
 } from "@/constants/theme";
 import { create } from "@/database/repositories/saleRepository";
+import { getTopSellingProducts } from "@/database/repositories/productRepository";
 import { BarcodeScannerModal } from "@/features/sales/components/BarcodeScannerModal";
 import { CartList } from "@/features/sales/components/CartList";
 import { CheckoutSheet } from "@/features/sales/components/CheckoutSheet";
@@ -91,9 +92,26 @@ export default function SellScreen() {
     });
   }, [products, searchQuery, selectedCategory]);
 
-  // Frequent / fast-tap items (first 6 products)
-  const frequentProducts = useMemo(() => {
-    return products.slice(0, 6);
+  // Frequent / fast-tap items (top 6 selling products from SQLite)
+  const [frequentProducts, setFrequentProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getTopSellingProducts(6)
+      .then((topProducts) => {
+        if (isMounted) {
+          setFrequentProducts(
+            topProducts.length > 0 ? topProducts : products.slice(0, 6)
+          );
+        }
+      })
+      .catch(() => {
+        if (isMounted) setFrequentProducts(products.slice(0, 6));
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [products]);
 
   const handleBarcodeScanned = (code: string, matchedProduct?: Product) => {
