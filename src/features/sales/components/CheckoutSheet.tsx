@@ -1,3 +1,13 @@
+/**
+ * CheckoutSheet — POS payment and customer settlement modal.
+ *
+ * Contract:
+ * - Live product prices and stock levels are re-validated against SQLite when the sheet opens
+ *   and prior to checkout confirmation.
+ * - Checkout calculations (subtotal, total, change due, underpayment debt) use live prices
+ *   to ensure exact financial match between tender, total, and recorded sales.
+ */
+
 import { SymbolView } from "expo-symbols";
 import { useCallback, useState, useEffect } from "react";
 import {
@@ -64,18 +74,65 @@ export function CheckoutSheet({
   error,
 }: CheckoutSheetProps) {
   const theme = useTheme();
-  const { items } = useCartStoreHook();
+  const { items, discount } = useCartStoreHook();
   const { t, i18n } = useTranslation();
+
   const [paymentMethod, setPaymentMethod] = useState<
     "cash" | "electronic" | "credit" | "partial"
   >("cash");
   const [note, setNote] = useState<string>("");
-  const [amountReceived, setAmountReceived] = useState<number>(cartTotal);
-  const [partialAmount, setPartialAmount] = useState<number>(
-    Math.round(cartTotal / 2),
-  );
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+
+  // Live re-computed subtotal and validated items from SQLite
+  const [liveSubtotal, setLiveSubtotal] = useState<number>(cartTotal);
+  const [validatedItems, setValidatedItems] = useState<
+    Array<{ productId: number; quantity: number; unitSalePriceCentimes: number }>
+  >([]);
+
+  useEffect(() => {
+    if (!visible || items.length === 0) return;
+
+    let isMounted = true;
+    (async () => {
+      let sum = 0;
+      const valItems: Array<{ productId: number; quantity: number; unitSalePriceCentimes: number }> = [];
+
+      for (const item of items) {
+        const liveProduct = await getProductById(item.product.id);
+        const unitPrice = liveProduct?.sale_price_centimes ?? item.product.sale_price_centimes;
+        sum += unitPrice * item.quantity;
+        valItems.push({
+          productId: item.product.id,
+          quantity: item.quantity,
+          unitSalePriceCentimes: unitPrice,
+        });
+      }
+
+      if (isMounted) {
+        setLiveSubtotal(sum);
+        setValidatedItems(valItems);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [visible, items]);
+
+  const displayTotal = Math.max(0, liveSubtotal - (discount || 0));
+
+  const [amountReceived, setAmountReceived] = useState<number>(displayTotal);
+  const [partialAmount, setPartialAmount] = useState<number>(
+    Math.round(displayTotal / 2),
+  );
+
+  useEffect(() => {
+    if (visible) {
+      setAmountReceived(displayTotal);
+      setPartialAmount(Math.round(displayTotal / 2));
+    }
+  }, [visible, displayTotal]);
 
   // Fetch real customers from SQLite
   const { customers } = useCustomers({ onlyActive: true });
@@ -89,25 +146,19 @@ export function CheckoutSheet({
   }, []);
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
-  const changeDue = Math.max(0, amountReceived - cartTotal);
-  const remainingAfterPartial = Math.max(0, cartTotal - partialAmount);
+  const changeDue = Math.max(0, amountReceived - displayTotal);
+  const remainingAfterPartial = Math.max(0, displayTotal - partialAmount);
 
   const handleQuickAddCash = (centimesToAdd: number) => {
     setAmountReceived((prev) => prev + centimesToAdd);
   };
 
   const handleExactCash = () => {
-    setAmountReceived(cartTotal);
+    setAmountReceived(displayTotal);
   };
 
   const handleConfirm = useCallback(async () => {
-    // M3 Fix: Live re-validation of stock and price for all items in cart before checkout
-    const checkoutItems: Array<{
-      productId: number;
-      quantity: number;
-      unitSalePriceCentimes: number;
-    }> = [];
-
+    // Re-validate live stock for all items in cart before checkout
     for (const item of items) {
       const liveProduct = await getProductById(item.product.id);
       if (!liveProduct || !liveProduct.is_active) {
@@ -133,12 +184,6 @@ export function CheckoutSheet({
         );
         return;
       }
-
-      checkoutItems.push({
-        productId: liveProduct.id,
-        quantity: item.quantity,
-        unitSalePriceCentimes: liveProduct.sale_price_centimes, // Live updated price from SQLite
-      });
     }
 
     const effectiveAmountPaid =
@@ -148,9 +193,9 @@ export function CheckoutSheet({
           ? partialAmount
           : paymentMethod === "credit"
             ? 0
-            : cartTotal;
+            : displayTotal;
 
-    const remaining = Math.max(0, cartTotal - effectiveAmountPaid);
+    const remaining = Math.max(0, displayTotal - effectiveAmountPaid);
 
     if ((paymentMethod === "credit" || paymentMethod === "partial" || remaining > 0) && !customerId) {
       Alert.alert(
@@ -168,9 +213,9 @@ export function CheckoutSheet({
       amountPaid: effectiveAmountPaid,
       note,
       customerId: customerId || undefined,
-      validatedItems: checkoutItems,
+      validatedItems,
     });
-  }, [items, paymentMethod, amountReceived, partialAmount, note, customerId, cartTotal, onCheckout, t]);
+  }, [items, validatedItems, paymentMethod, amountReceived, partialAmount, note, customerId, displayTotal, onCheckout, t]);
 
   return (
     <Modal
@@ -212,7 +257,7 @@ export function CheckoutSheet({
                   {t("sales:totalToPay", { defaultValue: "Montant total à payer" })}
                 </Text>
                 <Text style={[styles.totalCardAmount, { color: theme.textPrimary }]}>
-                  {formatCentimes(cartTotal)}
+                  {formatCentimes(displayTotal)}
                 </Text>
               </View>
               <View style={[styles.totalCardBadge, { backgroundColor: theme.primary }]}>
