@@ -1022,7 +1022,19 @@
     "updateInfoSubtitle": "تحديث معلومات العميل",
     "whatsappNotInstalled": "واتساب غير مثبّت.",
     "whatsappRecommended": "موصى به",
-    "withDebtCount": "أصحاب الديون"
+    "withDebtCount": "أصحاب الديون",
+    "customerCredit": "رصيد دائن للزبون",
+    "recordRefund": "استرداد",
+    "refund": "استرداد",
+    "refundAmount": "مبلغ الاسترداد",
+    "refundMethod": "طريقة الاسترداد",
+    "refundSuccess": "تم تسجيل الاسترداد",
+    "refundCleared": "تم استرداد {{amount}} لـ {{customer}}",
+    "refundExceedsCredit": "مبلغ الاسترداد يتجاوز الرصيد الدائن المتوفر",
+    "remainingCreditAfter": "الرصيد المتبقي بعد الاسترداد",
+    "confirmRefund": "تأكيد الاسترداد",
+    "refundNotePlaceholder": "سبب الاسترداد (اختياري)",
+    "noCreditToRefund": "لا يوجد رصيد دائن لهذا الزبون. يظهر الرصيد الدائن عند إلغاء أو إرجاع معاملة مدفوعة."
   },
   "payments": {
     "title": "المدفوعات",

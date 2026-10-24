@@ -16,8 +16,8 @@ import {
 import type { Product, Customer, Sale } from "@/types/entities";
 
 // @ts-ignore
-import { mockRouter, resetMockRouter, setMockSearchParams } from "../../jest.setup";
-export { mockRouter, resetMockRouter, setMockSearchParams };
+import { mockRouter, resetMockRouter, setMockSearchParams, triggerMockFocus } from "../../jest.setup";
+export { mockRouter, resetMockRouter, setMockSearchParams, triggerMockFocus };
 
 /**
  * Screen Test Provider Wrapper

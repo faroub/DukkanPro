@@ -204,6 +204,34 @@ export function CancelSaleDialog({
                 </View>
               </View>
 
+              {/* Customer credit callout (only for customer-linked sales) */}
+              {saleDetails?.customer_name ? (
+                <View style={[styles.callout, { backgroundColor: theme.primaryLight, borderColor: theme.border }]}>
+                  <MaterialIcons
+                    name="account-balance-wallet"
+                    size={20}
+                    color={theme.positive}
+                    style={styles.calloutIcon}
+                  />
+                  <View style={styles.calloutContent}>
+                    <ThemedText style={[styles.calloutTitle, { color: theme.positive }]}>
+                      {isArabic
+                        ? 'قد ينشأ رصيد دائن للزبون'
+                        : isFrench
+                        ? 'Un crédit client peut être créé'
+                        : 'Customer credit may be created'}
+                    </ThemedText>
+                    <ThemedText style={[styles.calloutBody, { color: theme.positive }]}>
+                      {isArabic
+                        ? 'سيُعاد حساب رصيد هذا الزبون. أي رصيد دائن متوفر يمكن الاحتفاظ به أو استرداده من ملفه.'
+                        : isFrench
+                        ? 'Le solde de ce client sera recalculé. Tout crédit disponible pourra être conservé ou remboursé depuis sa fiche.'
+                        : 'The customer\'s balance will be recalculated. Any available credit can be retained or refunded from their profile.'}
+                    </ThemedText>
+                  </View>
+                </View>
+              ) : null}
+
               {/* Reason Selection */}
               <View style={styles.reasonSection}>
                 <View style={styles.reasonLabelRow}>

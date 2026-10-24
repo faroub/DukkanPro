@@ -1022,7 +1022,19 @@
     "updateInfoSubtitle": "Mettre à jour les informations du client",
     "whatsappNotInstalled": "WhatsApp n'est pas installé.",
     "whatsappRecommended": "Recommandé",
-    "withDebtCount": "Avec dette"
+    "withDebtCount": "Avec dette",
+    "customerCredit": "Crédit client",
+    "recordRefund": "Rembourser",
+    "refund": "Remboursement",
+    "refundAmount": "Montant du remboursement",
+    "refundMethod": "Mode de remboursement",
+    "refundSuccess": "Remboursement enregistré",
+    "refundCleared": "{{amount}} remboursés à {{customer}}",
+    "refundExceedsCredit": "Le remboursement dépasse le crédit client disponible",
+    "remainingCreditAfter": "Crédit restant après remboursement",
+    "confirmRefund": "Confirmer le remboursement",
+    "refundNotePlaceholder": "Motif du remboursement (optionnel)",
+    "noCreditToRefund": "Ce client n'a pas de crédit à rembourser. Un crédit apparaît lorsqu'une vente déjà payée est annulée ou retournée."
   },
   "payments": {
     "title": "Moyens de paiement",
