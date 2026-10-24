@@ -6,44 +6,37 @@
  * - Cancelled and returned sales are excluded from debt calculation
  * - Debt is calculated dynamically from sales and payments (no mutable field)
  * - Overpayment is blocked in MVP
- * - All financial changes use SQLite transactions
+ * - All financial changes use SQLite transactions and explicit tx handle passing
  */
 
+import { type SQLiteDatabase } from "expo-sqlite";
 import {
-    executeRead,
-    executeWrite,
-    getDatabase,
-    transaction,
+  executeRead,
+  executeWrite,
+  getDatabase,
+  transaction,
 } from "@/database/database";
 import { CustomerPayment, Sale } from "@/types/entities";
 
 /**
- - Retrieve all sales for a customer, optionally filtered by status.
- - Completed sales count toward debt.
- - Cancelled and returned sales are excluded.
+ * Retrieve all sales for a customer, optionally filtered by status.
+ * Threading `tx` explicitly ensures queries run directly inside active transactions.
  */
 async function getSalesByCustomer(
   customerId: number,
   statusFilter?: "completed" | "cancelled" | "refunded" | "returned",
+  tx?: SQLiteDatabase,
 ): Promise<Sale[]> {
-  const filter: Record<string, any> = {};
-
-  if (statusFilter) {
-    filter.status = statusFilter;
-  }
-
-  // Note: The saleRepository.getByCustomerId passes customerId via filters
-  // We'll implement a direct query here for flexibility
-  const rows: any[] = await executeRead(
-    // language=SQLite
-    `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
+  const sql = `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
              s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
              s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
        FROM sales s
        WHERE s.customer_id = ?
-       ORDER BY s.sold_at DESC`,
-    [customerId],
-  );
+       ORDER BY s.sold_at DESC`;
+
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, [customerId])
+    : await executeRead(sql, [customerId]);
 
   const sales: Sale[] = rows.map((r) => ({
     id: r.id,
@@ -66,7 +59,6 @@ async function getSalesByCustomer(
     updated_at: r.updated_at,
   }));
 
-  // Apply client-side filter if needed (for excluding cancelled/returned)
   if (statusFilter) {
     return sales.filter((sale) => sale.status === statusFilter);
   }
@@ -75,20 +67,21 @@ async function getSalesByCustomer(
 }
 
 /**
- - Retrieve all customer payments from the customer_payments table.
+ * Retrieve all customer payments from the customer_payments table.
  */
 export async function getCustomerPayments(
   customerId: number,
+  tx?: SQLiteDatabase,
 ): Promise<CustomerPayment[]> {
-  const rows: any[] = await executeRead(
-    // language=SQLite
-    `SELECT cp.id, cp.customer_id, cp.amount_centimes, cp.payment_method,
+  const sql = `SELECT cp.id, cp.customer_id, cp.amount_centimes, cp.payment_method,
              cp.note, cp.paid_at, cp.created_at
        FROM customer_payments cp
       WHERE cp.customer_id = ?
-      ORDER BY cp.paid_at DESC`,
-    [customerId],
-  );
+      ORDER BY cp.paid_at DESC`;
+
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, [customerId])
+    : await executeRead(sql, [customerId]);
 
   return rows.map((r) => ({
     id: r.id,
@@ -107,51 +100,31 @@ export async function getCustomerPayments(
 }
 
 /**
- - Calculate the customer's current debt.
- -
- - Debt = sum of valid unpaid sale balances minus recorded payments.
- - A "valid unpaid sale" is a completed sale with remaining_balance_centimes > 0
-   (or total_centimes > amount_paid_centimes).
- - Cancelled and returned sales are explicitly excluded.
- -
- - @param customerId - The customer's ID
- - @returns Debt in centimes (integer, >= 0)
+ * Calculate the customer's current debt.
  */
-export async function getCustomerDebt(customerId: number): Promise<number> {
-  // 1. Get all completed sales for this customer
-  const completedSales = await getSalesByCustomer(customerId, "completed");
+export async function getCustomerDebt(
+  customerId: number,
+  tx?: SQLiteDatabase,
+): Promise<number> {
+  const completedSales = await getSalesByCustomer(customerId, "completed", tx);
 
-  // 2. Sum the remaining balances from completed sales
-  //    (use remaining_balance_centimes if > 0, otherwise 0)
   const totalSaleBalance = completedSales.reduce(
     (sum, sale) => sum + Math.max(0, sale.remaining_balance_centimes),
     0,
   );
 
-  // 3. Get all recorded payments for this customer
-  const payments = await getCustomerPayments(customerId);
+  const payments = await getCustomerPayments(customerId, tx);
 
-  // 4. Sum all payment amounts
   const totalPaid = payments.reduce(
     (sum, payment) => sum + payment.amount_centimes,
     0,
   );
 
-  // 5. Debt = total outstanding balance from sales - total payments
-  //    Ensure debt cannot be negative (block overpayment in MVP)
-  const debt = Math.max(0, totalSaleBalance - totalPaid);
-
-  return debt;
+  return Math.max(0, totalSaleBalance - totalPaid);
 }
 
 /**
- - Check if a payment can be recorded for a customer.
- -
- - Blocks overpayment in MVP: payment cannot exceed the customer's current debt.
- -
- - @param customerId - The customer's ID
- - @param amount - Payment amount in centimes
- - @returns True if payment can be recorded, false if it would overpay
+ * Check if a payment can be recorded for a customer.
  */
 export async function canRecordPayment(
   customerId: number,
@@ -162,28 +135,11 @@ export async function canRecordPayment(
   }
 
   const debt = await getCustomerDebt(customerId);
-
-  // Payment is allowed if it does not exceed the current debt
   return amount <= debt;
 }
 
 /**
- - Record a payment for a customer in a single SQLite transaction.
- -
- - Payment rules:
-   - Amount must be positive
-   - Payment method: cash or electronic (MVP)
-   - Note is optional
-   - Confirmation is handled by the caller
-   - Overpayment is blocked: the debt is re-read inside the transaction so a
-     concurrent payment cannot push the balance negative between the check
-     and the insert (BEGIN IMMEDIATE serializes writers).
- -
- - @param customerId - The customer's ID
- - @param amount - Payment amount in centimes
- - @param method - Payment method: "cash" | "electronic"
- - @param note - Optional payment note
- - @returns The recorded CustomerPayment, or null if payment was blocked
+ * Record a payment for a customer in a single SQLite transaction.
  */
 export async function recordPayment(
   customerId: number,
@@ -196,18 +152,15 @@ export async function recordPayment(
   }
 
   const db = await getDatabase();
-  return await transaction(db, async () => {
-    // Re-check the debt INSIDE the transaction. `transaction` opens with
-    // BEGIN IMMEDIATE, which takes the write lock, so no rival payment can
-    // commit between this read and our INSERT. Checking the debt before the
-    // transaction would be a check-then-act race that allows overpayment.
-    const debt = await getCustomerDebt(customerId);
+  return await transaction(db, async (tx) => {
+    // Re-check the debt INSIDE the transaction using explicit tx handle
+    const debt = await getCustomerDebt(customerId, tx);
     if (amount > debt) {
       return null;
     }
 
     const paymentId = await executeWrite(
-      // language=SQLite
+      tx,
       `INSERT INTO customer_payments
          (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
        VALUES
@@ -217,7 +170,6 @@ export async function recordPayment(
 
     const now = new Date().toISOString();
 
-    // Return the newly created payment record
     return {
       id: paymentId,
       customer_id: customerId,
@@ -231,10 +183,7 @@ export async function recordPayment(
 }
 
 /**
- - Get summary of a customer's financial status.
- -
- - @param customerId - The customer's ID
- - @returns Debt summary object
+ * Get summary of a customer's financial status.
  */
 export async function getCustomerBalanceSummary(customerId: number) {
   const debt = await getCustomerDebt(customerId);
