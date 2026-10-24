@@ -25,6 +25,7 @@ import {
 import { executeAll } from "@/database/database";
 import * as businessProfile from "@/database/repositories/businessProfileRepository";
 import { clearBusinessData, resetDatabase } from "@/database/repositories/resetRepository";
+import { useCartStore } from "@/stores/cartStore";
 import { useTheme } from "@/hooks/use-theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -83,6 +84,7 @@ export function DataResetScreen() {
           onPress: async () => {
             try {
               await clearBusinessData();
+              useCartStore.getState().clearCart();
               setProductCount(0);
               setSaleCount(0);
               showToast(
@@ -123,6 +125,7 @@ export function DataResetScreen() {
             setIsLoading(true);
             try {
               await resetDatabase();
+              useCartStore.getState().clearCart();
               showToast(
                 t("dataReset.wipeSuccess") ||
                   "Database wiped. Returning to onboarding...",
