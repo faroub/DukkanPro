@@ -3,20 +3,16 @@
  *
  * - All methods use atomic reads from the SQLite database.
  * - Revenue/profit are computed from completed sales only.
- * - Customer debt excludes cancelled and returned sales.
  * - Stock counts exclude inactive/archived products.
  */
 
 import { executeAll, executeRead } from "../database";
-import { Sale } from "../../types/entities";
 
 export type DashboardResult = {
   todayRevenue: number;    // centimes
   todayCost: number;       // centimes
   todayProfit: number;     // centimes
-  outstandingDebt: number; // centimes
   lowStockCount: number;
-  recentSales: Sale[];
   lowStockProducts: any[]; // Product[]
   sevenDaySales: { date: string; total: number }[];
 };
@@ -82,22 +78,6 @@ export async function getTodayProfit(): Promise<number> {
 }
 
 /**
- * Get outstanding customer debt (centimes).
- * Customer debt = valid unpaid sale balances - recorded payments.
- * Cancelled and returned sales are excluded from debt calculation.
- */
-export async function getOutstandingDebt(): Promise<number> {
-  const rows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT COALESCE(SUM(s.remaining_balance_centimes), 0) as total
-       FROM sales s
-      WHERE s.status = 'completed'
-        AND s.remaining_balance_centimes > 0`,
-  );
-  return rows[0]?.total as number;
-}
-
-/**
  * Get count of products at or below minimum stock quantity.
  */
 export async function getLowStockCount(): Promise<number> {
@@ -109,45 +89,6 @@ export async function getLowStockCount(): Promise<number> {
         AND is_active = 1`,
   );
   return (rows[0]?.count as number) || 0;
-}
-
-/**
- * Get recent sales (completed), limited by count.
- */
-export async function getRecentSales(limit: number): Promise<Sale[]> {
-  const rows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
-             s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
-        FROM sales s
-       WHERE s.status = 'completed'
-    ORDER BY s.sold_at DESC
-       LIMIT ?`,
-    [limit],
-  );
-
-  return rows.map((sale) => ({
-    id: sale.id,
-    customer_id: sale.customer_id,
-    status: sale.status as "completed" | "cancelled" | "returned",
-    subtotal_centimes: sale.subtotal_centimes as number,
-    discount_centimes: sale.discount_centimes as number,
-    total_centimes: sale.total_centimes as number,
-    amount_paid_centimes: sale.amount_paid_centimes as number,
-    remaining_balance_centimes: sale.remaining_balance_centimes as number,
-    payment_method: sale.payment_method as
-      | "cash"
-      | "electronic"
-      | "mixed"
-      | "partial"
-      | "credit",
-    note: sale.note,
-    sold_at: sale.sold_at,
-    created_at: sale.created_at,
-    updated_at: sale.updated_at,
-    saleItems: [], // loaded separately if needed
-  }));
 }
 
 /**

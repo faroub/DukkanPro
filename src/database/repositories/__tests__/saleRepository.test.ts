@@ -8,7 +8,8 @@
  */
 
 import { getDatabase } from "../../database";
-import { getOutstandingDebt, getTodayRevenue } from "../dashboardRepository";
+import { getTodayRevenue } from "../dashboardRepository";
+import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 import {
   cancel,
   create,
@@ -344,9 +345,9 @@ describe("saleRepository", () => {
     it("does not count returned sale toward debt", async () => {
       await returnSale(saleId!, "Test return");
 
-      const debt = await getOutstandingDebt();
+      const debt = await getCustomerDebt(1);
       // Returned sales should be excluded from debt calculation
-      expect(typeof debt).toBe("number");
+      expect(debt).toBe(0);
     });
   });
 
