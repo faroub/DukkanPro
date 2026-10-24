@@ -1,11 +1,13 @@
 /**
- * Migrations.ts — Versioned migration runner for Dukkan OS SQLite database.
+ * Migrations.ts — Versioned, transactional, and idempotent migration runner for DukkanPro.
  *
- * - Each migration runs only once, tracked in _migration_version table.
- - Migrations are numbered sequentially. Run via `runMigrations(db)`.
- - Down migrations are NOT supported — financial records must never be physically deleted.
+ * Rules:
+ * - Each migration runs inside a single atomic SQLite transaction (SQL + _migration_version record).
+ * - ALTER TABLE statements are defensive: column existence is checked via PRAGMA table_info first.
+ * - Migrations are numbered sequentially and run via `runMigrations(db)`.
  */
 
+import { rawTransaction } from "./query";
 import { schema } from "./schema";
 
 export type Migration = {
@@ -56,6 +58,44 @@ const ALL_MIGRATIONS: Migration[] = [
   },
 ];
 
+/**
+ * Safely executes migration SQL statements.
+ * For ALTER TABLE ADD COLUMN statements, checks PRAGMA table_info first to avoid
+ * "duplicate column name" crashes if a column was already added before a crash.
+ */
+async function execDefensiveSql(db: any, sql: string): Promise<void> {
+  const statements = sql
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+  for (const stmt of statements) {
+    const alterMatch = stmt.match(
+      /ALTER\s+TABLE\s+([^\s]+)\s+ADD\s+COLUMN\s+([^\s]+)\s+(.*)/i,
+    );
+    if (alterMatch) {
+      const tableName = alterMatch[1].replace(/[`"']/g, "");
+      const columnName = alterMatch[2].replace(/[`"']/g, "");
+      const colTypeSpec = alterMatch[3];
+
+      const columns: any[] = await db.getAllAsync(
+        `PRAGMA table_info(${tableName})`,
+      );
+      const exists = columns.some(
+        (c: any) => c.name.toLowerCase() === columnName.toLowerCase(),
+      );
+
+      if (!exists) {
+        await db.execAsync(
+          `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${colTypeSpec}`,
+        );
+      }
+    } else {
+      await db.execAsync(stmt);
+    }
+  }
+}
+
 export async function runMigrations(db: any): Promise<void> {
   // Ensure the version table exists first
   await db.execAsync(schema.migrationVersion);
@@ -66,18 +106,18 @@ export async function runMigrations(db: any): Promise<void> {
   );
   const appliedVersions = new Set(appliedRows.map((r: any) => r.version));
 
-  // Run pending migrations in order
+  // Run pending migrations in order, wrapping each migration + version insert in a transaction
   for (const migration of ALL_MIGRATIONS) {
     if (!appliedVersions.has(migration.version)) {
-      await db.execAsync(migration.sql);
-      await db.runAsync(
-        "INSERT INTO _migration_version (version) VALUES (?)",
-        migration.version,
-      );
-      // Note: we do not log here; the app will notify the user on next start
+      await rawTransaction(db, async (tx) => {
+        await execDefensiveSql(tx, migration.sql);
+        await tx.runAsync(
+          "INSERT INTO _migration_version (version) VALUES (?)",
+          [migration.version],
+        );
+      });
     }
   }
 }
 
-// Convenience: export the list of migration versions for UI / monitoring
 export const migrationVersions = ALL_MIGRATIONS.map((m) => m.version);

@@ -1,6 +1,7 @@
 import { SymbolView } from "expo-symbols";
 import { useCallback, useState, useEffect } from "react";
 import {
+  Alert,
   FlatList,
   Modal,
   Pressable,
@@ -24,8 +25,10 @@ import {
 import { useTheme } from "@/hooks/use-theme";
 import { formatCentimes, getCurrencySymbol } from "@/utils/money";
 import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
+import { getById as getProductById } from "@/database/repositories/productRepository";
 import { useTranslation } from "react-i18next";
 import { useCustomers } from "@/hooks/useCustomers";
+import { useCartStoreHook } from "@/stores/cartStore";
 
 interface CheckoutSheetProps {
   visible: boolean;
@@ -56,6 +59,7 @@ export function CheckoutSheet({
   error,
 }: CheckoutSheetProps) {
   const theme = useTheme();
+  const { items } = useCartStoreHook();
   const { t, i18n } = useTranslation();
   const [paymentMethod, setPaymentMethod] = useState<
     "cash" | "electronic" | "credit" | "partial"
@@ -91,24 +95,64 @@ export function CheckoutSheet({
     setAmountReceived(cartTotal);
   };
 
-  const handleConfirm = useCallback(() => {
-    if ((paymentMethod === "credit" || paymentMethod === "partial") && !customerId) {
+  const handleConfirm = useCallback(async () => {
+    // M3 Fix: Live re-validation of stock for all items in cart before checkout
+    for (const item of items) {
+      const liveProduct = await getProductById(item.product.id);
+      if (!liveProduct || !liveProduct.is_active) {
+        Alert.alert(
+          t("common:error", { defaultValue: "Error" }),
+          t("products:productNotAvailable", {
+            name: item.product.name,
+            defaultValue: `'${item.product.name}' is no longer available in the catalogue.`,
+          }),
+        );
+        return;
+      }
+
+      if ((liveProduct.stock_quantity || 0) < item.quantity) {
+        Alert.alert(
+          t("common:confirmTitle", { defaultValue: "Insufficient Stock" }),
+          t("products:insufficientStockMessage", {
+            name: liveProduct.name,
+            available: liveProduct.stock_quantity,
+            requested: item.quantity,
+            defaultValue: `Insufficient stock for '${liveProduct.name}'. Available: ${liveProduct.stock_quantity}, requested: ${item.quantity}`,
+          }),
+        );
+        return;
+      }
+    }
+
+    const effectiveAmountPaid =
+      paymentMethod === "cash"
+        ? amountReceived
+        : paymentMethod === "partial"
+          ? partialAmount
+          : paymentMethod === "credit"
+            ? 0
+            : cartTotal;
+
+    const remaining = Math.max(0, cartTotal - effectiveAmountPaid);
+
+    if ((paymentMethod === "credit" || paymentMethod === "partial" || remaining > 0) && !customerId) {
+      Alert.alert(
+        t("common:confirmTitle", { defaultValue: "Customer Required" }),
+        t("sales:customerRequiredForDebt", {
+          defaultValue: "Please select a customer to record partial payment or debt.",
+        })
+      );
       setShowCustomerPicker(true);
       return;
     }
 
     onCheckout({
       method: paymentMethod,
-      amountPaid:
-        paymentMethod === "cash"
-          ? amountReceived
-          : paymentMethod === "partial"
-            ? partialAmount
-            : undefined,
+      amountPaid: effectiveAmountPaid,
       note,
       customerId: customerId || undefined,
     });
-  }, [paymentMethod, amountReceived, partialAmount, note, customerId, onCheckout]);
+  }, [items, paymentMethod, amountReceived, partialAmount, note, customerId, cartTotal, onCheckout, t]);
 
   return (
     <Modal
