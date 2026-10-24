@@ -1,24 +1,19 @@
 /**
- * productRepository — Repository for products table.
+ * productRepository — Repository for catalog products and inventory movements.
  *
- - Uses prepared statements via db.runSync / db.getAllSync / db.getFirstSync.
- - Archive (soft-delete) sets is_active = false; products are never physically deleted.
- - Stock adjustments create inventory_movement records via the associated service.
- - Archived products cannot be sold (is_active = false filter applied in UI/query layer).
+ * Rules:
+ * - Products are soft-deleted (is_active = false) to retain referential integrity with sales.
+ * - All writes run inside atomic SQLite transactions.
+ * - Inventory movements strictly reflect the exact stock delta applied to products.
  */
 
 import { InventoryMovement, Product } from "../../types/entities";
-import { executeAll, executeRead, executeWrite } from "../database";
+import { executeAll, executeRead, executeWrite, getDatabase, transaction } from "../database";
 
 export type ProductFilters = {
   is_active?: boolean;
-  category?: string | null;
-  search?: string; // search by name or SKU (ILIKE %query%)
-};
-
-export type ProductResult = {
-  product: Product | null;
-  error?: string;
+  category?: string;
+  search?: string;
 };
 
 function escapeLike(query: string): string {
@@ -26,7 +21,7 @@ function escapeLike(query: string): string {
 }
 
 /**
- - Retrieve all products, optionally filtered by is_active and/or category.
+ * Retrieve all products, optionally filtered by is_active, category, or search query.
  */
 export async function getAll(filters: ProductFilters = {}): Promise<Product[]> {
   const { is_active, category, search } = filters;
@@ -52,6 +47,7 @@ export async function getAll(filters: ProductFilters = {}): Promise<Product[]> {
     const likeQuery = `%${escapeLike(search)}%`;
     params.push(likeQuery, likeQuery);
   }
+
   if (conditions.length > 0) {
     sql += ` WHERE ${conditions.join(" AND ")}`;
   }
@@ -75,22 +71,33 @@ export async function getAll(filters: ProductFilters = {}): Promise<Product[]> {
 }
 
 /**
- - Retrieve a single product by its auto-increment id.
- - Returns null if not found.
+ * Search products by name or SKU substring, optionally filtered.
+ */
+export async function search(
+  query: string,
+  filters: ProductFilters = {},
+): Promise<Product[]> {
+  return getAll({ ...filters, search: query });
+}
+
+/**
+ * Retrieve a single product by id.
  */
 export async function getById(id: number): Promise<Product | null> {
   const rows: any[] = await executeRead(
     // language=SQLite
     `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
-           stock_quantity, minimum_stock_quantity, unit, is_active,
-           created_at, updated_at
+            stock_quantity, minimum_stock_quantity, unit, is_active,
+            created_at, updated_at
      FROM products
      WHERE id = ?`,
     [id],
   );
+
   if (rows.length === 0) {
     return null;
   }
+
   const r = rows[0];
   return {
     id: r.id,
@@ -109,35 +116,25 @@ export async function getById(id: number): Promise<Product | null> {
 }
 
 /**
- - Search products by name or SKU substring, with optional filters (is_active, category).
- - Performs a ILIKE-%query% match on both name and sku columns.
+ * Retrieve a single product by SKU.
  */
-export async function search(
-  query: string,
-  filters: ProductFilters = {},
-): Promise<Product[]> {
-  const { is_active, category } = filters;
-  let sql = `
-    SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
-           stock_quantity, minimum_stock_quantity, unit, is_active,
-           created_at, updated_at
-    FROM products
-    WHERE (name LIKE ? OR sku LIKE ?)
-  `;
-  const params: unknown[] = [`%${query}%`, `%${query}%`];
+export async function getBySku(sku: string): Promise<Product | null> {
+  const rows: any[] = await executeRead(
+    // language=SQLite
+    `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
+            stock_quantity, minimum_stock_quantity, unit, is_active,
+            created_at, updated_at
+     FROM products
+     WHERE sku = ?`,
+    [sku],
+  );
 
-  if (is_active !== undefined) {
-    sql += ` AND is_active = ?`;
-    params.push(is_active ? 1 : 0);
+  if (rows.length === 0) {
+    return null;
   }
-  if (category !== undefined) {
-    sql += ` AND category = ?`;
-    params.push(category);
-  }
-  sql += ` ORDER BY name ASC`;
 
-  const rows: any[] = await executeAll(sql, params);
-  return rows.map((r) => ({
+  const r = rows[0];
+  return {
     id: r.id,
     name: r.name,
     sku: r.sku,
@@ -150,121 +147,106 @@ export async function search(
     is_active: r.is_active !== 0,
     created_at: r.created_at,
     updated_at: r.updated_at,
-  }));
+  };
 }
 
 /**
- - Create a new product.
- - Throws Error("DUPLICATE_SKU") if a product with the same SKU already exists,
-   so the caller can tell the merchant the code is taken instead of silently
-   returning the pre-existing row. If no SKU is provided, no check is made.
+ * Create a new product.
  */
 export async function create(
   product: Omit<Product, "id" | "created_at" | "updated_at">,
 ): Promise<Product> {
-  // Check if a product with the same SKU already exists.
-  if (product.sku) {
-    const existing: Product | null = await getBySku(product.sku);
-    if (existing) {
-      throw new Error("DUPLICATE_SKU");
+  try {
+    const result = await executeWrite(
+      // language=SQLite
+      `INSERT INTO products
+       (name, sku, category, sale_price_centimes, cost_price_centimes,
+        stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      [
+        product.name,
+        product.sku,
+        product.category,
+        product.sale_price_centimes,
+        product.cost_price_centimes,
+        product.stock_quantity,
+        product.minimum_stock_quantity,
+        product.unit,
+        product.is_active ? 1 : 0,
+      ],
+    );
+
+    const created = await getById(result);
+    if (!created) throw new Error("Failed to create product");
+    return created;
+  } catch (err: any) {
+    if (err?.message?.includes("UNIQUE constraint failed: products.sku")) {
+      throw new Error("DUPLICATE_SKU: A product with this SKU already exists");
     }
+    throw err;
   }
-
-  const result = await executeWrite(
-    // language=SQLite
-    `INSERT INTO products
-     (name, sku, category, sale_price_centimes, cost_price_centimes,
-      stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-    [
-      product.name,
-      product.sku,
-      product.category,
-      product.sale_price_centimes,
-      product.cost_price_centimes,
-      product.stock_quantity,
-      product.minimum_stock_quantity,
-      product.unit,
-      product.is_active ? 1 : 0,
-    ],
-  );
-
-  // executeWrite returns lastInsertRowId; re-fetch by that id so the returned
-  // record always describes the row we just inserted.
-  const created = await getById(result);
-  if (!created) throw new Error("Product was not created");
-  return created;
 }
 
 /**
- - Update an existing product by id.
- - Only the provided fields are updated; id, created_at remain unchanged.
+ * Update an existing product by id.
  */
 export async function update(
   id: number,
-  product: Partial<Omit<Product, "id" | "created_at">>,
+  product: Partial<Omit<Product, "id" | "created_at" | "updated_at">>,
 ): Promise<Product> {
-  // Build dynamic UPDATE set from provided fields.
-  const fields: string[] = [];
-  const values: unknown[] = [];
+  const current = await getById(id);
+  if (!current) throw new Error(`Product id=${id} not found`);
 
-  if (product.name !== undefined) {
-    fields.push(`name = ?`);
-    values.push(product.name);
-  }
-  if (product.category !== undefined) {
-    fields.push(`category = ?`);
-    values.push(product.category);
-  }
-  if (product.sale_price_centimes !== undefined) {
-    fields.push(`sale_price_centimes = ?`);
-    values.push(product.sale_price_centimes);
-  }
-  if (product.cost_price_centimes !== undefined) {
-    fields.push(`cost_price_centimes = ?`);
-    values.push(product.cost_price_centimes);
-  }
-  if (product.stock_quantity !== undefined) {
-    fields.push(`stock_quantity = ?`);
-    values.push(product.stock_quantity);
-  }
-  if (product.minimum_stock_quantity !== undefined) {
-    fields.push(`minimum_stock_quantity = ?`);
-    values.push(product.minimum_stock_quantity);
-  }
-  if (product.unit !== undefined) {
-    fields.push(`unit = ?`);
-    values.push(product.unit);
-  }
-  if (product.is_active !== undefined) {
-    fields.push(`is_active = ?`);
-    values.push(product.is_active ? 1 : 0);
-  }
-
-  if (fields.length === 0) {
-    const existing = await getById(id);
-    if (!existing) throw new Error(`Product id=${id} not found`);
-    return existing;
-  }
-
-  values.push(id);
+  const updatedName = product.name ?? current.name;
+  const updatedSku = product.sku !== undefined ? product.sku : current.sku;
+  const updatedCategory =
+    product.category !== undefined ? product.category : current.category;
+  const updatedSalePrice =
+    product.sale_price_centimes ?? current.sale_price_centimes;
+  const updatedCostPrice =
+    product.cost_price_centimes ?? current.cost_price_centimes;
+  const updatedStock = product.stock_quantity ?? current.stock_quantity;
+  const updatedMinStock =
+    product.minimum_stock_quantity ?? current.minimum_stock_quantity;
+  const updatedUnit = product.unit ?? current.unit;
+  const updatedIsActive =
+    product.is_active !== undefined ? product.is_active : current.is_active;
 
   await executeWrite(
     // language=SQLite
     `UPDATE products
-     SET ${fields.join(", ")},
+     SET name = ?,
+         sku = ?,
+         category = ?,
+         sale_price_centimes = ?,
+         cost_price_centimes = ?,
+         stock_quantity = ?,
+         minimum_stock_quantity = ?,
+         unit = ?,
+         is_active = ?,
          updated_at = datetime('now')
      WHERE id = ?`,
-    values,
+    [
+      updatedName,
+      updatedSku,
+      updatedCategory,
+      updatedSalePrice,
+      updatedCostPrice,
+      updatedStock,
+      updatedMinStock,
+      updatedUnit,
+      updatedIsActive ? 1 : 0,
+      id,
+    ],
   );
+
   const updated = await getById(id);
   if (!updated) throw new Error(`Product id=${id} not found`);
   return updated;
 }
 
 /**
- - Archive (soft-delete) a product by id.
- - Sets is_active = false; the row is retained for history and referential integrity.
+ * Archive (soft-delete) a product by id.
  */
 export async function archive(id: number): Promise<void> {
   await executeWrite(
@@ -278,65 +260,74 @@ export async function archive(id: number): Promise<void> {
 }
 
 /**
- - Adjust stock quantity for a product.
- - Creates an inventory_movement record (in/out/adjustment) and updates stock_quantity.
- - reason is required for manual stock changes (audit trail).
- *
- - Positive quantityChange → stock addition (stock_addition movement type).
- - Negative quantityChange → stock removal (stock_adjustment movement type).
- - Zero or omitted → no-op (movement still created with quantity_change=0 if called).
+ * Adjust stock quantity for a product atomically in a single transaction.
+ * Creates an inventory_movement record and updates product stock_quantity.
+ * The movement quantity_change strictly matches the actual stock delta applied.
  */
 export async function adjustStock(
   id: number,
   quantityChange: number,
   reason: string,
 ): Promise<InventoryMovement> {
-  // Fetch current product to get product_id and current stock.
-  const product: Product | null = await getById(id);
-  if (!product) {
-    throw new Error(`Product id=${id} not found`);
-  }
+  const db = await getDatabase();
+  return await transaction(db, async (tx: any) => {
+    const productRows: any[] = await executeRead(
+      tx,
+      `SELECT id, name, stock_quantity FROM products WHERE id = ?`,
+      [id],
+    );
 
-  const newStock = Math.max(0, product.stock_quantity + quantityChange);
+    if (productRows.length === 0) {
+      throw new Error(`Product id=${id} not found`);
+    }
 
-  // Create the inventory movement record.
-  await executeWrite(
-    // language=SQLite
-    `INSERT INTO inventory_movements
-     (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
-     VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-    [
-      product.id,
-      quantityChange > 0 ? "in" : "out",
-      quantityChange,
-      null, // reference_sale_id; can be set later if linked to a sale
-      reason,
-    ],
-  );
+    const product = productRows[0];
+    const currentStock = product.stock_quantity || 0;
 
-  // Update the product's stock quantity.
-  await executeWrite(
-    // language=SQLite
-    `UPDATE products
-     SET stock_quantity = ?,
-         updated_at = datetime('now')
-     WHERE id = ?`,
-    [newStock, product.id],
-  );
+    // Calculate actual stock delta, clamping new stock at >= 0
+    const newStock = Math.max(0, currentStock + quantityChange);
+    const actualQuantityChange = newStock - currentStock;
+    const movementType = actualQuantityChange >= 0 ? "in" : "out";
 
-  return {
-    id: 0, // will be populated by the INSERT trigger; callers typically ignore or refetch
-    product_id: product.id,
-    movement_type: quantityChange > 0 ? "in" : "out",
-    quantity_change: quantityChange,
-    reference_sale_id: null,
-    note: reason,
-    created_at: new Date().toISOString(),
-  };
+    // 1. Insert inventory movement record with exact stock delta
+    const movementId = await executeWrite(
+      tx,
+      `INSERT INTO inventory_movements
+       (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
+       VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+      [
+        product.id,
+        movementType,
+        actualQuantityChange,
+        null,
+        reason,
+      ],
+    );
+
+    // 2. Update product stock quantity
+    await executeWrite(
+      tx,
+      `UPDATE products
+          SET stock_quantity = ?,
+              updated_at = datetime('now')
+        WHERE id = ?`,
+      [newStock, product.id],
+    );
+
+    return {
+      id: movementId,
+      product_id: product.id,
+      movement_type: movementType as "in" | "out",
+      quantity_change: actualQuantityChange,
+      reference_sale_id: null,
+      note: reason,
+      created_at: new Date().toISOString(),
+    };
+  });
 }
 
 /**
- - Retrieve the full inventory movement history for a product.
+ * Retrieve the full inventory movement history for a product.
  */
 export async function getInventoryHistory(id: number): Promise<any[]> {
   const rows: any[] = await executeAll(
@@ -356,37 +347,4 @@ export async function getInventoryHistory(id: number): Promise<any[]> {
     note: r.note,
     created_at: r.created_at,
   }));
-}
-
-/**
- - Helper: retrieve a product by SKU (used by create idempotency).
- */
-async function getBySku(sku: string): Promise<Product | null> {
-  const rows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
-           stock_quantity, minimum_stock_quantity, unit, is_active,
-           created_at, updated_at
-     FROM products
-     WHERE sku = ?`,
-    [sku],
-  );
-  if (rows.length === 0) {
-    return null;
-  }
-  const r = rows[0];
-  return {
-    id: r.id,
-    name: r.name,
-    sku: r.sku,
-    category: r.category,
-    sale_price_centimes: r.sale_price_centimes,
-    cost_price_centimes: r.cost_price_centimes,
-    stock_quantity: r.stock_quantity,
-    minimum_stock_quantity: r.minimum_stock_quantity,
-    unit: r.unit,
-    is_active: r.is_active !== 0,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-  };
 }

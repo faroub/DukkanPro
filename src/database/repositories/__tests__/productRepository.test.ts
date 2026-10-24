@@ -314,5 +314,30 @@ describe("productRepository", () => {
       const product = await getById(created!.id);
       expect(product?.stock_quantity).toBe(12);
     });
+
+    it("clamps negative stock reductions at 0 and records the exact actual delta in movement history", async () => {
+      const created = await create({
+        name: "Stock Clamp Test",
+        sku: "STK-CLAMP",
+        category: "test",
+        sale_price_centimes: 100,
+        cost_price_centimes: 50,
+        stock_quantity: 5, // 5 in stock
+        minimum_stock_quantity: 1,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      // Attempt to remove 10 units when stock is 5
+      const movement = await adjustStock(created.id, -10, "Excess removal");
+
+      // Stock must be 0 (clamped)
+      const updatedProduct = await getById(created.id);
+      expect(updatedProduct?.stock_quantity).toBe(0);
+
+      // Movement quantity_change must match the actual stock change (-5, not -10)
+      expect(movement.quantity_change).toBe(-5);
+      expect(movement.movement_type).toBe("out");
+    });
   });
 });
