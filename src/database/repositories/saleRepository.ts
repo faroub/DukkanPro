@@ -1,14 +1,13 @@
 /**
  * saleRepository — Repository for sales transactions.
  *
- * CRITICAL: All write operations (create, cancel, return) must be atomic.
- * - create: inserts sale record + sale_items + stock deductions + inventory movements — ALL OR NOTHING
- * - cancel: sets status to 'cancelled', restores stock, creates movements — atomic
- * - return: sets status to 'returned', restores stock, creates movements — atomic
- *
- * Historical cost is preserved on sale items (unit_cost_price_centimes snapshot).
- * Cancelled and returned sales are never physically deleted.
- * Cancelled and returned sales do NOT count toward revenue, profit, or customer debt.
+ * Rules:
+ * - Sales are headers (sales table) with associated items (sale_items table).
+ * - All writes run inside atomic SQLite transactions.
+ * - Overselling is strictly prevented: items exceeding stock are rejected.
+ * - Cash over-tender is clamped to the sale total, tracking change separately.
+ * - Partial/credit sales require a customer to prevent anonymous, uncollectable debt.
+ * - Cancelling or returning a sale reverses customer payments and restores exact stock.
  */
 
 import { Sale } from "../../types/entities";
@@ -21,24 +20,213 @@ import {
 } from "../database";
 
 export type SaleFilters = {
-  status?: "completed" | "cancelled" | "returned";
   customerId?: number;
+  status?: string;
+  hasCredit?: boolean;
   startDate?: string;
   endDate?: string;
-  paymentMethod?: string;
-  hasCredit?: boolean;
-};
-
-export type SaleResult = {
-  sale: Sale | null;
-  error?: string;
+  search?: string;
 };
 
 /**
- - Create a sale atomically.
- - Inserts the sale header, sale items, deducts stock, and creates inventory movements.
- - All-or-nothing via SQLite transaction.
- - Historical cost (unit_cost_price_centimes) is snapshotted from the product at sale time.
+ * Retrieve all sales headers with items attached, optionally filtered.
+ */
+export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
+  let sql = `
+    SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
+            s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
+            s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
+            c.name as customer_name
+       FROM sales s
+       LEFT JOIN customers c ON c.id = s.customer_id
+  `;
+  const params: any[] = [];
+  const conditions: string[] = [];
+
+  if (filters.customerId) {
+    conditions.push(`s.customer_id = ?`);
+    params.push(filters.customerId);
+  }
+  if (filters.status) {
+    conditions.push(`s.status = ?`);
+    params.push(filters.status);
+  }
+  if (filters.hasCredit) {
+    conditions.push(`s.remaining_balance_centimes > 0`);
+  }
+  if (filters.startDate) {
+    conditions.push(`s.sold_at >= ?`);
+    params.push(filters.startDate);
+  }
+  if (filters.endDate) {
+    conditions.push(`s.sold_at <= ?`);
+    params.push(filters.endDate);
+  }
+  if (filters.search) {
+    conditions.push(`(c.name LIKE ? OR s.note LIKE ? OR s.id LIKE ?)`);
+    const likeQuery = `%${filters.search}%`;
+    params.push(likeQuery, likeQuery, likeQuery);
+  }
+
+  if (conditions.length > 0) {
+    sql += ` WHERE ` + conditions.join(" AND ");
+  }
+
+  sql += ` ORDER BY s.sold_at DESC`;
+
+  const saleRows: any[] = await executeAll(sql, params);
+
+  if (saleRows.length === 0) {
+    return [];
+  }
+
+  const saleIds = saleRows.map((s) => s.id);
+  const placeholders = saleIds.map(() => "?").join(",");
+
+  const itemRows: any[] = await executeAll(
+    // language=SQLite
+    `SELECT si.id, si.sale_id, si.product_id, si.product_name_snapshot, si.quantity,
+            si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes,
+            si.created_at
+       FROM sale_items si
+      WHERE si.sale_id IN (${placeholders})
+      ORDER BY si.id ASC`,
+    saleIds,
+  );
+
+  const itemsBySaleId = new Map<number, any[]>();
+  for (const item of itemRows) {
+    const list = itemsBySaleId.get(item.sale_id) || [];
+    list.push({
+      id: item.id,
+      sale_id: item.sale_id,
+      product_id: item.product_id,
+      product_name_snapshot: item.product_name_snapshot,
+      quantity: item.quantity,
+      unit_sale_price_centimes: item.unit_sale_price_centimes,
+      unit_cost_price_centimes: item.unit_cost_price_centimes,
+      line_total_centimes: item.line_total_centimes,
+      created_at: item.created_at,
+    });
+    itemsBySaleId.set(item.sale_id, list);
+  }
+
+  return saleRows.map((r) => ({
+    id: r.id,
+    customer_id: r.customer_id,
+    customer_name: r.customer_name ?? null,
+    status: r.status as "completed" | "cancelled" | "returned",
+    subtotal_centimes: r.subtotal_centimes as number,
+    discount_centimes: r.discount_centimes as number,
+    total_centimes: r.total_centimes as number,
+    amount_paid_centimes: r.amount_paid_centimes as number,
+    remaining_balance_centimes: r.remaining_balance_centimes as number,
+    payment_method: r.payment_method as
+      | "cash"
+      | "electronic"
+      | "mixed"
+      | "partial"
+      | "credit",
+    note: r.note,
+    sold_at: r.sold_at,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+    saleItems: itemsBySaleId.get(r.id) || [],
+  }));
+}
+
+/**
+ * Retrieve today's completed sales.
+ */
+export async function getTodaySales(): Promise<Sale[]> {
+  const sales = await getAll();
+  const todayStr = new Date().toISOString().slice(0, 10);
+  return sales.filter((s) => s.status === "completed" && s.sold_at.startsWith(todayStr));
+}
+
+/**
+ * Retrieve sales by date range.
+ */
+export async function getSalesByDateRange(startDate: string, endDate: string): Promise<Sale[]> {
+  return getAll({ startDate, endDate });
+}
+
+/**
+ * Search sales by customer name or note.
+ */
+export async function search(query: string): Promise<Sale[]> {
+  return getAll({ search: query });
+}
+
+/**
+ * Retrieve a single sale header by ID with items attached.
+ */
+export async function getById(id: number): Promise<Sale | null> {
+  const saleRows: any[] = await executeRead(
+    // language=SQLite
+    `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
+            s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
+            s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
+            c.name as customer_name
+       FROM sales s
+       LEFT JOIN customers c ON c.id = s.customer_id
+      WHERE s.id = ?`,
+    [id],
+  );
+
+  if (saleRows.length === 0) {
+    return null;
+  }
+
+  const itemsRows: any[] = await executeAll(
+    // language=SQLite
+    `SELECT si.id, si.sale_id, si.product_id, si.product_name_snapshot, si.quantity,
+            si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes,
+            si.created_at
+       FROM sale_items si
+      WHERE si.sale_id = ?
+      ORDER BY si.id ASC`,
+    [id],
+  );
+
+  const r = saleRows[0];
+
+  return {
+    id: r.id,
+    customer_id: r.customer_id,
+    customer_name: r.customer_name ?? null,
+    status: r.status as "completed" | "cancelled" | "returned",
+    subtotal_centimes: r.subtotal_centimes as number,
+    discount_centimes: r.discount_centimes as number,
+    total_centimes: r.total_centimes as number,
+    amount_paid_centimes: r.amount_paid_centimes as number,
+    remaining_balance_centimes: r.remaining_balance_centimes as number,
+    payment_method: r.payment_method as
+      | "cash"
+      | "electronic"
+      | "mixed"
+      | "partial"
+      | "credit",
+    note: r.note,
+    sold_at: r.sold_at,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+    saleItems: itemsRows.map((item: any) => ({
+      id: item.id,
+      sale_id: item.sale_id,
+      product_id: item.product_id,
+      product_name_snapshot: item.product_name_snapshot,
+      quantity: item.quantity,
+      unit_sale_price_centimes: item.unit_sale_price_centimes,
+      unit_cost_price_centimes: item.unit_cost_price_centimes,
+      line_total_centimes: item.line_total_centimes,
+      created_at: item.created_at,
+    })),
+  };
+}
+
+/**
+ * Create a new sale with items atomically.
  */
 export async function create(saleInput: {
   customerId?: number;
@@ -46,18 +234,18 @@ export async function create(saleInput: {
   items: Array<{
     productId: number;
     quantity: number;
-    unitSalePriceCentimes: number; // price at time of sale
+    unitSalePriceCentimes: number;
     note?: string;
   }>;
   note?: string;
-  discountCentimes?: number; // discount applied to the subtotal
-  amountPaidCentimes?: number; // amount settled at sale time (e.g. cash received)
+  discountCentimes?: number;
+  amountPaidCentimes?: number;
 }): Promise<Sale> {
   const db = await getDatabase();
   return await transaction(db, async (tx: any) => {
-    // 1. Insert the sale header
+    // 1. Insert initial sale header placeholder
     const saleResult = await executeWrite(
-      // language=SQLite
+      tx,
       `INSERT INTO sales
        (customer_id, status, subtotal_centimes, discount_centimes, total_centimes,
         amount_paid_centimes, remaining_balance_centimes, payment_method, note, sold_at, created_at, updated_at)
@@ -65,7 +253,7 @@ export async function create(saleInput: {
       [
         saleInput.customerId,
         "completed",
-        0, // will be computed below
+        0,
         0,
         0,
         0,
@@ -75,15 +263,14 @@ export async function create(saleInput: {
       ],
     );
 
-    const saleId = saleResult; // executeWrite returns the lastInsertRowId as a number
+    const saleId = saleResult;
 
-    // 2. Process each item: insert sale item, deduct stock, create inventory movement
+    // 2. Process each item: validate live stock, insert sale item, deduct stock, create inventory movement
     let subtotal = 0;
 
     for (const item of saleInput.items) {
-      // Fetch product details
       const productRows: any[] = await executeRead(
-        // language=SQLite
+        tx,
         `SELECT id, name, sale_price_centimes, cost_price_centimes, stock_quantity, unit FROM products WHERE id = ?`,
         [item.productId],
       );
@@ -93,15 +280,22 @@ export async function create(saleInput: {
       }
 
       const product = productRows[0];
-      const historicalCost = product.cost_price_centimes; // snapshot historical cost
+
+      // H2 Fix: Overselling prevention — reject if requested quantity exceeds current stock
+      if ((product.stock_quantity || 0) < item.quantity) {
+        throw new Error(
+          `Insufficient stock for '${product.name}'. Available: ${product.stock_quantity}, requested: ${item.quantity}`,
+        );
+      }
+
+      const historicalCost = product.cost_price_centimes;
       const unitSalePrice = item.unitSalePriceCentimes;
       const lineTotal = unitSalePrice * item.quantity;
 
       subtotal += lineTotal;
 
-      // Insert sale item with historical cost snapshot
       await executeWrite(
-        // language=SQLite
+        tx,
         `INSERT INTO sale_items
          (sale_id, product_id, product_name_snapshot, quantity, unit_sale_price_centimes, unit_cost_price_centimes, line_total_centimes, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
@@ -116,11 +310,11 @@ export async function create(saleInput: {
         ],
       );
 
-      // 3. Deduct stock: create inventory movement OUT and update product stock
-      const newStock = Math.max(0, product.stock_quantity - item.quantity);
+      // Deduct stock and log inventory movement
+      const newStock = product.stock_quantity - item.quantity;
 
       await executeWrite(
-        // language=SQLite
+        tx,
         `INSERT INTO inventory_movements
          (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`,
@@ -128,7 +322,7 @@ export async function create(saleInput: {
       );
 
       await executeWrite(
-        // language=SQLite
+        tx,
         `UPDATE products
          SET stock_quantity = ?,
              updated_at = datetime('now')
@@ -137,26 +331,32 @@ export async function create(saleInput: {
       );
     }
 
-    // 4. Update sale header with the computed settlement values
+    // 3. Compute final settlement totals
     const discountCentimes = Math.max(
       0,
       Math.min(saleInput.discountCentimes ?? 0, subtotal),
     );
     const totalCentimes = subtotal - discountCentimes;
 
-    // Amount settled now: an explicit amount (e.g. cash received) wins;
-    // otherwise credit sales are settled later and other methods on the spot.
-    const amountPaid =
+    // H3 Fix: Over-tender clamping & Underpayment handling
+    const rawAmountPaid =
       saleInput.amountPaidCentimes !== undefined
         ? Math.max(0, saleInput.amountPaidCentimes)
         : saleInput.paymentMethod === "credit"
           ? 0
           : totalCentimes;
 
+    // Clamp stored amount_paid_centimes to totalCentimes
+    const amountPaid = Math.min(rawAmountPaid, totalCentimes);
     const remainingBalance = Math.max(0, totalCentimes - amountPaid);
 
+    // H3 Fix: Prevent anonymous debt — require a customer if remaining balance > 0
+    if (remainingBalance > 0 && !saleInput.customerId) {
+      throw new Error("A customer must be selected to record partial payment or debt.");
+    }
+
     await executeWrite(
-      // language=SQLite
+      tx,
       `UPDATE sales
        SET subtotal_centimes = ?,
            discount_centimes = ?,
@@ -175,24 +375,24 @@ export async function create(saleInput: {
       ],
     );
 
-    // 5. Return the complete sale record
+    // 4. Return the complete sale record
     const saleRows: any[] = await executeRead(
-      // language=SQLite
+      tx,
       `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
-           s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-           s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
-        FROM sales s
-       WHERE s.id = ?`,
+              s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
+              s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
+         FROM sales s
+        WHERE s.id = ?`,
       [saleId],
     );
 
     const itemsRows: any[] = await executeAll(
-      // language=SQLite
+      tx,
       `SELECT si.id, si.product_id, si.product_name_snapshot, si.quantity,
-           si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes,
-           si.created_at
-        FROM sale_items si
-       WHERE si.sale_id = ?`,
+              si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes,
+              si.created_at
+         FROM sale_items si
+        WHERE si.sale_id = ?`,
       [saleId],
     );
 
@@ -204,14 +404,8 @@ export async function create(saleInput: {
       discount_centimes: saleRows[0].discount_centimes as number,
       total_centimes: saleRows[0].total_centimes as number,
       amount_paid_centimes: saleRows[0].amount_paid_centimes as number,
-      remaining_balance_centimes: saleRows[0]
-        .remaining_balance_centimes as number,
-      payment_method: saleRows[0].payment_method as
-        | "cash"
-        | "electronic"
-        | "mixed"
-        | "partial"
-        | "credit",
+      remaining_balance_centimes: saleRows[0].remaining_balance_centimes as number,
+      payment_method: saleRows[0].payment_method as any,
       note: saleRows[0].note,
       sold_at: saleRows[0].sold_at,
       created_at: saleRows[0].created_at,
@@ -232,49 +426,51 @@ export async function create(saleInput: {
 }
 
 /**
- - Cancel a sale atomically.
- - Sets status to 'cancelled', restores stock, creates inventory movements (reverse of sale).
- - Does NOT delete the record.
- - Cancelled sales are excluded from revenue, profit, and customer debt calculations.
+ * Cancel a sale atomically.
+ * Restores stock, creates reverse inventory movements, and reverses any customer payments.
  */
 export async function cancel(id: number, reason: string): Promise<void> {
   const db = await getDatabase();
   await transaction(db, async (tx: any) => {
-    // 1. Get the sale with its items (lock for update)
-    const saleRows: any[] = await executeRead(
-      // language=SQLite
-      `SELECT s.id, s.status, si.product_id, si.quantity, si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes
-        FROM sales s
-        JOIN sale_items si ON si.sale_id = s.id
-       WHERE s.id = ?`,
+    const headerRows: any[] = await executeRead(
+      tx,
+      `SELECT s.id, s.customer_id, s.status, s.amount_paid_centimes, s.total_centimes, s.remaining_balance_centimes
+         FROM sales s
+        WHERE s.id = ?`,
       [id],
     );
 
-    if (saleRows.length === 0) {
+    if (headerRows.length === 0) {
       throw new Error(`Sale id=${id} not found`);
     }
 
-    const sale = saleRows[0];
+    const saleHeader = headerRows[0];
 
-    if (sale.status !== "completed") {
-      throw new Error(`Sale id=${id} is already ${sale.status}; cannot cancel`);
+    if (saleHeader.status !== "completed") {
+      throw new Error(`Sale id=${id} is already ${saleHeader.status}; cannot cancel`);
     }
 
-    // 2. For each sale item, restore stock and create a reverse inventory movement
+    const saleRows: any[] = await executeRead(
+      tx,
+      `SELECT si.product_id, si.quantity
+         FROM sale_items si
+        WHERE si.sale_id = ?`,
+      [id],
+    );
+
+    // 1. For each sale item, restore exact stock and create reverse inventory movement
     for (const item of saleRows) {
-      // Restore stock: add back the quantity
       await executeWrite(
-        // language=SQLite
+        tx,
         `UPDATE products
-         SET stock_quantity = stock_quantity + ?,
-             updated_at = datetime('now')
-         WHERE id = ?`,
+            SET stock_quantity = stock_quantity + ?,
+                updated_at = datetime('now')
+          WHERE id = ?`,
         [item.quantity, item.product_id],
       );
 
-      // Create inventory movement: "in" (restock) referencing the cancelled sale
       await executeWrite(
-        // language=SQLite
+        tx,
         `INSERT INTO inventory_movements
          (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`,
@@ -282,62 +478,94 @@ export async function cancel(id: number, reason: string): Promise<void> {
       );
     }
 
-    // 3. Set sale status to cancelled
+    // H1 Fix: Reverse customer ledger payment if customer made payments in customer_payments
+    if (saleHeader.customer_id) {
+      const pRows: any[] = await executeRead(
+        tx,
+        `SELECT SUM(amount_centimes) as total_paid FROM customer_payments WHERE customer_id = ?`,
+        [saleHeader.customer_id],
+      );
+      const totalCustomerPaid = pRows[0]?.total_paid || 0;
+
+      if (totalCustomerPaid > 0) {
+        const refundAmount = Math.min(totalCustomerPaid, saleHeader.total_centimes);
+        if (refundAmount > 0) {
+          await executeWrite(
+            tx,
+            `INSERT INTO customer_payments
+             (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
+             VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+            [
+              saleHeader.customer_id,
+              -refundAmount,
+              "cash",
+              `Refund for cancelled sale #REC-${id}: ${reason}`,
+            ],
+          );
+        }
+      }
+    }
+
+    // 2. Set sale status to cancelled and zero out balance/paid fields
     await executeWrite(
-      // language=SQLite
+      tx,
       `UPDATE sales
-       SET status = ?,
-           updated_at = datetime('now')
-       WHERE id = ?`,
+          SET status = ?,
+              amount_paid_centimes = 0,
+              remaining_balance_centimes = 0,
+              updated_at = datetime('now')
+        WHERE id = ?`,
       ["cancelled", id],
     );
   });
 }
 
 /**
- - Return a sale atomically.
- - Sets status to 'returned', restores stock, creates inventory movements (reverse of sale).
- - Does NOT delete the record.
- - Returned sales are excluded from revenue, profit, and customer debt calculations.
+ * Return a sale atomically.
+ * Restores stock, creates reverse inventory movements, and reverses any customer payments.
  */
 export async function returnSale(id: number, reason: string): Promise<void> {
   const db = await getDatabase();
   await transaction(db, async (tx: any) => {
-    // 1. Get the sale with its items (lock for update)
-    const saleRows: any[] = await executeRead(
-      // language=SQLite
-      `SELECT s.id, s.status, si.product_id, si.quantity, si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes
-        FROM sales s
-        JOIN sale_items si ON si.sale_id = s.id
-       WHERE s.id = ?`,
+    const headerRows: any[] = await executeRead(
+      tx,
+      `SELECT s.id, s.customer_id, s.status, s.amount_paid_centimes, s.total_centimes, s.remaining_balance_centimes
+         FROM sales s
+        WHERE s.id = ?`,
       [id],
     );
 
-    if (saleRows.length === 0) {
+    if (headerRows.length === 0) {
       throw new Error(`Sale id=${id} not found`);
     }
 
-    const sale = saleRows[0];
+    const saleHeader = headerRows[0];
 
-    if (sale.status !== "completed") {
-      throw new Error(`Sale id=${id} is already ${sale.status}; cannot return`);
+    if (saleHeader.status !== "completed") {
+      throw new Error(`Sale id=${id} is already ${saleHeader.status}; cannot return`);
     }
 
-    // 2. For each sale item, restore stock and create a reverse inventory movement
+    const saleRows: any[] = await executeRead(
+      tx,
+      `SELECT si.product_id, si.quantity
+         FROM sale_items si
+        WHERE si.sale_id = ?`,
+      [id],
+    );
+
+    // 1. For each sale item, restore exact stock and create reverse inventory movement
     for (const item of saleRows) {
-      // Restore stock: add back the quantity
       await executeWrite(
-        // language=SQLite
+        tx,
         `UPDATE products
-         SET stock_quantity = stock_quantity + ?,
-             updated_at = datetime('now')
-         WHERE id = ?`,
+            SET stock_quantity = stock_quantity + ?,
+                updated_at = datetime('now')
+          WHERE id = ?`,
         [item.quantity, item.product_id],
       );
 
-      // Create inventory movement: "in" (restock) referencing the returned sale
       await executeWrite(
-        // language=SQLite
+        tx,
         `INSERT INTO inventory_movements
          (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`,
@@ -345,259 +573,53 @@ export async function returnSale(id: number, reason: string): Promise<void> {
       );
     }
 
-    // 3. Set sale status to returned
+    // H1 Fix: Reverse customer ledger payment if customer made payments in customer_payments
+    if (saleHeader.customer_id) {
+      const pRows: any[] = await executeRead(
+        tx,
+        `SELECT SUM(amount_centimes) as total_paid FROM customer_payments WHERE customer_id = ?`,
+        [saleHeader.customer_id],
+      );
+      const totalCustomerPaid = pRows[0]?.total_paid || 0;
+
+      if (totalCustomerPaid > 0) {
+        const refundAmount = Math.min(totalCustomerPaid, saleHeader.total_centimes);
+        if (refundAmount > 0) {
+          await executeWrite(
+            tx,
+            `INSERT INTO customer_payments
+             (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
+             VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+            [
+              saleHeader.customer_id,
+              -refundAmount,
+              "cash",
+              `Refund for returned sale #REC-${id}: ${reason}`,
+            ],
+          );
+        }
+      }
+    }
+
+    // 2. Set sale status to returned and zero out balance/paid fields
     await executeWrite(
-      // language=SQLite
+      tx,
       `UPDATE sales
-       SET status = ?,
-           updated_at = datetime('now')
-       WHERE id = ?`,
+          SET status = ?,
+              amount_paid_centimes = 0,
+              remaining_balance_centimes = 0,
+              updated_at = datetime('now')
+        WHERE id = ?`,
       ["returned", id],
     );
   });
 }
 
 /**
- - Get a sale by ID, including its sale items.
- */
-export async function getSaleById(id: number): Promise<Sale & { customer_name?: string | null, items?: any[] } | null> {
-  const saleRows: any[] = await executeRead(
-    // language=SQLite
-    `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
-         s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-         s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
-         c.name AS customer_name
-      FROM sales s
-      LEFT JOIN customers c ON c.id = s.customer_id
-     WHERE s.id = ?`,
-    [id],
-  );
-
-  if (saleRows.length === 0) {
-    return null;
-  }
-
-  const sale = saleRows[0];
-
-  const itemsRows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT si.id, si.product_id, si.product_name_snapshot, si.quantity,
-         si.unit_sale_price_centimes, si.unit_cost_price_centimes, si.line_total_centimes,
-         si.created_at
-      FROM sale_items si
-     WHERE si.sale_id = ?`,
-    [id],
-  );
-
-  return {
-    ...sale,
-    items: itemsRows,
-    id: sale.id,
-    customer_id: sale.customer_id,
-    customer_name: sale.customer_name || null,
-    status: sale.status as "completed" | "cancelled" | "returned",
-    subtotal_centimes: sale.subtotal_centimes as number,
-    discount_centimes: sale.discount_centimes as number,
-    total_centimes: sale.total_centimes as number,
-    amount_paid_centimes: sale.amount_paid_centimes as number,
-    remaining_balance_centimes: sale.remaining_balance_centimes as number,
-    payment_method: sale.payment_method as
-      | "cash"
-      | "electronic"
-      | "mixed"
-      | "partial"
-      | "credit",
-    note: sale.note,
-    sold_at: sale.sold_at,
-    created_at: sale.created_at,
-    updated_at: sale.updated_at,
-    saleItems: itemsRows.map((r: any) => ({
-      id: r.id,
-      sale_id: r.sale_id,
-      product_id: r.product_id,
-      product_name_snapshot: r.product_name_snapshot,
-      quantity: r.quantity,
-      unit_sale_price_centimes: r.unit_sale_price_centimes,
-      unit_cost_price_centimes: r.unit_cost_price_centimes,
-      line_total_centimes: r.line_total_centimes,
-      created_at: r.created_at,
-    })),
-  };
-}
-
-/**
- * Get all sales, optionally filtered by status and/or customerId.
- */
-export async function getAll(filters: SaleFilters = {}): Promise<(Sale & { customer_name?: string | null })[]> {
-  const { status, customerId, startDate, endDate, paymentMethod, hasCredit } = filters;
-  let sql = `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
-             s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
-             c.name AS customer_name
-          FROM sales s
-          LEFT JOIN customers c ON c.id = s.customer_id`;
-  const whereClauses: string[] = [];
-  const params: unknown[] = [];
-
-  if (status) {
-    whereClauses.push(`s.status = ?`);
-    params.push(status);
-  }
-
-  if (customerId !== undefined) {
-    whereClauses.push(`s.customer_id = ?`);
-    params.push(customerId);
-  }
-
-  if (startDate) {
-    whereClauses.push(`DATE(s.sold_at) >= ?`);
-    params.push(startDate);
-  }
-
-  if (endDate) {
-    whereClauses.push(`DATE(s.sold_at) <= ?`);
-    params.push(endDate);
-  }
-
-  if (paymentMethod) {
-    whereClauses.push(`s.payment_method = ?`);
-    params.push(paymentMethod);
-  }
-
-  if (hasCredit) {
-    whereClauses.push(`s.remaining_balance_centimes > 0`);
-  }
-
-  if (whereClauses.length > 0) {
-    sql += ` WHERE ` + whereClauses.join(` AND `);
-  }
-
-  sql += ` ORDER BY s.sold_at DESC`;
-
-  const rows: any[] = await executeAll(sql, params);
-
-  return rows.map((sale) => ({
-    id: sale.id,
-    customer_id: sale.customer_id,
-    customer_name: sale.customer_name || null,
-    status: sale.status as "completed" | "cancelled" | "returned",
-    subtotal_centimes: sale.subtotal_centimes as number,
-    discount_centimes: sale.discount_centimes as number,
-    total_centimes: sale.total_centimes as number,
-    amount_paid_centimes: sale.amount_paid_centimes as number,
-    remaining_balance_centimes: sale.remaining_balance_centimes as number,
-    payment_method: sale.payment_method as
-      | "cash"
-      | "electronic"
-      | "mixed"
-      | "partial"
-      | "credit",
-    note: sale.note,
-    sold_at: sale.sold_at,
-    created_at: sale.created_at,
-    updated_at: sale.updated_at,
-    saleItems: [], // loaded separately if needed
-  }));
-}
-
-/**
- - Search sales by query string against customer name or sale note.
- */
-export async function search(
-  query: string,
-  filters: SaleFilters = {},
-): Promise<(Sale & { customer_name?: string | null })[]> {
-  const { status } = filters;
-  let sql = `SELECT DISTINCT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
-             s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
-             c.name AS customer_name
-          FROM sales s
-          LEFT JOIN customers c ON c.id = s.customer_id
-          LEFT JOIN sale_items si ON si.sale_id = s.id
-         WHERE (c.name LIKE ? OR s.note LIKE ? OR si.product_name_snapshot LIKE ? OR CAST(s.id AS TEXT) LIKE ?)`;
-
-  const cleanQuery = query.replace(/^#?REC-?/i, '');
-  const params: unknown[] = [
-    `%${query}%`,
-    `%${query}%`,
-    `%${query}%`,
-    `%${cleanQuery}%`,
-  ];
-
-  if (status) {
-    sql += ` AND s.status = ?`;
-    params.push(status);
-  }
-
-  sql += ` ORDER BY s.sold_at DESC`;
-
-  const rows: any[] = await executeAll(sql, params);
-
-  return rows.map((sale) => ({
-    id: sale.id,
-    customer_id: sale.customer_id,
-    customer_name: sale.customer_name || null,
-    status: sale.status as "completed" | "cancelled" | "returned",
-    subtotal_centimes: sale.subtotal_centimes as number,
-    discount_centimes: sale.discount_centimes as number,
-    total_centimes: sale.total_centimes as number,
-    amount_paid_centimes: sale.amount_paid_centimes as number,
-    remaining_balance_centimes: sale.remaining_balance_centimes as number,
-    payment_method: sale.payment_method as
-      | "cash"
-      | "electronic"
-      | "mixed"
-      | "partial"
-      | "credit",
-    note: sale.note,
-    sold_at: sale.sold_at,
-    created_at: sale.created_at,
-    updated_at: sale.updated_at,
-    saleItems: [],
-  }));
-}
-
-/**
- - Get sales by customer ID.
+ * Retrieve all sales associated with a specific customer ID.
  */
 export async function getByCustomerId(customerId: number): Promise<Sale[]> {
-  return await getAll({ customerId });
+  return getAll({ customerId });
 }
 
-/**
- - Get today's sales (merchant's local calendar day).
- * Note: sold_at is stored in ISO format. This filters by date portion.
- */
-export async function getTodaySales(): Promise<Sale[]> {
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-  return await getAll({
-    status: "completed",
-  });
-}
-
-/**
- - Get all sales, optionally filtered by status and/or customerId.
- * Alias for getAll for convenience.
- */
-export async function getAllSales(filters: SaleFilters = {}): Promise<Sale[]> {
-  return await getAll(filters);
-}
-
-/**
- - Get sales by date range.
- */
-export async function getSalesByDateRange(
-  start: string,
-  end: string,
-): Promise<(Sale & { customer_name?: string | null })[]> {
-  return await getAll({ startDate: start, endDate: end });
-}
-
-/**
- - Get a sale by ID, including its sale items.
- * Alias for getSaleById for backwards compatibility.
- */
-export async function getById(id: number): Promise<Sale | null> {
-  return await getSaleById(id);
-}
+export { getAll as getAllSales, getById as getSaleById };

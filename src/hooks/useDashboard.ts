@@ -16,6 +16,8 @@ import {
 } from "@/database/repositories/dashboardRepository";
 import { getAll as getAllSales } from "@/database/repositories/saleRepository";
 import { getAll as getAllProducts } from "@/database/repositories/productRepository";
+import { getAll as getAllCustomers } from "@/database/repositories/customerRepository";
+import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { getAllPayments } from "@/database/repositories/exportRepository";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -71,21 +73,19 @@ export async function fetchDashboardData(
   const allSales = await getAllSales();
   const allPayments = await getAllPayments();
 
-  // ---- To collect: outstanding balances from completed sales minus recorded payments ----
-  const completedSaleBalances = (allSales || [])
-    .filter((s) => s.status === "completed")
-    .reduce(
-      (sum: number, sale) => sum + Math.max(0, sale.remaining_balance_centimes || 0),
-      0,
-    );
-  const totalPayments_centimes = (allPayments || []).reduce(
-    (sum: number, payment) => sum + (payment.amount_centimes || 0),
-    0,
-  );
-  const toCollect_centimes = Math.max(
-    0,
-    completedSaleBalances - totalPayments_centimes,
-  );
+  // ---- To collect: sum of per-customer debts ----
+  let toCollect_centimes = 0;
+  try {
+    const activeCustomers = await getAllCustomers({ is_active: true });
+    for (const c of activeCustomers) {
+      const debt = await getCustomerDebt(c.id);
+      if (debt > 0) {
+        toCollect_centimes += debt;
+      }
+    }
+  } catch (_err) {
+    toCollect_centimes = 0;
+  }
 
   // ---- Recent sales (getAll already returns newest first) ----
   const recentSales = (allSales || [])

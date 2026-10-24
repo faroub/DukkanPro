@@ -39,42 +39,48 @@ export const useCartStore = create<CartState>()(
 
       addItem: (productId: number, quantity: number) => {
         set((state) => {
-          // Check if product already in cart
           const existingItem = state.items.find(item => item.product.id === productId);
 
           if (existingItem) {
-            // Update quantity
+            const maxAvailable = Math.max(0, existingItem.product.stock_quantity ?? 0);
+            const clampedQty = Math.min(existingItem.quantity + quantity, maxAvailable);
             return {
               items: state.items.map(item =>
                 item.product.id === productId
-                  ? { ...item, quantity: item.quantity + quantity }
+                  ? { ...item, quantity: clampedQty }
                   : item
               ),
             };
           } else {
-            // Add new item - product details will be fetched in UI layer
-            // For now return state - UI will handle product lookup
             return state;
           }
         });
       },
 
-      // This version expects a full product object
+      // Expects a full product object and enforces live stock constraints
       addItemWithProduct: (product: Product, quantity: number) => {
         set((state) => {
           const existingItem = state.items.find(item => item.product.id === product.id);
+          const maxAvailable = Math.max(0, product.stock_quantity ?? 0);
 
           if (existingItem) {
+            const desiredQty = existingItem.quantity + quantity;
+            const clampedQty = Math.min(desiredQty, maxAvailable);
+            if (clampedQty <= 0) return state;
+
             return {
               items: state.items.map(item =>
                 item.product.id === product.id
-                  ? { ...item, quantity: item.quantity + quantity }
+                  ? { ...item, quantity: clampedQty }
                   : item
               ),
             };
           } else {
+            const initialQty = Math.min(quantity, maxAvailable);
+            if (initialQty <= 0) return state;
+
             return {
-              items: [...state.items, { product, quantity }],
+              items: [...state.items, { product, quantity: initialQty }],
             };
           }
         });
@@ -117,11 +123,11 @@ export const useCartStore = create<CartState>()(
           }
 
           return {
-            items: state.items.map(item =>
-              item.product.id === productId
-                ? { ...item, quantity }
-                : item
-            ),
+            items: state.items.map(item => {
+              if (item.product.id !== productId) return item;
+              const maxAvailable = Math.max(0, item.product.stock_quantity ?? 0);
+              return { ...item, quantity: Math.min(quantity, maxAvailable) };
+            }),
           };
         });
       },
