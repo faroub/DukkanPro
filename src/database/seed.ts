@@ -1,18 +1,18 @@
 /**
  * seed.ts — Development-only seed data for Dukkan OS SQLite database.
  *
- - Runs only when __DEV__ is true (imported from database.ts).
- - Idempotent: re-running does not duplicate rows (checks for existing data).
- - Uses prepared statements via db.runSync / db.exec for safety.
- - Seed data reflects a typical Algerian micro-business setup:
-   - One business profile (grocery, DZD, French locale)
-   - Sample products with stock
-   - A few customers with outstanding balances
-   - Sample sales and payments
-   - Initial inventory movements
+ * - Runs only when __DEV__ is true (imported from database.ts).
+ * - Idempotent: re-running does not duplicate rows (checks for existing data).
+ * - Uses prepared statements via db.runSync / db.exec for safety.
+ * - Seed data reflects a typical Algerian micro-business setup:
+ *   - One business profile (grocery, DZD, French locale)
+ *   - Sample products with stock
+ *   - A few customers with outstanding balances
+ *   - Sample sales and payments
+ *   - Initial inventory movements
  */
 
-import { executeAll, executeWrite } from "./query";
+import { rawExecuteAll as executeAll, rawExecuteWrite as executeWrite } from "./query";
 
 export async function seed(db: any): Promise<void> {
   // -- 0. Migration/update: Convert legacy Arabic seed records to English if present --
@@ -238,7 +238,6 @@ export async function seed(db: any): Promise<void> {
       );
     }
 
-    // Simplified: just create the sales header for now; items can be added later
     console.log(
       "Seed: sample sales headers created (items via separate step).",
     );

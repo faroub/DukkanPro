@@ -9,6 +9,7 @@ import { type SQLiteDatabase } from "expo-sqlite";
  */
 export class AsyncMutex {
   private queue: Promise<any> = Promise.resolve();
+  private isLocked: boolean = false;
 
   public runExclusive<T>(fn: () => Promise<T>): Promise<T> {
     let resolveOuter!: (val: T) => void;
@@ -20,16 +21,23 @@ export class AsyncMutex {
     });
 
     const task = async () => {
+      this.isLocked = true;
       try {
         const res = await fn();
         resolveOuter(res);
       } catch (err) {
         rejectOuter(err);
+      } finally {
+        this.isLocked = false;
       }
     };
 
     this.queue = this.queue.then(task, task);
     return resultPromise;
+  }
+
+  public get locked(): boolean {
+    return this.isLocked;
   }
 }
 
@@ -37,7 +45,8 @@ export const dbMutex = new AsyncMutex();
 
 /**
  * Low-level un-mutexed prepared statement runners.
- * Used directly inside transaction callbacks where the connection lock is already held.
+ * Only raw* functions are exported here to ensure callers outside database initialization
+ * cannot accidentally import non-mutexed helpers.
  */
 export async function rawExecuteRead<T>(
   db: SQLiteDatabase,
@@ -91,8 +100,3 @@ export async function rawTransaction<T>(
     throw error;
   }
 }
-
-/**
- * Backward compatibility exports
- */
-export { rawExecuteRead as executeRead, rawExecuteAll as executeAll, rawExecuteWrite as executeWrite, rawTransaction as transaction };
