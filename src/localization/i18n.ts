@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { I18nManager } from "react-native";
 
 import ar from "@/locales/ar.json";
 import en from "@/locales/en.json";
@@ -22,12 +23,20 @@ function buildResourceNamespaces(bundle: any) {
 }
 
 export function updateLayoutDirection(locale: string): void {
+  const isRTL = locale === "ar";
   if (typeof document !== "undefined" && document.documentElement) {
-    document.documentElement.dir = "ltr";
+    document.documentElement.dir = isRTL ? "rtl" : "ltr";
     document.documentElement.lang = locale;
     if (document.body) {
-      document.body.dir = "ltr";
+      document.body.dir = isRTL ? "rtl" : "ltr";
     }
+  }
+
+  try {
+    I18nManager.allowRTL(isRTL);
+    I18nManager.forceRTL(isRTL);
+  } catch (_e) {
+    // Ignore native I18nManager errors in non-native or test environments
   }
 }
 
@@ -73,8 +82,7 @@ export function changeLocale(newLocale: string): void {
       // Ignore
     }
   }
-  // Persist to the unified app_settings key so the choice survives on native,
-  // where localStorage is unavailable.
+  // Persist to the unified app_settings key so the choice survives on native
   storeLocaleInAsyncStorage(newLocale as Locale).catch((error) => {
     if (__DEV__) {
       console.warn("Failed to persist locale:", error);
