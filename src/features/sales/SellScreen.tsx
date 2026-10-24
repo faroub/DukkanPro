@@ -125,6 +125,11 @@ export default function SellScreen() {
       amountPaid?: number;
       note?: string;
       customerId?: number;
+      validatedItems?: Array<{
+        productId: number;
+        quantity: number;
+        unitSalePriceCentimes: number;
+      }>;
     }) => {
       if (items.length === 0) {
         setErrorState(t("sell.empty_cart"));
@@ -135,15 +140,17 @@ export default function SellScreen() {
       setErrorState(null);
 
       try {
+        const saleItemsInput = details.validatedItems || items.map((item: any) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          unitSalePriceCentimes: item.product.sale_price_centimes,
+          note: details.note,
+        }));
+
         const saleInput = {
           customerId: details.customerId,
           paymentMethod: details.method,
-          items: items.map((item: any) => ({
-            productId: item.product.id,
-            quantity: item.quantity,
-            unitSalePriceCentimes: item.product.sale_price_centimes,
-            note: details.note,
-          })),
+          items: saleItemsInput,
           note: details.note,
           discountCentimes: discount,
           amountPaidCentimes: details.amountPaid,

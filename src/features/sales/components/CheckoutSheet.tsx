@@ -38,6 +38,11 @@ interface CheckoutSheetProps {
     amountPaid?: number;
     note?: string;
     customerId?: number;
+    validatedItems?: Array<{
+      productId: number;
+      quantity: number;
+      unitSalePriceCentimes: number;
+    }>;
   }) => void;
   cartTotal: number;
   isSaving: boolean;
@@ -96,7 +101,13 @@ export function CheckoutSheet({
   };
 
   const handleConfirm = useCallback(async () => {
-    // M3 Fix: Live re-validation of stock for all items in cart before checkout
+    // M3 Fix: Live re-validation of stock and price for all items in cart before checkout
+    const checkoutItems: Array<{
+      productId: number;
+      quantity: number;
+      unitSalePriceCentimes: number;
+    }> = [];
+
     for (const item of items) {
       const liveProduct = await getProductById(item.product.id);
       if (!liveProduct || !liveProduct.is_active) {
@@ -122,6 +133,12 @@ export function CheckoutSheet({
         );
         return;
       }
+
+      checkoutItems.push({
+        productId: liveProduct.id,
+        quantity: item.quantity,
+        unitSalePriceCentimes: liveProduct.sale_price_centimes, // Live updated price from SQLite
+      });
     }
 
     const effectiveAmountPaid =
@@ -151,6 +168,7 @@ export function CheckoutSheet({
       amountPaid: effectiveAmountPaid,
       note,
       customerId: customerId || undefined,
+      validatedItems: checkoutItems,
     });
   }, [items, paymentMethod, amountReceived, partialAmount, note, customerId, cartTotal, onCheckout, t]);
 
