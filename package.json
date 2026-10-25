@@ -63,8 +63,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "check:no-rtl": "node --experimental-strip-types --no-warnings scripts/check-no-rtl.ts",
-    "test": "jest",
-    "postinstall": "node ./scripts/patch-cors.js"
+    "test": "jest"
   },
   "private": true,
   "jest": {
