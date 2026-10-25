@@ -103,31 +103,53 @@ export async function search(
 }
 
 /**
- - Create a new customer.
- - If a customer with the same phone number already exists, the existing one is returned
+ * Create a new customer atomically inside a transaction.
+ * If a customer with the same phone number already exists, the existing one is returned
    (idempotent).
  */
 export async function create(
   customer: Omit<Customer, "id" | "created_at" | "updated_at">,
 ): Promise<Customer> {
-  // Check if a customer with the same phone already exists.
-  if (customer.phone) {
-    const existing: Customer | null = await getByPhone(customer.phone);
-    if (existing) {
-      return existing;
+  const db = await getDatabase();
+  return await transaction(db, async (tx) => {
+    // Check if a customer with the same phone already exists inside the transaction
+    if (customer.phone) {
+      const existing = await getByPhone(customer.phone, tx);
+      if (existing) {
+        return existing;
+      }
     }
-  }
 
-  const result = await executeWrite(
-    // language=SQLite
-    `INSERT INTO customers (name, phone, note, is_active, created_at, updated_at)
-     VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-    [customer.name, customer.phone, customer.note, customer.is_active !== false ? 1 : 0],
-  );
+    const result = await executeWrite(
+      tx,
+      `INSERT INTO customers (name, phone, note, is_active, created_at, updated_at)
+       VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      [
+        customer.name,
+        customer.phone,
+        customer.note,
+        customer.is_active !== false ? 1 : 0,
+      ],
+    );
 
-  const created = await getById(result);
-  if (!created) throw new Error("Customer was not created");
-  return created;
+    const rows: any[] = await executeRead(
+      tx,
+      `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE id = ?`,
+      [result],
+    );
+
+    if (rows.length === 0) throw new Error("Customer was not created");
+    const r = rows[0];
+    return {
+      id: r.id,
+      name: r.name,
+      phone: r.phone,
+      note: r.note,
+      is_active: r.is_active !== 0,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+    };
+  });
 }
 
 /**
@@ -206,14 +228,17 @@ export async function archive(id: number): Promise<void> {
 }
 
 /**
- - Helper: retrieve a customer by phone (used by create idempotency).
+ * Helper: retrieve a customer by phone (used by create idempotency).
  */
-async function getByPhone(phone: string): Promise<Customer | null> {
-  const rows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE phone = ?`,
-    [phone],
-  );
+async function getByPhone(
+  phone: string,
+  tx?: any,
+): Promise<Customer | null> {
+  const sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE phone = ?`;
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, [phone])
+    : await executeRead(sql, [phone]);
+
   if (rows.length === 0) {
     return null;
   }
