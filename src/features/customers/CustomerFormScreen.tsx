@@ -96,6 +96,7 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
     }
   }, [name, phone, note, isEditing, resolvedId, router, t]);
 
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   if (loading) {
@@ -105,8 +106,6 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
       </View>
     );
   }
-
-  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.screen}>

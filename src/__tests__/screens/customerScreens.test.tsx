@@ -36,6 +36,19 @@ describe("Customer Screens Integration Harness", () => {
       const elements = await screen.findAllByText(/Nouveau Client/i);
       expect(elements.length).toBeGreaterThan(0);
     });
+
+    it("renders form in edit mode when customerId is provided", async () => {
+      const customer = await seedTestCustomer({
+        name: "Yassine EditTarget",
+        phone: "0770112233",
+        note: "Edit Note",
+      });
+
+      const screen = await renderScreen(<CustomerFormScreen customerId={customer.id} />);
+
+      const elements = await screen.findAllByDisplayValue("Yassine EditTarget");
+      expect(elements.length).toBeGreaterThan(0);
+    });
   });
 
   describe("CustomerDetailScreen", () => {
