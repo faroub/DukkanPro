@@ -174,20 +174,28 @@ export async function getCustomerCredit(
 /**
  * Calculate the total outstanding customer debt for the whole shop in ONE grouped query.
  * Replaces N+1 per-customer queries with a single atomic aggregation.
+ * Incorporates prepaid amounts retained on cancelled/returned sales (store credits)
+ * to ensure 100% alignment with per-customer balance reconciliation (getCustomerBalance).
  */
 export async function getTotalShopDebt(tx?: SQLiteDatabase): Promise<number> {
   const sql = `
     SELECT COALESCE(SUM(c_debt), 0) AS total_debt
       FROM (
         SELECT c.id,
-               MAX(0, COALESCE(s.total_sales_balance, 0) - COALESCE(p.total_payments, 0)) AS c_debt
+               MAX(0, COALESCE(s.completed_remaining, 0) - COALESCE(r.cancelled_taken, 0) - COALESCE(p.total_payments, 0)) AS c_debt
           FROM customers c
           LEFT JOIN (
-            SELECT customer_id, SUM(remaining_balance_centimes) AS total_sales_balance
+            SELECT customer_id, SUM(remaining_balance_centimes) AS completed_remaining
               FROM sales
              WHERE status = 'completed' AND remaining_balance_centimes > 0
              GROUP BY customer_id
           ) s ON s.customer_id = c.id
+          LEFT JOIN (
+            SELECT customer_id, SUM(CASE WHEN amount_paid_centimes < total_centimes THEN amount_paid_centimes ELSE total_centimes END) AS cancelled_taken
+              FROM sales
+             WHERE status IN ('cancelled', 'returned')
+             GROUP BY customer_id
+          ) r ON r.customer_id = c.id
           LEFT JOIN (
             SELECT customer_id, SUM(amount_centimes) AS total_payments
               FROM customer_payments

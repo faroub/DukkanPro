@@ -309,4 +309,31 @@ describe("customerBalanceService", () => {
       expect(summary.net_payments_centimes).toBe(10000);
     });
   });
+
+  describe("getTotalShopDebt", () => {
+    it("matches per-customer balance sum including store credits from cancelled prepaid sales", async () => {
+      const product = await makeProduct("TSD1");
+      const customer = await makeCustomer();
+
+      // 1. Completed credit sale for 30,000 centimes
+      await makeCreditSale(customer.id, product.id, 1, 30000);
+
+      // 2. Separate prepaid cash sale for 20,000 centimes that was cancelled
+      const cashSale = await createSale({
+        customerId: customer.id,
+        paymentMethod: "cash",
+        amountPaidCentimes: 20000,
+        items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 20000 }],
+      });
+      await cancelSale(cashSale.id, "Customer returned unneeded item");
+
+      // Per-customer debt = 30000 - 20000 = 10000
+      const customerDebt = await customerBalanceService.getCustomerDebt(customer.id);
+      expect(customerDebt).toBe(10000);
+
+      // Shop total debt MUST equal 10000 (not 30000!)
+      const shopDebt = await customerBalanceService.getTotalShopDebt();
+      expect(shopDebt).toBe(10000);
+    });
+  });
 });

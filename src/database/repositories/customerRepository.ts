@@ -125,7 +125,7 @@ export async function create(
     // language=SQLite
     `INSERT INTO customers (name, phone, note, is_active, created_at, updated_at)
      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-    [customer.name, customer.phone, customer.note, customer.is_active ? 1 : 0],
+    [customer.name, customer.phone, customer.note, customer.is_active !== false ? 1 : 0],
   );
 
   // Re-fetch the newly created row.
