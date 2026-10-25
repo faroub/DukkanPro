@@ -154,7 +154,14 @@ describe('parseDzdToCentimes', () => {
     expect(parseDzdToCentimes('0.5')).toBe(50);
     expect(parseDzdToCentimes('1,5')).toBe(150);
     expect(parseDzdToCentimes('1500')).toBe(150000);
-    expect(parseDzdToCentimes('1..5')).toBe(150);
+    // Malformed values are rejected instead of being normalized into money.
+    expect(parseDzdToCentimes('1..5')).toBe(0);
+    expect(parseDzdToCentimes('12abc')).toBe(0);
+    expect(parseDzdToCentimes('10.123')).toBe(0);
+    expect(parseDzdToCentimes('-10')).toBe(0);
+    expect(parseDzdToCentimes('١٠,٥')).toBe(1050);
+    expect(parseDzdToCentimes(' 10.5 ')).toBe(1050);
+    expect(parseDzdToCentimes('999999999999999999999')).toBe(0);
   });
 });
 

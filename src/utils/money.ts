@@ -37,17 +37,22 @@ export function getActiveStoreCurrency(): CurrencyCode {
  * Normalizes both period '.' and comma ',' decimal separators cleanly for European/Arabic input.
  */
 export function parseDzdToCentimes(inputText: string): number {
-  if (!inputText) return 0;
-  // Replace comma with dot, remove any other invalid characters
-  const normalized = inputText.replace(",", ".").replace(/[^0-9.]/g, "");
-  const parts = normalized.split(".");
-  if (parts.length > 2) {
-    const valid = parts[0] + "." + parts.slice(1).join("");
-    const parsed = parseFloat(valid);
-    return isNaN(parsed) || parsed < 0 ? 0 : Math.round(parsed * 100);
+  if (typeof inputText !== "string" || inputText.trim() === "") return 0;
+
+  // Accept a single decimal separator and at most two fractional digits.
+  // Reject malformed input rather than stripping characters: "12abc" must
+  // never silently become a valid 12 DZD payment amount.
+  const normalized = toArabicNumerals(inputText).trim();
+  if (!/^(?:\d+(?:[.,]\d{0,2})?|[.,]\d{1,2})$/.test(normalized)) {
+    return 0;
   }
-  const parsed = parseFloat(normalized);
-  return isNaN(parsed) || parsed < 0 ? 0 : Math.round(parsed * 100);
+
+  const [wholePart = "0", fractionalPart = ""] = normalized.replace(",", ".").split(".");
+  const whole = Number(wholePart || "0");
+  const fractional = Number(fractionalPart.padEnd(2, "0") || "0");
+  const centimes = whole * 100 + fractional;
+
+  return Number.isSafeInteger(centimes) ? centimes : 0;
 }
 
 /**
