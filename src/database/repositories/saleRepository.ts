@@ -298,10 +298,23 @@ export async function create(saleInput: {
     throw new Error("Cannot create a sale with no items.");
   }
 
+  if (saleInput.discountCentimes !== undefined) {
+    if (!Number.isSafeInteger(saleInput.discountCentimes) || saleInput.discountCentimes < 0) {
+      throw new Error(
+        `Invalid discountCentimes ${saleInput.discountCentimes}. Discount must be a non-negative integer.`
+      );
+    }
+  }
+
   for (const item of saleInput.items) {
     if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
       throw new Error(
         `Invalid quantity ${item.quantity} for product id=${item.productId}. Quantity must be a positive integer.`
+      );
+    }
+    if (!Number.isSafeInteger(item.unitSalePriceCentimes) || item.unitSalePriceCentimes < 0) {
+      throw new Error(
+        `Invalid unitSalePriceCentimes ${item.unitSalePriceCentimes} for product id=${item.productId}. Price must be a non-negative integer.`
       );
     }
   }

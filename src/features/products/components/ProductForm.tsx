@@ -197,8 +197,8 @@ export function ProductForm({
       return;
     }
 
-    const saleCentimes = Math.round((parseFloat(salePriceDzd) || 0) * 100);
-    const costCentimes = Math.round((parseFloat(costPriceDzd) || 0) * 100);
+    const saleCentimes = Math.max(0, Math.round((parseFloat(salePriceDzd) || 0) * 100));
+    const costCentimes = Math.max(0, Math.round((parseFloat(costPriceDzd) || 0) * 100));
     const minStock = parseInt(minStockAlert, 10) || 0;
 
     try {

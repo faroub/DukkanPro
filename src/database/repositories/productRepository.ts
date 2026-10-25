@@ -183,12 +183,25 @@ export async function getBySku(sku: string): Promise<Product | null> {
   };
 }
 
+function validatePrice(priceCentimes: number, fieldName: string): void {
+  if (!Number.isSafeInteger(priceCentimes) || priceCentimes < 0) {
+    throw new Error(
+      `Invalid ${fieldName}: ${priceCentimes}. Price must be a non-negative integer in centimes.`
+    );
+  }
+}
+
 /**
  * Create a new product.
  */
 export async function create(
   product: Omit<Product, "id" | "created_at" | "updated_at">,
 ): Promise<Product> {
+  validatePrice(product.sale_price_centimes, "sale_price_centimes");
+  if (product.cost_price_centimes !== undefined && product.cost_price_centimes !== null) {
+    validatePrice(product.cost_price_centimes, "cost_price_centimes");
+  }
+
   try {
     const result = await executeWrite(
       // language=SQLite
@@ -243,10 +256,12 @@ export async function update(
     values.push(product.category);
   }
   if (product.sale_price_centimes !== undefined) {
+    validatePrice(product.sale_price_centimes, "sale_price_centimes");
     fields.push("sale_price_centimes = ?");
     values.push(product.sale_price_centimes);
   }
-  if (product.cost_price_centimes !== undefined) {
+  if (product.cost_price_centimes !== undefined && product.cost_price_centimes !== null) {
+    validatePrice(product.cost_price_centimes, "cost_price_centimes");
     fields.push("cost_price_centimes = ?");
     values.push(product.cost_price_centimes);
   }

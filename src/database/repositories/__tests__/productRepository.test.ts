@@ -86,6 +86,22 @@ describe("productRepository", () => {
       const byId = await getById(created!.id);
       expect(byId?.name).toBe("سكر");
     });
+
+    it("rejects negative sale or cost prices", async () => {
+      await expect(
+        create({
+          name: "Negative Price Item",
+          sku: "NEG-001",
+          category: "test",
+          sale_price_centimes: -500,
+          cost_price_centimes: 100,
+          stock_quantity: 10,
+          minimum_stock_quantity: 1,
+          unit: "pcs",
+          is_active: true,
+        })
+      ).rejects.toThrow(/Price must be a non-negative integer/i);
+    });
   });
 
   describe("search()", () => {
