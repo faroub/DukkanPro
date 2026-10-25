@@ -195,6 +195,38 @@ describe("saleRepository", () => {
       }
     });
 
+    it("rejects sale totals that exceed safe integer-centime arithmetic", async () => {
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          items: [
+            { productId: 1, quantity: 1, unitSalePriceCentimes: 5_000_000_000_000_000 },
+            { productId: 1, quantity: 1, unitSalePriceCentimes: 5_000_000_000_000_000 },
+          ],
+        }),
+      ).rejects.toThrow(/subtotal exceeds the safe integer-centime range/i);
+
+      // The transaction must roll back its earlier line and stock mutation.
+      const sales = await db.getAllAsync("SELECT id FROM sales");
+      expect(sales).toHaveLength(0);
+      const product = await db.getFirstAsync(
+        "SELECT stock_quantity FROM products WHERE id = 1",
+      );
+      expect(product?.stock_quantity).toBe(100);
+    });
+
+    it("rejects unsafe explicit amount-paid values", async () => {
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          amountPaidCentimes: Number.MAX_SAFE_INTEGER + 1,
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 1000 }],
+        }),
+      ).rejects.toThrow(/amountPaidCentimes.*safe integer/i);
+    });
+
     it("clamps a discount larger than the subtotal", async () => {
       const sale = await create({
         customerId: 1,
