@@ -254,6 +254,18 @@ export async function create(saleInput: {
   discountCentimes?: number;
   amountPaidCentimes?: number;
 }): Promise<Sale> {
+  if (!saleInput.items || saleInput.items.length === 0) {
+    throw new Error("Cannot create a sale with no items.");
+  }
+
+  for (const item of saleInput.items) {
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+      throw new Error(
+        `Invalid quantity ${item.quantity} for product id=${item.productId}. Quantity must be a positive integer.`
+      );
+    }
+  }
+
   const db = await getDatabase();
   return await transaction(db, async (tx: any) => {
     // 1. Insert initial sale header placeholder

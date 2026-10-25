@@ -127,6 +127,22 @@ describe("saleRepository", () => {
       expect(sale.remaining_balance_centimes).toBe(0);
     });
 
+    it("rejects sales where an item has quantity <= 0 or invalid quantity", async () => {
+      await expect(
+        create({
+          paymentMethod: "cash",
+          items: [{ productId: 1, quantity: 0, unitSalePriceCentimes: 1000 }],
+        })
+      ).rejects.toThrow(/Quantity must be a positive integer/i);
+
+      await expect(
+        create({
+          paymentMethod: "cash",
+          items: [{ productId: 1, quantity: -2, unitSalePriceCentimes: 1000 }],
+        })
+      ).rejects.toThrow(/Quantity must be a positive integer/i);
+    });
+
     it("honours an explicit amount paid and tracks the shortfall", async () => {
       const sale = await create({
         customerId: 1,
