@@ -7,7 +7,7 @@
  */
 
 import { Customer } from "../../types/entities";
-import { executeAll, executeRead, executeWrite } from "../database";
+import { executeAll, executeRead, executeWrite, escapeLike } from "../database";
 
 export type CustomerFilters = {
   is_active?: boolean;
@@ -71,12 +71,8 @@ export async function getById(id: number): Promise<Customer | null> {
   };
 }
 
-function escapeLike(query: string): string {
-  return query.replace(/[%_\\]/g, "\\$&");
-}
-
 /**
- - Search customers by name or phone substring.
+ * Search customers by name or phone substring.
  */
 export async function search(
   query: string,

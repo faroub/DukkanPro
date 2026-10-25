@@ -48,7 +48,7 @@ export const dbMutex = new AsyncMutex();
  * Only raw* functions are exported here to ensure callers outside database initialization
  * cannot accidentally import non-mutexed helpers.
  */
-export async function rawExecuteRead<T>(
+export async function rawExecuteRead<T = any>(
   db: SQLiteDatabase,
   sql: string,
   params: Array<any> = [],
@@ -60,16 +60,13 @@ export async function rawExecuteRead<T>(
   return result as T[];
 }
 
-export async function rawExecuteAll<T>(
-  db: SQLiteDatabase,
-  sql: string,
-  params: Array<any> = [],
-): Promise<T[]> {
-  const results = await db.getAllAsync(
-    sql,
-    ...params.map((param) => param ?? null),
-  );
-  return results as T[];
+export const rawExecuteAll = rawExecuteRead;
+
+/**
+ * Escapes special characters (%, _, \) for SQLite LIKE wildcard queries.
+ */
+export function escapeLike(query: string): string {
+  return query.replace(/[%_\\]/g, "\\$&");
 }
 
 export async function rawExecuteWrite(

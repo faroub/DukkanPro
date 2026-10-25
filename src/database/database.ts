@@ -14,6 +14,7 @@ import { schema } from "./schema";
 import { seed } from "./seed";
 import {
   dbMutex,
+  escapeLike,
   rawExecuteAll,
   rawExecuteRead,
   rawExecuteWrite,
@@ -159,4 +160,4 @@ export async function transaction<T>(
   });
 }
 
-export { dbMutex, executeAll as dbAll, executeRead as dbRead, executeWrite as dbWrite, schema };
+export { dbMutex, escapeLike, executeAll as dbAll, executeRead as dbRead, executeWrite as dbWrite, schema };

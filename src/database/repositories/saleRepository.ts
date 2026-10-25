@@ -15,6 +15,7 @@ import {
   executeAll,
   executeRead,
   executeWrite,
+  escapeLike,
   getDatabase,
   transaction,
 } from "../database";
@@ -27,10 +28,6 @@ export type SaleFilters = {
   endDate?: string;
   search?: string;
 };
-
-function escapeLike(query: string): string {
-  return query.replace(/[%_\\]/g, "\\$&");
-}
 
 /**
  * Retrieve all sales headers with items attached, optionally filtered.

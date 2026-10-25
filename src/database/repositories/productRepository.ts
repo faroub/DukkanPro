@@ -8,17 +8,13 @@
  */
 
 import { InventoryMovement, Product } from "../../types/entities";
-import { executeAll, executeRead, executeWrite, getDatabase, transaction } from "../database";
+import { executeAll, executeRead, executeWrite, escapeLike, getDatabase, transaction } from "../database";
 
 export type ProductFilters = {
   is_active?: boolean;
   category?: string;
   search?: string;
 };
-
-function escapeLike(query: string): string {
-  return query.replace(/[%_\\]/g, "\\$&");
-}
 
 /**
  * Retrieve all products, optionally filtered by is_active, category, or search query.
