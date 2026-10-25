@@ -468,7 +468,11 @@ export function MoreScreen() {
           <View style={[styles.divider, { backgroundColor: theme.borderLight }]} />
 
           {/* 8. About */}
-          <View style={styles.menuRow}>
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => handleNavigate("/settings/about")}
+            activeOpacity={0.7}
+          >
             <View style={[styles.menuIconContainer, { backgroundColor: theme.surfaceAlt }]}>
               <MaterialIcons name="info" size={22} color={theme.textPrimary} />
             </View>
@@ -481,7 +485,7 @@ export function MoreScreen() {
               </ThemedText>
             </View>
             <MaterialIcons name="chevron-right" size={20} color={theme.textMuted} />
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Subtle Footer Signature */}
