@@ -134,7 +134,15 @@ export function RecordPaymentScreen({
           ]
         );
       } else {
-        Alert.alert(t("common:error"), t("customers:overPaymentWarning"));
+        const latestDebt = await getCustomerDebt(customerId);
+        setCurrentDebt(latestDebt);
+        setAmountInput(formatCentimesToInputDzd(latestDebt));
+        Alert.alert(
+          t("common:error"),
+          t("customers:overPaymentWarning", {
+            defaultValue: "Payment cannot exceed the customer's current debt balance.",
+          })
+        );
       }
     } catch (err: any) {
       Alert.alert(t("common:error"), err.message || t("common:unknownError"));
