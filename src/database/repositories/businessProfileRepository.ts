@@ -115,12 +115,36 @@ export async function create(
 }
 
 /**
- - Update an existing business profile.
- - Only the provided fields are updated; id, created_at remain unchanged.
+ * Helper to check if any financial transactions (sales or customer payments) exist.
+ */
+export async function hasExistingTransactions(): Promise<boolean> {
+  const saleRows: any[] = await executeAll(`SELECT COUNT(*) AS c FROM sales`);
+  if (saleRows[0]?.c > 0) return true;
+
+  const paymentRows: any[] = await executeAll(`SELECT COUNT(*) AS c FROM customer_payments`);
+  if (paymentRows[0]?.c > 0) return true;
+
+  return false;
+}
+
+/**
+ * Update an existing business profile.
+ * Only the provided fields are updated; id, created_at remain unchanged.
+ * Rejects currency changes if sales or payments already exist.
  */
 export async function update(
   profile: BusinessProfileUpdate,
 ): Promise<BusinessProfile> {
+  const current = await get();
+  if (current && profile.currency && profile.currency !== current.currency) {
+    const hasTx = await hasExistingTransactions();
+    if (hasTx) {
+      throw new Error(
+        "CURRENCY_LOCKED: Currency cannot be changed after sales or payments have been recorded."
+      );
+    }
+  }
+
   await executeWrite(
     // language=SQLite
     `UPDATE business_profiles

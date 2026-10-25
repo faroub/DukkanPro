@@ -754,6 +754,7 @@
     "subtitle": "Store settings & preferences",
     "general": "General",
     "currency": "Currency",
+    "currencyLocked": "Currency is locked because sales or payments already exist.",
     "notifications": "Notifications",
     "rateApp": "Rate App",
     "shareApp": "Share App",

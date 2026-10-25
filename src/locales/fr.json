@@ -754,6 +754,7 @@
     "subtitle": "Paramètres du magasin & préférences",
     "general": "Général",
     "currency": "Devise",
+    "currencyLocked": "La devise ne peut plus être modifiée car des transactions existent déjà.",
     "notifications": "Notifications",
     "rateApp": "Évaluez l'application",
     "shareApp": "Partagez l'application",

@@ -52,6 +52,7 @@ export function BusinessSettingsScreen() {
   const [storeAddress, setStoreAddress] = useState("");
   const [rcNumber, setRcNumber] = useState("");
   const [currency, setCurrency] = useState<"DZD" | "EUR" | "USD">("DZD");
+  const [hasTransactions, setHasTransactions] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profileId, setProfileId] = useState<number | null>(null);
 
@@ -68,6 +69,8 @@ export function BusinessSettingsScreen() {
       setRcNumber(profile.rc_number ?? "");
       setCurrency((profile.currency as any) || "DZD");
     });
+
+    businessProfile.hasExistingTransactions().then(setHasTransactions);
   }, []);
 
   const showToast = useCallback((message: string) => {
@@ -489,11 +492,13 @@ export function BusinessSettingsScreen() {
                 return (
                   <TouchableOpacity
                     key={item.code}
+                    disabled={hasTransactions}
                     style={[
                       styles.currencyChip,
                       {
                         backgroundColor: isSelected ? theme.primaryLight : theme.surfaceAlt,
                         borderColor: isSelected ? theme.primary : theme.border,
+                        opacity: hasTransactions && !isSelected ? 0.5 : 1,
                       },
                     ]}
                     onPress={() => setCurrency(item.code as any)}
@@ -519,11 +524,29 @@ export function BusinessSettingsScreen() {
                 );
               })}
             </View>
-            <ThemedText
-              style={[styles.fieldHelper, { color: theme.textSecondary }]}
-            >
-              {t("settings.currencyHelper") || "Selected currency will be used across receipts, sales, and products."}
-            </ThemedText>
+            {hasTransactions ? (
+              <View
+                style={[
+                  styles.lockedWarningBox,
+                  { backgroundColor: theme.surfaceAlt, borderColor: theme.border },
+                ]}
+              >
+                <MaterialIcons name="lock" size={16} color={theme.textSecondary} />
+                <ThemedText style={[styles.lockedWarningText, { color: theme.textSecondary }]}>
+                  {t("settings.currencyLocked", {
+                    defaultValue:
+                      "La devise ne peut plus être modifiée car des transactions existent déjà.",
+                  })}
+                </ThemedText>
+              </View>
+            ) : (
+              <ThemedText
+                style={[styles.fieldHelper, { color: theme.textSecondary }]}
+              >
+                {t("settings.currencyHelper") ||
+                  "Selected currency will be used across receipts, sales, and products."}
+              </ThemedText>
+            )}
           </View>
         </View>
 
@@ -757,5 +780,19 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 14,
     fontWeight: "600",
+  },
+  lockedWarningBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginTop: Spacing.xs,
+  },
+  lockedWarningText: {
+    ...Typography.caption,
+    fontSize: 12,
+    flex: 1,
   },
 });

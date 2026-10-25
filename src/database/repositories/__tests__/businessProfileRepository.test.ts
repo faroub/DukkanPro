@@ -119,5 +119,37 @@ describe("businessProfileRepository", () => {
       expect(updated?.business_type).toBe("service_seller");
       expect(updated?.selected_locale).toBe("en");
     });
+
+    it("rejects currency changes if sales or payments exist", async () => {
+      const profile = await create({
+        business_name: "Currency Lock Test",
+        owner_name: "Owner",
+        business_type: "grocery",
+        currency: "DZD",
+        selected_locale: "fr",
+      });
+
+      // Insert a sale row
+      await db.runAsync(
+        `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes, total_centimes,
+                            amount_paid_centimes, remaining_balance_centimes, payment_method, currency, sold_at)
+         VALUES (NULL, 'completed', 1000, 0, 1000, 1000, 0, 'cash', 'DZD', datetime('now'))`
+      );
+
+      // Updating non-currency fields should succeed
+      const nameUpdated = await update({
+        ...profile,
+        business_name: "New Name DZD",
+      });
+      expect(nameUpdated.business_name).toBe("New Name DZD");
+
+      // Updating currency should throw CURRENCY_LOCKED
+      await expect(
+        update({
+          ...profile,
+          currency: "EUR",
+        })
+      ).rejects.toThrow(/CURRENCY_LOCKED/);
+    });
   });
 });
