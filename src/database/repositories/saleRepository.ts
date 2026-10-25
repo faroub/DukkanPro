@@ -309,6 +309,15 @@ export async function create(saleInput: {
     }
   }
 
+  if (
+    saleInput.amountPaidCentimes !== undefined &&
+    !Number.isSafeInteger(saleInput.amountPaidCentimes)
+  ) {
+    throw new Error(
+      `Invalid amountPaidCentimes ${saleInput.amountPaidCentimes}. Amount paid must be a safe integer number of centimes.`,
+    );
+  }
+
   for (const item of saleInput.items) {
     if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
       throw new Error(
@@ -376,8 +385,17 @@ export async function create(saleInput: {
       const historicalCost = product.cost_price_centimes;
       const unitSalePrice = item.unitSalePriceCentimes;
       const lineTotal = unitSalePrice * item.quantity;
+      if (!Number.isSafeInteger(lineTotal)) {
+        throw new Error(
+          `Sale line total exceeds the safe integer-centime range for product id=${item.productId}.`,
+        );
+      }
 
-      subtotal += lineTotal;
+      const nextSubtotal = subtotal + lineTotal;
+      if (!Number.isSafeInteger(nextSubtotal)) {
+        throw new Error("Sale subtotal exceeds the safe integer-centime range.");
+      }
+      subtotal = nextSubtotal;
 
       await executeWrite(
         tx,
