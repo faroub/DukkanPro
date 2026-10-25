@@ -30,6 +30,31 @@ export type SaleFilters = {
 };
 
 /**
+ * Converts local calendar date strings ("YYYY-MM-DD") for [startDate, endDate]
+ * into a half-open UTC timestamp interval [utcStart, utcEnd) in "YYYY-MM-DD HH:MM:SS" format.
+ */
+function localDateRangeToUtcBounds(
+  startDateStr: string,
+  endDateStr: string,
+): [string, string] {
+  const parseLocalDate = (str: string) => {
+    const parts = str.slice(0, 10).split("-").map((p) => parseInt(p, 10));
+    return new Date(parts[0], parts[1] - 1, parts[2] || 1);
+  };
+
+  const startLocal = parseLocalDate(startDateStr);
+  const endLocalDay = parseLocalDate(endDateStr);
+  const endLocal = new Date(
+    endLocalDay.getFullYear(),
+    endLocalDay.getMonth(),
+    endLocalDay.getDate() + 1,
+  );
+
+  const fmt = (d: Date) => d.toISOString().slice(0, 19).replace("T", " ");
+  return [fmt(startLocal), fmt(endLocal)];
+}
+
+/**
  * Retrieve all sales headers with items attached, optionally filtered.
  */
 export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
@@ -55,13 +80,17 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
   if (filters.hasCredit) {
     conditions.push(`s.remaining_balance_centimes > 0`);
   }
-  if (filters.startDate) {
-    conditions.push(`substr(s.sold_at, 1, 10) >= ?`);
-    params.push(filters.startDate.slice(0, 10));
-  }
-  if (filters.endDate) {
-    conditions.push(`substr(s.sold_at, 1, 10) <= ?`);
-    params.push(filters.endDate.slice(0, 10));
+  if (filters.startDate || filters.endDate) {
+    const startStr = filters.startDate
+      ? filters.startDate.slice(0, 10)
+      : filters.endDate!.slice(0, 10);
+    const endStr = filters.endDate
+      ? filters.endDate.slice(0, 10)
+      : startStr;
+    const [utcStart, utcEnd] = localDateRangeToUtcBounds(startStr, endStr);
+
+    conditions.push(`s.sold_at >= ? AND s.sold_at < ?`);
+    params.push(utcStart, utcEnd);
   }
   if (filters.search) {
     conditions.push(`(c.name LIKE ? ESCAPE '\\' OR s.note LIKE ? ESCAPE '\\' OR s.id LIKE ? ESCAPE '\\')`);
