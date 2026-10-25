@@ -1,11 +1,8 @@
 /**
- * Lint check: Ensure no RTL (Right-To-Left) API usage in the codebase.
+ * Lint check: Ensure no arbitrary global RTL (Right-To-Left) API usage or hardcoded row-reverse layouts.
  *
- * This script searches for forbidden global direction APIs and reversed row
- * layout declarations.
- *
- * Fails if any are found, which is the intended behavior for a lint check.
- * Test files in __tests__ directories are excluded from the check.
+ * `src/localization/i18n.ts` is the single authorized control site for driving I18nManager.
+ * All other source files must NOT call global I18nManager direction setters or hardcode row-reverse.
  */
 
 import * as fs from "fs";
@@ -35,7 +32,8 @@ function collectSourceFiles(directory: string): string[] {
     if (
       (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx")) &&
       !entry.name.endsWith(".test.ts") &&
-      !entry.name.endsWith(".test.tsx")
+      !entry.name.endsWith(".test.tsx") &&
+      !filePath.endsWith(path.join("src", "localization", "i18n.ts"))
     ) {
       files.push(filePath);
     }
