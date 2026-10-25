@@ -8,6 +8,7 @@
 
 import { Customer } from "../../types/entities";
 import { executeAll, executeRead, executeWrite, escapeLike } from "../database";
+import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 
 export type CustomerFilters = {
   is_active?: boolean;
@@ -179,11 +180,18 @@ export async function update(
 }
 
 /**
- - Archive (soft-delete) a customer by id.
- - Sets is_active = false; the row is retained for history and referential integrity.
- - Archived customers retain all history (sales, payments, inventory movements).
+ * Archive (soft-delete) a customer by id.
+ * Sets is_active = false; the row is retained for history and referential integrity.
+ * Rejects archiving if the customer has an active outstanding debt balance.
  */
 export async function archive(id: number): Promise<void> {
+  const debt = await getCustomerDebt(id);
+  if (debt > 0) {
+    throw new Error(
+      `Cannot archive customer id=${id} while an outstanding balance remains.`
+    );
+  }
+
   await executeWrite(
     // language=SQLite
     `UPDATE customers

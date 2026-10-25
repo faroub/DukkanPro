@@ -66,6 +66,9 @@
     "test": "jest"
   },
   "private": true,
+  "engines": {
+    "node": "^22.13.0 || >=24.0.0"
+  },
   "jest": {
     "preset": "jest-expo",
     "setupFiles": [
