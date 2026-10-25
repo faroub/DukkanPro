@@ -47,6 +47,7 @@ interface CheckoutSheetProps {
   onCheckout: (paymentDetails: {
     method: "cash" | "electronic" | "mixed" | "partial" | "credit";
     amountPaid?: number;
+    rawAmountReceived?: number;
     note?: string;
     customerId?: number;
     validatedItems?: Array<{
@@ -54,7 +55,7 @@ interface CheckoutSheetProps {
       quantity: number;
       unitSalePriceCentimes: number;
     }>;
-  }) => void;
+  }) => Promise<void> | void;
   cartTotal: number;
   isSaving: boolean;
   error?: string | null;
@@ -265,6 +266,7 @@ export function CheckoutSheet({
       await onCheckout({
         method: paymentMethod,
         amountPaid: effectiveAmountPaid,
+        rawAmountReceived: paymentMethod === "cash" ? amountReceived : effectiveAmountPaid,
         note,
         customerId: customerId || undefined,
         validatedItems: checkoutItems,

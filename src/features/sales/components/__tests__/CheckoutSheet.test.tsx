@@ -154,6 +154,7 @@ describe("CheckoutSheet Component Money Math & Re-validation Harness", () => {
       expect(onCheckoutMock).toHaveBeenCalledWith({
         method: "cash",
         amountPaid: 20000,
+        rawAmountReceived: 20000,
         note: "",
         customerId: undefined,
         validatedItems: [

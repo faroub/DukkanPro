@@ -55,6 +55,34 @@ describe("Sales Screens Integration Harness", () => {
       expect(viewCartBtn).toBeTruthy();
       fireEvent.press(viewCartBtn);
     });
+
+    it("displays correct change due (50 DZD) on receipt preview when 150 DZD is tendered on a 100 DZD sale", async () => {
+      const product = await seedTestProduct({ name: "Cereal Box", sale_price_centimes: 10000, stock_quantity: 10 });
+
+      const screen = await renderScreen(<SellScreen />);
+
+      const productTiles = await screen.findAllByText("Cereal Box");
+      fireEvent.press(productTiles[0]);
+
+      // Open checkout sheet
+      const viewCartBtn = await screen.findByText("Voir le panier");
+      fireEvent.press(viewCartBtn);
+
+      const payBtn = await screen.findByText(/Payer/i);
+      fireEvent.press(payBtn);
+
+      // In checkout sheet, enter 150 DZD cash tendered
+      const amountInput = await screen.findByDisplayValue("100");
+      fireEvent.changeText(amountInput, "150");
+
+      // Confirm sale
+      const confirmBtn = await screen.findByText("Confirmer la vente");
+      fireEvent.press(confirmBtn);
+
+      // Verify receipt preview displays change due 50 DZD
+      const changeDueElements = await screen.findAllByText("50 DZD");
+      expect(changeDueElements.length).toBeGreaterThan(0);
+    });
   });
 
   describe("SalesHistoryScreen", () => {

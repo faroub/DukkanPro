@@ -94,6 +94,7 @@ export default function SellScreen() {
 
   // Frequent / fast-tap items (top 6 selling products from SQLite)
   const [frequentProducts, setFrequentProducts] = useState<Product[]>([]);
+  const [lastTenderReceived, setLastTenderReceived] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     let isMounted = true;
@@ -141,6 +142,7 @@ export default function SellScreen() {
     async (details: {
       method: "cash" | "electronic" | "mixed" | "partial" | "credit";
       amountPaid?: number;
+      rawAmountReceived?: number;
       note?: string;
       customerId?: number;
       validatedItems?: Array<{
@@ -156,6 +158,7 @@ export default function SellScreen() {
 
       setIsSaving(true);
       setErrorState(null);
+      setLastTenderReceived(details.rawAmountReceived ?? details.amountPaid);
 
       try {
         const saleItemsInput =
@@ -921,7 +924,7 @@ export default function SellScreen() {
             cartTotal={sale?.total_centimes || 0}
             discountCentimes={sale?.discount_centimes || 0}
             paymentMethod={sale?.payment_method}
-            amountReceived={sale?.amount_paid_centimes || 0}
+            amountReceived={lastTenderReceived ?? (sale?.amount_paid_centimes || 0)}
             customerName={null}
           />
         )}
