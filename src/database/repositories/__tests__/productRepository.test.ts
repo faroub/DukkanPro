@@ -7,6 +7,7 @@
  */
 
 import { getDatabase } from "../../database";
+import { create as createSale, cancel as cancelSale } from "../saleRepository";
 import {
     adjustStock,
     archive,
@@ -14,6 +15,7 @@ import {
     getAll,
     getById,
     getInventoryHistory,
+    getTopSellingProducts,
     search,
     update,
 } from "../productRepository";
@@ -338,6 +340,55 @@ describe("productRepository", () => {
       // Movement quantity_change must match the actual stock change (-5, not -10)
       expect(movement.quantity_change).toBe(-5);
       expect(movement.movement_type).toBe("out");
+    });
+  });
+
+  describe("getTopSellingProducts()", () => {
+    it("ranks products by completed sales and excludes quantities from cancelled sales", async () => {
+      const p1 = await create({
+        name: "Top Item Alpha",
+        sku: "TOP-001",
+        category: "Test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 50,
+        minimum_stock_quantity: 5,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      const p2 = await create({
+        name: "Cancelled Item Beta",
+        sku: "TOP-002",
+        category: "Test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 50,
+        minimum_stock_quantity: 5,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      // 1. Completed sale of 10 units for p1
+      await createSale({
+        paymentMethod: "cash",
+        items: [{ productId: p1.id, quantity: 10, unitSalePriceCentimes: 1000 }],
+      });
+
+      // 2. Cancelled sale of 50 units for p2
+      const saleCancelled = await createSale({
+        paymentMethod: "cash",
+        items: [{ productId: p2.id, quantity: 50, unitSalePriceCentimes: 1000 }],
+      });
+      await cancelSale(saleCancelled.id, "Cancelled test sale");
+
+      const topProducts = await getTopSellingProducts(6);
+
+      // p1 must rank higher than p2 because p2's 50 units were cancelled (completed count = 0)
+      const p1Index = topProducts.findIndex((p) => p.id === p1.id);
+      const p2Index = topProducts.findIndex((p) => p.id === p2.id);
+
+      expect(p1Index).toBeLessThan(p2Index);
     });
   });
 });

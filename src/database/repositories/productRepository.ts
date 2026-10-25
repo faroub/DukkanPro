@@ -90,10 +90,10 @@ export async function getTopSellingProducts(limit: number = 6): Promise<Product[
     `SELECT p.id, p.name, p.sku, p.category, p.sale_price_centimes, p.cost_price_centimes,
             p.stock_quantity, p.minimum_stock_quantity, p.unit, p.is_active,
             p.created_at, p.updated_at,
-            COALESCE(SUM(si.quantity), 0) AS total_sold
+            COALESCE(SUM(CASE WHEN s.status = 'completed' THEN si.quantity ELSE 0 END), 0) AS total_sold
        FROM products p
        LEFT JOIN sale_items si ON si.product_id = p.id
-       LEFT JOIN sales s ON s.id = si.sale_id AND s.status = 'completed'
+       LEFT JOIN sales s ON s.id = si.sale_id
       WHERE p.is_active = 1
       GROUP BY p.id
       ORDER BY total_sold DESC, p.name ASC
