@@ -173,7 +173,7 @@ export function CartList({
                         { color: theme.textSecondary },
                       ]}
                     >
-                      {t("receipt.discount", { defaultValue: "Remise" })} (DZD)
+                      {t("sell.discountPrompt", { defaultValue: "Saisissez le montant de la remise" })}
                     </Text>
                     <View
                       style={[

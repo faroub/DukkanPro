@@ -31,6 +31,7 @@
     "confirmPayment": "Confirm payment",
     "confirmSale": "Confirm sale",
     "discount": "Discount",
+    "discountPrompt": "Enter discount amount",
     "edit": "Edit",
     "empty_cart": "Your cart is empty",
     "no_products": "No products available",

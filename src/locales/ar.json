@@ -31,6 +31,7 @@
     "confirmPayment": "تأكيد الدفع",
     "confirmSale": "تأكيد البيع",
     "discount": "الخصم",
+    "discountPrompt": "أدخل مبلغ الخصم",
     "edit": "تعديل",
     "empty_cart": "سلتك فارغة",
     "no_products": "لا توجد منتجات متاحة",

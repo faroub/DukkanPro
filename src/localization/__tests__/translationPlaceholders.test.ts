@@ -36,4 +36,18 @@ describe("translation interpolation placeholders", () => {
       );
     }
   });
+
+  it("ensures every translation key exists in all three locales (ar, fr, en)", () => {
+    const arKeys = new Set(Object.keys(flatten(ar)));
+    const frKeys = new Set(Object.keys(flatten(fr)));
+    const enKeys = new Set(Object.keys(flatten(en)));
+
+    const allKeys = new Set([...arKeys, ...frKeys, ...enKeys]);
+
+    for (const key of allKeys) {
+      expect(arKeys.has(key)).toBe(true);
+      expect(frKeys.has(key)).toBe(true);
+      expect(enKeys.has(key)).toBe(true);
+    }
+  });
 });
