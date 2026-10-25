@@ -107,6 +107,28 @@ describe("customerRepository", () => {
       });
       expect(p1?.id).toBe(p2?.id);
     });
+
+    it("returns the exact newly created customer when no phone number is provided", async () => {
+      // 1. Seed an alphabetically late customer first
+      await create({
+        name: "Zara Customer",
+        phone: "0550000000",
+        note: null,
+        is_active: true,
+      });
+
+      // 2. Create an alphabetically early customer without a phone number
+      const created = await create({
+        name: "Alice Customer",
+        phone: null,
+        note: null,
+        is_active: true,
+      });
+
+      // The returned record MUST be Alice (not Zara!)
+      expect(created.name).toBe("Alice Customer");
+      expect(created.id).toBeGreaterThan(0);
+    });
   });
 
   describe("update()", () => {

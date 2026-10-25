@@ -128,25 +128,9 @@ export async function create(
     [customer.name, customer.phone, customer.note, customer.is_active !== false ? 1 : 0],
   );
 
-  // Re-fetch the newly created row.
-  if (customer.phone) {
-    const created = await getByPhone(customer.phone);
-    if (!created) throw new Error("Customer was not created");
-    return created;
-  }
-  // If no phone, fetch the last inserted.
-  const all = await getAll({});
-  return (
-    all[all.length - 1] || {
-      id: -1,
-      name: customer.name,
-      phone: customer.phone || "",
-      note: customer.note,
-      is_active: customer.is_active,
-      created_at: "",
-      updated_at: "",
-    }
-  );
+  const created = await getById(result);
+  if (!created) throw new Error("Customer was not created");
+  return created;
 }
 
 /**
