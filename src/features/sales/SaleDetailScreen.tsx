@@ -65,8 +65,6 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
       return;
     }
 
-    setIsLoading(true);
-    setErrorMessage(null);
     try {
       const data = await getSaleById(saleId);
       if (!data) {
@@ -91,7 +89,13 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
   }, [saleId, isArabic, isFrench]);
 
   useEffect(() => {
-    loadSaleData();
+    let isMounted = true;
+    loadSaleData().then(() => {
+      if (!isMounted) return;
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [loadSaleData]);
 
   const handleShareReceipt = async () => {

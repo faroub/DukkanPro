@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Modal,
@@ -48,14 +48,12 @@ export function LowStockScreen() {
   const [selectedProduct, setSelectedProduct] = useState<LowStockItem | null>(null);
   const [restockQuantity, setRestockQuantity] = useState<number>(10);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
-      setLoading(true);
       const rows = await getLowStockProducts(50);
       if (rows && rows.length > 0) {
         setProducts(rows);
       } else {
-        // Fallback items matching Stitch design
         setProducts([
           {
             id: 1,
@@ -97,11 +95,17 @@ export function LowStockScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    let isMounted = true;
+    loadData().then(() => {
+      if (!isMounted) return;
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [loadData]);
 
   const openRestockModal = (prod: LowStockItem) => {
     setSelectedProduct(prod);

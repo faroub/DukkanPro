@@ -131,8 +131,14 @@ export function SalesHistoryScreen() {
   }, [activeFilter, searchQuery]);
 
   useEffect(() => {
-    setLoading(true);
-    fetchSalesFromDb();
+    let isMounted = true;
+    (async () => {
+      await fetchSalesFromDb();
+      if (!isMounted) return;
+    })();
+    return () => {
+      isMounted = false;
+    };
   }, [fetchSalesFromDb]);
 
   const handleRefresh = () => {

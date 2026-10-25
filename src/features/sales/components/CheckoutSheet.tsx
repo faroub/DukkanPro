@@ -96,7 +96,6 @@ export function CheckoutSheet({
   useEffect(() => {
     if (!visible) {
       isConfirmingRef.current = false;
-      setIsConfirming(false);
       return;
     }
     if (items.length === 0) return;
@@ -138,8 +137,10 @@ export function CheckoutSheet({
 
   useEffect(() => {
     if (visible) {
-      setAmountReceived(displayTotal);
-      setPartialAmount(Math.round(displayTotal / 2));
+      Promise.resolve().then(() => {
+        setAmountReceived(displayTotal);
+        setPartialAmount(Math.round(displayTotal / 2));
+      });
     }
   }, [visible, displayTotal]);
 

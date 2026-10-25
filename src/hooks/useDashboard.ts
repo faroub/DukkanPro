@@ -199,7 +199,9 @@ export function useDashboard(deps: {
   });
 
   const tRef = useRef(deps.t);
-  tRef.current = deps.t;
+  useEffect(() => {
+    tRef.current = deps.t;
+  }, [deps.t]);
   const locale = deps.locale;
 
   const [loading, setLoading] = useState(true);

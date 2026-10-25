@@ -97,7 +97,7 @@ export function StockAdjustmentScreen() {
   const productId = params.productId ? Number(params.productId) : null;
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!productId);
   const [mode, setMode] = useState<AdjustmentMode>('set');
   const [value, setValue] = useState<number>(0);
   const [reason, setReason] = useState<AdjustmentReasonKey>('delivery');
@@ -110,7 +110,6 @@ export function StockAdjustmentScreen() {
     if (productId) {
       (async () => {
         try {
-          setLoading(true);
           const p = await getById(productId);
           if (isMounted && p) {
             setProduct(p);
@@ -122,8 +121,6 @@ export function StockAdjustmentScreen() {
           if (isMounted) setLoading(false);
         }
       })();
-    } else {
-      setLoading(false);
     }
     return () => {
       isMounted = false;

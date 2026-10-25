@@ -56,7 +56,13 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
   }, [productId]);
 
   useEffect(() => {
-    loadData();
+    let isMounted = true;
+    loadData().then(() => {
+      if (!isMounted) return;
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [loadData]);
 
   const handleArchive = useCallback(async () => {

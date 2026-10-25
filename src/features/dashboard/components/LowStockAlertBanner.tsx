@@ -29,15 +29,12 @@ export function LowStockAlertBanner({
   onViewAll,
 }: LowStockAlertBannerProps) {
   const theme = useTheme();
-  const [dismissed, setDismissed] = useState(false);
-  const [permissionStatus, setPermissionStatus] = useState<string>("default");
-
-  useEffect(() => {
-    setPermissionStatus(getNotificationPermissionStatus());
-    if (isNotificationSnoozed()) {
-      setDismissed(true);
-    }
-  }, []);
+  const [dismissed, setDismissed] = useState<boolean>(() =>
+    isNotificationSnoozed(),
+  );
+  const [permissionStatus, setPermissionStatus] = useState<string>(() =>
+    getNotificationPermissionStatus(),
+  );
 
   // Trigger push notification automatically if permitted and low stock exists
   useEffect(() => {

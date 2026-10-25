@@ -38,6 +38,14 @@ export function RecordPaymentScreen({
   const [customerName, setCustomerName] = useState(initialCustomerName || "");
   const [currentDebt, setCurrentDebt] = useState(initialCurrentDebt || 0);
 
+  // Debt in Dinars (1 Dinar = 100 centimes)
+  const debtDinars = Math.round(currentDebt / 100);
+
+  const [amountInput, setAmountInput] = useState<string>(String(debtDinars));
+  const [method, setMethod] = useState<"cash" | "electronic">("cash");
+  const [note, setNote] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+
   useEffect(() => {
     if (customerId && (!customerName || currentDebt === 0)) {
       Promise.all([getCustomerById(customerId), getCustomerDebt(customerId)]).then(
@@ -50,15 +58,7 @@ export function RecordPaymentScreen({
         }
       );
     }
-  }, [customerId]);
-
-  // Debt in Dinars (1 Dinar = 100 centimes)
-  const debtDinars = Math.round(currentDebt / 100);
-
-  const [amountInput, setAmountInput] = useState<string>(String(debtDinars));
-  const [method, setMethod] = useState<"cash" | "electronic">("cash");
-  const [note, setNote] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+  }, [customerId, customerName, currentDebt]);
 
   // Parsed amount in Dinars
   const parsedDinars = useMemo(() => {

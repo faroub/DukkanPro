@@ -70,6 +70,14 @@ export function BusinessSettingsScreen() {
     });
   }, []);
 
+  const showToast = useCallback((message: string) => {
+    if (Platform.OS === "android") {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      Alert.alert("", message);
+    }
+  }, []);
+
   const handleSave = useCallback(async () => {
     if (!businessName.trim()) {
       showToast(t("errors.requiredField") || "Le nom du magasin est requis");
@@ -103,15 +111,7 @@ export function BusinessSettingsScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [businessName, ownerName, businessType, currency, phoneNumber, storeAddress, rcNumber, profileId, t]);
-
-  const showToast = (message: string) => {
-    if (Platform.OS === "android") {
-      ToastAndroid.show(message, ToastAndroid.SHORT);
-    } else {
-      Alert.alert("", message);
-    }
-  };
+  }, [businessName, ownerName, businessType, currency, phoneNumber, storeAddress, rcNumber, profileId, showToast, t]);
 
   return (
     <ScrollView
