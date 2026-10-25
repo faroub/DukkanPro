@@ -225,57 +225,63 @@ export async function create(
 }
 
 /**
- * Update an existing product by id.
+ * Update an existing product by id dynamically based on supplied fields.
  */
 export async function update(
   id: number,
   product: Partial<Omit<Product, "id" | "created_at" | "updated_at">>,
 ): Promise<Product> {
-  const current = await getById(id);
-  if (!current) throw new Error(`Product id=${id} not found`);
+  const fields: string[] = [];
+  const values: unknown[] = [];
 
-  const updatedName = product.name ?? current.name;
-  const updatedSku = product.sku !== undefined ? product.sku : current.sku;
-  const updatedCategory =
-    product.category !== undefined ? product.category : current.category;
-  const updatedSalePrice =
-    product.sale_price_centimes ?? current.sale_price_centimes;
-  const updatedCostPrice =
-    product.cost_price_centimes ?? current.cost_price_centimes;
-  const updatedStock = product.stock_quantity ?? current.stock_quantity;
-  const updatedMinStock =
-    product.minimum_stock_quantity ?? current.minimum_stock_quantity;
-  const updatedUnit = product.unit ?? current.unit;
-  const updatedIsActive =
-    product.is_active !== undefined ? product.is_active : current.is_active;
+  if (product.name !== undefined) {
+    fields.push("name = ?");
+    values.push(product.name);
+  }
+  if (product.sku !== undefined) {
+    fields.push("sku = ?");
+    values.push(product.sku);
+  }
+  if (product.category !== undefined) {
+    fields.push("category = ?");
+    values.push(product.category);
+  }
+  if (product.sale_price_centimes !== undefined) {
+    fields.push("sale_price_centimes = ?");
+    values.push(product.sale_price_centimes);
+  }
+  if (product.cost_price_centimes !== undefined) {
+    fields.push("cost_price_centimes = ?");
+    values.push(product.cost_price_centimes);
+  }
+  if (product.stock_quantity !== undefined) {
+    fields.push("stock_quantity = ?");
+    values.push(product.stock_quantity);
+  }
+  if (product.minimum_stock_quantity !== undefined) {
+    fields.push("minimum_stock_quantity = ?");
+    values.push(product.minimum_stock_quantity);
+  }
+  if (product.unit !== undefined) {
+    fields.push("unit = ?");
+    values.push(product.unit);
+  }
+  if (product.is_active !== undefined) {
+    fields.push("is_active = ?");
+    values.push(product.is_active ? 1 : 0);
+  }
 
-  await executeWrite(
-    // language=SQLite
-    `UPDATE products
-     SET name = ?,
-         sku = ?,
-         category = ?,
-         sale_price_centimes = ?,
-         cost_price_centimes = ?,
-         stock_quantity = ?,
-         minimum_stock_quantity = ?,
-         unit = ?,
-         is_active = ?,
-         updated_at = datetime('now')
-     WHERE id = ?`,
-    [
-      updatedName,
-      updatedSku,
-      updatedCategory,
-      updatedSalePrice,
-      updatedCostPrice,
-      updatedStock,
-      updatedMinStock,
-      updatedUnit,
-      updatedIsActive ? 1 : 0,
-      id,
-    ],
-  );
+  if (fields.length === 0) {
+    const existing = await getById(id);
+    if (!existing) throw new Error(`Product id=${id} not found`);
+    return existing;
+  }
+
+  fields.push("updated_at = datetime('now')");
+  values.push(id);
+
+  const sql = `UPDATE products SET ${fields.join(", ")} WHERE id = ?`;
+  await executeWrite(sql, values);
 
   const updated = await getById(id);
   if (!updated) throw new Error(`Product id=${id} not found`);

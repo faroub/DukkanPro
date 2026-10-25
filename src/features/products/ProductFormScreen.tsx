@@ -102,7 +102,6 @@ export function ProductFormScreen({
           category: formData.category,
           sale_price_centimes: formData.sale_price_centimes,
           cost_price_centimes: formData.cost_price_centimes,
-          stock_quantity: formData.stock_quantity,
           minimum_stock_quantity: formData.minimum_stock_quantity,
           unit: formData.unit,
           is_active: formData.is_active,
