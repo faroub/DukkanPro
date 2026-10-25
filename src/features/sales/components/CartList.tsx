@@ -1,5 +1,5 @@
 import { SymbolView } from "expo-symbols";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useState } from "react";
 import { ThemedText } from "@/components/themed-text";
@@ -40,6 +40,7 @@ export function CartList({
   subtotal,
   discount,
   total,
+  setDiscount,
   onCheckout,
   onClose,
 }: CartListProps) {
@@ -114,16 +115,48 @@ export function CartList({
                 </ThemedText>
               </View>
 
-              {discount > 0 && (
-                <View style={styles.summaryRow}>
-                  <ThemedText style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-                    {t("receipt.discount", { defaultValue: "Remise" })}
-                  </ThemedText>
-                  <ThemedText style={[styles.summaryValue, styles.discountText, { color: theme.warning }]}>
-                    -{formatCentimes(discount)}
-                  </ThemedText>
-                </View>
-              )}
+              {/* Discount Entry / Edit Option */}
+              <View style={styles.summaryRow}>
+                <Pressable
+                  onPress={() => {
+                    Alert.prompt(
+                      t("receipt.discount", { defaultValue: "Remise" }),
+                      t("sell.discountPrompt", { defaultValue: "Saisissez le montant de la remise en DZD" }),
+                      [
+                        {
+                          text: t("common.cancel", { defaultValue: "Annuler" }),
+                          style: "cancel",
+                        },
+                        {
+                          text: t("common.save", { defaultValue: "Appliquer" }),
+                          onPress: (val?: string) => {
+                            const num = parseFloat(val || "0") || 0;
+                            setDiscount(Math.round(num * 100));
+                          },
+                        },
+                      ],
+                      "plain-text",
+                      discount > 0 ? (discount / 100).toString() : ""
+                    );
+                  }}
+                  style={styles.addDiscountBtn}
+                >
+                  <SymbolView
+                    name={{
+                      ios: "tag" as any,
+                      android: "local_offer" as any,
+                      web: "local_offer" as any,
+                    }}
+                    size={14}
+                    tintColor={theme.primary}
+                  />
+                  <Text style={[styles.addDiscountBtnText, { color: theme.primary }]}>
+                    {discount > 0
+                      ? `${t("receipt.discount", { defaultValue: "Remise" })}: -${formatCentimes(discount)} (${t("common.edit", { defaultValue: "Modifier" })})`
+                      : `+ ${t("receipt.discount", { defaultValue: "Ajouter une remise" })}`}
+                  </Text>
+                </Pressable>
+              </View>
 
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
@@ -409,6 +442,17 @@ const styles = StyleSheet.create({
   },
   discountText: {
     color: Colors.light.warning,
+  },
+  addDiscountBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 4,
+  },
+  addDiscountBtnText: {
+    ...Typography.caption,
+    fontSize: 13,
+    fontWeight: "600",
   },
   divider: {
     height: 1,
