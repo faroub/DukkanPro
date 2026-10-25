@@ -213,6 +213,48 @@ export async function getTotalShopDebt(tx?: SQLiteDatabase): Promise<number> {
 }
 
 /**
+ * Calculate outstanding customer debt for all active customers in ONE grouped query.
+ * Replaces N+1 per-customer queries in customer lists with a single atomic aggregation map.
+ */
+export async function getAllCustomerDebts(
+  tx?: SQLiteDatabase,
+): Promise<Record<number, number>> {
+  const sql = `
+    SELECT c.id AS customer_id,
+           MAX(0, COALESCE(s.completed_remaining, 0) - COALESCE(r.cancelled_taken, 0) - COALESCE(p.total_payments, 0)) AS debt
+      FROM customers c
+      LEFT JOIN (
+        SELECT customer_id, SUM(remaining_balance_centimes) AS completed_remaining
+          FROM sales
+         WHERE status = 'completed' AND remaining_balance_centimes > 0
+         GROUP BY customer_id
+      ) s ON s.customer_id = c.id
+      LEFT JOIN (
+        SELECT customer_id, SUM(CASE WHEN amount_paid_centimes < total_centimes THEN amount_paid_centimes ELSE total_centimes END) AS cancelled_taken
+          FROM sales
+         WHERE status IN ('cancelled', 'returned')
+         GROUP BY customer_id
+      ) r ON r.customer_id = c.id
+      LEFT JOIN (
+        SELECT customer_id, SUM(amount_centimes) AS total_payments
+          FROM customer_payments
+         GROUP BY customer_id
+      ) p ON p.customer_id = c.id
+     WHERE c.is_active = 1
+  `;
+
+  const rows: any[] = tx
+    ? await executeRead<{ customer_id: number; debt: number }>(tx, sql)
+    : await executeRead<{ customer_id: number; debt: number }>(sql);
+
+  const debtsMap: Record<number, number> = {};
+  for (const r of rows) {
+    debtsMap[r.customer_id] = r.debt;
+  }
+  return debtsMap;
+}
+
+/**
  * Check if a payment can be recorded for a customer.
  * Blocks overpayment: the payment cannot exceed the customer's current debt.
  */
