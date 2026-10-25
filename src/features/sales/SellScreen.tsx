@@ -190,6 +190,7 @@ export default function SellScreen() {
         console.error("Sale checkout failed", err);
         setErrorState(err?.message || "Failed to process sale");
         setIsSaving(false);
+        throw err;
       }
     },
     [items, discount, clearCart, t],

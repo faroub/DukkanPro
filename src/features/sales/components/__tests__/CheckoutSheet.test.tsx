@@ -166,4 +166,50 @@ describe("CheckoutSheet Component Money Math & Re-validation Harness", () => {
       });
     });
   });
+
+  it("displays error banner, re-enables confirm button, and allows retry on checkout failure", async () => {
+    const product = await seedTestProduct({
+      name: "Retry Tea",
+      sale_price_centimes: 10000, // 100 DZD
+    });
+
+    useCartStore.getState().addItemWithProduct(product, 1);
+
+    // onCheckout rejects once with DB Error, then resolves on second call
+    const onCheckoutMock = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("Database transaction conflict"))
+      .mockResolvedValueOnce(undefined);
+
+    const screen = await renderScreen(
+      <CheckoutSheet
+        visible={true}
+        onRequestClose={jest.fn()}
+        onCheckout={onCheckoutMock}
+        cartTotal={10000}
+        isSaving={false}
+        error="Database transaction conflict"
+      />
+    );
+
+    const confirmButton = await screen.findByText("Confirmer la vente");
+
+    // First attempt fails
+    fireEvent.press(confirmButton);
+
+    // Assert error banner is rendered in CheckoutSheet
+    const errorBanner = await screen.findByTestId("checkout-error-banner");
+    expect(errorBanner).toBeTruthy();
+    expect(await screen.findByText("Database transaction conflict")).toBeTruthy();
+
+    // Assert confirm button is re-enabled for retry
+    expect(confirmButton.props.accessibilityState?.disabled).toBeFalsy();
+
+    // Second attempt (retry)
+    fireEvent.press(confirmButton);
+
+    await waitFor(() => {
+      expect(onCheckoutMock).toHaveBeenCalledTimes(2);
+    });
+  });
 });

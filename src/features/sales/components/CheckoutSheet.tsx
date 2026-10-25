@@ -262,7 +262,7 @@ export function CheckoutSheet({
         return;
       }
 
-      onCheckout({
+      await onCheckout({
         method: paymentMethod,
         amountPaid: effectiveAmountPaid,
         note,
@@ -271,6 +271,7 @@ export function CheckoutSheet({
       });
     } catch (err) {
       console.error("Confirm checkout error:", err);
+    } finally {
       isConfirmingRef.current = false;
       setIsConfirming(false);
     }
@@ -682,6 +683,30 @@ export function CheckoutSheet({
               </View>
             )}
 
+            {/* Error Banner if submission failed */}
+            {error ? (
+              <View
+                style={[
+                  styles.errorBanner,
+                  { backgroundColor: theme.errorLight, borderColor: theme.error },
+                ]}
+                testID="checkout-error-banner"
+              >
+                <SymbolView
+                  name={{
+                    ios: "exclamationmark.triangle" as any,
+                    android: "warning" as any,
+                    web: "warning" as any,
+                  }}
+                  size={16}
+                  tintColor={theme.error}
+                />
+                <ThemedText style={[styles.errorText, { color: theme.error }]}>
+                  {error}
+                </ThemedText>
+              </View>
+            ) : null}
+
             {/* Confirm CTA */}
             <View style={styles.ctaWrapper}>
               <PrimaryButton
@@ -1011,5 +1036,20 @@ const styles = StyleSheet.create({
   },
   ctaWrapper: {
     marginTop: Spacing.xs,
+  },
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginTop: Spacing.xs,
+  },
+  errorText: {
+    ...Typography.caption,
+    fontSize: 12,
+    fontWeight: "600",
+    flex: 1,
   },
 });
