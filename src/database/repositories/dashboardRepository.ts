@@ -49,6 +49,24 @@ export async function getTodayRevenue(): Promise<number> {
 }
 
 /**
+ * Get today's actual cash collected from sales (centimes).
+ * "Today" means the merchant's local calendar day.
+ */
+export async function getTodayCashSales(): Promise<number> {
+  const [start, end] = localDayBounds();
+  const rows: any[] = await executeAll(
+    // language=SQLite
+    `SELECT COALESCE(SUM(s.amount_paid_centimes), 0) as total
+       FROM sales s
+      WHERE s.status = 'completed'
+        AND s.sold_at >= ?
+        AND s.sold_at < ?`,
+    [start, end],
+  );
+  return rows[0]?.total as number;
+}
+
+/**
  * Get today's cost of goods sold (centimes).
  * Computed as historical cost of items sold in completed sales today.
  */

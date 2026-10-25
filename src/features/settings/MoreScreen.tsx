@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -26,6 +26,8 @@ import {
   ThemePreference,
   useThemePreference,
 } from "@/providers/ThemeProvider";
+import { getTodayCashSales } from "@/database/repositories/dashboardRepository";
+import { formatCentimes } from "@/utils/money";
 
 /**
  * MoreScreen - Settings menu matching Stitch design `1._more_settings_menu`.
@@ -42,6 +44,22 @@ export function MoreScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { themePreference, systemColorScheme, setThemePreference } = useThemePreference();
+
+  const [todayCash, setTodayCash] = useState<number>(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    getTodayCashSales()
+      .then((amount) => {
+        if (isMounted) setTodayCash(amount);
+      })
+      .catch((err) => {
+        console.error("Failed to load today cash sales:", err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleNavigate = useCallback(
     (route: string) => {
@@ -154,7 +172,7 @@ export function MoreScreen() {
               {t("settings.todayCash") || "Today Cash"}
             </ThemedText>
             <ThemedText style={[styles.metricValuePrimary, { color: theme.primary }]}>
-              {isArabic ? "48 250 دج" : "48 250 DZD"}
+              {formatCentimes(todayCash, i18n.language as any)}
             </ThemedText>
           </View>
           <View style={[styles.metricCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>

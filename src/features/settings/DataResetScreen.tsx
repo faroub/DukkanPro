@@ -3,12 +3,12 @@ import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
@@ -16,11 +16,11 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { showToast } from "@/components/use-toast";
 import {
-    BorderRadius,
-    ComponentDimensions,
-    Shadows,
-    Spacing,
-    Typography,
+  BorderRadius,
+  ComponentDimensions,
+  Shadows,
+  Spacing,
+  Typography,
 } from "@/constants/theme";
 import { executeAll } from "@/database/database";
 import * as businessProfile from "@/database/repositories/businessProfileRepository";
@@ -32,12 +32,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 /**
  * DataResetScreen - Screen for resetting all application data.
  * Sourced directly from Stitch design `5._data_reset`.
+ * - Fully localized via i18next across Arabic, French, and English
  * - Critical precaution warning callout
  * - Soft reset (Clear demo data only)
  * - Hard reset (Factory wipe) protected by typing the exact business name
- * - Confirmation alert before destructive execution
  * - Dynamic theme response (Light / Dark) via useTheme()
- * - Strictly LTR layout across all languages
  */
 export function DataResetScreen() {
   const { t } = useTranslation();
@@ -72,10 +71,7 @@ export function DataResetScreen() {
   const handleSoftReset = useCallback(() => {
     Alert.alert(
       t("dataReset.clearDemoTitle") || "Clear Demo Data",
-      t("dataReset.clearDemoMessage", {
-        products: productCount,
-        sales: saleCount,
-      }) ||
+      t("dataReset.clearDemoDesc") ||
         `This will remove ${productCount} catalogue item(s) and ${saleCount} sale(s), while keeping your business profile and settings intact.`,
       [
         { text: t("common.cancel") || "Cancel", style: "cancel" },
@@ -88,13 +84,13 @@ export function DataResetScreen() {
               setProductCount(0);
               setSaleCount(0);
               showToast(
-                t("dataReset.clearDemoSuccess") ||
+                t("dataReset.successSoft") ||
                   "Demo data cleared successfully!",
               );
             } catch (error) {
               console.error("Soft reset error:", error);
               showToast(
-                t("errors.resetFailed") || "Error clearing demo data",
+                t("dataReset.error") || "Error clearing demo data",
               );
             }
           },
@@ -106,20 +102,20 @@ export function DataResetScreen() {
   const handleHardReset = useCallback(() => {
     if (!isMatched) {
       showToast(
-        t("dataReset.typeExactName") ||
+        t("dataReset.wrongBusinessName") ||
           "Veuillez saisir le nom exact du commerce pour confirmer",
       );
       return;
     }
 
     Alert.alert(
-      t("dataReset.confirmTitle"),
-      t("dataReset.confirmMessage") ||
+      t("dataReset.confirmTitle") || "Confirm Data Reset",
+      t("dataReset.confirmHardMessage") ||
         `${expectedBusinessName} will be completely purged from this terminal. All sales, customers, debt balances, and inventory will be permanently deleted. This action CANNOT be undone.`,
       [
         { text: t("common.cancel") || "Cancel", style: "cancel" },
         {
-          text: t("dataReset.confirm") || "Delete All Data",
+          text: t("dataReset.factoryResetButton") || "Delete All Data",
           style: "destructive",
           onPress: async () => {
             setIsLoading(true);
@@ -127,13 +123,13 @@ export function DataResetScreen() {
               await resetDatabase();
               useCartStore.getState().clearCart();
               showToast(
-                t("dataReset.wipeSuccess") ||
+                t("dataReset.success") ||
                   "Database wiped. Returning to onboarding...",
               );
               router.replace("/onboarding");
             } catch (error) {
               console.error("Data reset error:", error);
-              showToast(t("errors.resetFailed") || "Error during data reset");
+              showToast(t("dataReset.error") || "Error during data reset");
             } finally {
               setIsLoading(false);
             }
@@ -175,7 +171,7 @@ export function DataResetScreen() {
           <ThemedText
             style={[styles.breadcrumbText, { color: theme.textSecondary }]}
           >
-            {t("navigation.back") || "Back to More"}
+            {t("navigation.back") || "Back"}
           </ThemedText>
         </TouchableOpacity>
 
@@ -184,7 +180,7 @@ export function DataResetScreen() {
           <ThemedText
             style={[styles.headingTitle, { color: theme.textPrimary }]}
           >
-            {t("settings.resetApp") || "Data Reset & Factory Wipe"}
+            {t("dataReset.title") || "Data Reset & Factory Wipe"}
           </ThemedText>
           <ThemedText
             style={[styles.headingSubtitle, { color: theme.textSecondary }]}
@@ -219,7 +215,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.criticalBadgeText, { color: theme.error }]}
               >
-                Critical Precaution
+                {t("dataReset.criticalPrecaution") || "Critical Precaution"}
               </ThemedText>
               <View
                 style={[
@@ -231,9 +227,8 @@ export function DataResetScreen() {
             <ThemedText
               style={[styles.criticalMessage, { color: theme.error }]}
             >
-              Permanent Action: This will permanently delete ALL business data
-              including products, customers, sales, and payments. This action
-              CANNOT be undone.
+              {t("dataReset.permanentActionWarning") ||
+                "Permanent Action: This will permanently delete ALL business data including products, customers, sales, and payments. This action CANNOT be undone."}
             </ThemedText>
           </View>
         </View>
@@ -263,7 +258,7 @@ export function DataResetScreen() {
                 <ThemedText
                   style={[styles.sectionTitle, { color: theme.textPrimary }]}
                 >
-                  Clear Demo Data
+                  {t("dataReset.clearDemoTitle") || "Clear Demo Data"}
                 </ThemedText>
                 <ThemedText
                   style={[
@@ -271,7 +266,7 @@ export function DataResetScreen() {
                     { color: theme.textSecondary },
                   ]}
                 >
-                  Selective catalog reset
+                  {t("dataReset.clearDemoSubtitle") || "Selective catalog reset"}
                 </ThemedText>
               </View>
             </View>
@@ -281,7 +276,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.safePillText, { color: theme.textSecondary }]}
               >
-                Safe Option
+                {t("dataReset.safeOption") || "Safe Option"}
               </ThemedText>
             </View>
           </View>
@@ -289,9 +284,8 @@ export function DataResetScreen() {
           <ThemedText
             style={[styles.sectionDescription, { color: theme.textSecondary }]}
           >
-            Removes pre-loaded demo catalog, fictional transactions, and sample
-            ledger entries while preserving your store settings, receipt
-            headers, and staff accounts.
+            {t("dataReset.clearDemoDesc") ||
+              "Removes pre-loaded demo catalog, fictional transactions, and sample ledger entries while preserving your store settings, receipt headers, and staff accounts."}
           </ThemedText>
 
           {/* Data Impact Chips */}
@@ -305,7 +299,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.chipText, { color: theme.textSecondary }]}
               >
-                {productCount} Demo Items
+                {t("dataReset.demoItems", { count: productCount, defaultValue: `${productCount} Demo Items` })}
               </ThemedText>
             </View>
             <View style={[styles.chip, { backgroundColor: theme.surfaceAlt }]}>
@@ -317,13 +311,13 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.chipText, { color: theme.textSecondary }]}
               >
-                {saleCount} Sample Orders
+                {t("dataReset.sampleOrders", { count: saleCount, defaultValue: `${saleCount} Sample Orders` })}
               </ThemedText>
             </View>
             <View style={[styles.chip, { backgroundColor: theme.surfaceAlt }]}>
               <MaterialIcons name="tune" size={14} color={theme.primary} />
               <ThemedText style={[styles.chipText, { color: theme.primary }]}>
-                Keep Store Setup
+                {t("dataReset.keepStoreSetupChip") || "Keep Store Setup"}
               </ThemedText>
             </View>
           </View>
@@ -345,7 +339,7 @@ export function DataResetScreen() {
             <ThemedText
               style={[styles.softResetButtonText, { color: theme.primary }]}
             >
-              Clear Demo Data Only
+              {t("dataReset.clearDemoButton") || "Clear Demo Data Only"}
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -365,7 +359,7 @@ export function DataResetScreen() {
             <ThemedText
               style={[styles.dangerZoneText, { color: theme.textSecondary }]}
             >
-              OR / DANGER ZONE
+              {t("dataReset.dangerZone") || "OR / DANGER ZONE"}
             </ThemedText>
           </View>
           <View
@@ -397,12 +391,12 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.sectionTitle, { color: theme.textPrimary }]}
               >
-                Delete All Data & Factory Reset
+                {t("dataReset.factoryResetTitle") || "Delete All Data & Factory Reset"}
               </ThemedText>
               <ThemedText
                 style={[styles.sectionSubtitle, { color: theme.error }]}
               >
-                Irreversible database erasure
+                {t("dataReset.factoryResetSubtitle") || "Irreversible database erasure"}
               </ThemedText>
             </View>
           </View>
@@ -420,14 +414,14 @@ export function DataResetScreen() {
                 { color: theme.textSecondary },
               ]}
             >
-              To prevent accidental erasure, type the exact business name below
-              to confirm:
+              {t("dataReset.typeBusinessNamePrompt") ||
+                "To prevent accidental erasure, type the exact business name below to confirm:"}
             </ThemedText>
             <View style={styles.targetCodeRow}>
               <ThemedText
                 style={[styles.targetLabel, { color: theme.textMuted }]}
               >
-                Target phrase:
+                {t("dataReset.targetPhrase") || "Target phrase:"}
               </ThemedText>
               <View
                 style={[
@@ -450,7 +444,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.inputLabel, { color: theme.textPrimary }]}
               >
-                Confirmation Match
+                {t("dataReset.confirmationMatch") || "Confirmation Match"}
               </ThemedText>
               {isMatched ? (
                 <View style={styles.statusRow}>
@@ -462,7 +456,7 @@ export function DataResetScreen() {
                   <ThemedText
                     style={[styles.matchedText, { color: theme.primary }]}
                   >
-                    Phrase matched
+                    {t("dataReset.phraseMatched") || "Phrase matched"}
                   </ThemedText>
                 </View>
               ) : businessNameInput.length > 0 ? (
@@ -471,7 +465,7 @@ export function DataResetScreen() {
                   <ThemedText
                     style={[styles.unmatchedText, { color: theme.error }]}
                   >
-                    Does not match
+                    {t("dataReset.doesNotMatch") || "Does not match"}
                   </ThemedText>
                 </View>
               ) : null}
@@ -487,7 +481,10 @@ export function DataResetScreen() {
                 style={[styles.textInput, { color: theme.textPrimary }]}
                 value={businessNameInput}
                 onChangeText={setBusinessNameInput}
-                placeholder={`Type '${expectedBusinessName}'`}
+                placeholder={t("dataReset.typeExactNamePlaceholder", {
+                  name: expectedBusinessName,
+                  defaultValue: `Type '${expectedBusinessName}'`,
+                })}
                 placeholderTextColor={theme.textMuted}
                 autoCapitalize="none"
                 id="input-business-name-confirm"
@@ -518,7 +515,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.checklistText, { color: theme.textSecondary }]}
               >
-                All Customers & Debts
+                {t("dataReset.allCustomersAndDebts") || "All Customers & Debts"}
               </ThemedText>
             </View>
             <View
@@ -535,7 +532,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.checklistText, { color: theme.textSecondary }]}
               >
-                Inventory & Barcodes
+                {t("dataReset.inventoryAndBarcodes") || "Inventory & Barcodes"}
               </ThemedText>
             </View>
             <View
@@ -552,7 +549,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.checklistText, { color: theme.textSecondary }]}
               >
-                Sales & Tax Ledgers
+                {t("dataReset.salesAndTaxLedgers") || "Sales & Tax Ledgers"}
               </ThemedText>
             </View>
             <View
@@ -569,7 +566,7 @@ export function DataResetScreen() {
               <ThemedText
                 style={[styles.checklistText, { color: theme.textSecondary }]}
               >
-                Hardware Integrations
+                {t("dataReset.hardwareIntegrations") || "Hardware Integrations"}
               </ThemedText>
             </View>
           </View>
@@ -602,7 +599,9 @@ export function DataResetScreen() {
                   { color: isMatched ? "#FFFFFF" : theme.textSecondary },
                 ]}
               >
-                {isLoading ? "Purging data..." : "Delete All Data"}
+                {isLoading
+                  ? t("dataReset.purgingData") || "Purging data..."
+                  : t("dataReset.factoryResetButton") || "Delete All Data"}
               </ThemedText>
             </TouchableOpacity>
 
@@ -632,7 +631,7 @@ export function DataResetScreen() {
                   { color: isMatched ? theme.surface : theme.textSecondary },
                 ]}
               >
-                Reset and Return to Onboarding
+                {t("dataReset.resetAndReturn") || "Reset and Return to Onboarding"}
               </ThemedText>
             </TouchableOpacity>
           </View>
@@ -648,8 +647,8 @@ export function DataResetScreen() {
             <ThemedText
               style={[styles.reassuranceText, { color: theme.textSecondary }]}
             >
-              After reset: Locale returns to French, database is cleared, and
-              app returns to the initial onboarding setup screen.
+              {t("dataReset.reassuranceNote") ||
+                "After reset: Locale returns to French, database is cleared, and app returns to the initial onboarding setup screen."}
             </ThemedText>
           </View>
         </View>

@@ -357,7 +357,7 @@ export function RecordPaymentScreen({
                   method === "cash" && styles.methodLabelSelected,
                 ]}
               >
-                {t("customers:paymentMethodCash")}
+                {t("customers:paymentMethodCash", { defaultValue: "نقداً (كاش)" })}
               </ThemedText>
             </TouchableOpacity>
 
@@ -383,7 +383,7 @@ export function RecordPaymentScreen({
                   method === "electronic" && styles.methodLabelSelected,
                 ]}
               >
-                {t("customers:paymentMethodElectronic")}
+                {t("customers:paymentMethodElectronic", { defaultValue: "دفع إلكتروني" })}
               </ThemedText>
             </TouchableOpacity>
           </View>

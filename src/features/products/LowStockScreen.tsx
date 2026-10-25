@@ -16,10 +16,11 @@ import { useTranslation } from "react-i18next";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
-import { BorderRadius, Colors, Shadows, Spacing, Typography } from "@/constants/theme";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { getLowStockProducts } from "@/database/repositories/dashboardRepository";
 import { adjustStock, getAll as getAllProducts } from "@/database/repositories/productRepository";
 import { formatCentimes } from "@/utils/money";
+import { useTheme } from "@/hooks/use-theme";
 
 interface LowStockItem {
   id: number;
@@ -36,6 +37,7 @@ interface LowStockItem {
 export function LowStockScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
   const locale = (i18n.language?.startsWith("ar") ? "ar" : i18n.language?.startsWith("fr") ? "fr" : "en") as "ar" | "fr" | "en";
 
   const [products, setProducts] = useState<LowStockItem[]>([]);
@@ -193,24 +195,24 @@ export function LowStockScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Navigation & Page Title Bar */}
       <View style={[styles.topBar, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <View style={styles.topBarLeft}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={[styles.backButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={() => router.back()}
             accessibilityRole="button"
             accessibilityLabel="Back to dashboard"
           >
-            <MaterialIcons name="arrow-back" size={22} color={Colors.light.textPrimary} />
+            <MaterialIcons name="arrow-back" size={22} color={theme.textPrimary} />
           </TouchableOpacity>
 
           <View style={styles.titleWrap}>
-            <ThemedText style={styles.pageTitle}>
+            <ThemedText style={[styles.pageTitle, { color: theme.textPrimary }]}>
               {locale === "ar" ? "نقص المخزون" : locale === "fr" ? "Stock faible" : "Low Stock"}
             </ThemedText>
-            <ThemedText style={styles.pageSubtitle}>
+            <ThemedText style={[styles.pageSubtitle, { color: theme.textSecondary }]}>
               {locale === "ar" ? "منتجات تحتاج لإعادة تموين" : locale === "fr" ? "Articles à réapprovisionner" : "Items needing restock"}
             </ThemedText>
           </View>
@@ -218,20 +220,20 @@ export function LowStockScreen() {
 
         <View style={styles.topBarRight}>
           <TouchableOpacity
-            style={styles.iconCircleButton}
+            style={[styles.iconCircleButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={loadData}
             accessibilityRole="button"
             accessibilityLabel="Refresh stock levels"
           >
-            <MaterialIcons name="sync" size={20} color={Colors.light.textSecondary} />
+            <MaterialIcons name="sync" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.iconCircleButton}
+            style={[styles.iconCircleButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={() => router.push("/products/stock-adjustment" as any)}
             accessibilityRole="button"
             accessibilityLabel="Adjust stock"
           >
-            <MaterialIcons name="tune" size={20} color={Colors.light.textSecondary} />
+            <MaterialIcons name="tune" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -241,16 +243,16 @@ export function LowStockScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Alert Summary Banner */}
-        <View style={styles.alertBanner}>
+        <View style={[styles.alertBanner, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
           <View style={styles.alertBannerTop}>
-            <View style={styles.alertWarningBox}>
-              <MaterialIcons name="warning" size={20} color={Colors.light.secondary} />
+            <View style={[styles.alertWarningBox, { backgroundColor: theme.warningLight }]}>
+              <MaterialIcons name="warning" size={20} color={theme.warning} />
             </View>
             <View style={styles.alertBannerText}>
-              <ThemedText style={styles.alertBannerTitle}>
+              <ThemedText style={[styles.alertBannerTitle, { color: theme.warning }]}>
                 {locale === "ar" ? "أولوية التموين" : "Replenishment Priority"}
               </ThemedText>
-              <ThemedText style={styles.alertBannerSubtitle}>
+              <ThemedText style={[styles.alertBannerSubtitle, { color: theme.textSecondary }]}>
                 {locale === "ar"
                   ? `${products.length} منتجات أقل من الحد الأدنى`
                   : `${products.length} products below minimum threshold`}
@@ -258,16 +260,16 @@ export function LowStockScreen() {
             </View>
           </View>
 
-          <View style={styles.alertBannerBottom}>
+          <View style={[styles.alertBannerBottom, { borderTopColor: theme.borderLight }]}>
             <View style={styles.cutoffRow}>
-              <View style={styles.pulsingDot} />
-              <ThemedText style={styles.cutoffText}>
+              <View style={[styles.pulsingDot, { backgroundColor: theme.warning }]} />
+              <ThemedText style={[styles.cutoffText, { color: theme.textSecondary }]}>
                 {locale === "ar" ? "موعد طلبات المورد: 14:00" : "Supplier orders cutoff: 14:00"}
               </ThemedText>
             </View>
 
             <TouchableOpacity
-              style={styles.exportListButton}
+              style={[styles.exportListButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() =>
                 Alert.alert(
                   locale === "ar" ? "تصدير القائمة" : "Export reorder list",
@@ -279,8 +281,8 @@ export function LowStockScreen() {
               accessibilityRole="button"
               accessibilityLabel="Export reorder list"
             >
-              <MaterialIcons name="file-download" size={16} color={Colors.light.secondary} />
-              <ThemedText style={styles.exportListText}>
+              <MaterialIcons name="file-download" size={16} color={theme.primary} />
+              <ThemedText style={[styles.exportListText, { color: theme.primary }]}>
                 {locale === "ar" ? "تصدير القائمة" : "Export reorder list"}
               </ThemedText>
             </TouchableOpacity>
@@ -288,21 +290,21 @@ export function LowStockScreen() {
         </View>
 
         {/* Search & Barcode Scan Bar */}
-        <View style={styles.searchBar}>
+        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <MaterialIcons
             name="search"
             size={20}
-            color={Colors.light.textMuted}
+            color={theme.textMuted}
             style={styles.searchIcon}
           />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.textPrimary }]}
             placeholder={
               locale === "ar"
                 ? "البحث في المخزون، الباركود، الكود..."
                 : "Search inventory, barcode, SKU..."
             }
-            placeholderTextColor={Colors.light.textMuted}
+            placeholderTextColor={theme.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -317,7 +319,7 @@ export function LowStockScreen() {
             accessibilityRole="button"
             accessibilityLabel="Scan barcode"
           >
-            <MaterialIcons name="qr-code-scanner" size={20} color={Colors.light.textSecondary} />
+            <MaterialIcons name="qr-code-scanner" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -332,14 +334,19 @@ export function LowStockScreen() {
             return (
               <TouchableOpacity
                 key={cat.key}
-                style={[styles.categoryPill, isActive && styles.activeCategoryPill]}
+                style={[
+                  styles.categoryPill,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  isActive && { backgroundColor: theme.primary, borderColor: theme.primary },
+                ]}
                 onPress={() => setSelectedCategory(cat.key)}
                 activeOpacity={0.7}
               >
                 <ThemedText
                   style={[
                     styles.categoryPillText,
-                    isActive && styles.activeCategoryPillText,
+                    { color: theme.textSecondary },
+                    isActive && { color: "#FFFFFF" },
                   ]}
                 >
                   {cat.label}
@@ -359,33 +366,33 @@ export function LowStockScreen() {
             );
 
             return (
-              <View key={prod.id} style={styles.productCard}>
+              <View key={prod.id} style={[styles.productCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 {/* Product Info Row */}
                 <View style={styles.productCardTop}>
                   <View style={styles.productTopLeft}>
-                    <View style={styles.productImageThumb}>
+                    <View style={[styles.productImageThumb, { backgroundColor: theme.surfaceAlt }]}>
                       <MaterialIcons
                         name={getProductIcon(prod.category, prod.name) as any}
                         size={28}
-                        color={Colors.light.textSecondary}
+                        color={theme.textSecondary}
                       />
                     </View>
 
                     <View style={styles.productMetaWrap}>
                       <View style={styles.categorySkuRow}>
-                        <ThemedText style={styles.prodCatText}>
+                        <ThemedText style={[styles.prodCatText, { color: theme.textSecondary }]}>
                           {prod.category?.toUpperCase() || "GENERAL"}
                         </ThemedText>
-                        <ThemedText style={styles.prodDot}>•</ThemedText>
-                        <ThemedText style={styles.prodSkuText}>
+                        <ThemedText style={[styles.prodDot, { color: theme.textMuted }]}>•</ThemedText>
+                        <ThemedText style={[styles.prodSkuText, { color: theme.textMuted }]}>
                           {prod.sku || `SKU-${prod.id * 1000}`}
                         </ThemedText>
                       </View>
 
-                      <ThemedText style={styles.prodTitle} numberOfLines={1}>
+                      <ThemedText style={[styles.prodTitle, { color: theme.textPrimary }]} numberOfLines={1}>
                         {prod.name}
                       </ThemedText>
-                      <ThemedText style={styles.prodUnitPrice}>
+                      <ThemedText style={[styles.prodUnitPrice, { color: theme.textSecondary }]}>
                         {locale === "ar" ? "سعر الوحدة:" : "Unit price:"}{" "}
                         {formatCentimes(prod.sale_price_centimes, locale)}
                       </ThemedText>
@@ -397,15 +404,15 @@ export function LowStockScreen() {
                       styles.stockStatusPill,
                       {
                         backgroundColor: isCritical
-                          ? Colors.light.errorLight
-                          : Colors.light.warningLight,
+                          ? theme.errorLight
+                          : theme.warningLight,
                       },
                     ]}
                   >
                     <ThemedText
                       style={[
                         styles.stockStatusText,
-                        { color: isCritical ? Colors.light.error : Colors.light.secondary },
+                        { color: isCritical ? theme.error : theme.warning },
                       ]}
                     >
                       {isCritical
@@ -420,16 +427,16 @@ export function LowStockScreen() {
                 </View>
 
                 {/* Metrics and Threshold Bar */}
-                <View style={styles.metricsBox}>
+                <View style={[styles.metricsBox, { backgroundColor: theme.surfaceAlt }]}>
                   <View style={styles.metricsNumbersRow}>
                     <View>
-                      <ThemedText style={styles.metricSubLabel}>
+                      <ThemedText style={[styles.metricSubLabel, { color: theme.textSecondary }]}>
                         {locale === "ar" ? "المخزون الحالي" : "CURRENT STOCK"}
                       </ThemedText>
                       <ThemedText
                         style={[
                           styles.currentStockNumber,
-                          { color: isCritical ? Colors.light.error : Colors.light.secondary },
+                          { color: isCritical ? theme.error : theme.warning },
                         ]}
                       >
                         {prod.stock_quantity} {prod.unit || "units"}
@@ -437,25 +444,25 @@ export function LowStockScreen() {
                     </View>
 
                     <View style={styles.thresholdAlignRight}>
-                      <ThemedText style={styles.metricSubLabel}>
+                      <ThemedText style={[styles.metricSubLabel, { color: theme.textSecondary }]}>
                         {locale === "ar" ? "الحد الأدنى" : "MIN THRESHOLD"}
                       </ThemedText>
-                      <ThemedText style={styles.thresholdNumber}>
+                      <ThemedText style={[styles.thresholdNumber, { color: theme.textPrimary }]}>
                         {prod.minimum_stock_quantity} {prod.unit || "units"}
                       </ThemedText>
                     </View>
                   </View>
 
                   {/* Progress Indicator */}
-                  <View style={styles.progressTrack}>
+                  <View style={[styles.progressTrack, { backgroundColor: theme.border }]}>
                     <View
                       style={[
                         styles.progressFill,
                         {
                           width: `${Math.round(progressRatio * 100)}%`,
                           backgroundColor: isCritical
-                            ? Colors.light.error
-                            : Colors.light.secondary,
+                            ? theme.error
+                            : theme.warning,
                         },
                       ]}
                     />
@@ -464,14 +471,14 @@ export function LowStockScreen() {
 
                 {/* Add Stock Action Button */}
                 <TouchableOpacity
-                  style={styles.addStockBtn}
+                  style={[styles.addStockBtn, { backgroundColor: theme.surface, borderColor: theme.primary }]}
                   onPress={() => openRestockModal(prod)}
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={`Add stock for ${prod.name}`}
                 >
-                  <MaterialIcons name="add" size={20} color={Colors.light.primary} />
-                  <ThemedText style={styles.addStockBtnText}>
+                  <MaterialIcons name="add" size={20} color={theme.primary} />
+                  <ThemedText style={[styles.addStockBtnText, { color: theme.primary }]}>
                     {locale === "ar" ? "إضافة مخزون" : "Add Stock"}
                   </ThemedText>
                 </TouchableOpacity>
@@ -482,7 +489,7 @@ export function LowStockScreen() {
 
         {/* Bulk Reorder Button */}
         <TouchableOpacity
-          style={styles.bulkReorderButton}
+          style={[styles.bulkReorderButton, { backgroundColor: theme.primary }]}
           onPress={() =>
             Alert.alert(
               locale === "ar" ? "طلب جماعي" : "Bulk Reorder Order",
@@ -520,35 +527,35 @@ export function LowStockScreen() {
         <View style={styles.modalOverlay}>
           <Pressable style={styles.modalBackdrop} onPress={() => setModalVisible(false)} />
 
-          <View style={styles.modalSheet}>
-            <View style={styles.sheetHandle} />
+          <View style={[styles.modalSheet, { backgroundColor: theme.surface }]}>
+            <View style={[styles.sheetHandle, { backgroundColor: theme.border }]} />
 
             <View style={styles.modalHeader}>
               <View>
-                <ThemedText style={styles.modalSubHeader}>
+                <ThemedText style={[styles.modalSubHeader, { color: theme.textSecondary }]}>
                   {locale === "ar" ? "إعادة تموين سريعة" : "Quick Restock"}
                 </ThemedText>
-                <ThemedText style={styles.modalProductTitle} numberOfLines={1}>
+                <ThemedText style={[styles.modalProductTitle, { color: theme.textPrimary }]} numberOfLines={1}>
                   {selectedProduct?.name}
                 </ThemedText>
               </View>
 
               <TouchableOpacity
-                style={styles.modalCloseBtn}
+                style={[styles.modalCloseBtn, { backgroundColor: theme.surfaceAlt }]}
                 onPress={() => setModalVisible(false)}
                 accessibilityRole="button"
                 accessibilityLabel="Close modal"
               >
-                <MaterialIcons name="close" size={18} color={Colors.light.textSecondary} />
+                <MaterialIcons name="close" size={18} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* Current Level Box */}
-            <View style={styles.modalCurrentLevelBox}>
-              <ThemedText style={styles.modalCurrentLevelLabel}>
+            <View style={[styles.modalCurrentLevelBox, { backgroundColor: theme.surfaceAlt }]}>
+              <ThemedText style={[styles.modalCurrentLevelLabel, { color: theme.textSecondary }]}>
                 {locale === "ar" ? "المستوى الحالي" : "Current level"}
               </ThemedText>
-              <ThemedText style={styles.modalCurrentLevelValue}>
+              <ThemedText style={[styles.modalCurrentLevelValue, { color: theme.textPrimary }]}>
                 {selectedProduct?.stock_quantity} / {selectedProduct?.minimum_stock_quantity}{" "}
                 {selectedProduct?.unit || "units"}
               </ThemedText>
@@ -556,31 +563,31 @@ export function LowStockScreen() {
 
             {/* Quantity Stepper */}
             <View style={styles.modalStepperRow}>
-              <ThemedText style={styles.modalStepperLabel}>
+              <ThemedText style={[styles.modalStepperLabel, { color: theme.textPrimary }]}>
                 {locale === "ar" ? "الكمية المستلمة:" : "Quantity to receive:"}
               </ThemedText>
 
-              <View style={styles.stepperContainer}>
+              <View style={[styles.stepperContainer, { backgroundColor: theme.surfaceAlt }]}>
                 <TouchableOpacity
-                  style={styles.stepperButton}
+                  style={[styles.stepperButton, { backgroundColor: theme.surface }]}
                   onPress={() => setRestockQuantity((q) => Math.max(1, q - 1))}
                   accessibilityRole="button"
                   accessibilityLabel="Decrease quantity"
                 >
-                  <MaterialIcons name="remove" size={18} color={Colors.light.textPrimary} />
+                  <MaterialIcons name="remove" size={18} color={theme.textPrimary} />
                 </TouchableOpacity>
 
-                <ThemedText style={styles.stepperValueText}>
+                <ThemedText style={[styles.stepperValueText, { color: theme.textPrimary }]}>
                   {restockQuantity}
                 </ThemedText>
 
                 <TouchableOpacity
-                  style={styles.stepperButton}
+                  style={[styles.stepperButton, { backgroundColor: theme.surface }]}
                   onPress={() => setRestockQuantity((q) => q + 1)}
                   accessibilityRole="button"
                   accessibilityLabel="Increase quantity"
                 >
-                  <MaterialIcons name="add" size={18} color={Colors.light.textPrimary} />
+                  <MaterialIcons name="add" size={18} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -588,18 +595,18 @@ export function LowStockScreen() {
             {/* Modal Actions */}
             <View style={styles.modalButtonsRow}>
               <TouchableOpacity
-                style={styles.modalCancelBtn}
+                style={[styles.modalCancelBtn, { backgroundColor: theme.surfaceAlt }]}
                 onPress={() => setModalVisible(false)}
                 accessibilityRole="button"
                 accessibilityLabel="Cancel"
               >
-                <ThemedText style={styles.modalCancelBtnText}>
+                <ThemedText style={[styles.modalCancelBtnText, { color: theme.textSecondary }]}>
                   {locale === "ar" ? "إلغاء" : "Cancel"}
                 </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.modalConfirmBtn}
+                style={[styles.modalConfirmBtn, { backgroundColor: theme.primary }]}
                 onPress={handleConfirmRestock}
                 accessibilityRole="button"
                 accessibilityLabel="Receive Units"
@@ -620,7 +627,6 @@ export function LowStockScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   topBar: {
     flexDirection: "row",
@@ -638,9 +644,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     alignItems: "center",
     justifyContent: "center",
     ...Shadows.sm,
@@ -650,12 +654,10 @@ const styles = StyleSheet.create({
     ...Typography.heading2,
     fontSize: 20,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   pageSubtitle: {
     ...Typography.caption,
     fontSize: 13,
-    color: Colors.light.textSecondary,
     marginTop: 1,
   },
   topBarRight: {
@@ -667,9 +669,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -678,12 +678,10 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl * 2,
   },
   alertBanner: {
-    backgroundColor: Colors.light.warningLight,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     marginVertical: Spacing.sm,
     borderWidth: 1,
-    borderColor: "#FDE68A",
     gap: 12,
     ...Shadows.sm,
   },
@@ -696,7 +694,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: "#FEF3C7",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -707,12 +704,10 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 14,
     fontWeight: "700",
-    color: Colors.light.secondary,
   },
   alertBannerSubtitle: {
     ...Typography.caption,
     fontSize: 12,
-    color: "#78350F",
     marginTop: 2,
   },
   alertBannerBottom: {
@@ -721,7 +716,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: "rgba(245, 158, 11, 0.15)",
   },
   cutoffRow: {
     flexDirection: "row",
@@ -732,38 +726,31 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.light.secondary,
   },
   cutoffText: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   exportListButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Colors.light.surface,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
   },
   exportListText: {
     ...Typography.badge,
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.secondary,
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     marginVertical: Spacing.sm,
     paddingHorizontal: 10,
     height: 44,
@@ -775,7 +762,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: Colors.light.textPrimary,
   },
   barcodeScanButton: {
     padding: 4,
@@ -789,19 +775,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: BorderRadius.pill,
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
-  activeCategoryPill: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
-  },
+  activeCategoryPill: {},
   categoryPillText: {
     ...Typography.caption,
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   activeCategoryPillText: {
     color: "#FFFFFF",
@@ -811,11 +791,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   productCard: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     gap: 12,
     ...Shadows.sm,
   },
@@ -833,7 +811,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -850,28 +827,23 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   prodDot: {
-    color: Colors.light.textMuted,
     fontSize: 10,
   },
   prodSkuText: {
     ...Typography.caption,
     fontSize: 11,
-    color: Colors.light.textMuted,
   },
   prodTitle: {
     ...Typography.heading3,
     fontSize: 15,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
     marginTop: 2,
   },
   prodUnitPrice: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
     marginTop: 2,
   },
   stockStatusPill: {
@@ -884,7 +856,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   metricsBox: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.md,
     padding: 10,
     gap: 8,
@@ -898,7 +869,6 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     fontSize: 10,
     fontWeight: "700",
-    color: Colors.light.textSecondary,
     letterSpacing: 0.5,
   },
   currentStockNumber: {
@@ -914,13 +884,11 @@ const styles = StyleSheet.create({
     ...Typography.moneySm,
     fontSize: 13,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
     marginTop: 2,
   },
   progressTrack: {
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: Colors.light.border,
     overflow: "hidden",
   },
   progressFill: {
@@ -931,22 +899,18 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.light.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    backgroundColor: Colors.light.surface,
   },
   addStockBtnText: {
     ...Typography.label,
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.primary,
   },
   bulkReorderButton: {
     height: 48,
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.md,
     flexDirection: "row",
     alignItems: "center",
@@ -981,7 +945,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
   },
   modalSheet: {
-    backgroundColor: Colors.light.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: Spacing.lg,
@@ -992,7 +955,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.light.border,
     alignSelf: "center",
     marginTop: -4,
   },
@@ -1004,25 +966,21 @@ const styles = StyleSheet.create({
   modalSubHeader: {
     ...Typography.caption,
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   modalProductTitle: {
     ...Typography.heading3,
     fontSize: 17,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
     marginTop: 2,
   },
   modalCloseBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
   modalCurrentLevelBox: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.md,
     padding: 12,
     flexDirection: "row",
@@ -1032,13 +990,11 @@ const styles = StyleSheet.create({
   modalCurrentLevelLabel: {
     ...Typography.caption,
     fontSize: 13,
-    color: Colors.light.textSecondary,
   },
   modalCurrentLevelValue: {
     ...Typography.label,
     fontSize: 14,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
   },
   modalStepperRow: {
     flexDirection: "row",
@@ -1050,12 +1006,10 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontSize: 15,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   stepperContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.md,
     padding: 4,
     gap: 8,
@@ -1064,7 +1018,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: Colors.light.surface,
     alignItems: "center",
     justifyContent: "center",
     ...Shadows.sm,
@@ -1073,7 +1026,6 @@ const styles = StyleSheet.create({
     ...Typography.heading3,
     fontSize: 16,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
     minWidth: 32,
     textAlign: "center",
   },
@@ -1086,7 +1038,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1094,13 +1045,11 @@ const styles = StyleSheet.create({
     ...Typography.label,
     fontSize: 14,
     fontWeight: "600",
-    color: Colors.light.textSecondary,
   },
   modalConfirmBtn: {
     flex: 1.2,
     height: 48,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
