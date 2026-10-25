@@ -18,12 +18,41 @@ import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { recordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { getById as getCustomerById } from "@/database/repositories/customerRepository";
-import { formatCentimes, getActiveStoreCurrency, getCurrencySymbol } from "@/utils/money";
+import { formatCentimes, getCurrencySymbol } from "@/utils/money";
 
 interface RecordPaymentScreenProps {
   customerId: number;
   customerName?: string;
   currentDebt?: number; // in centimes
+}
+
+/**
+ * Parse a user-entered DZD amount string (e.g., "10.50", "10,5", "0.5") into integer centimes.
+ * Handles both period '.' and comma ',' decimal separators cleanly.
+ */
+export function parseDzdToCentimes(inputText: string): number {
+  if (!inputText) return 0;
+  // Replace comma with dot, remove any other invalid characters
+  const normalized = inputText.replace(",", ".").replace(/[^0-9.]/g, "");
+  const parts = normalized.split(".");
+  if (parts.length > 2) {
+    const valid = parts[0] + "." + parts.slice(1).join("");
+    const parsed = parseFloat(valid);
+    return isNaN(parsed) || parsed < 0 ? 0 : Math.round(parsed * 100);
+  }
+  const parsed = parseFloat(normalized);
+  return isNaN(parsed) || parsed < 0 ? 0 : Math.round(parsed * 100);
+}
+
+/**
+ * Formats a centimes integer to DZD decimal text for input fields (e.g. 1050 -> "10.5").
+ */
+export function formatCentimesToInputDzd(centimes: number): string {
+  if (!centimes || centimes <= 0) return "0";
+  const dinars = centimes / 100;
+  return Number.isInteger(dinars)
+    ? String(dinars)
+    : dinars.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
 export function RecordPaymentScreen({
@@ -38,10 +67,9 @@ export function RecordPaymentScreen({
   const [customerName, setCustomerName] = useState(initialCustomerName || "");
   const [currentDebt, setCurrentDebt] = useState(initialCurrentDebt || 0);
 
-  // Debt in Dinars (1 Dinar = 100 centimes)
-  const debtDinars = Math.round(currentDebt / 100);
-
-  const [amountInput, setAmountInput] = useState<string>(String(debtDinars));
+  const [amountInput, setAmountInput] = useState<string>(() =>
+    formatCentimesToInputDzd(initialCurrentDebt || 0),
+  );
   const [method, setMethod] = useState<"cash" | "electronic">("cash");
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,29 +81,26 @@ export function RecordPaymentScreen({
           if (cust) setCustomerName(cust.name);
           if (debt !== undefined) {
             setCurrentDebt(debt);
-            setAmountInput(String(Math.round(debt / 100)));
+            setAmountInput(formatCentimesToInputDzd(debt));
           }
         }
       );
     }
   }, [customerId, customerName, currentDebt]);
 
-  // Parsed amount in Dinars
-  const parsedDinars = useMemo(() => {
-    const cleaned = amountInput.replace(/[^0-9]/g, "");
-    return cleaned ? parseInt(cleaned, 10) : 0;
+  const parsedCentimes = useMemo(() => {
+    return parseDzdToCentimes(amountInput);
   }, [amountInput]);
 
-  const parsedCentimes = parsedDinars * 100;
   const isOverpaying = parsedCentimes > currentDebt;
   const remainingDebtCentimes = Math.max(0, currentDebt - parsedCentimes);
 
-  const handleQuickFill = (dinars: number) => {
-    setAmountInput(String(dinars));
+  const handleQuickFillCentimes = (centimes: number) => {
+    setAmountInput(formatCentimesToInputDzd(centimes));
   };
 
   const handleConfirm = useCallback(async () => {
-    if (parsedDinars <= 0) {
+    if (parsedCentimes <= 0) {
       Alert.alert(t("common:error"), t("customers:invalidAmount"));
       return;
     }
@@ -99,7 +124,7 @@ export function RecordPaymentScreen({
           t("customers:paymentSuccess"),
           t("customers:paymentCleared", {
             amount: formatCentimes(parsedCentimes, i18n.language as any),
-            customer: customerName,
+            remaining: formatCentimes(remainingDebtCentimes, i18n.language as any),
           }),
           [
             {
@@ -108,6 +133,8 @@ export function RecordPaymentScreen({
             },
           ]
         );
+      } else {
+        Alert.alert(t("common:error"), t("customers:overPaymentWarning"));
       }
     } catch (err: any) {
       Alert.alert(t("common:error"), err.message || t("common:unknownError"));
@@ -117,14 +144,13 @@ export function RecordPaymentScreen({
   }, [
     customerId,
     parsedCentimes,
-    parsedDinars,
+    isOverpaying,
+    remainingDebtCentimes,
     method,
     note,
-    isOverpaying,
-    customerName,
+    router,
     t,
     i18n.language,
-    router,
   ]);
 
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -181,12 +207,11 @@ export function RecordPaymentScreen({
           </ThemedText>
         </View>
 
-        {/* Payment Amount Input Section */}
+        {/* Payment Amount Card */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
-            {t("customers:paymentAmount")} ({getActiveStoreCurrency()})
+            {t("customers:paymentAmount")}
           </ThemedText>
-
           <View style={styles.inputContainer}>
             <MaterialIcons
               name="attach-money"
@@ -197,7 +222,7 @@ export function RecordPaymentScreen({
             <TextInput
               value={amountInput}
               onChangeText={setAmountInput}
-              keyboardType="number-pad"
+              keyboardType="decimal-pad"
               style={styles.largeInput}
               placeholder="0"
               placeholderTextColor={theme.textMuted}
@@ -206,26 +231,26 @@ export function RecordPaymentScreen({
           </View>
           <ThemedText style={[styles.inputHintText, { color: theme.textMuted }]}>
             {i18n.language?.startsWith("ar")
-              ? "أدخل المبلغ بالدينار (مثال: 1500 لدفع 1500 دج)"
+              ? "أدخل المبلغ بالدينار (مثال: 10.50 لدفع 10.50 دج)"
               : i18n.language?.startsWith("fr")
-              ? "Saisissez le montant en DZD (ex: 1500 pour 1 500 DZD)"
-              : "Enter amount in DZD (e.g. 1500 for 1,500 DZD)"}
+              ? "Saisissez le montant en DZD (ex: 10.50 pour 10,50 DZD)"
+              : "Enter amount in DZD (e.g. 10.50 for 10.50 DZD)"}
           </ThemedText>
 
           {/* Quick Amount Chips */}
           <View style={styles.quickFillContainer}>
-            {debtDinars > 0 && (
+            {currentDebt > 0 && (
               <TouchableOpacity
                 style={[
                   styles.quickFillChip,
-                  parsedDinars === debtDinars && styles.quickFillChipActive,
+                  parsedCentimes === currentDebt && styles.quickFillChipActive,
                 ]}
-                onPress={() => handleQuickFill(debtDinars)}
+                onPress={() => handleQuickFillCentimes(currentDebt)}
               >
                 <ThemedText
                   style={[
                     styles.quickFillText,
-                    parsedDinars === debtDinars && styles.quickFillTextActive,
+                    parsedCentimes === currentDebt && styles.quickFillTextActive,
                   ]}
                 >
                   {t("customers:fullAmount")} ({formatCentimes(currentDebt, i18n.language as any)})
@@ -233,19 +258,19 @@ export function RecordPaymentScreen({
               </TouchableOpacity>
             )}
 
-            {debtDinars >= 2000 && (
+            {currentDebt >= 200000 && (
               <TouchableOpacity
                 style={[
                   styles.quickFillChip,
-                  parsedDinars === Math.round(debtDinars / 2) &&
+                  parsedCentimes === Math.round(currentDebt / 2) &&
                     styles.quickFillChipActive,
                 ]}
-                onPress={() => handleQuickFill(Math.round(debtDinars / 2))}
+                onPress={() => handleQuickFillCentimes(Math.round(currentDebt / 2))}
               >
                 <ThemedText
                   style={[
                     styles.quickFillText,
-                    parsedDinars === Math.round(debtDinars / 2) &&
+                    parsedCentimes === Math.round(currentDebt / 2) &&
                       styles.quickFillTextActive,
                   ]}
                 >
@@ -254,39 +279,43 @@ export function RecordPaymentScreen({
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity
-              style={[
-                styles.quickFillChip,
-                parsedDinars === 1000 && styles.quickFillChipActive,
-              ]}
-              onPress={() => handleQuickFill(1000)}
-            >
-              <ThemedText
+            {currentDebt >= 100000 && (
+              <TouchableOpacity
                 style={[
-                  styles.quickFillText,
-                  parsedDinars === 1000 && styles.quickFillTextActive,
+                  styles.quickFillChip,
+                  parsedCentimes === 100000 && styles.quickFillChipActive,
                 ]}
+                onPress={() => handleQuickFillCentimes(100000)}
               >
-                {formatCentimes(100000, i18n.language as any)}
-              </ThemedText>
-            </TouchableOpacity>
+                <ThemedText
+                  style={[
+                    styles.quickFillText,
+                    parsedCentimes === 100000 && styles.quickFillTextActive,
+                  ]}
+                >
+                  {formatCentimes(100000, i18n.language as any)}
+                </ThemedText>
+              </TouchableOpacity>
+            )}
 
-            <TouchableOpacity
-              style={[
-                styles.quickFillChip,
-                parsedDinars === 2000 && styles.quickFillChipActive,
-              ]}
-              onPress={() => handleQuickFill(2000)}
-            >
-              <ThemedText
+            {currentDebt >= 200000 && (
+              <TouchableOpacity
                 style={[
-                  styles.quickFillText,
-                  parsedDinars === 2000 && styles.quickFillTextActive,
+                  styles.quickFillChip,
+                  parsedCentimes === 200000 && styles.quickFillChipActive,
                 ]}
+                onPress={() => handleQuickFillCentimes(200000)}
               >
-                {formatCentimes(200000, i18n.language as any)}
-              </ThemedText>
-            </TouchableOpacity>
+                <ThemedText
+                  style={[
+                    styles.quickFillText,
+                    parsedCentimes === 200000 && styles.quickFillTextActive,
+                  ]}
+                >
+                  {formatCentimes(200000, i18n.language as any)}
+                </ThemedText>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Overpaying warning */}
@@ -304,7 +333,7 @@ export function RecordPaymentScreen({
           )}
 
           {/* Remaining Debt Preview */}
-          {!isOverpaying && parsedDinars > 0 && (
+          {!isOverpaying && parsedCentimes > 0 && (
             <View style={styles.previewBox}>
               <ThemedText style={styles.previewLabel}>
                 {t("customers:remainingBalanceAfter")}
@@ -323,90 +352,45 @@ export function RecordPaymentScreen({
           )}
         </View>
 
-        {/* Payment Method Selection */}
+        {/* Payment Method Card */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
             {t("customers:paymentMethod")}
           </ThemedText>
-
-          <View style={styles.methodRow}>
+          <View style={styles.methodSelector}>
             <TouchableOpacity
               style={[
-                styles.methodCard,
-                method === "cash" && styles.methodCardActive,
+                styles.methodOption,
+                method === "cash" && styles.methodOptionSelected,
               ]}
               onPress={() => setMethod("cash")}
-              activeOpacity={0.8}
             >
               <MaterialIcons
-                name="money"
-                size={22}
-                color={
-                  method === "cash" ? theme.primary : theme.textSecondary
-                }
-              />
-              <View style={styles.methodInfo}>
-                <ThemedText
-                  style={[
-                    styles.methodName,
-                    method === "cash" && styles.methodNameActive,
-                  ]}
-                >
-                  {t("customers:cash")}
-                </ThemedText>
-                <ThemedText style={styles.methodDescription}>
-                  {t("customers:cashRecommended")}
-                </ThemedText>
-              </View>
-              <MaterialIcons
-                name={
-                  method === "cash"
-                    ? "radio-button-checked"
-                    : "radio-button-unchecked"
-                }
+                name="payments"
                 size={20}
                 color={
                   method === "cash" ? theme.primary : theme.textSecondary
                 }
               />
+              <ThemedText
+                style={[
+                  styles.methodLabel,
+                  method === "cash" && styles.methodLabelSelected,
+                ]}
+              >
+                {t("customers:paymentMethodCash")}
+              </ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
-                styles.methodCard,
-                method === "electronic" && styles.methodCardActive,
+                styles.methodOption,
+                method === "electronic" && styles.methodOptionSelected,
               ]}
               onPress={() => setMethod("electronic")}
-              activeOpacity={0.8}
             >
               <MaterialIcons
                 name="credit-card"
-                size={22}
-                color={
-                  method === "electronic"
-                    ? theme.primary
-                    : theme.textSecondary
-                }
-              />
-              <View style={styles.methodInfo}>
-                <ThemedText
-                  style={[
-                    styles.methodName,
-                    method === "electronic" && styles.methodNameActive,
-                  ]}
-                >
-                  {t("customers:edahabia")}
-                </ThemedText>
-                <ThemedText style={styles.methodDescription}>
-                  BaridiMob / TPE
-                </ThemedText>
-              </View>
-              <MaterialIcons
-                name={
-                  method === "electronic"
-                    ? "radio-button-checked"
-                    : "radio-button-unchecked"
-                }
                 size={20}
                 color={
                   method === "electronic"
@@ -414,57 +398,63 @@ export function RecordPaymentScreen({
                     : theme.textSecondary
                 }
               />
+              <ThemedText
+                style={[
+                  styles.methodLabel,
+                  method === "electronic" && styles.methodLabelSelected,
+                ]}
+              >
+                {t("customers:paymentMethodElectronic")}
+              </ThemedText>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Note / Memo */}
+        {/* Notes Card */}
         <View style={styles.sectionCard}>
           <ThemedText style={styles.sectionTitle}>
             {t("customers:note")} ({t("common:optional")})
           </ThemedText>
-          <TextInput
-            value={note}
-            onChangeText={setNote}
-            placeholder={t("customers:receiptNotePlaceholder")}
-            placeholderTextColor={theme.textMuted}
-            style={styles.noteInput}
-          />
+          <View style={[styles.inputContainer, styles.textAreaContainer]}>
+            <MaterialIcons
+              name="notes"
+              size={20}
+              color={theme.textSecondary}
+              style={[styles.inputIcon, { marginTop: 2 }]}
+            />
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder={t("customers:receiptNotePlaceholder")}
+              placeholderTextColor={theme.textMuted}
+              multiline
+              numberOfLines={2}
+              style={[styles.largeInput, styles.textAreaInput]}
+            />
+          </View>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={() => router.back()}
-            disabled={isProcessing}
-          >
-            <ThemedText style={styles.cancelBtnText}>
-              {t("common:cancel")}
-            </ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.confirmBtn,
-              (isOverpaying || parsedDinars <= 0 || isProcessing) &&
-                styles.confirmBtnDisabled,
-            ]}
-            onPress={handleConfirm}
-            disabled={isOverpaying || parsedDinars <= 0 || isProcessing}
-          >
-            {isProcessing ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <>
-                <MaterialIcons name="check" size={20} color="#FFFFFF" />
-                <ThemedText style={styles.confirmBtnText}>
-                  {t("customers:confirmPayment")}
-                </ThemedText>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={[
+            styles.submitBtn,
+            (isProcessing || parsedCentimes <= 0 || isOverpaying) &&
+              styles.submitBtnDisabled,
+          ]}
+          onPress={handleConfirm}
+          disabled={isProcessing || parsedCentimes <= 0 || isOverpaying}
+        >
+          {isProcessing ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <>
+              <MaterialIcons name="check" size={20} color="#FFFFFF" />
+              <ThemedText style={styles.submitBtnText}>
+                {t("customers:confirmPayment")}
+              </ThemedText>
+            </>
+          )}
+        </TouchableOpacity>
 
         {/* Footer Trademark */}
         <FooterTrademark />
@@ -530,21 +520,21 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       gap: Spacing.md,
     },
     avatarCircle: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      backgroundColor: theme.errorLight,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: theme.primaryLight,
       alignItems: "center",
       justifyContent: "center",
     },
     avatarText: {
-      fontSize: 16,
+      ...Typography.label,
       fontWeight: "700",
-      color: theme.error,
+      color: theme.primary,
     },
     customerName: {
       ...Typography.label,
-      fontWeight: "600",
+      fontWeight: "700",
       color: theme.textPrimary,
     },
     debtCardLabel: {
@@ -628,15 +618,16 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     warningBox: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
+      gap: Spacing.xs,
       backgroundColor: theme.errorLight,
-      padding: Spacing.md,
-      borderRadius: BorderRadius.lg,
-      marginTop: Spacing.md,
+      padding: Spacing.sm,
+      borderRadius: BorderRadius.md,
+      marginTop: Spacing.sm,
     },
     warningText: {
       ...Typography.caption,
       color: theme.error,
+      fontWeight: "600",
       flex: 1,
     },
     previewBox: {
@@ -644,87 +635,63 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       alignItems: "center",
       justifyContent: "space-between",
       backgroundColor: theme.surfaceAlt,
-      padding: Spacing.md,
-      borderRadius: BorderRadius.lg,
-      marginTop: Spacing.md,
+      padding: Spacing.sm,
+      borderRadius: BorderRadius.md,
+      marginTop: Spacing.sm,
     },
     previewLabel: {
       ...Typography.caption,
       color: theme.textSecondary,
     },
     previewValue: {
-      ...Typography.label,
+      ...Typography.caption,
       fontWeight: "700",
+    },
+    previewValueDebt: {
+      color: theme.warning,
     },
     previewValueSettled: {
       color: theme.primary,
     },
-    previewValueDebt: {
-      color: theme.error,
+    methodSelector: {
+      flexDirection: "row",
+      gap: Spacing.md,
     },
-    methodRow: {
-      gap: Spacing.sm,
-    },
-    methodCard: {
+    methodOption: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
-      padding: Spacing.md,
+      justifyContent: "center",
+      gap: Spacing.xs,
+      paddingVertical: 12,
       borderRadius: BorderRadius.lg,
       borderWidth: 1,
       borderColor: theme.border,
-      backgroundColor: theme.surface,
+      backgroundColor: theme.surfaceAlt,
     },
-    methodCardActive: {
+    methodOptionSelected: {
       borderColor: theme.primary,
       backgroundColor: theme.primaryLight,
     },
-    methodInfo: {
-      flex: 1,
-      marginLeft: Spacing.md,
-    },
-    methodName: {
-      ...Typography.label,
-      fontWeight: "600",
-      color: theme.textPrimary,
-    },
-    methodNameActive: {
-      color: theme.primary,
-    },
-    methodDescription: {
+    methodLabel: {
       ...Typography.caption,
-      color: theme.textSecondary,
-      marginTop: 2,
-    },
-    noteInput: {
-      backgroundColor: theme.surfaceAlt,
-      borderRadius: BorderRadius.lg,
-      paddingHorizontal: Spacing.md,
-      paddingVertical: 10,
-      fontSize: 14,
-      color: theme.textPrimary,
-    },
-    actionsRow: {
-      flexDirection: "row",
-      gap: Spacing.md,
-      marginTop: Spacing.sm,
-    },
-    cancelBtn: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 14,
-      borderRadius: BorderRadius.xl,
-      backgroundColor: theme.surface,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    cancelBtnText: {
-      ...Typography.label,
       fontWeight: "600",
       color: theme.textSecondary,
     },
-    confirmBtn: {
-      flex: 2,
+    methodLabelSelected: {
+      color: theme.primary,
+      fontWeight: "700",
+    },
+    textAreaContainer: {
+      height: 70,
+      alignItems: "flex-start",
+      paddingVertical: Spacing.sm,
+    },
+    textAreaInput: {
+      fontSize: 14,
+      fontWeight: "400",
+    },
+    submitBtn: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -732,12 +699,13 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       paddingVertical: 14,
       borderRadius: BorderRadius.xl,
       backgroundColor: theme.primary,
+      marginTop: Spacing.sm,
       ...Shadows.sm,
     },
-    confirmBtnDisabled: {
+    submitBtnDisabled: {
       opacity: 0.5,
     },
-    confirmBtnText: {
+    submitBtnText: {
       ...Typography.label,
       fontWeight: "700",
       color: "#FFFFFF",
