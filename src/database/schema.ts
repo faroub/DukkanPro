@@ -136,10 +136,18 @@ export const schema = {
       customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
       amount_centimes INTEGER NOT NULL DEFAULT 0,
       payment_method TEXT NOT NULL DEFAULT 'cash',
+      currency TEXT NOT NULL DEFAULT 'DZD',
       note TEXT,
       paid_at TEXT NOT NULL DEFAULT (datetime('now')),
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
+  `,
+
+  // ============================================================
+  // customer_payments v2 — adds write-once currency column (migration 13)
+  // ============================================================
+  customerPaymentsCurrency: `
+    ALTER TABLE customer_payments ADD COLUMN currency TEXT NOT NULL DEFAULT 'DZD';
   `,
 
   // ============================================================

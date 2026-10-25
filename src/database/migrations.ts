@@ -64,6 +64,10 @@ const ALL_MIGRATIONS: Migration[] = [
     version: 12,
     sql: schema.salesCurrency,
   },
+  {
+    version: 13,
+    sql: schema.customerPaymentsCurrency,
+  },
 ];
 
 /**

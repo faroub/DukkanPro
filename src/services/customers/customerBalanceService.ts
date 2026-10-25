@@ -23,6 +23,7 @@ import {
   getDatabase,
   transaction,
 } from "@/database/database";
+import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
 import { CustomerPayment, Sale } from "@/types/entities";
 
 /**
@@ -82,7 +83,7 @@ export async function getCustomerPayments(
   tx?: SQLiteDatabase,
 ): Promise<CustomerPayment[]> {
   const sql = `SELECT cp.id, cp.customer_id, cp.amount_centimes, cp.payment_method,
-             cp.note, cp.paid_at, cp.created_at
+             cp.currency, cp.note, cp.paid_at, cp.created_at
        FROM customer_payments cp
       WHERE cp.customer_id = ?
       ORDER BY cp.paid_at DESC`;
@@ -101,6 +102,7 @@ export async function getCustomerPayments(
       | "mixed"
       | "partial"
       | "credit",
+    currency: r.currency || "DZD",
     note: r.note,
     paid_at: r.paid_at,
     created_at: r.created_at,
@@ -284,6 +286,9 @@ export async function recordPayment(
     return null;
   }
 
+  const profile = await getBusinessProfile();
+  const activeCurrency = profile?.currency || "DZD";
+
   const db = await getDatabase();
   return await transaction(db, async (tx) => {
     // Re-check the debt INSIDE the transaction using explicit tx handle
@@ -295,10 +300,10 @@ export async function recordPayment(
     const paymentId = await executeWrite(
       tx,
       `INSERT INTO customer_payments
-         (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
+         (customer_id, amount_centimes, payment_method, currency, note, paid_at, created_at)
        VALUES
-         (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-      [customerId, amount, method, note],
+         (?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      [customerId, amount, method, activeCurrency, note],
     );
 
     const now = new Date().toISOString();
@@ -308,6 +313,7 @@ export async function recordPayment(
       customer_id: customerId,
       amount_centimes: amount,
       payment_method: method,
+      currency: activeCurrency,
       note: note ?? null,
       paid_at: now,
       created_at: now,
@@ -340,6 +346,9 @@ export async function recordRefund(
     return null;
   }
 
+  const profile = await getBusinessProfile();
+  const activeCurrency = profile?.currency || "DZD";
+
   const db = await getDatabase();
   return await transaction(db, async (tx) => {
     // Re-check the credit INSIDE the transaction using explicit tx handle
@@ -351,10 +360,10 @@ export async function recordRefund(
     const refundId = await executeWrite(
       tx,
       `INSERT INTO customer_payments
-         (customer_id, amount_centimes, payment_method, note, paid_at, created_at)
+         (customer_id, amount_centimes, payment_method, currency, note, paid_at, created_at)
        VALUES
-         (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-      [customerId, -amount, method, note],
+         (?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      [customerId, -amount, method, activeCurrency, note],
     );
 
     const now = new Date().toISOString();
@@ -364,6 +373,7 @@ export async function recordRefund(
       customer_id: customerId,
       amount_centimes: -amount,
       payment_method: method,
+      currency: activeCurrency,
       note: note ?? null,
       paid_at: now,
       created_at: now,
