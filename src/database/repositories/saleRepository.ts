@@ -145,11 +145,18 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
   }));
 }
 
+function getLocalDateKey(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 /**
- * Retrieve today's completed sales.
+ * Retrieve today's completed sales using the merchant's local calendar day.
  */
 export async function getTodaySales(): Promise<Sale[]> {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalDateKey();
   return getAll({ startDate: todayStr, endDate: todayStr, status: "completed" });
 }
 
