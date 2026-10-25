@@ -1,5 +1,5 @@
 import { SymbolView } from "expo-symbols";
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useState } from "react";
 import { ThemedText } from "@/components/themed-text";
@@ -52,6 +52,18 @@ export function CartList({
   const [paymentMethod, setPaymentMethod] = useState<
     "cash" | "electronic" | "credit"
   >("cash");
+
+  const [showDiscountInput, setShowDiscountInput] = useState(false);
+  const [discountInputText, setDiscountInputText] = useState(
+    discount > 0 ? (discount / 100).toString() : "",
+  );
+
+  const handleApplyDiscount = () => {
+    const parsedDinars = parseFloat(discountInputText.replace(/[^0-9.]/g, "")) || 0;
+    const discountCentimes = Math.round(parsedDinars * 100);
+    setDiscount(discountCentimes);
+    setShowDiscountInput(false);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface }]}>
@@ -115,47 +127,97 @@ export function CartList({
                 </ThemedText>
               </View>
 
-              {/* Discount Entry / Edit Option */}
+              {/* Discount Row & Inline Input */}
               <View style={styles.summaryRow}>
-                <Pressable
-                  onPress={() => {
-                    Alert.prompt(
-                      t("receipt.discount", { defaultValue: "Remise" }),
-                      t("sell.discountPrompt", { defaultValue: "Saisissez le montant de la remise en DZD" }),
-                      [
-                        {
-                          text: t("common.cancel", { defaultValue: "Annuler" }),
-                          style: "cancel",
-                        },
-                        {
-                          text: t("common.save", { defaultValue: "Appliquer" }),
-                          onPress: (val?: string) => {
-                            const num = parseFloat(val || "0") || 0;
-                            setDiscount(Math.round(num * 100));
-                          },
-                        },
-                      ],
-                      "plain-text",
-                      discount > 0 ? (discount / 100).toString() : ""
-                    );
-                  }}
-                  style={styles.addDiscountBtn}
-                >
-                  <SymbolView
-                    name={{
-                      ios: "tag" as any,
-                      android: "local_offer" as any,
-                      web: "local_offer" as any,
+                {!showDiscountInput ? (
+                  <Pressable
+                    testID="toggle-discount-btn"
+                    onPress={() => {
+                      setDiscountInputText(
+                        discount > 0 ? (discount / 100).toString() : "",
+                      );
+                      setShowDiscountInput(true);
                     }}
-                    size={14}
-                    tintColor={theme.primary}
-                  />
-                  <Text style={[styles.addDiscountBtnText, { color: theme.primary }]}>
-                    {discount > 0
-                      ? `${t("receipt.discount", { defaultValue: "Remise" })}: -${formatCentimes(discount)} (${t("common.edit", { defaultValue: "Modifier" })})`
-                      : `+ ${t("receipt.discount", { defaultValue: "Ajouter une remise" })}`}
-                  </Text>
-                </Pressable>
+                    style={styles.addDiscountBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("receipt.discount", {
+                      defaultValue: "Remise",
+                    })}
+                    id="btn-toggle-discount-input"
+                  >
+                    <SymbolView
+                      name={{
+                        ios: "tag" as any,
+                        android: "local_offer" as any,
+                        web: "local_offer" as any,
+                      }}
+                      size={14}
+                      tintColor={theme.primary}
+                    />
+                    <Text
+                      style={[
+                        styles.addDiscountBtnText,
+                        { color: theme.primary },
+                      ]}
+                    >
+                      {discount > 0
+                        ? `${t("receipt.discount", { defaultValue: "Remise" })}: -${formatCentimes(discount)} (${t("common.edit", { defaultValue: "Modifier" })})`
+                        : `+ ${t("receipt.discount", { defaultValue: "Ajouter une remise" })}`}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <View style={styles.discountInputWrapper}>
+                    <Text
+                      style={[
+                        styles.summaryLabel,
+                        { color: theme.textSecondary },
+                      ]}
+                    >
+                      {t("receipt.discount", { defaultValue: "Remise" })} (DZD)
+                    </Text>
+                    <View
+                      style={[
+                        styles.inlineInputRow,
+                        { borderColor: theme.border },
+                      ]}
+                    >
+                      <TextInput
+                        style={[
+                          styles.inlineTextInput,
+                          { color: theme.textPrimary },
+                        ]}
+                        value={discountInputText}
+                        onChangeText={setDiscountInputText}
+                        placeholder="0"
+                        placeholderTextColor={theme.textMuted}
+                        keyboardType="decimal-pad"
+                        autoFocus
+                        testID="discount-input-field"
+                      />
+                      <Pressable
+                        testID="apply-discount-btn"
+                        onPress={handleApplyDiscount}
+                        style={[
+                          styles.applyDiscountBtn,
+                          { backgroundColor: theme.primary },
+                        ]}
+                        accessibilityLabel={t("common.save", {
+                          defaultValue: "Appliquer",
+                        })}
+                      >
+                        <SymbolView
+                          name={{
+                            ios: "checkmark" as any,
+                            android: "check" as any,
+                            web: "check" as any,
+                          }}
+                          size={14}
+                          tintColor="#FFFFFF"
+                        />
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
               </View>
 
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
@@ -453,6 +515,31 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     fontSize: 13,
     fontWeight: "600",
+  },
+  discountInputWrapper: {
+    flex: 1,
+    gap: 4,
+  },
+  inlineInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.xs,
+    height: 38,
+  },
+  inlineTextInput: {
+    flex: 1,
+    ...Typography.body,
+    paddingVertical: 0,
+    paddingHorizontal: Spacing.xs,
+  },
+  applyDiscountBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    justifyContent: "center",
+    alignItems: "center",
   },
   divider: {
     height: 1,
