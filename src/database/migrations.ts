@@ -66,6 +66,9 @@ const ALL_MIGRATIONS: Migration[] = [
  * Safely executes migration SQL statements.
  * For ALTER TABLE ADD COLUMN statements, checks PRAGMA table_info first to avoid
  * "duplicate column name" crashes if a column was already added before a crash.
+ *
+ * CAUTION: Statements are split on semicolons (';'). Future migrations MUST NOT
+ * embed semicolons within string literals, DEFAULT values, or SQL comments.
  */
 async function execDefensiveSql(db: any, sql: string): Promise<void> {
   const statements = sql
