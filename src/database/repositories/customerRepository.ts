@@ -7,7 +7,7 @@
  */
 
 import { Customer } from "../../types/entities";
-import { executeAll, executeRead, executeWrite, escapeLike } from "../database";
+import { executeAll, executeRead, executeWrite, escapeLike, getDatabase, transaction } from "../database";
 import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 
 export type CustomerFilters = {
@@ -182,24 +182,27 @@ export async function update(
 /**
  * Archive (soft-delete) a customer by id.
  * Sets is_active = false; the row is retained for history and referential integrity.
- * Rejects archiving if the customer has an active outstanding debt balance.
+ * Rejects archiving if the customer has an active outstanding debt balance inside an atomic transaction.
  */
 export async function archive(id: number): Promise<void> {
-  const debt = await getCustomerDebt(id);
-  if (debt > 0) {
-    throw new Error(
-      `Cannot archive customer id=${id} while an outstanding balance remains.`
-    );
-  }
+  const db = await getDatabase();
+  await transaction(db, async (tx) => {
+    const debt = await getCustomerDebt(id, tx);
+    if (debt > 0) {
+      throw new Error(
+        `Cannot archive customer id=${id} while an outstanding balance remains.`,
+      );
+    }
 
-  await executeWrite(
-    // language=SQLite
-    `UPDATE customers
-     SET is_active = 0,
-         updated_at = datetime('now')
-     WHERE id = ?`,
-    [id],
-  );
+    await executeWrite(
+      tx,
+      `UPDATE customers
+       SET is_active = 0,
+           updated_at = datetime('now')
+       WHERE id = ?`,
+      [id],
+    );
+  });
 }
 
 /**

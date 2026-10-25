@@ -435,9 +435,25 @@ export async function create(saleInput: {
     const amountPaid = Math.min(rawAmountPaid, totalCentimes);
     const remainingBalance = Math.max(0, totalCentimes - amountPaid);
 
-    // H3 Fix: Prevent anonymous debt — require a customer if remaining balance > 0
-    if (remainingBalance > 0 && !saleInput.customerId) {
-      throw new Error("A customer must be selected to record partial payment or debt.");
+    // H3 Fix: Prevent anonymous debt & debt for inactive customers
+    if (remainingBalance > 0) {
+      if (!saleInput.customerId) {
+        throw new Error("A customer must be selected to record partial payment or debt.");
+      }
+
+      const custRows: any[] = await executeRead(
+        tx,
+        `SELECT id, name, is_active FROM customers WHERE id = ?`,
+        [saleInput.customerId],
+      );
+      if (custRows.length === 0) {
+        throw new Error(`Customer id=${saleInput.customerId} not found.`);
+      }
+      if (custRows[0].is_active === 0) {
+        throw new Error(
+          "INACTIVE_CUSTOMER: Cannot record credit or debt for an inactive/archived customer.",
+        );
+      }
     }
 
     await executeWrite(

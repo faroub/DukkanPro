@@ -128,6 +128,20 @@ describe("saleRepository", () => {
       expect(sale.remaining_balance_centimes).toBe(0);
     });
 
+    it("rejects credit or partial sales for inactive/archived customers", async () => {
+      // Archive customer 1
+      await db.runAsync("UPDATE customers SET is_active = 0 WHERE id = 1");
+
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "credit",
+          amountPaidCentimes: 0,
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 5000 }],
+        })
+      ).rejects.toThrow(/INACTIVE_CUSTOMER/i);
+    });
+
     it("rejects sales where an item has quantity <= 0 or invalid quantity", async () => {
       await expect(
         create({
