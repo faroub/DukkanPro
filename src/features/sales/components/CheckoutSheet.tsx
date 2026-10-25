@@ -34,7 +34,12 @@ import {
   Typography,
 } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { formatCentimes, getCurrencySymbol, parseDzdToCentimes } from "@/utils/money";
+import {
+  formatCentimes,
+  formatCentimesToInputDzd,
+  getCurrencySymbol,
+  parseDzdToCentimes,
+} from "@/utils/money";
 import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
 import { getById as getProductById } from "@/database/repositories/productRepository";
 import { useTranslation } from "react-i18next";
@@ -135,15 +140,33 @@ export function CheckoutSheet({
   const [partialAmount, setPartialAmount] = useState<number>(
     Math.round(displayTotal / 2),
   );
+  const [rawCashInput, setRawCashInput] = useState<string>("");
+  const [rawPartialInput, setRawPartialInput] = useState<string>("");
+  const [isCashUserModified, setIsCashUserModified] = useState<boolean>(false);
+  const [isPartialUserModified, setIsPartialUserModified] = useState<boolean>(false);
 
   useEffect(() => {
-    if (visible) {
+    if (!visible) {
       Promise.resolve().then(() => {
-        setAmountReceived(displayTotal);
-        setPartialAmount(Math.round(displayTotal / 2));
+        setIsCashUserModified(false);
+        setIsPartialUserModified(false);
       });
+      return;
     }
-  }, [visible, displayTotal]);
+
+    Promise.resolve().then(() => {
+      if (!isCashUserModified) {
+        setAmountReceived(displayTotal);
+        setRawCashInput(formatCentimesToInputDzd(displayTotal));
+      }
+
+      if (!isPartialUserModified) {
+        const half = Math.round(displayTotal / 2);
+        setPartialAmount(half);
+        setRawPartialInput(formatCentimesToInputDzd(half));
+      }
+    });
+  }, [visible, displayTotal, isCashUserModified, isPartialUserModified]);
 
   // Fetch real customers from SQLite
   const { customers } = useCustomers({ onlyActive: true });
@@ -161,11 +184,16 @@ export function CheckoutSheet({
   const remainingAfterPartial = Math.max(0, displayTotal - partialAmount);
 
   const handleQuickAddCash = (centimesToAdd: number) => {
-    setAmountReceived((prev) => prev + centimesToAdd);
+    setIsCashUserModified(true);
+    const newAmount = amountReceived + centimesToAdd;
+    setAmountReceived(newAmount);
+    setRawCashInput(formatCentimesToInputDzd(newAmount));
   };
 
   const handleExactCash = () => {
+    setIsCashUserModified(true);
     setAmountReceived(displayTotal);
+    setRawCashInput(formatCentimesToInputDzd(displayTotal));
   };
 
   const handleConfirm = useCallback(async () => {
@@ -568,8 +596,10 @@ export function CheckoutSheet({
                   <View style={[styles.cashInputWrapper, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
                     <TextInput
                       style={[styles.cashTextInput, { color: theme.textPrimary }]}
-                      value={(amountReceived / 100).toString()}
+                      value={rawCashInput}
                       onChangeText={(val) => {
+                        setIsCashUserModified(true);
+                        setRawCashInput(val);
                         setAmountReceived(parseDzdToCentimes(val));
                       }}
                       keyboardType="decimal-pad"
@@ -647,8 +677,10 @@ export function CheckoutSheet({
                   >
                     <TextInput
                       style={[styles.cashTextInput, { color: theme.textPrimary }]}
-                      value={(partialAmount / 100).toString()}
+                      value={rawPartialInput}
                       onChangeText={(val) => {
+                        setIsPartialUserModified(true);
+                        setRawPartialInput(val);
                         setPartialAmount(parseDzdToCentimes(val));
                       }}
                       keyboardType="decimal-pad"
