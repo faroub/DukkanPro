@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import {
   getAllSales,
   getSalesByDateRange,
@@ -26,6 +26,7 @@ import {
   SaleFilterKey,
 } from '@/features/sales/components/SaleFilterTabs';
 import { formatCentimes } from '@/utils/money';
+import { useTheme } from '@/hooks/use-theme';
 
 function getLocalDateKey(d: Date = new Date()): string {
   const y = d.getFullYear();
@@ -35,8 +36,9 @@ function getLocalDateKey(d: Date = new Date()): string {
 }
 
 export function SalesHistoryScreen() {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
 
   const lang = i18n.language || 'fr';
   const isArabic = lang.startsWith('ar');
@@ -195,12 +197,12 @@ export function SalesHistoryScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* 1. Top Bar */}
-      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, Spacing.md) }]}>
+      <View style={[styles.topBar, { backgroundColor: theme.surface, borderBottomColor: theme.border, paddingTop: Math.max(insets.top, Spacing.md) }]}>
         <View style={styles.topBarLeft}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={[styles.backButton, { backgroundColor: theme.surfaceAlt }]}
             onPress={() => router.back()}
             activeOpacity={0.7}
             accessibilityRole="button"
@@ -209,15 +211,15 @@ export function SalesHistoryScreen() {
             <MaterialIcons
               name="arrow-back"
               size={22}
-              color={Colors.light.textPrimary}
+              color={theme.textPrimary}
             />
           </TouchableOpacity>
 
           <View style={styles.topBarTitleWrap}>
-            <ThemedText style={styles.topBarTitle}>
+            <ThemedText style={[styles.topBarTitle, { color: theme.textPrimary }]}>
               {isArabic ? 'المبيعات الأخيرة' : isFrench ? 'Ventes récentes' : 'Recent Sales'}
             </ThemedText>
-            <ThemedText style={styles.topBarSubtitle}>
+            <ThemedText style={[styles.topBarSubtitle, { color: theme.textSecondary }]}>
               {isArabic
                 ? 'سجل المعاملات والفواتير'
                 : isFrench
@@ -228,7 +230,7 @@ export function SalesHistoryScreen() {
         </View>
 
         <TouchableOpacity
-          style={styles.refreshButton}
+          style={[styles.refreshButton, { backgroundColor: theme.surfaceAlt }]}
           onPress={handleRefresh}
           activeOpacity={0.7}
           accessibilityRole="button"
@@ -237,39 +239,39 @@ export function SalesHistoryScreen() {
           <MaterialIcons
             name="refresh"
             size={20}
-            color={Colors.light.textSecondary}
+            color={theme.textSecondary}
           />
         </TouchableOpacity>
       </View>
 
-      {/* 2. Key Summary Metrics Banner (Google Stitch Design) */}
-      <View style={styles.summaryBanner}>
+      {/* 2. Key Summary Metrics Banner */}
+      <View style={[styles.summaryBanner, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
         <View style={styles.summaryBannerLeft}>
-          <View style={styles.statsIconBox}>
+          <View style={[styles.statsIconBox, { backgroundColor: theme.surface }]}>
             <MaterialIcons
               name="query-stats"
               size={22}
-              color={Colors.light.primary}
+              color={theme.primary}
             />
           </View>
           <View style={styles.summaryTextGroup}>
-            <ThemedText style={styles.performanceLabel}>
+            <ThemedText style={[styles.performanceLabel, { color: theme.primary }]}>
               {isArabic ? 'الأداء المالي' : isFrench ? 'PERFORMANCE' : 'PERFORMANCE'}
             </ThemedText>
-            <ThemedText style={styles.performanceValue}>
+            <ThemedText style={[styles.performanceValue, { color: theme.textPrimary }]}>
               {validSales.length}{' '}
               {isArabic ? 'عملية' : isFrench ? 'ventes' : 'sales'} • {totalRevenueFormatted}
             </ThemedText>
           </View>
         </View>
 
-        <View style={styles.trendingBadge}>
+        <View style={[styles.trendingBadge, { backgroundColor: theme.surface }]}>
           <MaterialIcons
             name="trending-up"
             size={16}
-            color={Colors.light.primary}
+            color={theme.primary}
           />
-          <ThemedText style={styles.trendingText}>
+          <ThemedText style={[styles.trendingText, { color: theme.primary }]}>
             {activeFilter === 'today'
               ? isArabic ? 'اليوم' : 'Today'
               : activeFilter === 'week'
@@ -291,15 +293,15 @@ export function SalesHistoryScreen() {
       />
 
       {/* 4. Search Input Bar */}
-      <View style={styles.searchBarWrapper}>
+      <View style={[styles.searchBarWrapper, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <MaterialIcons
           name="search"
           size={20}
-          color={Colors.light.textMuted}
+          color={theme.textMuted}
           style={styles.searchIcon}
         />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.textPrimary }]}
           placeholder={
             isArabic
               ? 'البحث عن طريق الزبون، السلعة أو رقم الوصل...'
@@ -307,7 +309,7 @@ export function SalesHistoryScreen() {
               ? 'Rechercher par client, article ou n° reçu...'
               : 'Search by customer, product, or receipt #...'
           }
-          placeholderTextColor={Colors.light.textMuted}
+          placeholderTextColor={theme.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
           autoCapitalize="none"
@@ -323,7 +325,7 @@ export function SalesHistoryScreen() {
             <MaterialIcons
               name="cancel"
               size={18}
-              color={Colors.light.textMuted}
+              color={theme.textMuted}
             />
           </TouchableOpacity>
         )}
@@ -331,8 +333,8 @@ export function SalesHistoryScreen() {
 
       {/* 5. Sales List Header / Counter */}
       <View style={styles.listHeader}>
-        <ThemedText style={styles.groupLabel}>{sectionLabel}</ThemedText>
-        <ThemedText style={styles.resultsCount}>
+        <ThemedText style={[styles.groupLabel, { color: theme.textSecondary }]}>{sectionLabel}</ThemedText>
+        <ThemedText style={[styles.resultsCount, { color: theme.textSecondary }]}>
           {isArabic
             ? `${sales.length} نتيجة`
             : isFrench
@@ -344,8 +346,8 @@ export function SalesHistoryScreen() {
       {/* 6. FlatList Content */}
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={Colors.light.primary} />
-          <ThemedText style={styles.loadingText}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>
             {isArabic ? 'جارٍ تحميل المبيعات...' : isFrench ? 'Chargement des ventes...' : 'Loading sales...'}
           </ThemedText>
         </View>
@@ -359,8 +361,8 @@ export function SalesHistoryScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={[Colors.light.primary]}
-              tintColor={Colors.light.primary}
+              colors={[theme.primary]}
+              tintColor={theme.primary}
             />
           }
           renderItem={({ item }) => (
@@ -377,14 +379,14 @@ export function SalesHistoryScreen() {
           ListFooterComponent={() => <FooterTrademark />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconCircle}>
+              <View style={[styles.emptyIconCircle, { backgroundColor: theme.surfaceAlt }]}>
                 <MaterialIcons
                   name="receipt-long"
                   size={36}
-                  color={Colors.light.textMuted}
+                  color={theme.textMuted}
                 />
               </View>
-              <ThemedText style={styles.emptyTitle}>
+              <ThemedText style={[styles.emptyTitle, { color: theme.textPrimary }]}>
                 {searchQuery
                   ? isArabic
                     ? 'لم يتم العثور على نتائج'
@@ -397,7 +399,7 @@ export function SalesHistoryScreen() {
                   ? 'Aucune vente enregistrée'
                   : 'No sales recorded yet'}
               </ThemedText>
-              <ThemedText style={styles.emptySubtitle}>
+              <ThemedText style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
                 {searchQuery
                   ? isArabic
                     ? 'جرب البحث باسم آخر أو مسح حقل البحث'
@@ -412,7 +414,7 @@ export function SalesHistoryScreen() {
               </ThemedText>
               {(searchQuery.length > 0 || activeFilter !== 'all') && (
                 <TouchableOpacity
-                  style={styles.clearFiltersButton}
+                  style={[styles.clearFiltersButton, { backgroundColor: theme.primaryLight, borderColor: theme.border }]}
                   onPress={() => {
                     setSearchQuery('');
                     setActiveFilter('all');
@@ -422,9 +424,9 @@ export function SalesHistoryScreen() {
                   <MaterialIcons
                     name="filter-alt-off"
                     size={16}
-                    color={Colors.light.primary}
+                    color={theme.primary}
                   />
-                  <ThemedText style={styles.clearFiltersButtonText}>
+                  <ThemedText style={[styles.clearFiltersButtonText, { color: theme.primary }]}>
                     {isArabic
                       ? 'إعادة ضبط الفلاتر'
                       : isFrench
@@ -444,7 +446,6 @@ export function SalesHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   topBar: {
     flexDirection: 'row',
@@ -452,9 +453,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.light.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
   },
   topBarLeft: {
     flexDirection: 'row',
@@ -465,7 +464,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -475,17 +473,14 @@ const styles = StyleSheet.create({
   topBarTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
   },
   topBarSubtitle: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   refreshButton: {
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -497,10 +492,8 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     marginBottom: Spacing.sm,
     padding: Spacing.md,
-    backgroundColor: Colors.light.primaryLight,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: '#C7E7D2',
   },
   summaryBannerLeft: {
     flexDirection: 'row',
@@ -512,7 +505,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.surface,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.sm,
@@ -524,19 +516,16 @@ const styles = StyleSheet.create({
   performanceLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.light.primary,
     letterSpacing: 0.8,
   },
   performanceValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
   },
   trendingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.light.surface,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: BorderRadius.pill,
@@ -545,12 +534,10 @@ const styles = StyleSheet.create({
   trendingText: {
     fontSize: 11,
     fontWeight: '700',
-    color: Colors.light.primary,
   },
   searchBarWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.surface,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.sm,
     marginBottom: Spacing.xs,
@@ -558,7 +545,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   searchIcon: {
     marginRight: Spacing.sm,
@@ -566,7 +552,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
-    color: Colors.light.textPrimary,
     paddingVertical: 0,
   },
   clearSearchButton: {
@@ -583,14 +568,12 @@ const styles = StyleSheet.create({
   groupLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: Colors.light.textSecondary,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   resultsCount: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.light.textSecondary,
   },
   listContent: {
     paddingHorizontal: Spacing.lg,
@@ -607,7 +590,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -620,7 +602,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.light.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.xs,
@@ -628,12 +609,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -645,13 +624,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 8,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.light.primaryLight,
     borderWidth: 1,
-    borderColor: '#C7E7D2',
   },
   clearFiltersButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.primary,
   },
 });

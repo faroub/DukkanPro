@@ -26,7 +26,7 @@ import {
   ThemePreference,
   useThemePreference,
 } from "@/providers/ThemeProvider";
-import { getTodayCashSales } from "@/database/repositories/dashboardRepository";
+import { getTodayRevenue } from "@/database/repositories/dashboardRepository";
 import { formatCentimes } from "@/utils/money";
 
 /**
@@ -45,16 +45,16 @@ export function MoreScreen() {
   const theme = useTheme();
   const { themePreference, systemColorScheme, setThemePreference } = useThemePreference();
 
-  const [todayCash, setTodayCash] = useState<number>(0);
+  const [todayRevenue, setTodayRevenue] = useState<number>(0);
 
   useEffect(() => {
     let isMounted = true;
-    getTodayCashSales()
+    getTodayRevenue()
       .then((amount) => {
-        if (isMounted) setTodayCash(amount);
+        if (isMounted) setTodayRevenue(amount);
       })
       .catch((err) => {
-        console.error("Failed to load today cash sales:", err);
+        console.error("Failed to load today revenue:", err);
       });
     return () => {
       isMounted = false;
@@ -169,10 +169,10 @@ export function MoreScreen() {
         <View style={styles.metricsStrip}>
           <View style={[styles.metricCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <ThemedText style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              {t("settings.todayCash") || "Today Cash"}
+              {t("settings.todayCash") || (isArabic ? "مبيعات اليوم" : "Today's Sales")}
             </ThemedText>
             <ThemedText style={[styles.metricValuePrimary, { color: theme.primary }]}>
-              {formatCentimes(todayCash, i18n.language as any)}
+              {formatCentimes(todayRevenue, i18n.language as any)}
             </ThemedText>
           </View>
           <View style={[styles.metricCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>

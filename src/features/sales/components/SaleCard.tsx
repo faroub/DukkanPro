@@ -7,9 +7,10 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/themed-text';
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { formatCentimes } from '@/utils/money';
 import { formatRelativeDate, formatTime } from '@/utils/dates';
+import { useTheme } from '@/hooks/use-theme';
 
 export interface SaleCardData {
   id: number;
@@ -41,7 +42,8 @@ interface SaleCardProps {
 }
 
 export function SaleCard({ sale, onPress }: SaleCardProps) {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
+  const theme = useTheme();
   const lang = i18n.language || 'fr';
   const isArabic = lang.startsWith('ar');
   const isFrench = lang.startsWith('fr');
@@ -62,42 +64,41 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
     (sale.payment_method === 'credit' ||
       ((sale.remaining_balance_centimes ?? 0) > 0 &&
         (sale.amount_paid_centimes ?? 0) === 0));
-  const isPaid = !isCancelled && !isReturned && !isPartial && !isCredit;
 
   // Icon, colors, and badge styling
   let iconName: keyof typeof MaterialIcons.glyphMap = 'payments';
-  let iconColor: string = Colors.light.primary;
-  let iconBg: string = Colors.light.primaryLight;
-  let badgeBg: string = Colors.light.primaryLight;
-  let badgeColor: string = Colors.light.primary;
+  let iconColor: string = theme.primary;
+  let iconBg: string = theme.primaryLight;
+  let badgeBg: string = theme.primaryLight;
+  let badgeColor: string = theme.primary;
   let badgeText = isArabic ? 'مدفوع' : isFrench ? 'Payé' : 'Paid';
   let subStatusText = isArabic ? 'نقداً' : isFrench ? 'Espèces' : 'Cash';
-  let subStatusColor: string = Colors.light.primary;
+  let subStatusColor: string = theme.primary;
 
   if (isCancelled) {
     iconName = 'block';
-    iconColor = Colors.light.error;
-    iconBg = Colors.light.errorLight;
-    badgeBg = Colors.light.errorLight;
-    badgeColor = Colors.light.error;
+    iconColor = theme.error;
+    iconBg = theme.errorLight;
+    badgeBg = theme.errorLight;
+    badgeColor = theme.error;
     badgeText = isArabic ? 'ملغى' : isFrench ? 'Annulé' : 'Cancelled';
     subStatusText = isArabic ? 'معاملة ملغاة' : isFrench ? 'Vente annulée' : 'Voided sale';
-    subStatusColor = Colors.light.error;
+    subStatusColor = theme.error;
   } else if (isReturned) {
     iconName = 'assignment-return';
-    iconColor = Colors.light.textSecondary;
-    iconBg = Colors.light.surfaceAlt;
-    badgeBg = Colors.light.surfaceAlt;
-    badgeColor = Colors.light.textSecondary;
+    iconColor = theme.textSecondary;
+    iconBg = theme.surfaceAlt;
+    badgeBg = theme.surfaceAlt;
+    badgeColor = theme.textSecondary;
     badgeText = isArabic ? 'مسترجع' : isFrench ? 'Retourné' : 'Returned';
     subStatusText = isArabic ? 'تم إرجاع البضاعة' : isFrench ? 'Réapprovisionné' : 'Restocked';
-    subStatusColor = Colors.light.textSecondary;
+    subStatusColor = theme.textSecondary;
   } else if (isPartial) {
     iconName = 'pending-actions';
-    iconColor = Colors.light.warning;
-    iconBg = Colors.light.warningLight;
-    badgeBg = Colors.light.warningLight;
-    badgeColor = Colors.light.secondary;
+    iconColor = theme.warning;
+    iconBg = theme.warningLight;
+    badgeBg = theme.warningLight;
+    badgeColor = theme.warning;
     badgeText = isArabic ? 'جزئي' : isFrench ? 'Partiel' : 'Partial';
     const dueAmount = formatCentimes(
       sale.remaining_balance_centimes || 0,
@@ -105,26 +106,26 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
       sale.currency || "DZD",
     );
     subStatusText = isArabic ? `المتبقي عند البيع: ${dueAmount}` : isFrench ? `Initial à la vente: ${dueAmount}` : `At-sale initial: ${dueAmount}`;
-    subStatusColor = Colors.light.secondary;
+    subStatusColor = theme.warning;
   } else if (isCredit) {
     iconName = 'menu-book';
-    iconColor = Colors.light.primaryDark;
-    iconBg = Colors.light.surfaceAlt;
-    badgeBg = Colors.light.surfaceAlt;
-    badgeColor = Colors.light.primaryDark;
+    iconColor = theme.primary;
+    iconBg = theme.primaryLight;
+    badgeBg = theme.primaryLight;
+    badgeColor = theme.primary;
     badgeText = isArabic ? 'دين' : isFrench ? 'Crédit' : 'Credit';
     subStatusText = isArabic ? 'مسجل في دفتر الكريدي' : isFrench ? 'Inscrit au carnet client' : 'Recorded in customer ledger';
-    subStatusColor = Colors.light.textSecondary;
+    subStatusColor = theme.textSecondary;
   } else {
     // Paid completed
     if (sale.payment_method === 'electronic') {
       iconName = 'credit-card';
       subStatusText = isArabic ? 'دفع إلكتروني' : isFrench ? 'Électronique' : 'Electronic';
-      subStatusColor = Colors.light.primary;
+      subStatusColor = theme.primary;
     } else {
       iconName = sale.customer_name ? 'receipt-long' : 'payments';
       subStatusText = isArabic ? 'نقداً' : isFrench ? 'Espèces' : 'Cash';
-      subStatusColor = Colors.light.primary;
+      subStatusColor = theme.primary;
     }
   }
 
@@ -163,7 +164,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}
       onPress={onPress}
       activeOpacity={0.7}
       accessibilityRole="button"
@@ -181,7 +182,8 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
               <ThemedText
                 style={[
                   styles.customerName,
-                  isCancelled && styles.strikeText,
+                  { color: theme.textPrimary },
+                  isCancelled && [styles.strikeText, { color: theme.textMuted }],
                 ]}
                 numberOfLines={1}
               >
@@ -195,8 +197,8 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
               </View>
             </View>
 
-            <ThemedText style={styles.metaText} numberOfLines={1}>
-              <ThemedText style={styles.receiptCode}>{receiptCode}</ThemedText>
+            <ThemedText style={[styles.metaText, { color: theme.textSecondary }]} numberOfLines={1}>
+              <ThemedText style={[styles.receiptCode, { color: theme.textPrimary }]}>{receiptCode}</ThemedText>
               {' • '}
               {dateDisplay}
             </ThemedText>
@@ -209,7 +211,8 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
             <ThemedText
               style={[
                 styles.totalText,
-                isCancelled && styles.totalTextCancelled,
+                { color: theme.textPrimary },
+                isCancelled && [styles.totalTextCancelled, { color: theme.textMuted }],
               ]}
             >
               {formattedTotal}
@@ -225,39 +228,39 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
           <MaterialIcons
             name="chevron-right"
             size={20}
-            color={Colors.light.textMuted}
+            color={theme.textMuted}
           />
         </View>
       </View>
 
       {/* Optional bottom container for items or balance notes */}
       {itemsSnippet.length > 0 && (
-        <View style={styles.itemsBanner}>
+        <View style={[styles.itemsBanner, { backgroundColor: theme.surfaceAlt }]}>
           <MaterialIcons
             name="shopping-basket"
             size={15}
-            color={Colors.light.textMuted}
+            color={theme.textMuted}
           />
-          <ThemedText style={styles.itemsBannerText} numberOfLines={1}>
+          <ThemedText style={[styles.itemsBannerText, { color: theme.textSecondary }]} numberOfLines={1}>
             {itemsSnippet}
           </ThemedText>
         </View>
       )}
 
       {isPartial && (sale.amount_paid_centimes ?? 0) > 0 && (
-        <View style={styles.partialBanner}>
+        <View style={[styles.partialBanner, { backgroundColor: theme.surfaceAlt }]}>
           <View style={styles.partialBannerLeft}>
             <MaterialIcons
               name="check-circle"
               size={14}
-              color={Colors.light.primary}
+              color={theme.primary}
             />
-            <ThemedText style={styles.partialBannerText}>
+            <ThemedText style={[styles.partialBannerText, { color: theme.textSecondary }]}>
               {isArabic ? 'المدفوع بالكاسة: ' : isFrench ? 'Payé à la caisse : ' : 'Paid at checkout: '}
               {formatCentimes(sale.amount_paid_centimes || 0, localeParam)}
             </ThemedText>
           </View>
-          <ThemedText style={styles.partialDueText}>
+          <ThemedText style={[styles.partialDueText, { color: theme.warning }]}>
             {isArabic ? 'المتبقي عند البيع: ' : isFrench ? 'Initial à la vente : ' : 'At-sale initial: '}
             {formatCentimes(sale.remaining_balance_centimes || 0, localeParam)}
           </ThemedText>
@@ -265,26 +268,26 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
       )}
 
       {isCancelled && sale.note && (
-        <View style={styles.noteBanner}>
+        <View style={[styles.noteBanner, { backgroundColor: theme.surfaceAlt }]}>
           <MaterialIcons
             name="info-outline"
             size={14}
-            color={Colors.light.error}
+            color={theme.error}
           />
-          <ThemedText style={styles.noteBannerText} numberOfLines={1}>
+          <ThemedText style={[styles.noteBannerText, { color: theme.textSecondary }]} numberOfLines={1}>
             {sale.note}
           </ThemedText>
         </View>
       )}
 
       {isReturned && sale.note && (
-        <View style={styles.noteBanner}>
+        <View style={[styles.noteBanner, { backgroundColor: theme.surfaceAlt }]}>
           <MaterialIcons
             name="info-outline"
             size={14}
-            color={Colors.light.textSecondary}
+            color={theme.textSecondary}
           />
-          <ThemedText style={styles.noteBannerText} numberOfLines={1}>
+          <ThemedText style={[styles.noteBannerText, { color: theme.textSecondary }]} numberOfLines={1}>
             {sale.note}
           </ThemedText>
         </View>
@@ -295,11 +298,9 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.light.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     marginBottom: Spacing.md,
     ...Shadows.sm,
     gap: Spacing.sm,
@@ -335,12 +336,10 @@ const styles = StyleSheet.create({
   customerName: {
     fontSize: 15,
     fontWeight: "600",
-    color: Colors.light.textPrimary,
     flexShrink: 1,
   },
   strikeText: {
     textDecorationLine: "line-through",
-    color: Colors.light.textMuted,
   },
   badge: {
     paddingHorizontal: 7,
@@ -357,11 +356,9 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   receiptCode: {
     fontWeight: "600",
-    color: Colors.light.textPrimary,
   },
   rightColumn: {
     flexDirection: "row",
@@ -374,12 +371,10 @@ const styles = StyleSheet.create({
   totalText: {
     fontSize: 16,
     fontWeight: "700",
-    color: Colors.light.textPrimary,
     letterSpacing: -0.2,
   },
   totalTextCancelled: {
     textDecorationLine: "line-through",
-    color: Colors.light.textMuted,
   },
   subStatusText: {
     fontSize: 11,
@@ -387,7 +382,6 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   itemsBanner: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -397,11 +391,9 @@ const styles = StyleSheet.create({
   },
   itemsBannerText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     flex: 1,
   },
   partialBanner: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -416,15 +408,12 @@ const styles = StyleSheet.create({
   },
   partialBannerText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
   },
   partialDueText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.light.error,
   },
   noteBanner: {
-    backgroundColor: Colors.light.surfaceAlt,
     borderRadius: BorderRadius.sm,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -434,7 +423,6 @@ const styles = StyleSheet.create({
   },
   noteBannerText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
     fontStyle: "italic",
     flex: 1,
   },

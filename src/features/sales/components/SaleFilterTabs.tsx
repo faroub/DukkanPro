@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/themed-text';
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export type SaleFilterKey =
   | 'all'
@@ -29,7 +30,8 @@ export function SaleFilterTabs({
   activeFilter,
   onSelectFilter,
 }: SaleFilterTabsProps) {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
+  const theme = useTheme();
   const lang = i18n.language || 'fr';
   const isArabic = lang.startsWith('ar');
   const isFrench = lang.startsWith('fr');
@@ -57,27 +59,27 @@ export function SaleFilterTabs({
     {
       key: 'paid',
       label: isArabic ? 'مدفوع' : isFrench ? 'Payé' : 'Paid',
-      dotColor: Colors.light.primary,
+      dotColor: theme.primary,
     },
     {
       key: 'partial',
       label: isArabic ? 'جزئي' : isFrench ? 'Partiel' : 'Partial',
-      dotColor: Colors.light.warning,
+      dotColor: theme.warning,
     },
     {
       key: 'credit',
       label: isArabic ? 'دين / آجل' : isFrench ? 'Crédit' : 'Credit',
-      dotColor: Colors.light.primaryDark,
+      dotColor: theme.primary,
     },
     {
       key: 'cancelled',
       label: isArabic ? 'ملغى' : isFrench ? 'Annulé' : 'Cancelled',
-      dotColor: Colors.light.error,
+      dotColor: theme.error,
     },
     {
       key: 'returned',
       label: isArabic ? 'مسترجع' : isFrench ? 'Retourné' : 'Returned',
-      dotColor: Colors.light.textMuted,
+      dotColor: theme.textMuted,
     },
   ];
 
@@ -95,7 +97,8 @@ export function SaleFilterTabs({
               key={tab.key}
               style={[
                 styles.chip,
-                isActive ? styles.chipActive : styles.chipInactive,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                isActive && { backgroundColor: theme.primary, borderColor: theme.primary },
               ]}
               onPress={() => onSelectFilter(tab.key)}
               activeOpacity={0.7}
@@ -106,7 +109,8 @@ export function SaleFilterTabs({
               <ThemedText
                 style={[
                   styles.chipText,
-                  isActive ? styles.chipTextActive : styles.chipTextInactive,
+                  { color: theme.textSecondary },
+                  isActive && { color: "#FFFFFF" },
                 ]}
               >
                 {tab.label}
@@ -116,7 +120,7 @@ export function SaleFilterTabs({
         })}
 
         {/* Vertical Divider */}
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
         {statusFilters.map((tab) => {
           const isActive = activeFilter === tab.key;
@@ -125,7 +129,8 @@ export function SaleFilterTabs({
               key={tab.key}
               style={[
                 styles.chip,
-                isActive ? styles.chipActive : styles.chipInactive,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                isActive && { backgroundColor: theme.primary, borderColor: theme.primary },
               ]}
               onPress={() => onSelectFilter(tab.key)}
               activeOpacity={0.7}
@@ -142,7 +147,8 @@ export function SaleFilterTabs({
               <ThemedText
                 style={[
                   styles.chipText,
-                  isActive ? styles.chipTextActive : styles.chipTextInactive,
+                  { color: theme.textSecondary },
+                  isActive && { color: "#FFFFFF" },
                 ]}
               >
                 {tab.label}
@@ -172,33 +178,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  chipInactive: {
-    backgroundColor: Colors.light.surface,
     borderWidth: 1,
-    borderColor: Colors.light.border,
     ...Shadows.sm,
-  },
-  chipActive: {
-    backgroundColor: Colors.light.primary,
-    borderWidth: 1,
-    borderColor: Colors.light.primary,
   },
   chipText: {
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.1,
   },
-  chipTextInactive: {
-    color: Colors.light.textSecondary,
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
-  },
   divider: {
     width: 1,
     height: 20,
-    backgroundColor: Colors.light.border,
     marginHorizontal: 4,
   },
   statusDot: {
