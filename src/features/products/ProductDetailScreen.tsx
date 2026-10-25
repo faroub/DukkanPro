@@ -57,9 +57,10 @@ export default function ProductDetailScreen({ productId: propProductId }: Produc
 
   useEffect(() => {
     let isMounted = true;
-    loadData().then(() => {
+    (async () => {
+      await loadData();
       if (!isMounted) return;
-    });
+    })();
     return () => {
       isMounted = false;
     };

@@ -90,9 +90,10 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
 
   useEffect(() => {
     let isMounted = true;
-    loadSaleData().then(() => {
+    (async () => {
+      await loadSaleData();
       if (!isMounted) return;
-    });
+    })();
     return () => {
       isMounted = false;
     };

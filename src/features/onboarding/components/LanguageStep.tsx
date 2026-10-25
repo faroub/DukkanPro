@@ -84,13 +84,7 @@ export function LanguageStep({
             Dukkan<ThemedText style={[styles.title, { color: theme.primary }]}>Pro</ThemedText>
           </ThemedText>
 
-          <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
-            {t("onboarding.welcome.subtitle", {
-              defaultValue: "Choose your primary operating language",
-            })}
-          </ThemedText>
-
-          {/* Quick Arabic Callout Pill */}
+          {/* Quick Callout Pill */}
           <View style={[styles.arabicPill, { backgroundColor: theme.surface, borderColor: theme.borderLight }]}>
             <Text style={[styles.arabicPillText, { color: theme.primary }]}>
               {t("onboarding.welcome.arabicPill", {
@@ -287,11 +281,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.heading1,
-    textAlign: "center",
-  },
-  subtitle: {
-    ...Typography.bodyLarge,
-    marginTop: 4,
     textAlign: "center",
   },
   arabicPill: {
