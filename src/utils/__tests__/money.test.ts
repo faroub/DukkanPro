@@ -8,7 +8,7 @@
  * both Western and Arabic-Indic digit formats.
  */
 
-import { formatCentimes, parseCentimes, format14000Centimes } from '../money';
+import { formatCentimes, parseCentimes, parseDzdToCentimes, format14000Centimes } from '../money';
 
 describe('formatCentimes', () => {
   it('should format 14000 centimes in French locale', () => {
@@ -141,6 +141,20 @@ describe('formatCentimes ↔ parseCentimes round-trip', () => {
     for (const locale of locales) {
       expect(parseCentimes(formatCentimes(amount, locale), locale)).toBe(amount);
     }
+  });
+});
+
+describe('parseDzdToCentimes', () => {
+  it('parses comma-decimal and dot-decimal inputs correctly to centimes', () => {
+    expect(parseDzdToCentimes('10,5')).toBe(1050);
+    expect(parseDzdToCentimes('10,50')).toBe(1050);
+    expect(parseDzdToCentimes('10.5')).toBe(1050);
+    expect(parseDzdToCentimes('10.50')).toBe(1050);
+    expect(parseDzdToCentimes('0,5')).toBe(50);
+    expect(parseDzdToCentimes('0.5')).toBe(50);
+    expect(parseDzdToCentimes('1,5')).toBe(150);
+    expect(parseDzdToCentimes('1500')).toBe(150000);
+    expect(parseDzdToCentimes('1..5')).toBe(150);
   });
 });
 

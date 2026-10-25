@@ -2,7 +2,8 @@ import React from "react";
 import { CustomerListScreen } from "@/features/customers/CustomerListScreen";
 import { CustomerFormScreen } from "@/features/customers/CustomerFormScreen";
 import { CustomerDetailScreen } from "@/features/customers/CustomerDetailScreen";
-import { RecordPaymentScreen, parseDzdToCentimes } from "@/features/customers/RecordPaymentScreen";
+import { RecordPaymentScreen } from "@/features/customers/RecordPaymentScreen";
+import { parseDzdToCentimes } from "@/utils/money";
 import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { fireEvent, waitFor } from "@testing-library/react-native";
 import {

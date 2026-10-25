@@ -18,41 +18,12 @@ import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { recordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { getById as getCustomerById } from "@/database/repositories/customerRepository";
-import { formatCentimes, getCurrencySymbol } from "@/utils/money";
+import { formatCentimes, formatCentimesToInputDzd, getCurrencySymbol, parseDzdToCentimes } from "@/utils/money";
 
 interface RecordPaymentScreenProps {
   customerId: number;
   customerName?: string;
   currentDebt?: number; // in centimes
-}
-
-/**
- * Parse a user-entered DZD amount string (e.g., "10.50", "10,5", "0.5") into integer centimes.
- * Handles both period '.' and comma ',' decimal separators cleanly.
- */
-export function parseDzdToCentimes(inputText: string): number {
-  if (!inputText) return 0;
-  // Replace comma with dot, remove any other invalid characters
-  const normalized = inputText.replace(",", ".").replace(/[^0-9.]/g, "");
-  const parts = normalized.split(".");
-  if (parts.length > 2) {
-    const valid = parts[0] + "." + parts.slice(1).join("");
-    const parsed = parseFloat(valid);
-    return isNaN(parsed) || parsed < 0 ? 0 : Math.round(parsed * 100);
-  }
-  const parsed = parseFloat(normalized);
-  return isNaN(parsed) || parsed < 0 ? 0 : Math.round(parsed * 100);
-}
-
-/**
- * Formats a centimes integer to DZD decimal text for input fields (e.g. 1050 -> "10.5").
- */
-export function formatCentimesToInputDzd(centimes: number): string {
-  if (!centimes || centimes <= 0) return "0";
-  const dinars = centimes / 100;
-  return Number.isInteger(dinars)
-    ? String(dinars)
-    : dinars.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
 export function RecordPaymentScreen({

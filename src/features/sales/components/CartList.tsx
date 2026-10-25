@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { formatCentimes } from "@/utils/money";
+import { formatCentimes, parseDzdToCentimes } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { CartItem } from "./CartItem";
 
@@ -59,8 +59,7 @@ export function CartList({
   );
 
   const handleApplyDiscount = () => {
-    const parsedDinars = parseFloat(discountInputText.replace(/[^0-9.]/g, "")) || 0;
-    const discountCentimes = Math.round(parsedDinars * 100);
+    const discountCentimes = parseDzdToCentimes(discountInputText);
     setDiscount(discountCentimes);
     setShowDiscountInput(false);
   };

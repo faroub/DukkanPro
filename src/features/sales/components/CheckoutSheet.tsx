@@ -34,7 +34,7 @@ import {
   Typography,
 } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { formatCentimes, getCurrencySymbol } from "@/utils/money";
+import { formatCentimes, getCurrencySymbol, parseDzdToCentimes } from "@/utils/money";
 import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
 import { getById as getProductById } from "@/database/repositories/productRepository";
 import { useTranslation } from "react-i18next";
@@ -568,8 +568,7 @@ export function CheckoutSheet({
                       style={[styles.cashTextInput, { color: theme.textPrimary }]}
                       value={(amountReceived / 100).toString()}
                       onChangeText={(val) => {
-                        const num = parseFloat(val.replace(/[^0-9.]/g, "")) || 0;
-                        setAmountReceived(Math.round(num * 100));
+                        setAmountReceived(parseDzdToCentimes(val));
                       }}
                       keyboardType="decimal-pad"
                     />
@@ -648,9 +647,7 @@ export function CheckoutSheet({
                       style={[styles.cashTextInput, { color: theme.textPrimary }]}
                       value={(partialAmount / 100).toString()}
                       onChangeText={(val) => {
-                        const num =
-                          parseFloat(val.replace(/[^0-9.]/g, "")) || 0;
-                        setPartialAmount(Math.round(num * 100));
+                        setPartialAmount(parseDzdToCentimes(val));
                       }}
                       keyboardType="decimal-pad"
                     />
