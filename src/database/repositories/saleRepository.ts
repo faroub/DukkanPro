@@ -27,6 +27,8 @@ export type SaleFilters = {
   startDate?: string;
   endDate?: string;
   search?: string;
+  limit?: number;
+  offset?: number;
 };
 
 /**
@@ -103,6 +105,15 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
   }
 
   sql += ` ORDER BY s.sold_at DESC`;
+
+  if (filters.limit !== undefined && filters.limit > 0) {
+    sql += ` LIMIT ?`;
+    params.push(filters.limit);
+    if (filters.offset !== undefined && filters.offset >= 0) {
+      sql += ` OFFSET ?`;
+      params.push(filters.offset);
+    }
+  }
 
   const saleRows: any[] = await executeAll(sql, params);
 

@@ -424,6 +424,33 @@ describe("saleRepository", () => {
     });
   });
 
+  describe("getAll() pagination", () => {
+    it("paginates sales via limit and offset filters", async () => {
+      // Create 5 sales
+      for (let i = 1; i <= 5; i++) {
+        await create({
+          customerId: 1,
+          paymentMethod: "cash",
+          note: `Sale ${i}`,
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 5000 }],
+        });
+      }
+
+      // Fetch page 1 (limit 2, offset 0)
+      const page1 = await getAll({ limit: 2, offset: 0 });
+      expect(page1.length).toBe(2);
+
+      // Fetch page 2 (limit 2, offset 2)
+      const page2 = await getAll({ limit: 2, offset: 2 });
+      expect(page2.length).toBe(2);
+
+      // Verify page 1 and page 2 have no overlapping sale IDs
+      const page1Ids = page1.map((s) => s.id);
+      const page2Ids = page2.map((s) => s.id);
+      expect(page1Ids.some((id) => page2Ids.includes(id))).toBe(false);
+    });
+  });
+
   describe("queries", () => {
     it("getByCustomerId returns sales for a specific customer", async () => {
       // Create two sales for customer 1
