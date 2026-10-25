@@ -22,6 +22,7 @@ export interface SaleCardData {
   amount_paid_centimes?: number;
   remaining_balance_centimes?: number;
   payment_method?: string;
+  currency?: string;
   note?: string | null;
   sold_at: string;
   receipt_no?: string;
@@ -98,7 +99,11 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
     badgeBg = Colors.light.warningLight;
     badgeColor = Colors.light.secondary;
     badgeText = isArabic ? 'جزئي' : isFrench ? 'Partiel' : 'Partial';
-    const dueAmount = formatCentimes(sale.remaining_balance_centimes || 0, localeParam);
+    const dueAmount = formatCentimes(
+      sale.remaining_balance_centimes || 0,
+      localeParam,
+      sale.currency || "DZD",
+    );
     subStatusText = isArabic ? `المتبقي عند البيع: ${dueAmount}` : isFrench ? `Initial à la vente: ${dueAmount}` : `At-sale initial: ${dueAmount}`;
     subStatusColor = Colors.light.secondary;
   } else if (isCredit) {
@@ -135,7 +140,11 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
   const dateDisplay = `${relativeDateStr}, ${timeStr}`;
 
   // Amount formatted
-  const formattedTotal = formatCentimes(sale.total_centimes, localeParam);
+  const formattedTotal = formatCentimes(
+    sale.total_centimes,
+    localeParam,
+    sale.currency || "DZD",
+  );
 
   // Items summary snippet
   const itemsList = sale.saleItems || [];

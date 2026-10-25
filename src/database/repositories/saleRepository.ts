@@ -11,6 +11,7 @@
  */
 
 import { Sale } from "../../types/entities";
+import { get as getBusinessProfile } from "./businessProfileRepository";
 import {
   executeAll,
   executeRead,
@@ -63,7 +64,7 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
   let sql = `
     SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
             s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-            s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
+            s.payment_method, s.currency, s.note, s.sold_at, s.created_at, s.updated_at,
             c.name as customer_name
        FROM sales s
        LEFT JOIN customers c ON c.id = s.customer_id
@@ -174,6 +175,7 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
       | "mixed"
       | "partial"
       | "credit",
+    currency: r.currency || "DZD",
     note: r.note,
     sold_at: r.sold_at,
     created_at: r.created_at,
@@ -219,7 +221,7 @@ export async function getById(id: number): Promise<Sale | null> {
     // language=SQLite
     `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
             s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-            s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at,
+            s.payment_method, s.currency, s.note, s.sold_at, s.created_at, s.updated_at,
             c.name as customer_name
        FROM sales s
        LEFT JOIN customers c ON c.id = s.customer_id
@@ -260,6 +262,7 @@ export async function getById(id: number): Promise<Sale | null> {
       | "mixed"
       | "partial"
       | "credit",
+    currency: r.currency || "DZD",
     note: r.note,
     sold_at: r.sold_at,
     created_at: r.created_at,
@@ -319,6 +322,9 @@ export async function create(saleInput: {
     }
   }
 
+  const profile = await getBusinessProfile();
+  const activeCurrency = profile?.currency || "DZD";
+
   const db = await getDatabase();
   return await transaction(db, async (tx: any) => {
     // 1. Insert initial sale header placeholder
@@ -326,8 +332,8 @@ export async function create(saleInput: {
       tx,
       `INSERT INTO sales
        (customer_id, status, subtotal_centimes, discount_centimes, total_centimes,
-        amount_paid_centimes, remaining_balance_centimes, payment_method, note, sold_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
+        amount_paid_centimes, remaining_balance_centimes, payment_method, currency, note, sold_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))`,
       [
         saleInput.customerId,
         "completed",
@@ -337,6 +343,7 @@ export async function create(saleInput: {
         0,
         0,
         saleInput.paymentMethod,
+        activeCurrency,
         saleInput.note,
       ],
     );
@@ -458,7 +465,7 @@ export async function create(saleInput: {
       tx,
       `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
               s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-              s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
+              s.payment_method, s.currency, s.note, s.sold_at, s.created_at, s.updated_at
          FROM sales s
         WHERE s.id = ?`,
       [saleId],
@@ -484,6 +491,7 @@ export async function create(saleInput: {
       amount_paid_centimes: saleRows[0].amount_paid_centimes as number,
       remaining_balance_centimes: saleRows[0].remaining_balance_centimes as number,
       payment_method: saleRows[0].payment_method as any,
+      currency: saleRows[0].currency || "DZD",
       note: saleRows[0].note,
       sold_at: saleRows[0].sold_at,
       created_at: saleRows[0].created_at,

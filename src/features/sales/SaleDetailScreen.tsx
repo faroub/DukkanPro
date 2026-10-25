@@ -214,16 +214,17 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
   }
 
   const receiptNo = `#REC-${sale.id}`;
-  const totalStr = formatCentimes(sale.total_centimes, localeParam);
-  const subtotalStr = formatCentimes(sale.subtotal_centimes, localeParam);
+  const saleCurrency = sale.currency || "DZD";
+  const totalStr = formatCentimes(sale.total_centimes, localeParam, saleCurrency);
+  const subtotalStr = formatCentimes(sale.subtotal_centimes, localeParam, saleCurrency);
   const discountStr =
     sale.discount_centimes > 0
-      ? formatCentimes(sale.discount_centimes, localeParam)
+      ? formatCentimes(sale.discount_centimes, localeParam, saleCurrency)
       : null;
-  const amountPaidStr = formatCentimes(sale.amount_paid_centimes, localeParam);
+  const amountPaidStr = formatCentimes(sale.amount_paid_centimes, localeParam, saleCurrency);
   const remainingDueStr =
     sale.remaining_balance_centimes > 0
-      ? formatCentimes(sale.remaining_balance_centimes, localeParam)
+      ? formatCentimes(sale.remaining_balance_centimes, localeParam, saleCurrency)
       : null;
 
   const items = sale.saleItems || [];

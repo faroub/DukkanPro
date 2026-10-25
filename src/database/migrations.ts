@@ -60,6 +60,10 @@ const ALL_MIGRATIONS: Migration[] = [
     version: 11,
     sql: schema.indexes,
   },
+  {
+    version: 12,
+    sql: schema.salesCurrency,
+  },
 ];
 
 /**

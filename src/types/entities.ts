@@ -73,6 +73,7 @@ export interface Sale extends Entity {
   amount_paid_centimes: number; // integer centimes
   remaining_balance_centimes: number; // integer centimes >= 0
   payment_method: "cash" | "electronic" | "mixed" | "partial" | "credit";
+  currency?: string; // ISO 4217 currency code write-once at sale creation (e.g. "DZD", "EUR")
   note: string | null; // nullable
   sold_at: string; // ISO datetime
   created_at: string;

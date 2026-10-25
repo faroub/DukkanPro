@@ -8,6 +8,7 @@
  */
 
 import { getDatabase } from "../../database";
+import { formatCentimes } from "@/utils/money";
 import { getTodayRevenue } from "../dashboardRepository";
 import { getCustomerDebt } from "@/services/customers/customerBalanceService";
 import {
@@ -513,6 +514,35 @@ describe("saleRepository", () => {
 
       expect(filteredSales.length).toBeGreaterThan(0);
       expect(filteredSales.some((s) => s.note === "Midday Sale Test")).toBe(true);
+    });
+  });
+
+  describe("historical write-once currency", () => {
+    it("persists sale currency at creation and retains DZD labeling even if store currency switches to EUR", async () => {
+      // 1. Create store profile in DZD
+      await db.runAsync(
+        `INSERT INTO business_profiles (business_name, owner_name, currency, selected_locale)
+         VALUES ('Store DZD', 'Owner', 'DZD', 'fr')`
+      );
+
+      // 2. Create sale under DZD
+      const dzdSale = await create({
+        customerId: 1,
+        paymentMethod: "cash",
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 5000 }],
+      });
+
+      expect(dzdSale.currency).toBe("DZD");
+
+      // 3. Switch store currency to EUR
+      await db.runAsync(
+        `UPDATE business_profiles SET currency = 'EUR'`
+      );
+
+      // 4. Retrieve historical sale and verify currency remains DZD
+      const fetchedSale = await getById(dzdSale.id);
+      expect(fetchedSale?.currency).toBe("DZD");
+      expect(formatCentimes(fetchedSale!.total_centimes, "fr", fetchedSale!.currency)).toContain("DZD");
     });
   });
 });

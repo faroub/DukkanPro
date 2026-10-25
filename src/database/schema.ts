@@ -95,11 +95,19 @@ export const schema = {
       amount_paid_centimes INTEGER NOT NULL DEFAULT 0,
       remaining_balance_centimes INTEGER NOT NULL DEFAULT 0,
       payment_method TEXT NOT NULL DEFAULT 'cash',
+      currency TEXT NOT NULL DEFAULT 'DZD',
       note TEXT,
       sold_at TEXT NOT NULL DEFAULT (datetime('now')),
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
+  `,
+
+  // ============================================================
+  // sales v2 — adds write-once currency column (migration 12)
+  // ============================================================
+  salesCurrency: `
+    ALTER TABLE sales ADD COLUMN currency TEXT NOT NULL DEFAULT 'DZD';
   `,
 
   // ============================================================
