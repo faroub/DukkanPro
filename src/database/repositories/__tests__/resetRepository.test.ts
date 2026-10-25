@@ -75,4 +75,14 @@ describe("resetRepository", () => {
     await expect(clearBusinessData()).resolves.not.toThrow();
     await expect(resetDatabase()).resolves.not.toThrow();
   });
+
+  it("clears sqlite_sequence entries so autoincrement IDs restart from 1 on hard reset", async () => {
+    await seedRows();
+    await resetDatabase();
+
+    const seqRows = await db.getAllAsync(
+      `SELECT name FROM sqlite_sequence WHERE name IN ('business_profiles', 'app_settings')`
+    );
+    expect(seqRows).toEqual([]);
+  });
 });

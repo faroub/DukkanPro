@@ -23,6 +23,12 @@ const TRANSACTION_TABLES = [
   "customers",
 ] as const;
 
+const ALL_TABLES = [
+  ...TRANSACTION_TABLES,
+  "business_profiles",
+  "app_settings",
+] as const;
+
 /**
  * Remove all catalogue and transaction data, keeping the business profile and
  * app settings (locale, onboarding flag) intact.
@@ -49,14 +55,14 @@ export async function clearBusinessData(): Promise<void> {
 export async function resetDatabase(): Promise<void> {
   const db = await getDatabase();
   await transaction(db, async (tx) => {
-    for (const table of [...TRANSACTION_TABLES, "business_profiles", "app_settings"]) {
+    for (const table of ALL_TABLES) {
       await tx.runAsync(`DELETE FROM ${table}`);
     }
     await tx.runAsync(
-      `DELETE FROM sqlite_sequence WHERE name IN (${TRANSACTION_TABLES.map(
+      `DELETE FROM sqlite_sequence WHERE name IN (${ALL_TABLES.map(
         () => "?",
       ).join(", ")})`,
-      ...TRANSACTION_TABLES,
+      ...ALL_TABLES,
     );
   });
 }
