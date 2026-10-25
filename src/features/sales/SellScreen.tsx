@@ -158,12 +158,15 @@ export default function SellScreen() {
       setErrorState(null);
 
       try {
-        const saleItemsInput = details.validatedItems || items.map((item: any) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-          unitSalePriceCentimes: item.product.sale_price_centimes,
-          note: details.note,
-        }));
+        const saleItemsInput =
+          details.validatedItems && details.validatedItems.length > 0
+            ? details.validatedItems
+            : items.map((item: any) => ({
+                productId: item.product.id,
+                quantity: item.quantity,
+                unitSalePriceCentimes: item.product.sale_price_centimes,
+                note: details.note,
+              }));
 
         const saleInput = {
           customerId: details.customerId,

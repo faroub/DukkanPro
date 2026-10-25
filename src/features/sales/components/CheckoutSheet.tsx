@@ -3,13 +3,14 @@
  *
  * Contract:
  * - Live product prices and stock levels are re-validated against SQLite when the sheet opens
- *   and prior to checkout confirmation.
+ *   and synchronously on-demand during checkout confirmation.
  * - Checkout calculations (subtotal, total, change due, underpayment debt) use live prices
  *   to ensure exact financial match between tender, total, and recorded sales.
+ * - Prevents rapid double-tap duplicate sales via synchronous ref guards and blocks zero-item checkout creation.
  */
 
 import { SymbolView } from "expo-symbols";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import {
   Alert,
   FlatList,
@@ -83,6 +84,8 @@ export function CheckoutSheet({
   const [note, setNote] = useState<string>("");
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const isConfirmingRef = useRef(false);
 
   // Live re-computed subtotal and validated items from SQLite
   const [liveSubtotal, setLiveSubtotal] = useState<number>(cartTotal);
@@ -91,7 +94,12 @@ export function CheckoutSheet({
   >([]);
 
   useEffect(() => {
-    if (!visible || items.length === 0) return;
+    if (!visible) {
+      isConfirmingRef.current = false;
+      setIsConfirming(false);
+      return;
+    }
+    if (items.length === 0) return;
 
     let isMounted = true;
     (async () => {
@@ -121,6 +129,7 @@ export function CheckoutSheet({
   }, [visible, items]);
 
   const displayTotal = Math.max(0, liveSubtotal - (discount || 0));
+  const isValidating = visible && items.length > 0 && validatedItems.length !== items.length;
 
   const [amountReceived, setAmountReceived] = useState<number>(displayTotal);
   const [partialAmount, setPartialAmount] = useState<number>(
@@ -158,64 +167,113 @@ export function CheckoutSheet({
   };
 
   const handleConfirm = useCallback(async () => {
-    // Re-validate live stock for all items in cart before checkout
-    for (const item of items) {
-      const liveProduct = await getProductById(item.product.id);
-      if (!liveProduct || !liveProduct.is_active) {
+    // Synchronously check ref to block rapid double-taps before React's re-render
+    if (isSaving || isConfirmingRef.current || items.length === 0) return;
+
+    isConfirmingRef.current = true;
+    setIsConfirming(true);
+
+    try {
+      // Re-validate live stock and price for all items in cart synchronously on demand
+      const checkoutItems: Array<{
+        productId: number;
+        quantity: number;
+        unitSalePriceCentimes: number;
+      }> = [];
+
+      let currentLiveSubtotal = 0;
+
+      for (const item of items) {
+        const liveProduct = await getProductById(item.product.id);
+        if (!liveProduct || !liveProduct.is_active) {
+          Alert.alert(
+            t("common:error", { defaultValue: "Error" }),
+            t("products:productNotAvailable", {
+              name: item.product.name,
+              defaultValue: `'${item.product.name}' is no longer available in the catalogue.`,
+            }),
+          );
+          isConfirmingRef.current = false;
+          setIsConfirming(false);
+          return;
+        }
+
+        if ((liveProduct.stock_quantity || 0) < item.quantity) {
+          Alert.alert(
+            t("common:confirmTitle", { defaultValue: "Insufficient Stock" }),
+            t("products:insufficientStockMessage", {
+              name: liveProduct.name,
+              available: liveProduct.stock_quantity,
+              requested: item.quantity,
+              defaultValue: `Insufficient stock for '${liveProduct.name}'. Available: ${liveProduct.stock_quantity}, requested: ${item.quantity}`,
+            }),
+          );
+          isConfirmingRef.current = false;
+          setIsConfirming(false);
+          return;
+        }
+
+        const unitPrice = liveProduct.sale_price_centimes;
+        currentLiveSubtotal += unitPrice * item.quantity;
+
+        checkoutItems.push({
+          productId: liveProduct.id,
+          quantity: item.quantity,
+          unitSalePriceCentimes: unitPrice,
+        });
+      }
+
+      if (checkoutItems.length === 0) {
         Alert.alert(
           t("common:error", { defaultValue: "Error" }),
-          t("products:productNotAvailable", {
-            name: item.product.name,
-            defaultValue: `'${item.product.name}' is no longer available in the catalogue.`,
+          t("sales:emptyCartError", {
+            defaultValue: "Cannot process checkout for an empty cart.",
           }),
         );
+        isConfirmingRef.current = false;
+        setIsConfirming(false);
         return;
       }
 
-      if ((liveProduct.stock_quantity || 0) < item.quantity) {
+      const liveTotal = Math.max(0, currentLiveSubtotal - (discount || 0));
+
+      const effectiveAmountPaid =
+        paymentMethod === "cash"
+          ? amountReceived
+          : paymentMethod === "partial"
+            ? partialAmount
+            : paymentMethod === "credit"
+              ? 0
+              : liveTotal;
+
+      const remaining = Math.max(0, liveTotal - effectiveAmountPaid);
+
+      if ((paymentMethod === "credit" || paymentMethod === "partial" || remaining > 0) && !customerId) {
         Alert.alert(
-          t("common:confirmTitle", { defaultValue: "Insufficient Stock" }),
-          t("products:insufficientStockMessage", {
-            name: liveProduct.name,
-            available: liveProduct.stock_quantity,
-            requested: item.quantity,
-            defaultValue: `Insufficient stock for '${liveProduct.name}'. Available: ${liveProduct.stock_quantity}, requested: ${item.quantity}`,
+          t("common:confirmTitle", { defaultValue: "Customer Required" }),
+          t("sales:customerRequiredForDebt", {
+            defaultValue: "Please select a customer to record partial payment or debt.",
           }),
         );
+        setShowCustomerPicker(true);
+        isConfirmingRef.current = false;
+        setIsConfirming(false);
         return;
       }
+
+      onCheckout({
+        method: paymentMethod,
+        amountPaid: effectiveAmountPaid,
+        note,
+        customerId: customerId || undefined,
+        validatedItems: checkoutItems,
+      });
+    } catch (err) {
+      console.error("Confirm checkout error:", err);
+      isConfirmingRef.current = false;
+      setIsConfirming(false);
     }
-
-    const effectiveAmountPaid =
-      paymentMethod === "cash"
-        ? amountReceived
-        : paymentMethod === "partial"
-          ? partialAmount
-          : paymentMethod === "credit"
-            ? 0
-            : displayTotal;
-
-    const remaining = Math.max(0, displayTotal - effectiveAmountPaid);
-
-    if ((paymentMethod === "credit" || paymentMethod === "partial" || remaining > 0) && !customerId) {
-      Alert.alert(
-        t("common:confirmTitle", { defaultValue: "Customer Required" }),
-        t("sales:customerRequiredForDebt", {
-          defaultValue: "Please select a customer to record partial payment or debt.",
-        })
-      );
-      setShowCustomerPicker(true);
-      return;
-    }
-
-    onCheckout({
-      method: paymentMethod,
-      amountPaid: effectiveAmountPaid,
-      note,
-      customerId: customerId || undefined,
-      validatedItems,
-    });
-  }, [items, validatedItems, paymentMethod, amountReceived, partialAmount, note, customerId, displayTotal, onCheckout, t]);
+  }, [items, isSaving, paymentMethod, amountReceived, partialAmount, discount, note, customerId, onCheckout, t]);
 
   return (
     <Modal
@@ -626,9 +684,13 @@ export function CheckoutSheet({
             {/* Confirm CTA */}
             <View style={styles.ctaWrapper}>
               <PrimaryButton
-                title={isSaving ? t("common:loading", { defaultValue: "Enregistrement..." }) : t("sales:confirmSale", { defaultValue: "Valider la vente" })}
+                title={
+                  isSaving || isConfirming
+                    ? t("common:loading", { defaultValue: "Enregistrement..." })
+                    : t("sales:confirmSale", { defaultValue: "Valider la vente" })
+                }
                 onPress={handleConfirm}
-                disabled={isSaving}
+                disabled={isSaving || isConfirming || isValidating || items.length === 0}
               />
             </View>
           </ScrollView>
