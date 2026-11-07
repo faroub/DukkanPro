@@ -21,7 +21,7 @@ import {
   getCustomerCredit,
 } from "@/services/customers/customerBalanceService";
 import { getById as getCustomerById } from "@/database/repositories/customerRepository";
-import { formatCentimes, getActiveStoreCurrency, getCurrencySymbol, parseCentimes } from "@/utils/money";
+import { formatCentimes, getActiveStoreCurrency, getCurrencySymbol, parseDzdToCentimes } from "@/utils/money";
 
 interface RecordRefundScreenProps {
   customerId: number;
@@ -63,8 +63,8 @@ export function RecordRefundScreen({
 
   /**
    * Format an exact centime amount as a decimal string suitable for the amount
-   * input, using the locale-appropriate decimal separator (parseCentimes expects
-   * "," for fr/ar and "." for en). Preserves centimes exactly: 1050 → "10,50".
+   * input, using the locale-appropriate decimal separator (parseDzdToCentimes
+   * accepts both "," and "."). Preserves centimes exactly: 1050 → "10,50".
    */
   function formatDinarsForInput(centimes: number): string {
     const separator = i18n.language.startsWith("en") ? "." : ",";
@@ -75,10 +75,10 @@ export function RecordRefundScreen({
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Parse the input in EXACT centimes (locale-aware: "10,50" / "10.50" → 1050).
+  // Parse the input in EXACT centimes with the strict parser ("10,50" / "10.50" → 1050).
   const parsedCentimes = useMemo(
-    () => parseCentimes(amountInput, i18n.language),
-    [amountInput, i18n.language]
+    () => parseDzdToCentimes(amountInput),
+    [amountInput]
   );
 
   const isExceedingCredit = parsedCentimes > currentCredit;

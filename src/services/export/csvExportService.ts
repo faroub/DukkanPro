@@ -2,21 +2,19 @@
  * csvExportService — CSV export functionality for DukkanPro.
  *
  * - All CSV headers are translated using the selected i18n locale.
- * - Money values are stored and exported as integer centimes.
+ * - Money is stored as integer centimes and exported as decimal main
+ *   units via formatCentimesToInputDzd; amount headers are labeled with
+ *   the active store currency (e.g. "Amount (DZD)").
  * - No cost prices, profit margins, or internal stock quantities in
  *   customer-facing exports.
- * - Formula injection characters (=, +, -, @, \t, \r) are neutralized.
+ * - Formula injection characters (=, +, -, @, \t, \r) are neutralized on
+ *   text fields only, so numeric values such as a quantity of -3 export
+ *   unchanged.
  * - Uses expo-file-system for writing and expo-sharing for sharing.
  */
 
 import { useTranslation } from "react-i18next";
-
-/**
- * Convert a number to integer centimes string (no decimals).
- */
-function formatCentimes(value: number): string {
-  return Math.round(value).toString();
-}
+import { formatCentimesToInputDzd, getActiveStoreCurrency } from "@/utils/money";
 
 /**
  * Build a CSV row from an array of string values.
@@ -40,12 +38,13 @@ function csvSafe(value: string): string {
  * Generate CSV for products.
  */
 export function exportProducts(products: any[], t: ReturnType<typeof useTranslation>["t"]): string {
+  const currency = getActiveStoreCurrency();
   const header = [
     t("products.id"),
     t("products.name"),
     t("products.sku"),
     t("products.category"),
-    t("products.salePrice"),
+    `${t("products.salePrice")} (${currency})`,
     t("products.unit"),
   ];
 
@@ -53,11 +52,11 @@ export function exportProducts(products: any[], t: ReturnType<typeof useTranslat
 
   for (const product of products) {
     const row = [
-      csvSafe(product.id.toString()),
+      product.id.toString(),
       csvSafe(product.name || ""),
       csvSafe(product.sku || ""),
       csvSafe(product.category || ""),
-      csvSafe(formatCentimes(product.sale_price_centimes)),
+      formatCentimesToInputDzd(product.sale_price_centimes),
       csvSafe(product.unit || ""),
     ];
     rows.push(buildCsvRow(row));
@@ -80,7 +79,7 @@ export function exportCustomers(customers: any[], t: ReturnType<typeof useTransl
 
   for (const customer of customers) {
     const row = [
-      csvSafe(customer.id.toString()),
+      customer.id.toString(),
       csvSafe(customer.name || ""),
       csvSafe(customer.phone || ""),
     ];
@@ -94,13 +93,15 @@ export function exportCustomers(customers: any[], t: ReturnType<typeof useTransl
  * Generate CSV for sales.
  */
 export function exportSales(sales: any[], t: ReturnType<typeof useTranslation>["t"]): string {
+  const currency = getActiveStoreCurrency();
   const header = [
     t("sales.sale_id"),
     t("sales.date"),
     t("sales.customer"),
     t("sales.payment_method"),
-    t("sales.subtotal"),
-    t("sales.total"),
+    `${t("sales.subtotal")} (${currency})`,
+    `${t("sales.total")} (${currency})`,
+    t("sales.currency"),
     t("sales.status"),
   ];
 
@@ -109,12 +110,13 @@ export function exportSales(sales: any[], t: ReturnType<typeof useTranslation>["
   for (const sale of sales) {
     const customerName = sale.customer_id ? `Customer ${sale.customer_id}` : t("sales.unknown_client");
     const row = [
-      csvSafe(sale.id.toString()),
-      csvSafe(sale.sold_at ? sale.sold_at.split("T")[0] : t("common:unknown")),
+      sale.id.toString(),
+      sale.sold_at ? sale.sold_at.slice(0, 10) : t("common:unknown"),
       csvSafe(customerName),
       csvSafe(t(`payment_method.${sale.payment_method}` || sale.payment_method)),
-      csvSafe(formatCentimes(sale.subtotal_centimes)),
-      csvSafe(formatCentimes(sale.total_centimes)),
+      formatCentimesToInputDzd(sale.subtotal_centimes),
+      formatCentimesToInputDzd(sale.total_centimes),
+      sale.currency || "DZD",
       csvSafe(t(`status.${sale.status}` || sale.status)),
     ];
     rows.push(buildCsvRow(row));
@@ -127,23 +129,24 @@ export function exportSales(sales: any[], t: ReturnType<typeof useTranslation>["
  * Generate CSV for sale items.
  */
 export function exportSaleItems(saleItems: any[], t: ReturnType<typeof useTranslation>["t"]): string {
+  const currency = getActiveStoreCurrency();
   const header = [
     t("saleItems.id"),
     t("saleItems.productName"),
     t("saleItems.quantity"),
-    t("saleItems.unitPrice"),
-    t("saleItems.lineTotal"),
+    `${t("saleItems.unitPrice")} (${currency})`,
+    `${t("saleItems.lineTotal")} (${currency})`,
   ];
 
   const rows: string[] = [buildCsvRow(header)];
 
   for (const item of saleItems) {
     const row = [
-      csvSafe(item.id.toString()),
+      item.id.toString(),
       csvSafe(item.product_name_snapshot || t("common:unknown")),
-      csvSafe(item.quantity.toString()),
-      csvSafe(formatCentimes(item.unit_sale_price_centimes)),
-      csvSafe(formatCentimes(item.line_total_centimes)),
+      item.quantity.toString(),
+      formatCentimesToInputDzd(item.unit_sale_price_centimes),
+      formatCentimesToInputDzd(item.line_total_centimes),
     ];
     rows.push(buildCsvRow(row));
   }
@@ -155,9 +158,11 @@ export function exportSaleItems(saleItems: any[], t: ReturnType<typeof useTransl
  * Generate CSV for customer payments.
  */
 export function exportPayments(payments: any[], t: ReturnType<typeof useTranslation>["t"]): string {
+  const currency = getActiveStoreCurrency();
   const header = [
     t("payments.id"),
-    t("payments.amount"),
+    `${t("payments.amount")} (${currency})`,
+    t("payments.currency"),
     t("payments.payment_method"),
     t("payments.date"),
   ];
@@ -166,10 +171,11 @@ export function exportPayments(payments: any[], t: ReturnType<typeof useTranslat
 
   for (const payment of payments) {
     const row = [
-      csvSafe(payment.id.toString()),
-      csvSafe(formatCentimes(payment.amount_centimes)),
+      payment.id.toString(),
+      formatCentimesToInputDzd(payment.amount_centimes),
+      payment.currency || "DZD",
       csvSafe(t(`payment_method.${payment.payment_method}` || payment.payment_method)),
-      csvSafe(payment.paid_at ? payment.paid_at.split("T")[0] : t("common:unknown")),
+      payment.paid_at ? payment.paid_at.slice(0, 10) : t("common:unknown"),
     ];
     rows.push(buildCsvRow(row));
   }
@@ -195,12 +201,12 @@ export function exportInventoryMovements(movements: any[], t: ReturnType<typeof 
   for (const movement of movements) {
     const productRef = movement.product_id ? `Product ${movement.product_id}` : t("common:unknown");
     const row = [
-      csvSafe(movement.id.toString()),
+      movement.id.toString(),
       csvSafe(productRef),
       csvSafe(t(`movementType.${movement.movement_type}` || movement.movement_type)),
-      csvSafe(movement.quantity_change.toString()),
+      movement.quantity_change.toString(),
       csvSafe(movement.note || ""),
-      csvSafe(movement.created_at ? movement.created_at.split("T")[0] : t("common:unknown")),
+      movement.created_at ? movement.created_at.slice(0, 10) : t("common:unknown"),
     ];
     rows.push(buildCsvRow(row));
   }

@@ -21,6 +21,7 @@ interface CartState {
   setPreserveCart: (value: boolean) => void;
   setDiscount: (value: number) => void;
   addItemWithProduct: (product: Product, quantity: number) => void;
+  refreshItemProducts: (products: Product[]) => void;
 
   // Getters
   subtotal: () => number;
@@ -63,6 +64,17 @@ export const useCartStore = create<CartState>()(
             };
           }
         });
+      },
+
+      // Replaces each cart item's product snapshot with the given fresh record
+      // (used after a catalogue change, e.g. a price detected as stale at checkout)
+      refreshItemProducts: (products: Product[]) => {
+        set((state) => ({
+          items: state.items.map((item) => {
+            const fresh = products.find((p) => p.id === item.product.id);
+            return fresh ? { ...item, product: fresh } : item;
+          }),
+        }));
       },
 
       removeItem: (productId: number) => {
@@ -172,6 +184,7 @@ export function useCartStoreHook() {
     clearCart: store.clearCart,
     preserveCart: store.preserveCart,
     setPreserveCart: store.setPreserveCart,
+    refreshItemProducts: store.refreshItemProducts,
     discount: store.discountAmount(),
     setDiscount: store.setDiscount,
     subtotal: store.subtotal(),

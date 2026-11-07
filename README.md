@@ -25,7 +25,9 @@ All business data (products, sales, customers, debt ledgers) is stored locally i
 - **Database:** `expo-sqlite` (SQLite singleton with WAL mode and foreign key constraints)
 - **State Management:** Zustand (`cartStore` for POS cart) + React Context (`LocaleProvider`, `AppThemeProvider`)
 - **Localization:** `i18next` + `react-i18next` + `expo-localization`
-- **Testing:** Jest + `jest-expo` + React Native Testing Library (`@testing-library/react-native`)
+- **Testing:** Jest + `jest-expo` + React Native Testing Library (`@testing-library/react-native`, devDependency)
+
+> **Note on web-only dependencies:** `recharts` and `html5-qrcode` are imported only from `*.web.tsx` modules (`SalesChartView.web`, `BarcodeScannerModal.web`) and are excluded from native bundles by Metro's platform resolution. They stay in `dependencies` (not `devDependencies`) because the web target needs them at bundle time — including in production web exports that may run with `npm ci --omit=dev`.
 
 ---
 

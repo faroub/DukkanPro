@@ -139,7 +139,7 @@ rm -rf $ANDROID_HOME/.android/debug.keystore
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `APP_URL` | From `app.json` extra | Custom API URL for the app |
+| `APP_URL` | unset (no default) | Router origin for web/dev servers; must be set explicitly, never baked in |
 | `EXPO_PUBLIC_` | N/A | Prefix for public environment variables |
 | `NODE_ENV` | `development` | Affects build behavior |
 | `CHOKIDAR_USEPOLLING` | `true` | Required for Docker file watching |

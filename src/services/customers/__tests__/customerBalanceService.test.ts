@@ -23,12 +23,12 @@ async function resetAll() {
   );
 }
 
-async function makeProduct(sku: string) {
+async function makeProduct(sku: string, price = 10000) {
   return createProduct({
     name: `Item ${sku}`,
     sku,
-    sale_price_centimes: 10000,
-    cost_price_centimes: 5000,
+    sale_price_centimes: price,
+    cost_price_centimes: Math.round(price / 2),
     stock_quantity: 1000,
     minimum_stock_quantity: 0,
     unit: "pcs",
@@ -63,7 +63,7 @@ describe("customerBalanceService", () => {
 
   describe("getCustomerDebt", () => {
     it("should calculate debt from completed sales balance minus payments", async () => {
-      const product = await makeProduct("BS1");
+      const product = await makeProduct("BS1", 28000);
       const customer = await makeCustomer();
       // Completed credit sale: 28000 owed, nothing repaid.
       await makeCreditSale(customer.id, product.id, 1, 28000);
@@ -73,7 +73,7 @@ describe("customerBalanceService", () => {
     });
 
     it("should exclude cancelled sales from debt calculation", async () => {
-      const product = await makeProduct("BS2");
+      const product = await makeProduct("BS2", 5000);
       const customer = await makeCustomer();
       const sale = await makeCreditSale(customer.id, product.id, 1, 5000);
       await cancelSale(sale.id, "test cancel");
@@ -83,7 +83,7 @@ describe("customerBalanceService", () => {
     });
 
     it("should exclude returned sales from debt calculation", async () => {
-      const product = await makeProduct("BS3");
+      const product = await makeProduct("BS3", 3000);
       const customer = await makeCustomer();
       const sale = await makeCreditSale(customer.id, product.id, 1, 3000);
       await returnSale(sale.id, "test return");
@@ -93,10 +93,11 @@ describe("customerBalanceService", () => {
     });
 
     it("should handle multiple completed sales", async () => {
-      const product = await makeProduct("BS4");
+      const productA = await makeProduct("BS4a", 20000);
+      const productB = await makeProduct("BS4b", 5000);
       const customer = await makeCustomer();
-      await makeCreditSale(customer.id, product.id, 1, 20000);
-      await makeCreditSale(customer.id, product.id, 1, 5000);
+      await makeCreditSale(customer.id, productA.id, 1, 20000);
+      await makeCreditSale(customer.id, productB.id, 1, 5000);
       await customerBalanceService.recordPayment(customer.id, 10000, "cash");
 
       const debt = await customerBalanceService.getCustomerDebt(customer.id);
@@ -104,7 +105,7 @@ describe("customerBalanceService", () => {
     });
 
     it("should block overpayment (debt cannot be negative)", async () => {
-      const product = await makeProduct("BS5");
+      const product = await makeProduct("BS5", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
       // A 30000 payment is blocked; only 20000 lands on the ledger.
@@ -128,7 +129,7 @@ describe("customerBalanceService", () => {
 
   describe("getCustomerPayments", () => {
     it("should retrieve payments for a customer", async () => {
-      const product = await makeProduct("BS6");
+      const product = await makeProduct("BS6", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
       await customerBalanceService.recordPayment(customer.id, 5000, "cash");
@@ -151,7 +152,7 @@ describe("customerBalanceService", () => {
 
   describe("canRecordPayment", () => {
     it("should allow payment when amount <= debt", async () => {
-      const product = await makeProduct("BS7");
+      const product = await makeProduct("BS7", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
 
@@ -164,7 +165,7 @@ describe("customerBalanceService", () => {
     });
 
     it("should block overpayment when amount > debt", async () => {
-      const product = await makeProduct("BS8");
+      const product = await makeProduct("BS8", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
 
@@ -174,7 +175,7 @@ describe("customerBalanceService", () => {
     });
 
     it("should block zero amount payment", async () => {
-      const product = await makeProduct("BS9");
+      const product = await makeProduct("BS9", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
 
@@ -184,7 +185,7 @@ describe("customerBalanceService", () => {
     });
 
     it("should block negative amount payment", async () => {
-      const product = await makeProduct("BS10");
+      const product = await makeProduct("BS10", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
 
@@ -196,7 +197,7 @@ describe("customerBalanceService", () => {
 
   describe("recordPayment", () => {
     it("should record a payment successfully", async () => {
-      const product = await makeProduct("BS11");
+      const product = await makeProduct("BS11", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
 
@@ -213,7 +214,7 @@ describe("customerBalanceService", () => {
     });
 
     it("should return null when payment would exceed debt", async () => {
-      const product = await makeProduct("BS12");
+      const product = await makeProduct("BS12", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
 
@@ -243,7 +244,7 @@ describe("customerBalanceService", () => {
     });
 
     it("re-checks debt inside the transaction so a concurrent payment cannot cause overpayment", async () => {
-      const product = await makeProduct("BS14");
+      const product = await makeProduct("BS14", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
 
@@ -263,7 +264,7 @@ describe("customerBalanceService", () => {
 
   describe("getCustomerBalanceSummary", () => {
     it("should return balance summary with debt, total paid, and payment count", async () => {
-      const product = await makeProduct("BS15");
+      const product = await makeProduct("BS15", 20000);
       const customer = await makeCustomer();
       await makeCreditSale(customer.id, product.id, 1, 20000);
       await customerBalanceService.recordPayment(customer.id, 5000, "cash");
@@ -312,18 +313,19 @@ describe("customerBalanceService", () => {
 
   describe("getTotalShopDebt", () => {
     it("matches per-customer balance sum including store credits from cancelled prepaid sales", async () => {
-      const product = await makeProduct("TSD1");
+      const productCredit = await makeProduct("TSD1a", 30000);
+      const productPrepaid = await makeProduct("TSD1b", 20000);
       const customer = await makeCustomer();
 
       // 1. Completed credit sale for 30,000 centimes
-      await makeCreditSale(customer.id, product.id, 1, 30000);
+      await makeCreditSale(customer.id, productCredit.id, 1, 30000);
 
       // 2. Separate prepaid cash sale for 20,000 centimes that was cancelled
       const cashSale = await createSale({
         customerId: customer.id,
         paymentMethod: "cash",
         amountPaidCentimes: 20000,
-        items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 20000 }],
+        items: [{ productId: productPrepaid.id, quantity: 1, unitSalePriceCentimes: 20000 }],
       });
       await cancelSale(cashSale.id, "Customer returned unneeded item");
 

@@ -177,10 +177,12 @@ export function format14000Centimes(
 }
 
 /**
- * Parse a formatted string back to centimes integer.
- * Accepts "140 DZD", "140 €", "$140", "140,00 DZD", "١٤٠ دج", etc.
+ * Parse a FORMATTED display string back to centimes — the display-only
+ * counterpart of formatCentimes (round-trips "140 DZD", "140 €", "$140",
+ * "140,00 DZD", "١٤٠ دج"). NOT for user input: TextInput values must go
+ * through parseDzdToCentimes, the only strict parser.
  */
-export function parseCentimes(
+export function parseFormattedCentimes(
   formatted: string,
   localeInput?: "ar-DZ" | "fr-DZ" | "en-DZ" | "ar" | "fr" | "en" | string
 ): number {

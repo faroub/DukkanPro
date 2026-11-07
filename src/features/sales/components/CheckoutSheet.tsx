@@ -2,8 +2,8 @@
  * CheckoutSheet — POS payment and customer settlement modal.
  *
  * Contract:
- * - Live product prices and stock levels are re-validated against SQLite when the sheet opens
- *   and synchronously on-demand during checkout confirmation.
+ * - Live product prices and stock levels are re-validated against SQLite when the sheet opens,
+ *   whenever a PRICE_CHANGED error is surfaced, and synchronously on-demand during checkout confirmation.
  * - Checkout calculations (subtotal, total, change due, underpayment debt) use live prices
  *   to ensure exact financial match between tender, total, and recorded sales.
  * - Prevents rapid double-tap duplicate sales via synchronous ref guards and blocks zero-item checkout creation.
@@ -132,6 +132,39 @@ export function CheckoutSheet({
       isMounted = false;
     };
   }, [visible, items]);
+
+  // A PRICE_CHANGED error means the catalogue moved while the sheet was open:
+  // refresh the displayed prices so the next confirmation uses current values.
+  useEffect(() => {
+    if (!visible || !error || !error.includes("PRICE_CHANGED")) return;
+    if (items.length === 0) return;
+
+    let isMounted = true;
+    (async () => {
+      let sum = 0;
+      const valItems: { productId: number; quantity: number; unitSalePriceCentimes: number }[] = [];
+
+      for (const item of items) {
+        const liveProduct = await getProductById(item.product.id);
+        const unitPrice = liveProduct?.sale_price_centimes ?? item.product.sale_price_centimes;
+        sum += unitPrice * item.quantity;
+        valItems.push({
+          productId: item.product.id,
+          quantity: item.quantity,
+          unitSalePriceCentimes: unitPrice,
+        });
+      }
+
+      if (isMounted) {
+        setLiveSubtotal(sum);
+        setValidatedItems(valItems);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [visible, error, items]);
 
   const displayTotal = Math.max(0, liveSubtotal - (discount || 0));
   const isValidating = visible && items.length > 0 && validatedItems.length !== items.length;

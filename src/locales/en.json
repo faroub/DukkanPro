@@ -549,7 +549,9 @@
     "directPayment": "Direct payment without ledger",
     "exactAmount": "Exact amount",
     "status": "Status",
-    "totalToPay": "Total to pay"
+    "totalToPay": "Total to pay",
+    "priceChanged": "A product price changed since checkout started. The cart has been refreshed — please confirm the sale again.",
+    "currency": "Currency"
   },
   "onboarding": {
     "appText": "App Text",
@@ -1055,7 +1057,9 @@
     "remainingCreditAfter": "Credit remaining after refund",
     "confirmRefund": "Confirm refund",
     "refundNotePlaceholder": "Refund reason (optional)",
-    "noCreditToRefund": "This customer has no credit to refund. Credit appears when an already-paid sale is cancelled or returned."
+    "noCreditToRefund": "This customer has no credit to refund. Credit appears when an already-paid sale is cancelled or returned.",
+    "phoneArchived": "This phone number belongs to an archived customer. Restore that customer instead of creating a duplicate.",
+    "phoneDuplicate": "Another customer already uses this phone number."
   },
   "payments": {
     "title": "Payments",
@@ -1073,7 +1077,8 @@
     "noPaymentsYet": "No payments yet",
     "amount": "Amount",
     "id": "ID",
-    "payment_method": "Payment method"
+    "payment_method": "Payment method",
+    "currency": "Currency"
   },
   "receipts": {
     "printed": "Sale Recorded",

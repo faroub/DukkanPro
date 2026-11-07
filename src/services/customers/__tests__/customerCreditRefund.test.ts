@@ -199,12 +199,13 @@ describe("Customer credit & refund workflow", () => {
   });
 
   it("a later credit sale consumes existing credit exactly once", async () => {
-    const product = await makeProduct("C7");
+    const productPrepaid = await makeProduct("C7a", 10000);
+    const productCredit = await makeProduct("C7b", 1000);
     const customer = await makeCustomer("Hakim");
     const sale = await createSale({
       customerId: customer.id,
       paymentMethod: "cash",
-      items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 10000 }],
+      items: [{ productId: productPrepaid.id, quantity: 1, unitSalePriceCentimes: 10000 }],
       amountPaidCentimes: 10000,
     });
     await cancelSale(sale.id, "mistake");
@@ -214,7 +215,7 @@ describe("Customer credit & refund workflow", () => {
     await createSale({
       customerId: customer.id,
       paymentMethod: "credit",
-      items: [{ productId: product.id, quantity: 5, unitSalePriceCentimes: 1000 }],
+      items: [{ productId: productCredit.id, quantity: 5, unitSalePriceCentimes: 1000 }],
     });
     expect(await getCustomerBalance(customer.id)).toBe(-5000);
     expect(await getCustomerCredit(customer.id)).toBe(5000);
@@ -224,7 +225,7 @@ describe("Customer credit & refund workflow", () => {
     await createSale({
       customerId: customer.id,
       paymentMethod: "credit",
-      items: [{ productId: product.id, quantity: 15, unitSalePriceCentimes: 1000 }],
+      items: [{ productId: productCredit.id, quantity: 15, unitSalePriceCentimes: 1000 }],
     });
     expect(await getCustomerDebt(customer.id)).toBe(10000);
     expect(await getCustomerCredit(customer.id)).toBe(0);

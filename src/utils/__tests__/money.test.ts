@@ -1,14 +1,14 @@
 /**
  * DukkanOS Money Formatting Tests
  *
- * Tests for formatCentimes, parseCentimes, format14000Centimes
+ * Tests for formatCentimes, parseFormattedCentimes, format14000Centimes
  *
  * Note: Intl.NumberFormat output varies by system locale.
- * The key test is that parseCentimes correctly handles
+ * The key test is that parseFormattedCentimes correctly handles
  * both Western and Arabic-Indic digit formats.
  */
 
-import { formatCentimes, parseCentimes, parseDzdToCentimes, format14000Centimes } from '../money';
+import { formatCentimes, parseFormattedCentimes, parseDzdToCentimes, format14000Centimes } from '../money';
 
 describe('formatCentimes', () => {
   it('should format 14000 centimes in French locale', () => {
@@ -65,81 +65,81 @@ describe('formatCentimes', () => {
   });
 });
 
-describe('parseCentimes', () => {
+describe('parseFormattedCentimes', () => {
   it('should parse "140 DZD" to 14000', () => {
-    expect(parseCentimes('140 DZD')).toBe(14000);
+    expect(parseFormattedCentimes('140 DZD')).toBe(14000);
   });
 
   it('should parse "140,00 DZD" to 14000', () => {
-    expect(parseCentimes('140,00 DZD')).toBe(14000);
+    expect(parseFormattedCentimes('140,00 DZD')).toBe(14000);
   });
 
   it('should parse Arabic-Indic digits "١٤٠ دj" to 14000', () => {
     // Arabic-Indic digits are preprocessed before parsing
-    expect(parseCentimes('١٤٠ دj')).toBe(14000);
+    expect(parseFormattedCentimes('١٤٠ دj')).toBe(14000);
   });
 
   it('should parse "5 DZD" to 500', () => {
-    expect(parseCentimes('5 DZD')).toBe(500);
+    expect(parseFormattedCentimes('5 DZD')).toBe(500);
   });
 
   it('should return 0 for invalid input', () => {
-    expect(parseCentimes('invalid')).toBe(0);
-    expect(parseCentimes('')).toBe(0);
+    expect(parseFormattedCentimes('invalid')).toBe(0);
+    expect(parseFormattedCentimes('')).toBe(0);
   });
 
   it('should parse "0 DZD" to 0', () => {
-    expect(parseCentimes('0 DZD')).toBe(0);
+    expect(parseFormattedCentimes('0 DZD')).toBe(0);
   });
 
   it('should treat a comma group separator as grouping, not decimals', () => {
     // Regression: "1,400 DZD" (en-DZ grouping) was parsed as 1.4 DZD = 140
-    expect(parseCentimes('1,400 DZD')).toBe(140000);
-    expect(parseCentimes('999,999.99 DZD')).toBe(99999999);
+    expect(parseFormattedCentimes('1,400 DZD')).toBe(140000);
+    expect(parseFormattedCentimes('999,999.99 DZD')).toBe(99999999);
   });
 
   it('should treat a comma as a decimal separator in French format', () => {
-    expect(parseCentimes('12,55 DZD')).toBe(1255);
-    expect(parseCentimes('0,05 DZD')).toBe(5);
+    expect(parseFormattedCentimes('12,55 DZD')).toBe(1255);
+    expect(parseFormattedCentimes('0,05 DZD')).toBe(5);
   });
 
   it('should parse sub-dinar English format', () => {
-    expect(parseCentimes('12.55 DZD')).toBe(1255);
-    expect(parseCentimes('0.05 DZD')).toBe(5);
+    expect(parseFormattedCentimes('12.55 DZD')).toBe(1255);
+    expect(parseFormattedCentimes('0.05 DZD')).toBe(5);
   });
 
   describe('with an explicit locale', () => {
     it('treats "," as grouping in en-DZ', () => {
-      expect(parseCentimes('1,400 DZD', 'en-DZ')).toBe(140000);
-      expect(parseCentimes('999,999.99 DZD', 'en-DZ')).toBe(99999999);
+      expect(parseFormattedCentimes('1,400 DZD', 'en-DZ')).toBe(140000);
+      expect(parseFormattedCentimes('999,999.99 DZD', 'en-DZ')).toBe(99999999);
     });
 
     it('treats "," as the decimal separator in fr-DZ', () => {
-      expect(parseCentimes('12,55 DZD', 'fr-DZ')).toBe(1255);
-      expect(parseCentimes('1.400,99 DZD', 'fr-DZ')).toBe(140099);
+      expect(parseFormattedCentimes('12,55 DZD', 'fr-DZ')).toBe(1255);
+      expect(parseFormattedCentimes('1.400,99 DZD', 'fr-DZ')).toBe(140099);
     });
 
     it('resolves the ambiguous "1,234" by locale', () => {
-      expect(parseCentimes('1,234', 'en-DZ')).toBe(123400);
-      expect(parseCentimes('1,234', 'fr-DZ')).toBe(123);
-      expect(parseCentimes('1,234', 'ar-DZ')).toBe(123);
+      expect(parseFormattedCentimes('1,234', 'en-DZ')).toBe(123400);
+      expect(parseFormattedCentimes('1,234', 'fr-DZ')).toBe(123);
+      expect(parseFormattedCentimes('1,234', 'ar-DZ')).toBe(123);
     });
 
     it('accepts short language codes', () => {
-      expect(parseCentimes('1,400 DZD', 'en')).toBe(140000);
-      expect(parseCentimes('12,55 DZD', 'fr')).toBe(1255);
-      expect(parseCentimes('12,55 دج', 'ar')).toBe(1255);
+      expect(parseFormattedCentimes('1,400 DZD', 'en')).toBe(140000);
+      expect(parseFormattedCentimes('12,55 DZD', 'fr')).toBe(1255);
+      expect(parseFormattedCentimes('12,55 دج', 'ar')).toBe(1255);
     });
   });
 });
 
-describe('formatCentimes ↔ parseCentimes round-trip', () => {
+describe('formatCentimes ↔ parseFormattedCentimes round-trip', () => {
   const amounts = [0, 5, 105, 500, 1255, 14000, 140000, 99999999];
   const locales = ['fr-DZ', 'en-DZ', 'ar-DZ'] as const;
 
   it.each(amounts)('round-trips %d centimes through every locale', (amount) => {
     for (const locale of locales) {
-      expect(parseCentimes(formatCentimes(amount, locale), locale)).toBe(amount);
+      expect(parseFormattedCentimes(formatCentimes(amount, locale), locale)).toBe(amount);
     }
   });
 });

@@ -101,6 +101,7 @@ export interface SaleItem extends Entity {
 export interface CustomerPayment extends Entity {
   customer_id: ID; // FK → customers(id) ON DELETE CASCADE
   amount_centimes: number; // integer centimes > 0
+  currency?: string; // ISO 4217 currency code write-once at payment creation (e.g. "DZD", "EUR")
   paid_at: string; // ISO datetime
   created_at: string; // ISO datetime
   payment_method: "cash" | "electronic" | "mixed" | "partial" | "credit";

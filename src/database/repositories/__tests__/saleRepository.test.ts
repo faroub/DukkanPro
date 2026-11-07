@@ -62,13 +62,13 @@ describe("saleRepository", () => {
           {
             productId: 1,
             quantity: 3,
-            unitSalePriceCentimes: 2000, // 20.00 DZD per unit
+            unitSalePriceCentimes: 5000, // product 1's live price
             note: "Extra flour",
           },
           {
             productId: 2,
             quantity: 2,
-            unitSalePriceCentimes: 1500, // 15.00 DZD per unit
+            unitSalePriceCentimes: 3500, // product 2's live price
             note: "Sugar",
           },
         ],
@@ -78,7 +78,7 @@ describe("saleRepository", () => {
       expect(sale).not.toBeNull();
       expect(sale?.id).toBeGreaterThan(0);
       expect(sale?.status).toBe("completed");
-      expect(sale?.total_centimes).toBe(9000);
+      expect(sale?.total_centimes).toBe(22000);
       expect(sale?.saleItems?.length).toBe(2);
 
       // Verify stock was deducted
@@ -97,12 +97,12 @@ describe("saleRepository", () => {
       const sale = await create({
         customerId: 1,
         paymentMethod: "credit",
-        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 2500 }],
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 5000 }],
       });
 
-      expect(sale.total_centimes).toBe(5000);
+      expect(sale.total_centimes).toBe(10000);
       expect(sale.amount_paid_centimes).toBe(0);
-      expect(sale.remaining_balance_centimes).toBe(5000);
+      expect(sale.remaining_balance_centimes).toBe(10000);
 
       // Persisted row must match the returned settlement values
       const row = await db.getFirstAsync(
@@ -110,7 +110,7 @@ describe("saleRepository", () => {
         [sale.id],
       );
       expect(row?.amount_paid_centimes).toBe(0);
-      expect(row?.remaining_balance_centimes).toBe(5000);
+      expect(row?.remaining_balance_centimes).toBe(10000);
     });
 
     it("applies a discount to the sale total", async () => {
@@ -118,13 +118,13 @@ describe("saleRepository", () => {
         customerId: 1,
         paymentMethod: "cash",
         discountCentimes: 1000,
-        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 2500 }],
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 5000 }],
       });
 
-      expect(sale.subtotal_centimes).toBe(5000);
+      expect(sale.subtotal_centimes).toBe(10000);
       expect(sale.discount_centimes).toBe(1000);
-      expect(sale.total_centimes).toBe(4000);
-      expect(sale.amount_paid_centimes).toBe(4000);
+      expect(sale.total_centimes).toBe(9000);
+      expect(sale.amount_paid_centimes).toBe(9000);
       expect(sale.remaining_balance_centimes).toBe(0);
     });
 
@@ -163,11 +163,11 @@ describe("saleRepository", () => {
         customerId: 1,
         paymentMethod: "cash",
         amountPaidCentimes: 3000,
-        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 2500 }],
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 5000 }],
       });
 
       expect(sale.amount_paid_centimes).toBe(3000);
-      expect(sale.remaining_balance_centimes).toBe(2000);
+      expect(sale.remaining_balance_centimes).toBe(7000);
     });
 
     it("records a partial payment against the total", async () => {
@@ -175,12 +175,12 @@ describe("saleRepository", () => {
         customerId: 1,
         paymentMethod: "partial",
         amountPaidCentimes: 2500,
-        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 2500 }],
+        items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: 5000 }],
       });
 
-      expect(sale.total_centimes).toBe(5000);
+      expect(sale.total_centimes).toBe(10000);
       expect(sale.amount_paid_centimes).toBe(2500);
-      expect(sale.remaining_balance_centimes).toBe(2500);
+      expect(sale.remaining_balance_centimes).toBe(7500);
     });
 
     it("settles electronic and mixed sales in full by default", async () => {
@@ -188,9 +188,9 @@ describe("saleRepository", () => {
         const sale = await create({
           customerId: 1,
           paymentMethod: method,
-          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 2500 }],
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 5000 }],
         });
-        expect(sale.amount_paid_centimes).toBe(2500);
+        expect(sale.amount_paid_centimes).toBe(5000);
         expect(sale.remaining_balance_centimes).toBe(0);
       }
     });
@@ -200,7 +200,7 @@ describe("saleRepository", () => {
         customerId: 1,
         paymentMethod: "cash",
         discountCentimes: 99999,
-        items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 2500 }],
+        items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 5000 }],
       });
 
       expect(sale.total_centimes).toBe(0);
@@ -232,6 +232,45 @@ describe("saleRepository", () => {
       expect(sale?.saleItems?.[0]?.unit_cost_price_centimes).toBe(3000); // product 1's cost
       expect(sale?.saleItems?.[1]?.unit_cost_price_centimes).toBe(2000); // product 2's cost
     });
+
+    it("rejects amountPaidCentimes that is negative or not a safe integer", async () => {
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          amountPaidCentimes: -500,
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 5000 }],
+        })
+      ).rejects.toThrow(/Amount paid must be a non-negative integer/i);
+
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          amountPaidCentimes: 10.5,
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 5000 }],
+        })
+      ).rejects.toThrow(/Amount paid must be a non-negative integer/i);
+    });
+
+    it("rejects a sale whose submitted unit price no longer matches the catalogue (PRICE_CHANGED)", async () => {
+      // Product 1 currently sells for 5000; the cart snapshot is stale at 4000.
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 4000 }],
+        })
+      ).rejects.toThrow(/PRICE_CHANGED/);
+
+      // Nothing must be committed: no sale row, no stock change, no movement.
+      const allSales = await getAll({});
+      expect(allSales.length).toBe(0);
+      const movements = await db.getAllAsync(
+        `SELECT COUNT(*) AS n FROM inventory_movements WHERE product_id = 1`,
+      );
+      expect(movements[0]?.n).toBe(0);
+    });
   });
 
   describe("cancel()", () => {
@@ -246,13 +285,13 @@ describe("saleRepository", () => {
           {
             productId: 1,
             quantity: 2,
-            unitSalePriceCentimes: 2500,
+            unitSalePriceCentimes: 5000,
             note: "",
           },
           {
             productId: 2,
             quantity: 1,
-            unitSalePriceCentimes: 1500,
+            unitSalePriceCentimes: 3500,
             note: "",
           },
         ],
@@ -356,7 +395,7 @@ describe("saleRepository", () => {
           {
             productId: 1,
             quantity: 2,
-            unitSalePriceCentimes: 3000,
+            unitSalePriceCentimes: 5000,
             note: "",
           },
         ],
@@ -475,7 +514,7 @@ describe("saleRepository", () => {
           {
             productId: 1,
             quantity: 2,
-            unitSalePriceCentimes: 2500,
+            unitSalePriceCentimes: 5000,
             note: "",
           },
         ],
@@ -528,7 +567,7 @@ describe("saleRepository", () => {
           {
             productId: 1,
             quantity: 1,
-            unitSalePriceCentimes: 1000,
+            unitSalePriceCentimes: 5000,
             note: "",
           },
         ],
@@ -540,7 +579,7 @@ describe("saleRepository", () => {
           {
             productId: 2,
             quantity: 1,
-            unitSalePriceCentimes: 2000,
+            unitSalePriceCentimes: 3500,
             note: "",
           },
         ],
@@ -568,7 +607,7 @@ describe("saleRepository", () => {
           {
             productId: 1,
             quantity: 1,
-            unitSalePriceCentimes: 1000,
+            unitSalePriceCentimes: 5000,
           },
         ],
       });

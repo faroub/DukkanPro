@@ -7,11 +7,13 @@
  * - Overselling is strictly prevented: items exceeding stock are rejected.
  * - Cash over-tender is clamped to the sale total, tracking change separately.
  * - Partial/credit sales require a customer to prevent anonymous, uncollectable debt.
+ * - Each item's submitted unit price must match the live catalogue price (PRICE_CHANGED guard).
  * - Cancelling or returning a sale restores exact stock and preserves historical settlement fields.
  */
 
 import { Sale } from "../../types/entities";
 import { get as getBusinessProfile } from "./businessProfileRepository";
+import { mapSaleItemRow, mapSaleRow } from "./mappers";
 import {
   executeAll,
   executeRead,
@@ -145,43 +147,11 @@ export async function getAll(filters: SaleFilters = {}): Promise<Sale[]> {
   const itemsBySaleId = new Map<number, any[]>();
   for (const item of itemRows) {
     const list = itemsBySaleId.get(item.sale_id) || [];
-    list.push({
-      id: item.id,
-      sale_id: item.sale_id,
-      product_id: item.product_id,
-      product_name_snapshot: item.product_name_snapshot,
-      quantity: item.quantity,
-      unit_sale_price_centimes: item.unit_sale_price_centimes,
-      unit_cost_price_centimes: item.unit_cost_price_centimes,
-      line_total_centimes: item.line_total_centimes,
-      created_at: item.created_at,
-    });
+    list.push(mapSaleItemRow(item));
     itemsBySaleId.set(item.sale_id, list);
   }
 
-  return saleRows.map((r) => ({
-    id: r.id,
-    customer_id: r.customer_id,
-    customer_name: r.customer_name ?? null,
-    status: r.status as "completed" | "cancelled" | "returned",
-    subtotal_centimes: r.subtotal_centimes as number,
-    discount_centimes: r.discount_centimes as number,
-    total_centimes: r.total_centimes as number,
-    amount_paid_centimes: r.amount_paid_centimes as number,
-    remaining_balance_centimes: r.remaining_balance_centimes as number,
-    payment_method: r.payment_method as
-      | "cash"
-      | "electronic"
-      | "mixed"
-      | "partial"
-      | "credit",
-    currency: r.currency || "DZD",
-    note: r.note,
-    sold_at: r.sold_at,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-    saleItems: itemsBySaleId.get(r.id) || [],
-  }));
+  return saleRows.map((r) => mapSaleRow(r, itemsBySaleId.get(r.id) || []));
 }
 
 function getLocalDateKey(d: Date = new Date()): string {
@@ -246,39 +216,10 @@ export async function getById(id: number): Promise<Sale | null> {
 
   const r = saleRows[0];
 
-  return {
-    id: r.id,
-    customer_id: r.customer_id,
-    customer_name: r.customer_name ?? null,
-    status: r.status as "completed" | "cancelled" | "returned",
-    subtotal_centimes: r.subtotal_centimes as number,
-    discount_centimes: r.discount_centimes as number,
-    total_centimes: r.total_centimes as number,
-    amount_paid_centimes: r.amount_paid_centimes as number,
-    remaining_balance_centimes: r.remaining_balance_centimes as number,
-    payment_method: r.payment_method as
-      | "cash"
-      | "electronic"
-      | "mixed"
-      | "partial"
-      | "credit",
-    currency: r.currency || "DZD",
-    note: r.note,
-    sold_at: r.sold_at,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-    saleItems: itemsRows.map((item: any) => ({
-      id: item.id,
-      sale_id: item.sale_id,
-      product_id: item.product_id,
-      product_name_snapshot: item.product_name_snapshot,
-      quantity: item.quantity,
-      unit_sale_price_centimes: item.unit_sale_price_centimes,
-      unit_cost_price_centimes: item.unit_cost_price_centimes,
-      line_total_centimes: item.line_total_centimes,
-      created_at: item.created_at,
-    })),
-  };
+  return mapSaleRow(
+    r,
+    itemsRows.map((item: any) => mapSaleItemRow(item)),
+  );
 }
 
 /**
@@ -305,6 +246,14 @@ export async function create(saleInput: {
     if (!Number.isSafeInteger(saleInput.discountCentimes) || saleInput.discountCentimes < 0) {
       throw new Error(
         `Invalid discountCentimes ${saleInput.discountCentimes}. Discount must be a non-negative integer.`
+      );
+    }
+  }
+
+  if (saleInput.amountPaidCentimes !== undefined) {
+    if (!Number.isSafeInteger(saleInput.amountPaidCentimes) || saleInput.amountPaidCentimes < 0) {
+      throw new Error(
+        `Invalid amountPaidCentimes ${saleInput.amountPaidCentimes}. Amount paid must be a non-negative integer.`
       );
     }
   }
@@ -365,6 +314,15 @@ export async function create(saleInput: {
       }
 
       const product = productRows[0];
+
+      // The sale must record the catalogue price live at commit time. A mismatch
+      // means the cart was built against a stale price snapshot: reject so the
+      // caller can refresh the cart instead of charging a wrong amount.
+      if (product.sale_price_centimes !== item.unitSalePriceCentimes) {
+        throw new Error(
+          `PRICE_CHANGED: Price for '${product.name}' changed. Submitted ${item.unitSalePriceCentimes}, current ${product.sale_price_centimes}. Refresh the cart and try again.`,
+        );
+      }
 
       // H2 Fix: Overselling prevention — reject if requested quantity exceeds current stock
       if ((product.stock_quantity || 0) < item.quantity) {
@@ -497,33 +455,10 @@ export async function create(saleInput: {
       [saleId],
     );
 
-    return {
-      id: saleRows[0].id,
-      customer_id: saleRows[0].customer_id,
-      status: saleRows[0].status as "completed" | "cancelled" | "returned",
-      subtotal_centimes: saleRows[0].subtotal_centimes as number,
-      discount_centimes: saleRows[0].discount_centimes as number,
-      total_centimes: saleRows[0].total_centimes as number,
-      amount_paid_centimes: saleRows[0].amount_paid_centimes as number,
-      remaining_balance_centimes: saleRows[0].remaining_balance_centimes as number,
-      payment_method: saleRows[0].payment_method as any,
-      currency: saleRows[0].currency || "DZD",
-      note: saleRows[0].note,
-      sold_at: saleRows[0].sold_at,
-      created_at: saleRows[0].created_at,
-      updated_at: saleRows[0].updated_at,
-      saleItems: itemsRows.map((r: any) => ({
-        id: r.id,
-        sale_id: r.sale_id,
-        product_id: r.product_id,
-        product_name_snapshot: r.product_name_snapshot,
-        quantity: r.quantity,
-        unit_sale_price_centimes: r.unit_sale_price_centimes,
-        unit_cost_price_centimes: r.unit_cost_price_centimes,
-        line_total_centimes: r.line_total_centimes,
-        created_at: r.created_at,
-      })),
-    };
+    return mapSaleRow(
+      saleRows[0],
+      itemsRows.map((r: any) => mapSaleItemRow(r)),
+    );
   });
 }
 

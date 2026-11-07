@@ -549,7 +549,9 @@
     "directPayment": "Paiement direct sans carnet",
     "exactAmount": "Compte juste",
     "status": "Statut",
-    "totalToPay": "Total à payer"
+    "totalToPay": "Total à payer",
+    "priceChanged": "Le prix d'un produit a changé depuis le début du paiement. Le panier a été actualisé — veuillez confirmer la vente à nouveau.",
+    "currency": "Devise"
   },
   "onboarding": {
     "appText": "Texte de l'application",
@@ -1055,7 +1057,9 @@
     "remainingCreditAfter": "Crédit restant après remboursement",
     "confirmRefund": "Confirmer le remboursement",
     "refundNotePlaceholder": "Motif du remboursement (optionnel)",
-    "noCreditToRefund": "Ce client n'a pas de crédit à rembourser. Un crédit apparaît lorsqu'une vente déjà payée est annulée ou retournée."
+    "noCreditToRefund": "Ce client n'a pas de crédit à rembourser. Un crédit apparaît lorsqu'une vente déjà payée est annulée ou retournée.",
+    "phoneArchived": "Ce numéro de téléphone appartient à un client archivé. Restaurez ce client plutôt que de créer un doublon.",
+    "phoneDuplicate": "Un autre client utilise déjà ce numéro de téléphone."
   },
   "payments": {
     "title": "Moyens de paiement",
@@ -1073,7 +1077,8 @@
     "noPaymentsYet": "Aucun paiement pour l'instant",
     "amount": "Montant",
     "id": "ID",
-    "payment_method": "Mode de paiement"
+    "payment_method": "Mode de paiement",
+    "currency": "Devise"
   },
   "receipts": {
     "printed": "Caisse Enregistrée",

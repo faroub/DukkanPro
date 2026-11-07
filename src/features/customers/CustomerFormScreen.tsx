@@ -90,7 +90,14 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
       }
       router.back();
     } catch (err) {
-      Alert.alert(t("common:error"), t("customers:errorSave"));
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("PHONE_ARCHIVED")) {
+        Alert.alert(t("common:error"), t("customers:phoneArchived"));
+      } else if (message.includes("DUPLICATE_PHONE")) {
+        Alert.alert(t("common:error"), t("customers:phoneDuplicate"));
+      } else {
+        Alert.alert(t("common:error"), t("customers:errorSave"));
+      }
     } finally {
       setIsSaving(false);
     }

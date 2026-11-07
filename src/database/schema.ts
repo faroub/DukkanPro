@@ -188,4 +188,72 @@ export const schema = {
     CREATE INDEX IF NOT EXISTS idx_customer_payments_customer_id ON customer_payments(customer_id);
     CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
   `,
+
+  // ============================================================
+  // integrity constraints v14 (migration 14)
+  // - Adds an index for inventory_movements lookups by product.
+  // - Adds non-negative CHECK constraints to products.stock_quantity,
+  //   products.sale_price_centimes, products.cost_price_centimes,
+  //   sales.total_centimes and sales.remaining_balance_centimes.
+  //   SQLite cannot ALTER TABLE ... ADD CHECK, so products and sales are
+  //   rebuilt (create new, copy, drop old, rename) with foreign_keys=OFF.
+  //   The DROP TABLE also removes the migration-11 indexes, so they are
+  //   re-created after each rebuild.
+  //   CAUTION: this block is split on ';' — no semicolons may appear inside
+  //   string literals or comments.
+  // ============================================================
+  integrityConstraintsV14: `
+    CREATE INDEX IF NOT EXISTS idx_inventory_movements_product_id ON inventory_movements(product_id);
+
+    CREATE TABLE products_v14 (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      sku TEXT UNIQUE,
+      category TEXT,
+      sale_price_centimes INTEGER NOT NULL CHECK (sale_price_centimes >= 0),
+      cost_price_centimes INTEGER NOT NULL CHECK (cost_price_centimes >= 0),
+      stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
+      minimum_stock_quantity INTEGER NOT NULL DEFAULT 0,
+      unit TEXT NOT NULL DEFAULT 'pcs',
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    INSERT INTO products_v14 (id, name, sku, category, sale_price_centimes, cost_price_centimes, stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at)
+    SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes, stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at FROM products;
+
+    DROP TABLE products;
+    ALTER TABLE products_v14 RENAME TO products;
+
+    CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
+
+    CREATE TABLE sales_v14 (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
+      status TEXT NOT NULL DEFAULT 'completed',
+      subtotal_centimes INTEGER NOT NULL DEFAULT 0,
+      discount_centimes INTEGER NOT NULL DEFAULT 0,
+      total_centimes INTEGER NOT NULL DEFAULT 0 CHECK (total_centimes >= 0),
+      amount_paid_centimes INTEGER NOT NULL DEFAULT 0,
+      remaining_balance_centimes INTEGER NOT NULL DEFAULT 0 CHECK (remaining_balance_centimes >= 0),
+      payment_method TEXT NOT NULL DEFAULT 'cash',
+      currency TEXT NOT NULL DEFAULT 'DZD',
+      note TEXT,
+      sold_at TEXT NOT NULL DEFAULT (datetime('now')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    INSERT INTO sales_v14 (id, customer_id, status, subtotal_centimes, discount_centimes, total_centimes, amount_paid_centimes, remaining_balance_centimes, payment_method, currency, note, sold_at, created_at, updated_at)
+    SELECT id, customer_id, status, subtotal_centimes, discount_centimes, total_centimes, amount_paid_centimes, remaining_balance_centimes, payment_method, currency, note, sold_at, created_at, updated_at FROM sales;
+
+    DROP TABLE sales;
+    ALTER TABLE sales_v14 RENAME TO sales;
+
+    CREATE INDEX IF NOT EXISTS idx_sales_sold_at ON sales(sold_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_sales_customer_id ON sales(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status);
+    CREATE INDEX IF NOT EXISTS idx_sales_remaining_balance ON sales(remaining_balance_centimes);
+  `,
 };

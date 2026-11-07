@@ -3,6 +3,10 @@
  *
  * Rules:
  * - Each migration runs inside a single atomic SQLite transaction (SQL + _migration_version record).
+ * - Table-rebuild migrations (runsOutsideTransaction) cannot use that transaction: rebuilding with
+ *   foreign_keys=OFF requires a PRAGMA, and SQLite ignores PRAGMAs inside a transaction. Their
+ *   optional precheck guard aborts before any data is touched when existing rows would violate a
+ *   new constraint — the migration never silently rewrites data.
  * - ALTER TABLE statements are defensive: column existence is checked via PRAGMA table_info first.
  * - Migrations are numbered sequentially and run via `runMigrations(db)`.
  */
@@ -13,7 +17,49 @@ import { schema } from "./schema";
 export type Migration = {
   version: number;
   sql: string;
+  /**
+   * Read-only guard run before the migration. Throwing aborts the migration
+   * before any statement executes (used when existing data would violate a
+   * new constraint and must not be silently rewritten).
+   */
+  precheck?: (db: any) => Promise<void>;
+  /**
+   * True for migrations that rebuild tables. SQLite cannot disable foreign
+   * keys inside a transaction, so these run un-transacted with
+   * PRAGMA foreign_keys=OFF instead.
+   */
+  runsOutsideTransaction?: boolean;
 };
+
+/**
+ * Migration 14 guard: refuse to add non-negative CHECK constraints while rows
+ * with negative values exist — the rebuild would either fail mid-copy or force
+ * a silent data change. The merchant must fix the data before upgrading.
+ */
+async function assertNoNegativeMoneyOrStock(db: any): Promise<void> {
+  const checks = [
+    ["products", "stock_quantity"],
+    ["products", "sale_price_centimes"],
+    ["products", "cost_price_centimes"],
+    ["sales", "total_centimes"],
+    ["sales", "remaining_balance_centimes"],
+  ];
+  const violations: string[] = [];
+  for (const [table, column] of checks) {
+    const rows: any[] = await db.getAllAsync(
+      `SELECT COUNT(*) AS n FROM ${table} WHERE ${column} < 0`,
+    );
+    const count = rows[0]?.n ?? 0;
+    if (count > 0) {
+      violations.push(`${table}.${column} has ${count} row(s) with a negative value`);
+    }
+  }
+  if (violations.length > 0) {
+    throw new Error(
+      `Migration 14 aborted: negative data would violate the new non-negative constraints (${violations.join("; ")}). Correct or remove the offending rows before upgrading.`,
+    );
+  }
+}
 
 const ALL_MIGRATIONS: Migration[] = [
   {
@@ -68,6 +114,12 @@ const ALL_MIGRATIONS: Migration[] = [
     version: 13,
     sql: schema.customerPaymentsCurrency,
   },
+  {
+    version: 14,
+    sql: schema.integrityConstraintsV14,
+    runsOutsideTransaction: true,
+    precheck: assertNoNegativeMoneyOrStock,
+  },
 ];
 
 /**
@@ -111,7 +163,7 @@ async function execDefensiveSql(db: any, sql: string): Promise<void> {
   }
 }
 
-export async function runMigrations(db: any): Promise<void> {
+export async function runMigrations(db: any, targetVersion?: number): Promise<void> {
   // Ensure the version table exists first
   await db.execAsync(schema.migrationVersion);
 
@@ -122,15 +174,40 @@ export async function runMigrations(db: any): Promise<void> {
   const appliedVersions = new Set(appliedRows.map((r: any) => r.version));
 
   // Run pending migrations in order, wrapping each migration + version insert in a transaction
+  const target = targetVersion ?? migrationVersions[migrationVersions.length - 1];
+
   for (const migration of ALL_MIGRATIONS) {
+    if (migration.version > target) continue;
+
     if (!appliedVersions.has(migration.version)) {
-      await rawTransaction(db, async (tx) => {
-        await execDefensiveSql(tx, migration.sql);
-        await tx.runAsync(
-          "INSERT INTO _migration_version (version) VALUES (?)",
-          [migration.version],
-        );
-      });
+      if (migration.runsOutsideTransaction) {
+        // Table rebuilds (CREATE / copy / DROP / RENAME) require
+        // PRAGMA foreign_keys=OFF, which SQLite ignores inside a transaction,
+        // so these migrations run outside one. The precheck guard throws
+        // before any statement executes when data would violate the new
+        // constraints.
+        await db.execAsync("PRAGMA foreign_keys = OFF");
+        try {
+          if (migration.precheck) {
+            await migration.precheck(db);
+          }
+          await execDefensiveSql(db, migration.sql);
+          await db.runAsync(
+            "INSERT INTO _migration_version (version) VALUES (?)",
+            [migration.version],
+          );
+        } finally {
+          await db.execAsync("PRAGMA foreign_keys = ON");
+        }
+      } else {
+        await rawTransaction(db, async (tx) => {
+          await execDefensiveSql(tx, migration.sql);
+          await tx.runAsync(
+            "INSERT INTO _migration_version (version) VALUES (?)",
+            [migration.version],
+          );
+        });
+      }
     }
   }
 }

@@ -69,7 +69,7 @@ export async function getAllSales(): Promise<Sale[]> {
     // language=SQLite
     `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
              s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
+             s.payment_method, s.currency, s.note, s.sold_at, s.created_at, s.updated_at
         FROM sales s
      ORDER BY s.sold_at DESC`,
   );
@@ -107,6 +107,7 @@ export async function getAllSales(): Promise<Sale[]> {
       | "mixed"
       | "partial"
       | "credit",
+    currency: sale.currency || "DZD",
     note: sale.note,
     sold_at: sale.sold_at,
     created_at: sale.created_at,
@@ -148,7 +149,7 @@ export async function getAllPayments(): Promise<CustomerPayment[]> {
   const rows: any[] = await executeAll(
     // language=SQLite
     `SELECT cp.id, cp.customer_id, cp.amount_centimes, cp.payment_method,
-             cp.note, cp.paid_at, cp.created_at
+             cp.currency, cp.note, cp.paid_at, cp.created_at
        FROM customer_payments cp
     ORDER BY cp.paid_at DESC`,
   );
@@ -157,6 +158,7 @@ export async function getAllPayments(): Promise<CustomerPayment[]> {
     id: r.id,
     customer_id: r.customer_id,
     amount_centimes: r.amount_centimes as number,
+    currency: r.currency || "DZD",
     payment_method: r.payment_method as
       | "cash"
       | "electronic"

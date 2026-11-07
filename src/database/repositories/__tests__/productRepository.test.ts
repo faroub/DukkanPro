@@ -7,7 +7,7 @@
  */
 
 import { getDatabase } from "../../database";
-import { create as createSale, cancel as cancelSale } from "../saleRepository";
+import { create as createSale, cancel as cancelSale, returnSale } from "../saleRepository";
 import {
     adjustStock,
     archive,
@@ -230,6 +230,39 @@ describe("productRepository", () => {
       expect(updated?.sale_price_centimes).toBe(3500);
       expect(updated?.is_active).toBe(false);
     });
+
+    it("throws DUPLICATE_SKU when updating to a SKU another product already uses", async () => {
+      const keeper = await create({
+        name: "حامل SKU",
+        sku: "UPD-DUP-A",
+        category: "اختبار",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 1,
+        minimum_stock_quantity: 0,
+        unit: "قطعة",
+        is_active: true,
+      });
+      const other = await create({
+        name: "منتج آخر",
+        sku: "UPD-DUP-B",
+        category: "اختبار",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 1,
+        minimum_stock_quantity: 0,
+        unit: "قطعة",
+        is_active: true,
+      });
+
+      await expect(
+        update(other!.id, { sku: keeper!.sku }),
+      ).rejects.toThrow("DUPLICATE_SKU");
+
+      // The rejected update must not have changed the stored SKU.
+      const unchanged = await getById(other!.id);
+      expect(unchanged?.sku).toBe("UPD-DUP-B");
+    });
   });
 
   describe("archive()", () => {
@@ -405,6 +438,93 @@ describe("productRepository", () => {
       const p2Index = topProducts.findIndex((p) => p.id === p2.id);
 
       expect(p1Index).toBeLessThan(p2Index);
+    });
+  });
+
+  describe("stock ledger reconciliation", () => {
+    it("records an 'Opening stock' movement when a product is created with stock", async () => {
+      const created = await create({
+        name: "Ledger Opening",
+        sku: "LED-OPEN",
+        category: "test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 20,
+        minimum_stock_quantity: 2,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      const history = await getInventoryHistory(created.id);
+      const opening = history.filter((m: any) => m.note === "Opening stock");
+      expect(opening).toHaveLength(1);
+      expect(opening[0].movement_type).toBe("in");
+      expect(opening[0].quantity_change).toBe(20);
+      expect(opening[0].reference_sale_id).toBeNull();
+    });
+
+    it("does not record an opening movement when a product is created with zero stock", async () => {
+      const created = await create({
+        name: "Ledger Zero",
+        sku: "LED-ZERO",
+        category: "test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 0,
+        minimum_stock_quantity: 0,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      const history = await getInventoryHistory(created.id);
+      expect(history).toHaveLength(0);
+    });
+
+    it("keeps SUM(quantity_change) equal to stock_quantity across create, adjustStock, sale, cancel and return", async () => {
+      const product = await create({
+        name: "Ledger Lifecycle",
+        sku: "LED-LIFE",
+        category: "test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 20,
+        minimum_stock_quantity: 2,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      const assertLedgerReconciles = async () => {
+        const current = await getById(product.id);
+        const movements = await getInventoryHistory(product.id);
+        const sum = movements.reduce((acc: number, m: any) => acc + m.quantity_change, 0);
+        expect(sum).toBe(current?.stock_quantity);
+      };
+
+      // 1. Opening stock
+      await assertLedgerReconciles(); // 20
+
+      // 2. Manual stock adjustment
+      await adjustStock(product.id, 5, "restock");
+      await assertLedgerReconciles(); // 25
+
+      // 3. Sale deducts stock
+      const sale = await createSale({
+        paymentMethod: "cash",
+        items: [{ productId: product.id, quantity: 10, unitSalePriceCentimes: 1000 }],
+      });
+      await assertLedgerReconciles(); // 15
+
+      // 4. Cancelling the sale restores stock
+      await cancelSale(sale.id, "test cancel");
+      await assertLedgerReconciles(); // 25
+
+      // 5. A returned sale also restores stock
+      const returnedSale = await createSale({
+        paymentMethod: "cash",
+        items: [{ productId: product.id, quantity: 7, unitSalePriceCentimes: 1000 }],
+      });
+      await returnSale(returnedSale.id, "test return");
+      await assertLedgerReconciles(); // 25
     });
   });
 });

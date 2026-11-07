@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/theme";
 import { getLowStockProducts } from "@/database/repositories/dashboardRepository";
 import { adjustStock, getAll as getAllProducts } from "@/database/repositories/productRepository";
@@ -52,46 +53,7 @@ export function LowStockScreen() {
 
   const loadData = useCallback(async () => {
     try {
-      const rows = await getLowStockProducts(50);
-      if (rows && rows.length > 0) {
-        setProducts(rows);
-      } else {
-        setProducts([
-          {
-            id: 1,
-            name: "Lait Candia 1L",
-            sku: "SKU-44021",
-            category: "dairy",
-            sale_price_centimes: 11000,
-            cost_price_centimes: 9000,
-            stock_quantity: 2,
-            minimum_stock_quantity: 10,
-            unit: "units",
-          },
-          {
-            id: 2,
-            name: "Café Moulu 250g",
-            sku: "SKU-99182",
-            category: "groceries",
-            sale_price_centimes: 24000,
-            cost_price_centimes: 18000,
-            stock_quantity: 1,
-            minimum_stock_quantity: 8,
-            unit: "unit",
-          },
-          {
-            id: 3,
-            name: "Huile Elio 2L",
-            sku: "SKU-31204",
-            category: "oils",
-            sale_price_centimes: 34000,
-            cost_price_centimes: 28000,
-            stock_quantity: 3,
-            minimum_stock_quantity: 12,
-            unit: "bottles",
-          },
-        ]);
-      }
+      setProducts((await getLowStockProducts(50)) ?? []);
     } catch (e) {
       console.error("Failed to load low stock products", e);
     } finally {
@@ -358,7 +320,16 @@ export function LowStockScreen() {
 
         {/* Low Stock Items List */}
         <View style={styles.itemsList}>
-          {filteredProducts.map((prod) => {
+          {!loading && products.length === 0 ? (
+            <EmptyState
+              icon={
+                <MaterialIcons name="inventory-2" size={48} color={theme.textMuted} />
+              }
+              title={t("dashboard:lowStock.noLowStock")}
+              locale={locale}
+            />
+          ) : (
+            filteredProducts.map((prod) => {
             const isCritical = prod.stock_quantity <= 1;
             const progressRatio = Math.min(
               1,
@@ -484,7 +455,8 @@ export function LowStockScreen() {
                 </TouchableOpacity>
               </View>
             );
-          })}
+          })
+          )}
         </View>
 
         {/* Bulk Reorder Button */}

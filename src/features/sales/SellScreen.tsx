@@ -25,7 +25,7 @@ import {
     Typography,
 } from "@/constants/theme";
 import { create } from "@/database/repositories/saleRepository";
-import { getTopSellingProducts } from "@/database/repositories/productRepository";
+import { getAll as getAllProducts, getTopSellingProducts } from "@/database/repositories/productRepository";
 import { BarcodeScannerModal } from "@/features/sales/components/BarcodeScannerModal";
 import { CartList } from "@/features/sales/components/CartList";
 import { CheckoutSheet } from "@/features/sales/components/CheckoutSheet";
@@ -50,6 +50,7 @@ export default function SellScreen() {
     removeItem,
     updateQuantity,
     clearCart,
+    refreshItemProducts,
     total,
     subtotal,
     itemCount,
@@ -191,12 +192,27 @@ export default function SellScreen() {
         setCustomerId(null);
       } catch (err: any) {
         console.error("Sale checkout failed", err);
-        setErrorState(err?.message || "Failed to process sale");
+        const message = err?.message ?? "";
+        if (message.includes("PRICE_CHANGED")) {
+          // A catalogue price moved between validation and commit: refresh the
+          // cart's product snapshots from SQLite so the totals the merchant
+          // sees match the new prices before confirming again.
+          const freshProducts = await getAllProducts({ is_active: true });
+          refreshItemProducts(freshProducts);
+          setErrorState(
+            t("sales:priceChanged", {
+              defaultValue:
+                "A product price changed since checkout started. The cart has been refreshed — please confirm the sale again.",
+            })
+          );
+        } else {
+          setErrorState(message || "Failed to process sale");
+        }
         setIsSaving(false);
         throw err;
       }
     },
-    [items, discount, clearCart, t],
+    [items, discount, clearCart, refreshItemProducts, t],
   );
 
   const getItemCartQty = (productId: number) => {

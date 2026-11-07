@@ -9,6 +9,7 @@
 
 import { InventoryMovement, Product } from "../../types/entities";
 import { executeAll, executeRead, executeWrite, escapeLike, getDatabase, transaction } from "../database";
+import { mapInventoryMovementRow, mapProductRow } from "./mappers";
 
 export type ProductFilters = {
   is_active?: boolean;
@@ -50,20 +51,7 @@ export async function getAll(filters: ProductFilters = {}): Promise<Product[]> {
   sql += ` ORDER BY name ASC`;
 
   const rows: any[] = await executeAll(sql, params);
-  return rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    sku: r.sku,
-    category: r.category,
-    sale_price_centimes: r.sale_price_centimes,
-    cost_price_centimes: r.cost_price_centimes,
-    stock_quantity: r.stock_quantity,
-    minimum_stock_quantity: r.minimum_stock_quantity,
-    unit: r.unit,
-    is_active: r.is_active !== 0,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-  }));
+  return rows.map(mapProductRow);
 }
 
 /**
@@ -97,20 +85,7 @@ export async function getTopSellingProducts(limit: number = 6): Promise<Product[
     [limit],
   );
 
-  return rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    sku: r.sku,
-    category: r.category,
-    sale_price_centimes: r.sale_price_centimes,
-    cost_price_centimes: r.cost_price_centimes,
-    stock_quantity: r.stock_quantity,
-    minimum_stock_quantity: r.minimum_stock_quantity,
-    unit: r.unit,
-    is_active: r.is_active !== 0,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-  }));
+  return rows.map(mapProductRow);
 }
 
 /**
@@ -131,21 +106,7 @@ export async function getById(id: number): Promise<Product | null> {
     return null;
   }
 
-  const r = rows[0];
-  return {
-    id: r.id,
-    name: r.name,
-    sku: r.sku,
-    category: r.category,
-    sale_price_centimes: r.sale_price_centimes,
-    cost_price_centimes: r.cost_price_centimes,
-    stock_quantity: r.stock_quantity,
-    minimum_stock_quantity: r.minimum_stock_quantity,
-    unit: r.unit,
-    is_active: r.is_active !== 0,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-  };
+  return mapProductRow(rows[0]);
 }
 
 /**
@@ -166,21 +127,7 @@ export async function getBySku(sku: string): Promise<Product | null> {
     return null;
   }
 
-  const r = rows[0];
-  return {
-    id: r.id,
-    name: r.name,
-    sku: r.sku,
-    category: r.category,
-    sale_price_centimes: r.sale_price_centimes,
-    cost_price_centimes: r.cost_price_centimes,
-    stock_quantity: r.stock_quantity,
-    minimum_stock_quantity: r.minimum_stock_quantity,
-    unit: r.unit,
-    is_active: r.is_active !== 0,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-  };
+  return mapProductRow(rows[0]);
 }
 
 function validatePrice(priceCentimes: number, fieldName: string): void {
@@ -203,24 +150,43 @@ export async function create(
   }
 
   try {
-    const result = await executeWrite(
-      // language=SQLite
-      `INSERT INTO products
-       (name, sku, category, sale_price_centimes, cost_price_centimes,
-        stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-      [
-        product.name,
-        product.sku,
-        product.category,
-        product.sale_price_centimes,
-        product.cost_price_centimes,
-        product.stock_quantity,
-        product.minimum_stock_quantity,
-        product.unit,
-        product.is_active ? 1 : 0,
-      ],
-    );
+    const db = await getDatabase();
+    const result = await transaction(db, async (tx: any) => {
+      const insertResult = await executeWrite(
+        tx,
+        // language=SQLite
+        `INSERT INTO products
+         (name, sku, category, sale_price_centimes, cost_price_centimes,
+          stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        [
+          product.name,
+          product.sku,
+          product.category,
+          product.sale_price_centimes,
+          product.cost_price_centimes,
+          product.stock_quantity,
+          product.minimum_stock_quantity,
+          product.unit,
+          product.is_active ? 1 : 0,
+        ],
+      );
+
+      // Opening stock must be mirrored in the stock ledger so that
+      // SUM(inventory_movements.quantity_change) reconciles with stock_quantity.
+      if (product.stock_quantity > 0) {
+        await executeWrite(
+          tx,
+          // language=SQLite
+          `INSERT INTO inventory_movements
+           (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
+           VALUES (?, 'in', ?, NULL, 'Opening stock', datetime('now'))`,
+          [insertResult, product.stock_quantity],
+        );
+      }
+
+      return insertResult;
+    });
 
     const created = await getById(result);
     if (!created) throw new Error("Failed to create product");
@@ -238,7 +204,7 @@ export async function create(
  */
 export async function update(
   id: number,
-  product: Partial<Omit<Product, "id" | "created_at" | "updated_at">>,
+  product: Partial<Omit<Product, "id" | "created_at" | "updated_at" | "stock_quantity">>,
 ): Promise<Product> {
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -265,10 +231,6 @@ export async function update(
     fields.push("cost_price_centimes = ?");
     values.push(product.cost_price_centimes);
   }
-  if (product.stock_quantity !== undefined) {
-    fields.push("stock_quantity = ?");
-    values.push(product.stock_quantity);
-  }
   if (product.minimum_stock_quantity !== undefined) {
     fields.push("minimum_stock_quantity = ?");
     values.push(product.minimum_stock_quantity);
@@ -292,7 +254,14 @@ export async function update(
   values.push(id);
 
   const sql = `UPDATE products SET ${fields.join(", ")} WHERE id = ?`;
-  await executeWrite(sql, values);
+  try {
+    await executeWrite(sql, values);
+  } catch (err: any) {
+    if (err?.message?.includes("UNIQUE constraint failed: products.sku")) {
+      throw new Error("DUPLICATE_SKU: A product with this SKU already exists");
+    }
+    throw err;
+  }
 
   const updated = await getById(id);
   if (!updated) throw new Error(`Product id=${id} not found`);
@@ -389,16 +358,8 @@ export async function getInventoryHistory(id: number): Promise<any[]> {
     `SELECT id, product_id, movement_type, quantity_change, reference_sale_id, note, created_at
      FROM inventory_movements
      WHERE product_id = ?
-     ORDER BY created_at DESC`,
+     ORDER BY created_at DESC, id DESC`,
     [id],
   );
-  return rows.map((r) => ({
-    id: r.id,
-    product_id: r.product_id,
-    movement_type: r.movement_type,
-    quantity_change: r.quantity_change,
-    reference_sale_id: r.reference_sale_id,
-    note: r.note,
-    created_at: r.created_at,
-  }));
+  return rows.map(mapInventoryMovementRow);
 }
