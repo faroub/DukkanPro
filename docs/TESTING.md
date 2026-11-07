@@ -18,6 +18,7 @@ The testing setup uses:
 - **React Native Testing Library** (`@testing-library/react-native`)
 - **jest-expo** preset for Expo SDK 57 compatibility
 - **`jest.setup.js`** for mocking native Expo modules (`expo-camera`, `@react-native-async-storage/async-storage`, `expo-router`)
+- **`testTimeout: 15000`** in `package.json` — the sql.js-backed SQLite mock needs a few seconds to initialise on a cold run, so screen-integration tests are allowed 15s per test instead of Jest's 5s default
 
 ---
 

@@ -529,6 +529,7 @@
     "noSalesYet": "No sales yet",
     "netToPay": "Total net to pay",
     "amountReceived": "Amount received",
+    "invalidCashAmount": "Enter the cash amount received before confirming the sale.",
     "changeDue": "Change due",
     "customerSelected": "Customer selected",
     "customerOptional": "Customer (Optional)",

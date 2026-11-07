@@ -33,6 +33,36 @@ export type CustomerListItem = Customer & {
 };
 
 /**
+ * Attach computed debt balances to raw customer rows.
+ */
+function attachDebt(
+  customers: Customer[],
+  debtsMap: Record<number, number>,
+): CustomerListItem[] {
+  return customers.map((customer) => {
+    const debt = debtsMap[customer.id] || 0;
+    return {
+      ...customer,
+      hasDebt: debt > 0,
+      outstandingBalance: debt,
+    };
+  });
+}
+
+/**
+ * Fetch the customer list with current debt balances attached.
+ */
+async function fetchCustomerList(
+  onlyActive: boolean,
+): Promise<CustomerListItem[]> {
+  const allCustomers = await getAll({
+    is_active: onlyActive ? true : undefined,
+  });
+  const debtsMap = await getAllCustomerDebts();
+  return attachDebt(allCustomers, debtsMap);
+}
+
+/**
  * UseCustomers hook - manages customer list state with filtering
  */
 export function useCustomers(filters: CustomersFilters = {}) {
@@ -48,27 +78,7 @@ export function useCustomers(filters: CustomersFilters = {}) {
     setError(null);
 
     try {
-      let allCustomers: Customer[];
-
-      if (onlyActive) {
-        allCustomers = await getAll({ is_active: true });
-      } else {
-        allCustomers = await getAll({ is_active: undefined });
-      }
-
-      // Single atomic grouped query returning customer_id -> debt map
-      const debtsMap = await getAllCustomerDebts();
-
-      const transformed: CustomerListItem[] = allCustomers.map((customer) => {
-        const debt = debtsMap[customer.id] || 0;
-        return {
-          ...customer,
-          hasDebt: debt > 0,
-          outstandingBalance: debt,
-        };
-      });
-
-      setCustomers(transformed);
+      setCustomers(await fetchCustomerList(!!onlyActive));
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load customers",
@@ -88,15 +98,7 @@ export function useCustomers(filters: CustomersFilters = {}) {
       const results = await customerSearch(query);
       const debtsMap = await getAllCustomerDebts();
 
-      const transformed: CustomerListItem[] = results.map((customer) => {
-        const debt = debtsMap[customer.id] || 0;
-        return {
-          ...customer,
-          hasDebt: debt > 0,
-          outstandingBalance: debt,
-        };
-      });
-      setCustomers(transformed);
+      setCustomers(attachDebt(results, debtsMap));
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to search customers",
@@ -120,26 +122,10 @@ export function useCustomers(filters: CustomersFilters = {}) {
 
     async function fetchInitialData() {
       try {
-        let allCustomers: Customer[];
-        if (onlyActive) {
-          allCustomers = await getAll({ is_active: true });
-        } else {
-          allCustomers = await getAll({ is_active: undefined });
-        }
-
-        const debtsMap = await getAllCustomerDebts();
-
-        const transformed: CustomerListItem[] = allCustomers.map((customer) => {
-          const debt = debtsMap[customer.id] || 0;
-          return {
-            ...customer,
-            hasDebt: debt > 0,
-            outstandingBalance: debt,
-          };
-        });
+        const list = await fetchCustomerList(!!onlyActive);
 
         if (isMounted) {
-          setCustomers(transformed);
+          setCustomers(list);
           setLoading(false);
         }
       } catch (err) {

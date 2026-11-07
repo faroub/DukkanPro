@@ -85,7 +85,7 @@ export function InventorySettingsScreen() {
         [LOW_STOCK_THRESHOLD_KEY, defaultLowStockThreshold.toString()],
       );
       showToast(t("settings.changesSaved") || t("settings.saveChanges"));
-    } catch (error) {
+    } catch {
       showToast(t("errors.saveFailed") || "Failed to save settings");
     }
   }, [allowNegativeStock, defaultLowStockThreshold, t]);

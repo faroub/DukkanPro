@@ -100,6 +100,6 @@ Theme preferences (`system` / `light` / `dark`) are managed by `AppThemeProvider
 
 ## 📐 Conventions
 
-- **LTR-Only Layout:** The app stays visually LTR for every language (French, Arabic, English); Arabic text may right-align inside individual components.
+- **Single-Control-Site Layout Direction:** French and English render LTR; Arabic switches the whole app (native `I18nManager` and web `document.dir`) to RTL. `src/localization/i18n.ts` is the only authorized caller of the global direction setters — `scripts/check-no-rtl.ts` and `src/__tests__/ltr-architecture.test.ts` statically and at-runtime enforce that no other source file calls `I18nManager.forceRTL`/`allowRTL` or hardcodes `flexDirection: 'row-reverse'`.
 - **Money as Integer Centimes:** Monetary arithmetic is performed strictly on integers (centimes).
 - **Thin Route Files:** Screens and business logic reside inside `src/features/`.

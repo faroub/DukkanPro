@@ -14,7 +14,6 @@ interface CartState {
   discount: number;
 
   // Actions
-  addItem: (productId: number, quantity: number) => void;
   removeItem: (productId: number) => void;
   subtractItem: (productId: number, quantity?: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
@@ -36,26 +35,6 @@ export const useCartStore = create<CartState>()(
       items: [],
       preserveCart: false,
       discount: 0,
-
-      addItem: (productId: number, quantity: number) => {
-        set((state) => {
-          const existingItem = state.items.find(item => item.product.id === productId);
-
-          if (existingItem) {
-            const maxAvailable = Math.max(0, existingItem.product.stock_quantity ?? 0);
-            const clampedQty = Math.min(existingItem.quantity + quantity, maxAvailable);
-            return {
-              items: state.items.map(item =>
-                item.product.id === productId
-                  ? { ...item, quantity: clampedQty }
-                  : item
-              ),
-            };
-          } else {
-            return state;
-          }
-        });
-      },
 
       // Expects a full product object and enforces live stock constraints
       addItemWithProduct: (product: Product, quantity: number) => {
@@ -186,7 +165,6 @@ export function useCartStoreHook() {
 
   return {
     items: store.items,
-    addItem: store.addItem,
     addItemWithProduct: store.addItemWithProduct,
     subtractItem: store.subtractItem,
     removeItem: store.removeItem,

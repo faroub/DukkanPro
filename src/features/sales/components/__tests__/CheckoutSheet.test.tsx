@@ -124,6 +124,46 @@ describe("CheckoutSheet Component Money Math & Re-validation Harness", () => {
     });
   });
 
+  it("blocks a cash sale when the received amount parses to zero (malformed input)", async () => {
+    const product = await seedTestProduct({
+      name: "Zero Cash Rice",
+      sale_price_centimes: 12000, // 120 DZD
+    });
+
+    useCartStore.getState().addItemWithProduct(product, 1);
+
+    const onCheckoutMock = jest.fn();
+
+    const screen = await renderScreen(
+      <CheckoutSheet
+        visible={true}
+        onRequestClose={jest.fn()}
+        onCheckout={onCheckoutMock}
+        cartTotal={12000}
+        isSaving={false}
+      />
+    );
+
+    // Wait for the sheet to populate the cash field with the sale total
+    const cashInput = await screen.findByDisplayValue("120");
+    // Malformed input parses to 0 centimes (strict parseDzdToCentimes)
+    fireEvent.changeText(cashInput, "120abc");
+
+    const confirmButton = await screen.findByText("Confirmer la vente");
+    fireEvent.press(confirmButton);
+
+    // Must NOT create a debt sale under a "cash" payment method
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.stringMatching(
+          /montant reçu en espèces avant|enter the cash amount received before/i
+        )
+      );
+    });
+    expect(onCheckoutMock).not.toHaveBeenCalled();
+  });
+
   it("submits checkout with live validated items and exact amount paid", async () => {
     const customer = await seedTestCustomer({ name: "Amine Purchaser" });
     const product = await seedTestProduct({

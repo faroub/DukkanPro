@@ -529,6 +529,7 @@
     "filter_custom": "Période personnalisée",
     "netToPay": "Total net à payer",
     "amountReceived": "Montant reçu",
+    "invalidCashAmount": "Saisissez le montant reçu en espèces avant de confirmer la vente.",
     "changeDue": "Monnaie à rendre",
     "customerSelected": "Client sélectionné",
     "customerOptional": "Client (facultatif)",

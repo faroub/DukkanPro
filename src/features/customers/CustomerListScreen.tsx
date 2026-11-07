@@ -28,7 +28,7 @@ export function CustomerListScreen() {
   const [filter, setFilter] = useState<string>("all");
 
   // Fetch all customers
-  const { customers, loading, error, refetch, searchCustomers } = useCustomers({
+  const { customers, refetch, searchCustomers } = useCustomers({
     onlyActive: filter !== "archived",
   });
 

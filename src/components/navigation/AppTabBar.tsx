@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 export interface AppTabBarProps {
   state: {
     index: number;
-    routes: Array<{ key: string; name: string }>;
+    routes: { key: string; name: string }[];
   };
   descriptors?: any;
   navigation: {

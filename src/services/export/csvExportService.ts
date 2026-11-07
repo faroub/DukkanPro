@@ -9,8 +9,6 @@
  * - Uses expo-file-system for writing and expo-sharing for sharing.
  */
 
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { useTranslation } from "react-i18next";
 
 /**

@@ -18,11 +18,11 @@ import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { getSaleById } from '@/database/repositories/saleRepository';
 import { getCustomerDebt } from '@/services/customers/customerBalanceService';
 import { Sale, SaleItem } from '@/types/entities';
-export type SaleWithItems = Sale & { customer_name?: string | null; items: SaleItem[] };
 import { CancelSaleDialog } from '@/features/sales/components/CancelSaleDialog';
 import { ReturnSaleDialog } from '@/features/sales/components/ReturnSaleDialog';
 import { formatCentimes } from '@/utils/money';
 import { formatDate, formatTime } from '@/utils/dates';
+export type SaleWithItems = Sale & { customer_name?: string | null; items: SaleItem[] };
 
 interface SaleDetailScreenProps {
   params?: { id?: string };

@@ -529,6 +529,7 @@
     "filter_custom": "تخصيص الفترة",
     "netToPay": "المبلغ الصافي للدفع",
     "amountReceived": "المبلغ المستلم",
+    "invalidCashAmount": "أدخل المبلغ النقدي المستلم قبل تأكيد البيع.",
     "changeDue": "المبلغ المتبقي / الصرف",
     "customerSelected": "الزبون المحدد",
     "customerOptional": "الزبون (اختياري)",

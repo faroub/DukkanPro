@@ -45,19 +45,30 @@ export function RecordPaymentScreen({
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Reflesh customer/debt from SQLite only when the caller did not pass them.
+  // Depends on the initial props so a successful payment (currentDebt → 0)
+  // does not re-trigger the fetch, and guards against post-unmount updates.
   useEffect(() => {
-    if (customerId && (!customerName || currentDebt === 0)) {
-      Promise.all([getCustomerById(customerId), getCustomerDebt(customerId)]).then(
-        ([cust, debt]) => {
-          if (cust) setCustomerName(cust.name);
-          if (debt !== undefined) {
-            setCurrentDebt(debt);
-            setAmountInput(formatCentimesToInputDzd(debt));
-          }
-        }
-      );
+    if (!customerId || (initialCustomerName && initialCurrentDebt)) {
+      return;
     }
-  }, [customerId, customerName, currentDebt]);
+
+    let isMounted = true;
+    Promise.all([getCustomerById(customerId), getCustomerDebt(customerId)]).then(
+      ([cust, debt]) => {
+        if (!isMounted) return;
+        if (cust) setCustomerName(cust.name);
+        if (debt !== undefined) {
+          setCurrentDebt(debt);
+          setAmountInput(formatCentimesToInputDzd(debt));
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+    };
+  }, [customerId, initialCustomerName, initialCurrentDebt]);
 
   const parsedCentimes = useMemo(() => {
     return parseDzdToCentimes(amountInput);

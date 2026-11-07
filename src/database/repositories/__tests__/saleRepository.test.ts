@@ -305,6 +305,35 @@ describe("saleRepository", () => {
       }
     });
 
+    it("cancels a sale even when one of its items' product was hard-deleted", async () => {
+      // Simulate an external hard deletion of the product row: the sale_items
+      // FK (ON DELETE SET NULL) degrades the item's product_id to NULL.
+      await db.runAsync("DELETE FROM products WHERE id = 2");
+      await db.runAsync(
+        "UPDATE sale_items SET product_id = NULL WHERE sale_id = ? AND product_id = 2",
+        [saleId],
+      );
+
+      // The cancellation must still succeed (no NOT NULL constraint crash)
+      await cancel(saleId!, "Cancelled after product deletion");
+
+      const cancelledSale = await getById(saleId!);
+      expect(cancelledSale?.status).toBe("cancelled");
+
+      // No restock movement can exist for the orphaned item; the live-product
+      // item (product 1, quantity 2) must still be restored normally.
+      const movements = await db.getAllAsync(
+        `SELECT product_id, movement_type, quantity_change FROM inventory_movements
+         WHERE reference_sale_id = ?`,
+        [saleId],
+      );
+      const restored = movements.filter(
+        (m: any) =>
+          m.movement_type === "in" && m.product_id === 1 && m.quantity_change === 2,
+      );
+      expect(restored.length).toBe(1);
+    });
+
     it("does not count cancelled sale toward revenue", async () => {
       await cancel(saleId!, "Test");
 
@@ -379,6 +408,29 @@ describe("saleRepository", () => {
       const debt = await getCustomerDebt(1);
       // Returned sales should be excluded from debt calculation
       expect(debt).toBe(0);
+    });
+
+    it("returns a sale even when its product was hard-deleted", async () => {
+      // Simulate an external hard deletion of the product row: the sale_items
+      // FK (ON DELETE SET NULL) degrades the item's product_id to NULL.
+      await db.runAsync("DELETE FROM products WHERE id = 1");
+      await db.runAsync(
+        "UPDATE sale_items SET product_id = NULL WHERE sale_id = ?",
+        [saleId],
+      );
+
+      // The return must still succeed (no NOT NULL constraint crash)
+      await returnSale(saleId!, "Returned after product deletion");
+
+      const returnedSale = await getById(saleId!);
+      expect(returnedSale?.status).toBe("returned");
+
+      // No restock movement can exist for the orphaned item
+      const movements = await db.getAllAsync(
+        `SELECT COUNT(*) AS n FROM inventory_movements WHERE reference_sale_id = ?`,
+        [saleId],
+      );
+      expect(movements[0]?.n).toBe(0);
     });
   });
 

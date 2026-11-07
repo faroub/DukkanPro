@@ -99,12 +99,12 @@ export async function seedTestSale(
   saleInputOverrides?: Partial<{
     customerId?: number;
     paymentMethod: "cash" | "electronic" | "mixed" | "partial" | "credit";
-    items: Array<{
+    items: {
       productId: number;
       quantity: number;
       unitSalePriceCentimes: number;
       note?: string;
-    }>;
+    }[];
     note?: string;
     discountCentimes?: number;
     amountPaidCentimes?: number;

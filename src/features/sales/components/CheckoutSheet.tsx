@@ -55,11 +55,11 @@ interface CheckoutSheetProps {
     rawAmountReceived?: number;
     note?: string;
     customerId?: number;
-    validatedItems?: Array<{
+    validatedItems?: {
       productId: number;
       quantity: number;
       unitSalePriceCentimes: number;
-    }>;
+    }[];
   }) => Promise<void> | void;
   cartTotal: number;
   isSaving: boolean;
@@ -96,7 +96,7 @@ export function CheckoutSheet({
   // Live re-computed subtotal and validated items from SQLite
   const [liveSubtotal, setLiveSubtotal] = useState<number>(cartTotal);
   const [validatedItems, setValidatedItems] = useState<
-    Array<{ productId: number; quantity: number; unitSalePriceCentimes: number }>
+    { productId: number; quantity: number; unitSalePriceCentimes: number }[]
   >([]);
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export function CheckoutSheet({
     let isMounted = true;
     (async () => {
       let sum = 0;
-      const valItems: Array<{ productId: number; quantity: number; unitSalePriceCentimes: number }> = [];
+      const valItems: { productId: number; quantity: number; unitSalePriceCentimes: number }[] = [];
 
       for (const item of items) {
         const liveProduct = await getProductById(item.product.id);
@@ -205,11 +205,11 @@ export function CheckoutSheet({
 
     try {
       // Re-validate live stock and price for all items in cart synchronously on demand
-      const checkoutItems: Array<{
+      const checkoutItems: {
         productId: number;
         quantity: number;
         unitSalePriceCentimes: number;
-      }> = [];
+      }[] = [];
 
       let currentLiveSubtotal = 0;
 
@@ -277,6 +277,22 @@ export function CheckoutSheet({
               : liveTotal;
 
       const remaining = Math.max(0, liveTotal - effectiveAmountPaid);
+
+      // A cash sale requires a positive amount received: an empty or malformed
+      // input parses to 0 centimes and would otherwise silently record the full
+      // total as customer debt under a "cash" payment method. Checked before the
+      // customer gate so the merchant sees the actual input error first.
+      if (paymentMethod === "cash" && amountReceived <= 0) {
+        Alert.alert(
+          t("common:error", { defaultValue: "Error" }),
+          t("sales:invalidCashAmount", {
+            defaultValue: "Enter the cash amount received before confirming the sale.",
+          }),
+        );
+        isConfirmingRef.current = false;
+        setIsConfirming(false);
+        return;
+      }
 
       if ((paymentMethod === "credit" || paymentMethod === "partial" || remaining > 0) && !customerId) {
         Alert.alert(

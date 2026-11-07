@@ -145,11 +145,11 @@ export default function SellScreen() {
       rawAmountReceived?: number;
       note?: string;
       customerId?: number;
-      validatedItems?: Array<{
+      validatedItems?: {
         productId: number;
         quantity: number;
         unitSalePriceCentimes: number;
-      }>;
+      }[];
     }) => {
       if (items.length === 0) {
         setErrorState(t("sell.empty_cart"));

@@ -102,14 +102,14 @@ export function CustomerDetailScreen({ customerId }: CustomerDetailScreenProps) 
 
   // Combined chronological timeline
   const timelineItems = useMemo(() => {
-    const items: Array<{
+    const items: {
       id: string;
       type: "sale" | "payment";
       date: string;
       amountCentimes: number;
       title: string;
       subtitle: string;
-    }> = [];
+    }[] = [];
 
     sales.forEach((sale) => {
       items.push({

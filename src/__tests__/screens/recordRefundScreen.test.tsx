@@ -4,6 +4,8 @@ import {
   renderScreen,
   resetTestDb,
   seedTestCustomer,
+  triggerMockFocus,
+  setMockSearchParams,
 } from "@/testing/screenTestHarness";
 import {
   create as createSale,
@@ -14,7 +16,6 @@ import { fireEvent, waitFor } from "@testing-library/react-native";
 import { getCustomerCredit, getCustomerDebt, recordRefund } from "@/services/customers/customerBalanceService";
 import { CustomerDetailScreen } from "@/features/customers/CustomerDetailScreen";
 import { getDatabase } from "@/database/database";
-import { triggerMockFocus, setMockSearchParams } from "@/testing/screenTestHarness";
 
 /**
  * Helper: create a customer whose credit is exactly `creditCentimes`
@@ -195,7 +196,7 @@ describe("RecordRefundScreen", () => {
     // Exactly one refund of -325 centimes with the selected method.
     const db = await getDatabase();
     await waitFor(async () => {
-      const rows: Array<{ amount_centimes: number; payment_method: string }> =
+      const rows: { amount_centimes: number; payment_method: string }[] =
         await db.getAllAsync(
           `SELECT amount_centimes, payment_method FROM customer_payments
            WHERE customer_id = ? AND amount_centimes < 0`,

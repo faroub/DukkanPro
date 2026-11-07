@@ -1,5 +1,5 @@
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 /**
  * useEdgeToEdge - Hook for true edge-to-edge display with safe area padding

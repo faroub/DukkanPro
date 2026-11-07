@@ -2,29 +2,6 @@ import ar from "@/locales/ar.json";
 import en from "@/locales/en.json";
 import fr from "@/locales/fr.json";
 
-const REQUIRED_SECTIONS = [
-  "common",
-  "onboarding",
-  "navigation",
-  "dashboard",
-  "products",
-  "inventory",
-  "sales",
-  "customers",
-  "payments",
-  "catalogue",
-  "receipts",
-  "exports",
-  "settings",
-  "voice",
-  "errors",
-  "confirmations",
-  "emptyStates",
-  "permissions",
-] as const;
-
-type RequiredSections = (typeof REQUIRED_SECTIONS)[number];
-
 /**
  * Recursively flattens all nested keys in a dictionary into dot-separated paths.
  * e.g., { onboarding: { welcome: { title: "..." } } } => ["onboarding.welcome.title"]

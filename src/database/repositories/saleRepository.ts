@@ -287,12 +287,12 @@ export async function getById(id: number): Promise<Sale | null> {
 export async function create(saleInput: {
   customerId?: number;
   paymentMethod: "cash" | "electronic" | "mixed" | "partial" | "credit";
-  items: Array<{
+  items: {
     productId: number;
     quantity: number;
     unitSalePriceCentimes: number;
     note?: string;
-  }>;
+  }[];
   note?: string;
   discountCentimes?: number;
   amountPaidCentimes?: number;
@@ -562,6 +562,12 @@ export async function cancel(id: number, reason: string): Promise<void> {
 
     // 1. For each sale item, restore exact stock and create reverse inventory movement
     for (const item of saleRows) {
+      // product_id is NULL only when the product row was hard-deleted externally
+      // (FK ON DELETE SET NULL): there is no stock row to restore and no valid
+      // movement to log — skipping keeps the cancellation atomic instead of
+      // failing the whole transaction on a NOT NULL constraint violation.
+      if (item.product_id === null || item.product_id === undefined) continue;
+
       await executeWrite(
         tx,
         `UPDATE products
@@ -627,6 +633,12 @@ export async function returnSale(id: number, reason: string): Promise<void> {
 
     // 1. For each sale item, restore exact stock and create reverse inventory movement
     for (const item of saleRows) {
+      // product_id is NULL only when the product row was hard-deleted externally
+      // (FK ON DELETE SET NULL): there is no stock row to restore and no valid
+      // movement to log — skipping keeps the return atomic instead of failing
+      // the whole transaction on a NOT NULL constraint violation.
+      if (item.product_id === null || item.product_id === undefined) continue;
+
       await executeWrite(
         tx,
         `UPDATE products

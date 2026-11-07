@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { CartItem } from "./CartItem";
 
 interface CartListProps {
-  items: Array<{ product: any; quantity: number }>;
+  items: { product: any; quantity: number }[];
   onRemove: (productId: number) => void;
   onClearCart?: () => void;
   onUpdateQuantity: (productId: number, quantity: number) => void;

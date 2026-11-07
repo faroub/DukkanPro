@@ -27,13 +27,13 @@ export interface SaleCardData {
   note?: string | null;
   sold_at: string;
   receipt_no?: string;
-  saleItems?: Array<{
+  saleItems?: {
     id?: number;
     product_name_snapshot: string;
     quantity: number;
     unit_sale_price_centimes?: number;
     line_total_centimes?: number;
-  }>;
+  }[];
 }
 
 interface SaleCardProps {

@@ -24,55 +24,7 @@ import {
   transaction,
 } from "@/database/database";
 import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
-import { CustomerPayment, Sale } from "@/types/entities";
-
-/**
- * Retrieve all sales for a customer, optionally filtered by status.
- * Threading `tx` explicitly ensures queries run directly inside active transactions.
- */
-async function getSalesByCustomer(
-  customerId: number,
-  statusFilter?: "completed" | "cancelled" | "refunded" | "returned",
-  tx?: SQLiteDatabase,
-): Promise<Sale[]> {
-  const sql = `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
-             s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
-             s.payment_method, s.note, s.sold_at, s.created_at, s.updated_at
-       FROM sales s
-      WHERE s.customer_id = ?
-      ORDER BY s.sold_at DESC`;
-
-  const rows: any[] = tx
-    ? await executeRead(tx, sql, [customerId])
-    : await executeRead(sql, [customerId]);
-
-  const sales: Sale[] = rows.map((r) => ({
-    id: r.id,
-    customer_id: r.customer_id,
-    status: r.status,
-    subtotal_centimes: r.subtotal_centimes,
-    discount_centimes: r.discount_centimes,
-    total_centimes: r.total_centimes,
-    amount_paid_centimes: r.amount_paid_centimes,
-    remaining_balance_centimes: r.remaining_balance_centimes,
-    payment_method: r.payment_method as
-      | "cash"
-      | "electronic"
-      | "mixed"
-      | "partial"
-      | "credit",
-    note: r.note,
-    sold_at: r.sold_at,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-  }));
-
-  if (statusFilter) {
-    return sales.filter((sale) => sale.status === statusFilter);
-  }
-
-  return sales;
-}
+import { CustomerPayment } from "@/types/entities";
 
 /**
  * Retrieve all customer payments from the customer_payments table.

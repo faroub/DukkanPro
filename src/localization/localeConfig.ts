@@ -14,17 +14,14 @@
  * - English: en-DZ (Algerian English)
  * - Currency: DZD (Algerian Dinar)
  *
- * The entire application remains visually LTR regardless of selected language.
- * Arabic text may use right alignment inside individual components, but the
- * surrounding layout is always LTR.
+ * Layout direction is driven by the selected locale (see src/localization/i18n.ts):
+ * Arabic renders RTL, French and English render LTR.
  */
 
 import { getLocales } from "expo-localization";
-import { executeAll, executeRead, executeWrite } from "../database/database";
+import { executeRead, executeWrite } from "../database/database";
 
 import type { Locale } from "@/localization/types";
-
-const PREFERRED_LOCALES = ["ar", "fr", "en"] as const;
 
 /**
  * Canonical locale persistence keys.

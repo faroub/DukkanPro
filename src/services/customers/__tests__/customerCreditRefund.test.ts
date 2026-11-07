@@ -130,7 +130,7 @@ describe("Customer credit & refund workflow", () => {
     const customer = await makeCustomer("Mounir");
 
     // Sale A: credit sale, fully repaid.
-    const saleA = await createSale({
+    await createSale({
       customerId: customer.id,
       paymentMethod: "credit",
       items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 10000 }],
@@ -233,7 +233,7 @@ describe("Customer credit & refund workflow", () => {
   it("payments are still blocked when there is no debt (overpayment guard unchanged)", async () => {
     const product = await makeProduct("C8");
     const customer = await makeCustomer("Omar");
-    const sale = await createSale({
+    await createSale({
       customerId: customer.id,
       paymentMethod: "credit",
       items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 10000 }],

@@ -51,7 +51,7 @@ export const dbMutex = new AsyncMutex();
 export async function rawExecuteRead<T = any>(
   db: SQLiteDatabase,
   sql: string,
-  params: Array<any> = [],
+  params: any[] = [],
 ): Promise<T[]> {
   const result = await db.getAllAsync(
     sql,
@@ -72,7 +72,7 @@ export function escapeLike(query: string): string {
 export async function rawExecuteWrite(
   db: SQLiteDatabase,
   sql: string,
-  params: Array<any> = [],
+  params: any[] = [],
 ): Promise<number> {
   const result = await db.runAsync(
     sql,

@@ -12,7 +12,7 @@ All business data (products, sales, customers, debt ledgers) is stored locally i
 - **📦 Inventory & Catalogue:** Stock level tracking, low-stock threshold alert banners, quick counter restock modals, and stock movement audit logs.
 - **👥 Customer Debt Ledger (*Carnet Crédit*):** Customer directory, credit sales tracking, partial/full debt payment recording, and automated WhatsApp/SMS debt reminder message previews.
 - **💱 Multi-Currency Support:** Seamless support for **Algerian Dinar (DZD)** (Default), **Euro (€)**, and **US Dollar ($)** across all price displays, cart totals, receipts, and financial cards.
-- **🌍 Multi-Language & LTR Layout:** Localized in **French (FR)**, **Arabic (AR)**, and **English (EN)** with strict visual LTR layout preservation (supporting Arabic right-aligned text within components).
+- **🌍 Multi-Language & Bidirectional Layout:** Localized in **French (FR)**, **Arabic (AR)**, and **English (EN)**. Layout direction is driven by the selected locale — French and English render LTR, Arabic switches the whole app to RTL through a single authorized control site (`src/localization/i18n.ts`), enforced statically by `scripts/check-no-rtl.ts`.
 - **🎨 Dynamic Theming:** Light and Dark mode UI components that adapt dynamically via `useTheme()`.
 - **📊 Business Analytics:** Bento summary cards (today's revenue, estimated net profit, debt to collect, low stock count), 7-day sales activity chart, and quick operation shortcuts.
 - **💾 Data Control & Export:** CSV export for products, customers, and sales, plus factory data reset capabilities.
