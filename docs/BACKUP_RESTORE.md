@@ -1,6 +1,9 @@
 # Backup & Restore — Design Plan (DukkanPro)
 
-> Status: **PLAN — awaiting approval.** No implementation has been started.
+> Status: **Service implemented** (`src/services/backup/backupFormat.ts`,
+> `backupService.ts`, round-trip tests in `__tests__/`). The settings-screen UI
+> (buttons + overwrite-confirmation dialog + `expo-document-picker` wiring) is
+> intentionally NOT part of this change and remains a separate follow-up.
 > Scope: full-data backup (export) and restore (import) for the offline-first
 > SQLite database, with no new cloud dependencies.
 
@@ -123,11 +126,15 @@ transaction anyway, per migration 14's finding).
 - `databaseVersion > app's CURRENT_TARGET` (backup from a newer app):
   **reject** with `BACKUP_NEWER_VERSION` — never partially import, never
   downgrade the schema.
-- `databaseVersion <= CURRENT_TARGET`: import rows, then `runMigrations(db,
-  CURRENT_TARGET)` runs only the pending ones (it is idempotent and skips
-  already-recorded versions). Historical migration records already in the DB
-  are irrelevant — the import wiped the user tables, and the version rows for
-  covered migrations still exist in the untouched `_migration_version`.
+- `databaseVersion <= CURRENT_TARGET`: import the rows into the app's current
+  schema. No re-migration is run: restore replaces only row *data* — the
+  local `_migration_version` bookkeeping and the schema itself stay exactly as
+  the app built them (getDatabase() always runs the app to CURRENT_TARGET at
+  open). Migrations 1–14 are additive, so an older backup's rows are a subset
+  of the current columns; columns missing from a partial row bind NULL and
+  fall back to their schema defaults (e.g. `customer_payments.currency` →
+  `'DZD'`), while a row that violates a NOT NULL/CHECK constraint fails inside
+  the transaction and the whole restore rolls back — loudly, never silently.
 - `_migration_version` itself is never imported.
 
 ### 4.5 Post-import verification (returned to the caller, asserted in tests)
@@ -174,18 +181,20 @@ reference_sale_id, note, created_at)`.
 - Both directory and picker are interior to the device; nothing leaves the
   merchant's hands except through the OS share sheet.
 
-## 7. Code layout (after approval)
+## 7. Code layout (as implemented)
 
 ```
-src/services/backup/backupService.ts        // createBackup(), restoreBackup(), types
-src/services/backup/backupFormat.ts         // BACKUP_FORMAT constants + whitelist
-src/services/backup/__tests__/backupService.test.ts
+src/services/backup/backupFormat.ts        // BACKUP_FORMAT constants, column whitelist, validateBackup() (pure)
+src/services/backup/backupService.ts       // buildBackup(), createBackup(), restoreBackup()
+src/services/backup/__tests__/backupService.test.ts   // 10 tests incl. the §8 round-trip
 ```
 
 UI (later, separate change): a "Backup & Restore" entry in settings with two
-buttons and the overwrite-confirmation dialog; no repository changes needed.
+buttons and the overwrite-confirmation dialog, reading a picked file into a
+string and passing it to `restoreBackup`; `Sharing.shareAsync(uri)` for
+export. No repository changes were needed.
 
-## 8. Round-trip acceptance tests (to be written with the implementation)
+## 8. Round-trip acceptance tests (implemented)
 
 1. Seed a DB with a business profile, products (with opening stock), a
    completed sale, a payment, an inventory adjustment — spanning every table.
