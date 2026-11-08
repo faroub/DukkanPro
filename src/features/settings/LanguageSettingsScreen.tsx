@@ -2,7 +2,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, I18nManager, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
@@ -83,6 +83,12 @@ export function LanguageSettingsScreen() {
   }, [i18n]);
 
   const handleSelectLanguage = useCallback((lang: LanguageOption) => {
+    // On native, forceRTL only takes effect after an app restart: I18nManager.isRTL
+    // is the direction the running instance launched with. When switching to a
+    // locale whose direction differs, tell the merchant to close and reopen the
+    // app. On web the direction updates live, so no restart is needed.
+    const directionChanges = lang.code === "ar" ? !I18nManager.isRTL : I18nManager.isRTL;
+
     changeLocale(lang.code);
     setCurrentLanguage(lang.code);
     const toastText =
@@ -92,7 +98,15 @@ export function LanguageSettingsScreen() {
           ? "Langue changée en français avec succès"
           : "Language changed to English successfully";
     showToast(toastText);
-  }, []);
+
+    if (directionChanges && Platform.OS !== "web") {
+      Alert.alert(
+        t("settings.restartRequiredTitle"),
+        t("settings.restartRequiredMessage"),
+        [{ text: t("common.ok") }],
+      );
+    }
+  }, [t]);
 
   return (
     <ScrollView

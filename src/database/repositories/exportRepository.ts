@@ -67,10 +67,11 @@ export async function getAllSales(): Promise<Sale[]> {
   // Get all sales headers
   const saleRows: any[] = await executeAll(
     // language=SQLite
-    `SELECT s.id, s.customer_id, s.status, s.subtotal_centimes, s.discount_centimes,
+    `SELECT s.id, s.customer_id, c.name AS customer_name, s.status, s.subtotal_centimes, s.discount_centimes,
              s.total_centimes, s.amount_paid_centimes, s.remaining_balance_centimes,
              s.payment_method, s.currency, s.note, s.sold_at, s.created_at, s.updated_at
         FROM sales s
+        LEFT JOIN customers c ON c.id = s.customer_id
      ORDER BY s.sold_at DESC`,
   );
 
@@ -95,6 +96,7 @@ export async function getAllSales(): Promise<Sale[]> {
   return saleRows.map((sale) => ({
     id: sale.id,
     customer_id: sale.customer_id,
+    customer_name: sale.customer_name,
     status: sale.status as "completed" | "cancelled" | "returned",
     subtotal_centimes: sale.subtotal_centimes as number,
     discount_centimes: sale.discount_centimes as number,

@@ -184,8 +184,9 @@ export function ExportSettingsScreen() {
       const written: string[] = [];
       for (const tableId of selectedTables) {
         const csv = await buildCsvFor(tableId, t);
+        // Prepend a UTF-8 BOM so Arabic and French text opens correctly in Excel.
         const uri = `${exportDir}/dukkan-${tableId}.csv`;
-        await FileSystem.writeAsStringAsync(uri, csv, {
+        await FileSystem.writeAsStringAsync(uri, `\uFEFF${csv}`, {
           encoding: FileSystem.EncodingType.UTF8,
         });
         written.push(uri);

@@ -19,13 +19,12 @@
  *   would need a full screen render with navigation/i18n/theme contexts and is
  *   intentionally not re-tested here.
  *
- * Kept as a static test on purpose: the route-file "no raw SQL" check enforces
- * an architectural convention (SQL must not leak into route files), which
- * cannot be observed from runtime behavior.
+ * Kept as static where behavior cannot be observed: none — the route-file
+ * "no raw SQL" convention now lives in eslint.config.js as a
+ * no-restricted-imports rule (a stronger, structural version of the check:
+ * route files cannot reach the database layer at all), and the DataResetScreen
+ * gate is covered by src/features/settings/__tests__/DataResetScreen.test.tsx.
  */
-import * as fs from "fs";
-import * as path from "path";
-
 import { executeAll, getDatabase } from "@/database/database";
 import { create as createSale, cancel, returnSale } from "@/database/repositories/saleRepository";
 import { create as createProduct } from "@/database/repositories/productRepository";
@@ -39,8 +38,6 @@ import {
   recordRefund,
 } from "@/services/customers/customerBalanceService";
 
-const sourceRoot = path.resolve(process.cwd(), "src");
-
 async function resetAll(): Promise<void> {
   const db = await getDatabase();
   await db.execAsync(
@@ -51,16 +48,6 @@ async function resetAll(): Promise<void> {
 async function tableCount(table: string): Promise<number> {
   const rows = await executeAll<{ c: number }>(`SELECT COUNT(*) AS c FROM ${table}`);
   return rows[0]?.c ?? 0;
-}
-
-function readFiles(directory: string): string[] {
-  const files: string[] = [];
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    const filePath = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...readFiles(filePath));
-    else if (/\.(ts|tsx)$/.test(entry.name)) files.push(filePath);
-  }
-  return files;
 }
 
 describe("security business rules", () => {
@@ -277,14 +264,5 @@ describe("security business rules", () => {
       unit: "pcs",
     } as any);
     expect(firstProduct.id).toBe(1);
-  });
-
-  it("does not place raw SQL in route files", () => {
-    const routeFiles = readFiles(path.join(sourceRoot, "app"));
-    for (const filePath of routeFiles) {
-      expect(fs.readFileSync(filePath, "utf8")).not.toMatch(
-        /\b(SELECT\s+.+\s+FROM|INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM)\b/i,
-      );
-    }
   });
 });

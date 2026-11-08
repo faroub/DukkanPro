@@ -4,7 +4,9 @@
  */
 export function showToast(message?: string, options?: { duration?: number }) {
   const duration = options?.duration ?? 2000;
-  console.log("Toast:", message, "duration:", duration);
+  if (__DEV__) {
+    console.log("Toast:", message, "duration:", duration);
+  }
 }
 
 export const useToast = showToast;

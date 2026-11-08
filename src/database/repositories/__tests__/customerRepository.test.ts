@@ -95,20 +95,27 @@ describe("customerRepository", () => {
       expect(created?.name).toBe("اسم جديد");
     });
 
-    it("is idempotent when same phone provided — returns existing customer", async () => {
-      const p1 = await create({
-        name: "عميل بالعsame phone",
+    it("rejects an active duplicate phone with DUPLICATE_PHONE carrying id and name (F3)", async () => {
+      const existing = await create({
+        name: "عميل المالك",
         phone: "0559998877",
         note: "ملاحظة التكرار",
         is_active: true,
       });
-      const p2 = await create({
-        name: "اسم مختلف",
-        phone: "0559998877",
-        note: "ملاحظة التكرار نفسها",
-        is_active: true,
-      });
-      expect(p1?.id).toBe(p2?.id);
+      await expect(
+        create({
+          name: "اسم مختلف",
+          phone: "0559998877",
+          note: "ملاحظة التكرار نفسها",
+          is_active: true,
+        }),
+      ).rejects.toThrow(
+        new RegExp(`DUPLICATE_PHONE: id=${existing.id}; name=عميل المالك`),
+      );
+
+      // The duplicate attempt was not saved under the new name.
+      const byName = await search("اسم مختلف");
+      expect(byName).toHaveLength(0);
     });
 
     it("returns the exact newly created customer when no phone number is provided", async () => {
@@ -152,13 +159,36 @@ describe("customerRepository", () => {
       expect(updated?.phone).toBe("0553142222");
       expect(updated?.is_active).toBe(false);
     });
+
+    it("clears optional fields when update receives null (F2)", async () => {
+      const created = await create({
+        name: "إفراج حقول",
+        phone: "0568887766",
+        note: "ملاحظة قديمة",
+        is_active: true,
+      });
+      expect(created.phone).toBe("0568887766");
+      expect(created.note).toBe("ملاحظة قديمة");
+
+      const updated = await update(created.id, {
+        name: "إفراج حقول",
+        phone: null,
+        note: null,
+      });
+      expect(updated?.phone).toBeNull();
+      expect(updated?.note).toBeNull();
+
+      const reloaded = await getById(created.id);
+      expect(reloaded?.phone).toBeNull();
+      expect(reloaded?.note).toBeNull();
+    });
   });
 
   describe("archive()", () => {
     it("sets is_active = false without deleting the row", async () => {
       const created = await create({
         name: "للحذف",
-        phone: "0551234567",
+        phone: "0561119876",
         note: "ملاحظات",
         is_active: true,
       });
@@ -193,8 +223,15 @@ describe("customerRepository", () => {
       expect(normalizePhone("(055) 512-3456")).toBe("0555123456");
     });
 
-    it("keeps a leading plus so international numbers stay distinct", () => {
-      expect(normalizePhone("+213 555 123 456")).toBe("+213555123456");
+    it("canonicalizes a leading +213 onto the local trunk 0", () => {
+      expect(normalizePhone("+213 555 123 456")).toBe("0555123456");
+      expect(normalizePhone("+213555123456")).toBe("0555123456");
+    });
+
+    it("treats '0555 12 34 56' and '+213555123456' as the same number (F3)", () => {
+      expect(normalizePhone("0555 12 34 56")).toBe(
+        normalizePhone("+213555123456"),
+      );
     });
   });
 
@@ -209,23 +246,48 @@ describe("customerRepository", () => {
       expect(created.phone).toBe("0551239999");
 
       const updated = await update(created.id, { phone: "+213-770-112-233" });
-      expect(updated.phone).toBe("+213770112233");
+      expect(updated.phone).toBe("0770112233");
     });
 
-    it("treats differently formatted variants of the same phone as one customer", async () => {
+    it("matches an international +213 variant against a locally stored number", async () => {
       const first = await create({
         name: "Format Variant",
         phone: "0559876543",
         note: null,
         is_active: true,
       });
-      const variant = await create({
-        name: "Format Variant 2",
-        phone: "0559 876-543",
-        note: null,
-        is_active: true,
-      });
-      expect(variant.id).toBe(first.id);
+      await expect(
+        create({
+          name: "Format Variant 2",
+          phone: "+213 559 876 543",
+          note: null,
+          is_active: true,
+        }),
+      ).rejects.toThrow(/DUPLICATE_PHONE/);
+
+      const still = await getById(first.id);
+      expect(still?.phone).toBe("0559876543");
+    });
+
+    it("matches a legacy stored '+213...' row when the local form is submitted (F3)", async () => {
+      // Rows stored before international prefixes were canonicalized keep the
+      // '+213' form; new lookups must still find them without rewriting data.
+      await db.runAsync(
+        `INSERT INTO customers (name, phone, note, is_active, created_at, updated_at) VALUES (?, ?, NULL, 1, datetime('now'), datetime('now'))`,
+        ["Legacy Phone Owner", "+213555777888"],
+      );
+
+      await expect(
+        create({
+          name: "Legacy Duplicate Attempt",
+          phone: "0555777888",
+          note: null,
+          is_active: true,
+        }),
+      ).rejects.toThrow(/DUPLICATE_PHONE/);
+
+      const found = await search("0555777888");
+      expect(found.some((c) => c.name === "Legacy Phone Owner")).toBe(true);
     });
 
     it("finds a customer by a differently formatted phone query", async () => {

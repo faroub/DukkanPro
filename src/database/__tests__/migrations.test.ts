@@ -137,4 +137,118 @@ describe("migrations", () => {
       expect(pragma?.foreign_keys).toBe(1);
     });
   });
+
+  describe("execDefensiveSql semicolon safety (F14)", () => {
+    it("runs each statement of a normal multi-statement migration", async () => {
+      const db: any = await openDatabaseAsync("migrations-test.db");
+      await runMigrations(db, undefined, [
+        {
+          version: 101,
+          sql: `CREATE TABLE probe_ok (id INTEGER PRIMARY KEY, label TEXT);
+                 INSERT INTO probe_ok (label) VALUES ('plain label');`,
+        },
+      ]);
+
+      const row = await db.getFirstAsync(`SELECT label FROM probe_ok`);
+      expect(row?.label).toBe("plain label");
+
+      const applied: any[] = await db.getAllAsync(
+        `SELECT version FROM _migration_version`,
+      );
+      expect(applied.map((r: any) => r.version)).toContain(101);
+    });
+
+    it("tolerates escaped quotes and ordinary comments without semicolons", async () => {
+      const db: any = await openDatabaseAsync("migrations-test.db");
+      await runMigrations(db, undefined, [
+        {
+          version: 102,
+          // '' is an escaped quote (no semicolon inside a string/comment).
+          sql: `-- create the probe table
+                 CREATE TABLE probe_esc (id INTEGER PRIMARY KEY, label TEXT);
+                 INSERT INTO probe_esc (label) VALUES ('it''s ok');`,
+        },
+      ]);
+
+      const row = await db.getFirstAsync(`SELECT label FROM probe_esc`);
+      expect(row?.label).toBe("it's ok");
+    });
+
+    it("rejects a semicolon inside a string literal and writes nothing", async () => {
+      const db: any = await openDatabaseAsync("migrations-test.db");
+
+      await expect(
+        runMigrations(db, undefined, [
+          {
+            version: 103,
+            sql: `CREATE TABLE probe_bad (id INTEGER PRIMARY KEY, note TEXT);
+                   INSERT INTO probe_bad (note) VALUES ('semi; colon');`,
+          },
+        ]),
+      ).rejects.toThrow(/semicolon inside a single-quoted string/);
+
+      // The guard fired before any statement executed: no table, no version row.
+      const tables: any[] = await db.getAllAsync(
+        `SELECT name FROM sqlite_master WHERE name = 'probe_bad'`,
+      );
+      expect(tables).toHaveLength(0);
+      const applied: any[] = await db.getAllAsync(
+        `SELECT version FROM _migration_version`,
+      );
+      expect(applied).toHaveLength(0);
+    });
+
+    it("rejects a semicolon inside a line comment", async () => {
+      const db: any = await openDatabaseAsync("migrations-test.db");
+
+      await expect(
+        runMigrations(db, undefined, [
+          {
+            version: 104,
+            sql: `-- a comment containing a semicolon; right here
+                   CREATE TABLE probe_line (id INTEGER PRIMARY KEY);`,
+          },
+        ]),
+      ).rejects.toThrow(/semicolon inside a line comment/);
+
+      const tables: any[] = await db.getAllAsync(
+        `SELECT name FROM sqlite_master WHERE name = 'probe_line'`,
+      );
+      expect(tables).toHaveLength(0);
+    });
+
+    it("rejects a semicolon inside a block comment", async () => {
+      const db: any = await openDatabaseAsync("migrations-test.db");
+
+      await expect(
+        runMigrations(db, undefined, [
+          {
+            version: 105,
+            sql: `/* block comment; with semicolon */
+                   CREATE TABLE probe_block (id INTEGER PRIMARY KEY);`,
+          },
+        ]),
+      ).rejects.toThrow(/semicolon inside a block comment/);
+
+      const tables: any[] = await db.getAllAsync(
+        `SELECT name FROM sqlite_master WHERE name = 'probe_block'`,
+      );
+      expect(tables).toHaveLength(0);
+    });
+
+    it("reports the line number of the offending semicolon", async () => {
+      const db: any = await openDatabaseAsync("migrations-test.db");
+
+      await expect(
+        runMigrations(db, undefined, [
+          {
+            version: 106,
+            sql: `CREATE TABLE probe_ln (id INTEGER PRIMARY KEY, note TEXT);
+INSERT INTO probe_ln (note) VALUES ('first');
+INSERT INTO probe_ln (note) VALUES ('offending; semicolon');`,
+          },
+        ]),
+      ).rejects.toThrow(/line 3/);
+    });
+  });
 });

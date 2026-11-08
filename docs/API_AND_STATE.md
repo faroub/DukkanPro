@@ -72,6 +72,10 @@ export interface DashboardResult extends DashboardData {
 
 - Re-queries SQLite on component mount and on screen focus via `useFocusEffect`.
 - `hasProductsOrSales` determines whether the live `DashboardScreen` or `EmptyDashboardScreen` is displayed.
+- `todayProfit_centimes` is an **estimated gross margin**, not net profit: it is today's
+  revenue from completed sales minus the cost of goods sold (from the historical
+  unit costs recorded on the sale items). It excludes expenses, and credit sales
+  count as revenue when they are made — the figure is not on a collected-cash basis.
 
 ---
 

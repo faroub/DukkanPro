@@ -127,10 +127,80 @@ const ALL_MIGRATIONS: Migration[] = [
  * For ALTER TABLE ADD COLUMN statements, checks PRAGMA table_info first to avoid
  * "duplicate column name" crashes if a column was already added before a crash.
  *
- * CAUTION: Statements are split on semicolons (';'). Future migrations MUST NOT
- * embed semicolons within string literals, DEFAULT values, or SQL comments.
+ * Statements are split on semicolons (';'), which means a semicolon inside a
+ * string literal, quoted identifier, or comment would silently tear a statement
+ * apart. assertNoQuotedSemicolon rejects such SQL up front instead of
+ * executing the fragments.
  */
+function assertNoQuotedSemicolon(sql: string): void {
+  let state: "normal" | "single" | "double" | "line" | "block" = "normal";
+  let line = 1;
+
+  const where = (s: string) =>
+    s === "single"
+      ? "a single-quoted string"
+      : s === "double"
+        ? "a double-quoted identifier"
+        : s === "line"
+          ? "a line comment"
+          : "a block comment";
+
+  for (let i = 0; i < sql.length; i++) {
+    const ch = sql[i];
+    const next = sql[i + 1];
+    if (ch === "\n") line++;
+
+    switch (state) {
+      case "normal":
+        if (ch === "'") state = "single";
+        else if (ch === '"') state = "double";
+        else if (ch === "-" && next === "-") {
+          state = "line";
+          i++;
+        } else if (ch === "/" && next === "*") {
+          state = "block";
+          i++;
+        }
+        break;
+      case "single":
+        if (ch === "'" && next === "'") i++; // escaped quote
+        else if (ch === "'") state = "normal";
+        else if (ch === ";")
+          throw new Error(
+            `Migration SQL contains a semicolon inside ${where("single")} (line ${line}). execDefensiveSql splits on ';' and would execute torn fragments — remove the semicolon or split the statement.`,
+          );
+        break;
+      case "double":
+        if (ch === '"' && next === '"') i++; // escaped quote
+        else if (ch === '"') state = "normal";
+        else if (ch === ";")
+          throw new Error(
+            `Migration SQL contains a semicolon inside ${where("double")} (line ${line}). execDefensiveSql splits on ';' and would execute torn fragments — remove the semicolon or split the statement.`,
+          );
+        break;
+      case "line":
+        if (ch === "\n") state = "normal";
+        else if (ch === ";")
+          throw new Error(
+            `Migration SQL contains a semicolon inside ${where("line")} (line ${line}). execDefensiveSql splits on ';' and would execute torn fragments — remove the semicolon or split the statement.`,
+          );
+        break;
+      case "block":
+        if (ch === "*" && next === "/") {
+          state = "normal";
+          i++;
+        } else if (ch === ";")
+          throw new Error(
+            `Migration SQL contains a semicolon inside ${where("block")} (line ${line}). execDefensiveSql splits on ';' and would execute torn fragments — remove the semicolon or split the statement.`,
+          );
+        break;
+    }
+  }
+}
+
 async function execDefensiveSql(db: any, sql: string): Promise<void> {
+  assertNoQuotedSemicolon(sql);
+
   const statements = sql
     .split(";")
     .map((s) => s.trim())
@@ -163,7 +233,16 @@ async function execDefensiveSql(db: any, sql: string): Promise<void> {
   }
 }
 
-export async function runMigrations(db: any, targetVersion?: number): Promise<void> {
+/**
+ * Run pending migrations in order. The third parameter exists so tests can
+ * exercise the runner against synthetic migration fixtures; production code
+ * leaves it at the default (ALL_MIGRATIONS).
+ */
+export async function runMigrations(
+  db: any,
+  targetVersion?: number,
+  migrations: Migration[] = ALL_MIGRATIONS,
+): Promise<void> {
   // Ensure the version table exists first
   await db.execAsync(schema.migrationVersion);
 
@@ -174,9 +253,9 @@ export async function runMigrations(db: any, targetVersion?: number): Promise<vo
   const appliedVersions = new Set(appliedRows.map((r: any) => r.version));
 
   // Run pending migrations in order, wrapping each migration + version insert in a transaction
-  const target = targetVersion ?? migrationVersions[migrationVersions.length - 1];
+  const target = targetVersion ?? migrations[migrations.length - 1].version;
 
-  for (const migration of ALL_MIGRATIONS) {
+  for (const migration of migrations) {
     if (migration.version > target) continue;
 
     if (!appliedVersions.has(migration.version)) {

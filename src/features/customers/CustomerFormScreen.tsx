@@ -77,8 +77,8 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
       if (isEditing && resolvedId) {
         await update(resolvedId, {
           name: trimmedName,
-          phone: phone.trim() || undefined,
-          note: note.trim() || undefined,
+          phone: phone.trim() || null,
+          note: note.trim() || null,
         });
       } else {
         await create({
@@ -94,7 +94,21 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
       if (message.includes("PHONE_ARCHIVED")) {
         Alert.alert(t("common:error"), t("customers:phoneArchived"));
       } else if (message.includes("DUPLICATE_PHONE")) {
-        Alert.alert(t("common:error"), t("customers:phoneDuplicate"));
+        const idMatch = message.match(/id=(\d+)/);
+        const existingId = idMatch ? Number(idMatch[1]) : null;
+        Alert.alert(
+          t("customers:phoneDuplicateTitle"),
+          t("customers:phoneDuplicate"),
+          existingId
+            ? [
+                {
+                  text: t("customers:phoneDuplicateOpen"),
+                  onPress: () => router.push(`/customers/${existingId}`),
+                },
+                { text: t("common:cancel") },
+              ]
+            : undefined,
+        );
       } else {
         Alert.alert(t("common:error"), t("customers:errorSave"));
       }

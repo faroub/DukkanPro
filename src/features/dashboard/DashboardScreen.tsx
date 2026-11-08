@@ -214,7 +214,7 @@ export default function DashboardScreenDefault({
         <SummaryCards
           revenueKey={t("dashboard.summary.revenue") || (locale === "ar" ? "مبيعات اليوم" : "Today's Sales")}
           revenueValue_centimes={todayRevenue_centimes}
-          profitKey={t("dashboard.summary.profit") || (locale === "ar" ? "الربح التقديري" : "Est. Profit")}
+          profitKey={t("dashboard.summary.profit") || (locale === "ar" ? "هامش الربح الإجمالي المقدر" : "Est. Gross Margin")}
           profitValue_centimes={todayProfit_centimes}
           toCollectKey={t("dashboard.summary.toCollect") || (locale === "ar" ? "ديون للتحصيل" : "To Collect")}
           toCollectValue_centimes={toCollect_centimes}

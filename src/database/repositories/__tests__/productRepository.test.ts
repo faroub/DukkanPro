@@ -366,29 +366,100 @@ describe("productRepository", () => {
       expect(product?.stock_quantity).toBe(12);
     });
 
-    it("clamps negative stock reductions at 0 and records the exact actual delta in movement history", async () => {
+    it("rejects a reduction larger than current stock with INSUFFICIENT_STOCK instead of clamping (F4)", async () => {
       const created = await create({
-        name: "Stock Clamp Test",
-        sku: "STK-CLAMP",
+        name: "Stock Over-removal Test",
+        sku: "STK-OVER",
         category: "test",
         sale_price_centimes: 100,
         cost_price_centimes: 50,
-        stock_quantity: 5, // 5 in stock
+        stock_quantity: 5,
         minimum_stock_quantity: 1,
         unit: "pcs",
         is_active: true,
       });
 
-      // Attempt to remove 10 units when stock is 5
-      const movement = await adjustStock(created.id, -10, "Excess removal");
+      // Attempt to remove 10 units when only 5 are in stock must be rejected.
+      await expect(
+        adjustStock(created.id, -10, "Excess removal"),
+      ).rejects.toThrow(/INSUFFICIENT_STOCK/);
 
-      // Stock must be 0 (clamped)
+      // Stock is untouched and no movement was recorded for the rejected attempt.
       const updatedProduct = await getById(created.id);
-      expect(updatedProduct?.stock_quantity).toBe(0);
+      expect(updatedProduct?.stock_quantity).toBe(5);
+      const history = await getInventoryHistory(created.id);
+      expect(history).toHaveLength(1); // only the opening movement
+      expect(history[0].note).toBe("Opening stock");
+    });
 
-      // Movement quantity_change must match the actual stock change (-5, not -10)
-      expect(movement.quantity_change).toBe(-5);
-      expect(movement.movement_type).toBe("out");
+    it("rejects a non-integer quantityChange with INVALID_QUANTITY (F4)", async () => {
+      const created = await create({
+        name: "Fractional Adjustment Test",
+        sku: "STK-FRAC",
+        category: "test",
+        sale_price_centimes: 100,
+        cost_price_centimes: 50,
+        stock_quantity: 5,
+        minimum_stock_quantity: 1,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      await expect(
+        adjustStock(created.id, 2.5, "Fractional addition"),
+      ).rejects.toThrow(/INVALID_QUANTITY/);
+      await expect(
+        adjustStock(created.id, -1.5, "Fractional removal"),
+      ).rejects.toThrow(/INVALID_QUANTITY/);
+
+      const still = await getById(created.id);
+      expect(still?.stock_quantity).toBe(5);
+    });
+
+    it("rejects a zero quantityChange so no zero movement is ever recorded (F4)", async () => {
+      const created = await create({
+        name: "Zero Adjustment Test",
+        sku: "STK-ZERO",
+        category: "test",
+        sale_price_centimes: 100,
+        cost_price_centimes: 50,
+        stock_quantity: 5,
+        minimum_stock_quantity: 1,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      await expect(adjustStock(created.id, 0, "No-op")).rejects.toThrow(
+        /ZERO_QUANTITY_CHANGE/,
+      );
+
+      const history = await getInventoryHistory(created.id);
+      expect(history).toHaveLength(1); // only the opening movement
+    });
+
+    it("records movement_type 'in' for increases and 'out' for decreases", async () => {
+      const created = await create({
+        name: "Sign Type Test",
+        sku: "STK-SIGN",
+        category: "test",
+        sale_price_centimes: 100,
+        cost_price_centimes: 50,
+        stock_quantity: 5,
+        minimum_stock_quantity: 1,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      const inward = await adjustStock(created.id, 4, "restock");
+      expect(inward.movement_type).toBe("in");
+      expect(inward.quantity_change).toBe(4);
+
+      const outward = await adjustStock(created.id, -3, "sale loss");
+      expect(outward.movement_type).toBe("out");
+      expect(outward.quantity_change).toBe(-3);
+
+      const product = await getById(created.id);
+      expect(product?.stock_quantity).toBe(6);
     });
   });
 

@@ -22,11 +22,17 @@ export type CustomerResult = {
 
 /**
  * Normalize a phone number for storage and lookup: trim and strip spaces,
- * dashes, dots and parentheses. A leading '+' is kept so international
- * numbers stay distinct from local ones.
+ * dashes, dots and parentheses. The Algerian international prefix "+213" and
+ * the local trunk prefix "0" refer to the same line, so the international
+ * form is canonicalized onto the local one (e.g. "+213555123456" and
+ * "0555123456" compare equal).
  */
 export function normalizePhone(phone: string): string {
-  return phone.trim().replace(/[\s\-().]/g, "");
+  const stripped = phone.trim().replace(/[\s\-().]/g, "");
+  if (stripped.startsWith("+213")) {
+    return "0" + stripped.slice(4);
+  }
+  return stripped;
 }
 
 /**
@@ -74,9 +80,20 @@ export async function search(
 ): Promise<Customer[]> {
   const { is_active } = filters;
   const escaped = escapeLike(query);
-  const phoneQuery = escapeLike(normalizePhone(query));
-  let sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE (name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\')`;
-  const params: unknown[] = [`%${escaped}%`, `%${phoneQuery}%`];
+  const normalized = normalizePhone(query);
+  // Match the phone in its canonical form and, for numbers starting with the
+  // local trunk "0", the older "+213..." form so legacy rows are found too.
+  const phoneVariants = normalized.startsWith("0")
+    ? [normalized, `+213${normalized.slice(1)}`]
+    : [normalized];
+  const phoneClauses = phoneVariants
+    .map(() => `phone LIKE ? ESCAPE '\\'`)
+    .join(" OR ");
+  let sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE (name LIKE ? ESCAPE '\\' OR ${phoneClauses})`;
+  const params: unknown[] = [
+    `%${escaped}%`,
+    ...phoneVariants.map((v) => `%${escapeLike(v)}%`),
+  ];
 
   if (is_active !== undefined) {
     sql += ` AND is_active = ?`;
@@ -90,10 +107,12 @@ export async function search(
 
 /**
  * Create a new customer atomically inside a transaction.
- * The phone number is normalized before storage. If an ACTIVE customer with the
- * same normalized phone already exists, the existing one is returned (idempotent);
- * if that customer is ARCHIVED, the create is rejected with PHONE_ARCHIVED so the
- * merchant restores or settles the archived record instead of duplicating it.
+ * The phone number is normalized before storage. If a customer with the
+ * same normalized phone already exists, the create is rejected: with
+ * DUPLICATE_PHONE when that customer is active (the error message carries the
+ * existing customer's id and name so the UI can offer to open it), or with
+ * PHONE_ARCHIVED when that customer is archived, so the merchant restores or
+ * settles the existing record instead of duplicating it.
  */
 export async function create(
   customer: Omit<Customer, "id" | "created_at" | "updated_at">,
@@ -114,7 +133,9 @@ export async function create(
             `PHONE_ARCHIVED: An archived customer already uses this phone number. Restore that customer instead of creating a duplicate.`,
           );
         }
-        return existing;
+        throw new Error(
+          `DUPLICATE_PHONE: id=${existing.id}; name=${existing.name}. Another customer already uses this phone number.`,
+        );
       }
     }
 
@@ -251,19 +272,25 @@ export async function archive(id: number): Promise<void> {
 }
 
 /**
- * Helper: retrieve a customer by phone (used by create idempotency and the
- * update duplicate guard). The given phone is normalized first so lookups
- * match numbers stored in any formatting variant.
+ * Helper: retrieve a customer by phone (used by the create duplicate guard and
+ * the update duplicate guard). The given phone is normalized first so lookups
+ * match numbers stored in any formatting variant. Rows stored with the older
+ * "+213..." form (before international prefixes were canonicalized onto the
+ * local trunk "0") are matched as well — stored data is never rewritten.
  */
 async function getByPhone(
   phone: string,
   tx?: any,
 ): Promise<Customer | null> {
   const normalized = normalizePhone(phone);
-  const sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE phone = ?`;
+  const variants = normalized.startsWith("0")
+    ? [normalized, `+213${normalized.slice(1)}`]
+    : [normalized];
+  const placeholders = variants.map(() => "?").join(", ");
+  const sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE phone IN (${placeholders})`;
   const rows: any[] = tx
-    ? await executeRead(tx, sql, [normalized])
-    : await executeRead(sql, [normalized]);
+    ? await executeRead(tx, sql, variants)
+    : await executeRead(sql, variants);
 
   if (rows.length === 0) {
     return null;

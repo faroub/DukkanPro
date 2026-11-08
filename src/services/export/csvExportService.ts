@@ -7,9 +7,10 @@
  *   the active store currency (e.g. "Amount (DZD)").
  * - No cost prices, profit margins, or internal stock quantities in
  *   customer-facing exports.
- * - Formula injection characters (=, +, -, @, \t, \r) are neutralized on
- *   text fields only, so numeric values such as a quantity of -3 export
- *   unchanged.
+ * - Formula injection characters are neutralized on text fields only: =, @,
+ *   TAB and CR unconditionally, and a leading + or - only when followed by a
+ *   letter, so numeric values such as a quantity of -3 and phone numbers like
+ *   +213555123456 export unchanged.
  * - Uses expo-file-system for writing and expo-sharing for sharing.
  */
 
@@ -25,13 +26,26 @@ function buildCsvRow(values: string[]): string {
 
 /**
  * Escape a string for safe CSV embedding and neutralize formula injection.
+ *
+ * Neutralized unconditionally: =, @, TAB, CR. A leading + or - is neutralized
+ * only when followed by a letter (e.g. "-memo"), so numeric values such as a
+ * quantity of -3 stay unchanged.
  */
 function csvSafe(value: string): string {
   const escaped = value.replace(/"/g, '""');
-  if (/^[=+@\-\t\r]/.test(escaped)) {
+  if (/^[=@\t\r]/.test(escaped) || /^[-+][A-Za-z]/.test(escaped)) {
     return `'${escaped}`;
   }
   return escaped;
+}
+
+/**
+ * Escape quotes only, without formula neutralization — used for the phone
+ * column, whose legitimate values begin with + (e.g. +213555123456) and must
+ * be exported unchanged.
+ */
+function csvSafePhone(value: string): string {
+  return value.replace(/"/g, '""');
 }
 
 /**
@@ -81,7 +95,7 @@ export function exportCustomers(customers: any[], t: ReturnType<typeof useTransl
     const row = [
       customer.id.toString(),
       csvSafe(customer.name || ""),
-      csvSafe(customer.phone || ""),
+      csvSafePhone(customer.phone || ""),
     ];
     rows.push(buildCsvRow(row));
   }
@@ -108,16 +122,16 @@ export function exportSales(sales: any[], t: ReturnType<typeof useTranslation>["
   const rows: string[] = [buildCsvRow(header)];
 
   for (const sale of sales) {
-    const customerName = sale.customer_id ? `Customer ${sale.customer_id}` : t("sales.unknown_client");
+    const customerName = sale.customer_name || t("sales.unknown_client");
     const row = [
       sale.id.toString(),
       sale.sold_at ? sale.sold_at.slice(0, 10) : t("common:unknown"),
       csvSafe(customerName),
-      csvSafe(t(`payment_method.${sale.payment_method}` || sale.payment_method)),
+      csvSafe(t(`payment_method.${sale.payment_method}`)),
       formatCentimesToInputDzd(sale.subtotal_centimes),
       formatCentimesToInputDzd(sale.total_centimes),
       sale.currency || "DZD",
-      csvSafe(t(`status.${sale.status}` || sale.status)),
+      csvSafe(t(`status.${sale.status}`)),
     ];
     rows.push(buildCsvRow(row));
   }
@@ -174,7 +188,7 @@ export function exportPayments(payments: any[], t: ReturnType<typeof useTranslat
       payment.id.toString(),
       formatCentimesToInputDzd(payment.amount_centimes),
       payment.currency || "DZD",
-      csvSafe(t(`payment_method.${payment.payment_method}` || payment.payment_method)),
+      csvSafe(t(`payment_method.${payment.payment_method}`)),
       payment.paid_at ? payment.paid_at.slice(0, 10) : t("common:unknown"),
     ];
     rows.push(buildCsvRow(row));
@@ -203,7 +217,7 @@ export function exportInventoryMovements(movements: any[], t: ReturnType<typeof 
     const row = [
       movement.id.toString(),
       csvSafe(productRef),
-      csvSafe(t(`movementType.${movement.movement_type}` || movement.movement_type)),
+      csvSafe(t(`movementType.${movement.movement_type}`)),
       movement.quantity_change.toString(),
       csvSafe(movement.note || ""),
       movement.created_at ? movement.created_at.slice(0, 10) : t("common:unknown"),

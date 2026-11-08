@@ -169,7 +169,7 @@ export async function completeOnboarding(
   await saveOnboardingComplete(true);
 
   if (__DEV__) {
-    console.log("Onboarding completed successfully", profile);
+    console.log("Onboarding completed successfully");
   }
 }
 

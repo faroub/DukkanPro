@@ -587,6 +587,8 @@ export function DataResetScreen() {
               disabled={!isMatched || isLoading}
               activeOpacity={0.8}
               id="btn-delete-all-data"
+              accessibilityRole="button"
+              accessibilityLabel={t("dataReset.factoryResetButton") || "Delete All Data"}
             >
               <MaterialIcons
                 name="delete-forever"
@@ -619,6 +621,8 @@ export function DataResetScreen() {
               disabled={!isMatched || isLoading}
               activeOpacity={0.8}
               id="btn-factory-wipe"
+              accessibilityRole="button"
+              accessibilityLabel={t("dataReset.resetAndReturn") || "Reset and Return to Onboarding"}
             >
               <MaterialIcons
                 name="restart-alt"

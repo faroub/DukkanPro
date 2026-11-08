@@ -47,7 +47,7 @@
     "greeting": "مرحباً",
     "summary": {
       "revenue": "مبيعات اليوم",
-      "profit": "الربح التقديري",
+      "profit": "هامش الربح الإجمالي المقدر",
       "toCollect": "ديون للتحصيل",
       "lowStock": "نقص المخزون"
     },
@@ -244,6 +244,8 @@
     "deleteTitle": "أرشفة المنتج",
     "archiveSuccess": "تم أرشفة المنتج بنجاح",
     "adjustmentSuccess": "تم تعديل المخزون بنجاح",
+    "insufficientStock": "المخزون غير كافٍ لإجراء هذا الخصم",
+    "invalidAdjustmentQuantity": "يجب أن تكون الكمية عددًا صحيحًا غير صفري",
     "stockUpdated": "تم التحديث",
     "restockSuccess": "تمت إضافة {{amount}} إلى {{name}}",
     "noProductsInList": "لا توجد منتجات في القائمة",
@@ -786,6 +788,8 @@
     "framingSubtitle": "إيصالات حرارية بعناوين ثنائية اللغة فورية",
     "active": "نشط",
     "currentLanguageBadge": "اللغة الحالية",
+    "restartRequiredTitle": "إعادة تشغيل مطلوبة",
+    "restartRequiredMessage": "يصبح تغيير اتجاه العرض ساريًا بعد إغلاق التطبيق وإعادة فتحه.",
     "zeroDowntimeTitle": "تغيير فوري بدون إعادة تشغيل",
     "zeroDowntimeSubtitle": "تغيير اللغة فوري ولا يتطلب إعادة تشغيل التطبيق. تبقى أزرار البيع وتصنيفات المنتجات في مكانها لسرعة عملك.",
     "ergonomicTitle": "سهولة الاستخدام وسرعة البيع (LTR)",
@@ -1059,7 +1063,9 @@
     "refundNotePlaceholder": "سبب الاسترداد (اختياري)",
     "noCreditToRefund": "لا يوجد رصيد دائن لهذا الزبون. يظهر الرصيد الدائن عند إلغاء أو إرجاع معاملة مدفوعة.",
     "phoneArchived": "ينتمي رقم الهاتف هذا إلى عميل مؤرشف. أعد تنشيط ذلك العميل بدلاً من إنشاء سجل مكرر.",
-    "phoneDuplicate": "عميل آخر يستخدم رقم الهاتف هذا بالفعل."
+    "phoneDuplicate": "عميل آخر يستخدم رقم الهاتف هذا بالفعل.",
+    "phoneDuplicateTitle": "رقم هاتف مكرر",
+    "phoneDuplicateOpen": "فتح العميل الحالي"
   },
   "payments": {
     "title": "المدفوعات",

@@ -285,13 +285,28 @@ export async function archive(id: number): Promise<void> {
 /**
  * Adjust stock quantity for a product atomically in a single transaction.
  * Creates an inventory_movement record and updates product stock_quantity.
- * The movement quantity_change strictly matches the actual stock delta applied.
+ * The movement quantity_change strictly matches the requested delta.
+ *
+ * Guarded inputs: quantityChange must be an integer, must not be zero, and a
+ * reduction may not exceed the current stock (the stock ledger never goes
+ * negative silently — an explicit error is thrown instead).
  */
 export async function adjustStock(
   id: number,
   quantityChange: number,
   reason: string,
 ): Promise<InventoryMovement> {
+  if (!Number.isInteger(quantityChange)) {
+    throw new Error(
+      `INVALID_QUANTITY: quantityChange must be an integer, received ${quantityChange}.`,
+    );
+  }
+  if (quantityChange === 0) {
+    throw new Error(
+      "ZERO_QUANTITY_CHANGE: quantityChange must not be zero; no stock movement was recorded.",
+    );
+  }
+
   const db = await getDatabase();
   return await transaction(db, async (tx: any) => {
     const productRows: any[] = await executeRead(
@@ -306,11 +321,15 @@ export async function adjustStock(
 
     const product = productRows[0];
     const currentStock = product.stock_quantity || 0;
+    const newStock = currentStock + quantityChange;
 
-    // Calculate actual stock delta, clamping new stock at >= 0
-    const newStock = Math.max(0, currentStock + quantityChange);
-    const actualQuantityChange = newStock - currentStock;
-    const movementType = actualQuantityChange >= 0 ? "in" : "out";
+    if (newStock < 0) {
+      throw new Error(
+        `INSUFFICIENT_STOCK: Cannot reduce stock of product id=${product.id} by ${-quantityChange}; only ${currentStock} available.`,
+      );
+    }
+
+    const movementType = quantityChange >= 0 ? "in" : "out";
 
     // 1. Insert inventory movement record with exact stock delta
     const movementId = await executeWrite(
@@ -321,7 +340,7 @@ export async function adjustStock(
       [
         product.id,
         movementType,
-        actualQuantityChange,
+        quantityChange,
         null,
         reason,
       ],
@@ -341,7 +360,7 @@ export async function adjustStock(
       id: movementId,
       product_id: product.id,
       movement_type: movementType as "in" | "out",
-      quantity_change: actualQuantityChange,
+      quantity_change: quantityChange,
       reference_sale_id: null,
       note: reason,
       created_at: new Date().toISOString(),

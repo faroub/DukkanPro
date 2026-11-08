@@ -47,7 +47,7 @@
     "greeting": "Bonjour",
     "summary": {
       "revenue": "Chiffre d'affaires",
-      "profit": "Bénéfice estimé",
+      "profit": "Marge brute estimée",
       "toCollect": "Créances à recouvrer",
       "lowStock": "Alerte stock"
     },
@@ -244,6 +244,8 @@
     "deleteTitle": "Archiver le produit",
     "archiveSuccess": "Produit archivé avec succès",
     "adjustmentSuccess": "Stock ajusté avec succès",
+    "insufficientStock": "Stock insuffisant pour cette réduction",
+    "invalidAdjustmentQuantity": "La quantité doit être un nombre entier non nul",
     "stockUpdated": "Stock mis à jour",
     "restockSuccess": "Ajouté {{amount}} unités à {{name}}",
     "noProductsInList": "Aucun produit dans la liste",
@@ -786,6 +788,8 @@
     "framingSubtitle": "Les tickets thermiques affichent des en-têtes bilingues instantanés",
     "active": "Actif",
     "currentLanguageBadge": "Langue active",
+    "restartRequiredTitle": "Redémarrage nécessaire",
+    "restartRequiredMessage": "Le changement de sens d'affichage prend effet après avoir fermé et rouvert l'application.",
     "zeroDowntimeTitle": "Changement instantané sans redémarrage",
     "zeroDowntimeSubtitle": "Changer de langue ne nécessite aucun redémarrage. Les raccourcis de caisse restent exactement à leur place.",
     "ergonomicTitle": "Ergonomie de comptoir continue (LTR)",
@@ -1059,7 +1063,9 @@
     "refundNotePlaceholder": "Motif du remboursement (optionnel)",
     "noCreditToRefund": "Ce client n'a pas de crédit à rembourser. Un crédit apparaît lorsqu'une vente déjà payée est annulée ou retournée.",
     "phoneArchived": "Ce numéro de téléphone appartient à un client archivé. Restaurez ce client plutôt que de créer un doublon.",
-    "phoneDuplicate": "Un autre client utilise déjà ce numéro de téléphone."
+    "phoneDuplicate": "Un autre client utilise déjà ce numéro de téléphone.",
+    "phoneDuplicateTitle": "Numéro de téléphone en doublon",
+    "phoneDuplicateOpen": "Ouvrir le client existant"
   },
   "payments": {
     "title": "Moyens de paiement",

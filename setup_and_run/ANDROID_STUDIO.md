@@ -139,6 +139,56 @@ grep -A2 "applicationId" /home/faroub/Documents/Projects/DukkanOS/DukkanOS/andro
 
 Expected output should show `applicationId "com.oubfar.DukkanOS"`.
 
+## Signing Release Builds
+
+The debug keystore (`android/app/debug.keystore`, password `android`) is only for debug builds. Release builds require an upload keystore that you generate yourself — never commit it to the repository.
+
+### 1. Generate an upload keystore with keytool
+
+Run once and store the resulting file **outside the repository** (for example `~/keystores/dukkanpro-upload.jks`):
+
+```bash
+keytool -genkeypair -v -storetype PKCS12 -keystore ~/keystores/dukkanpro-upload.jks \
+  -alias upload -keyalg RSA -keysize 2048 -validity 10000 \
+  -dname "CN=DukkanPro, OU=Mobile, O=YourCompany, L=City, ST=State, C=DZ"
+```
+
+You will be asked for a store password and a key password. Keep both safe — losing them means you can never update the app under the same package name.
+
+### 2. Provide the signing properties
+
+`buildTypes.release` reads `signingConfigs.release`, which is populated from these properties (Gradle properties or environment variables):
+
+- `DUKKAN_UPLOAD_STORE_FILE` — absolute path to the keystore (e.g. `/home/you/keystores/dukkanpro-upload.jks`)
+- `DUKKAN_UPLOAD_STORE_PASSWORD` — keystore password
+- `DUKKAN_UPLOAD_KEY_ALIAS` — key alias (`upload` in the command above)
+- `DUKKAN_UPLOAD_KEY_PASSWORD` — key password
+
+**Recommended: `~/.gradle/gradle.properties`** (never checked in):
+
+```properties
+DUKKAN_UPLOAD_STORE_FILE=/home/you/keystores/dukkanpro-upload.jks
+DUKKAN_UPLOAD_STORE_PASSWORD=your_store_password
+DUKKAN_UPLOAD_KEY_ALIAS=upload
+DUKKAN_UPLOAD_KEY_PASSWORD=your_key_password
+```
+
+Or per-build environment variables:
+
+```bash
+export DUKKAN_UPLOAD_STORE_FILE=... DUKKAN_UPLOAD_STORE_PASSWORD=... \
+       DUKKAN_UPLOAD_KEY_ALIAS=upload DUKKAN_UPLOAD_KEY_PASSWORD=...
+```
+
+### 3. Build the release
+
+```bash
+cd android && ./gradlew assembleRelease     # APK
+cd android && ./gradlew bundleRelease       # AAB for the Play Store
+```
+
+If any property is missing, the build fails immediately with a message listing which ones are missing. This is intentional: it prevents shipping a release signed with the shared debug key.
+
 ## Troubleshooting Android Studio
 
 ### Common Issues

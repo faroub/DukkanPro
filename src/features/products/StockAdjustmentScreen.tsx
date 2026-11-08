@@ -203,7 +203,17 @@ export function StockAdjustmentScreen() {
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (err: any) {
-      Alert.alert(t('common:error'), err?.message || 'Failed to adjust stock');
+      const message = err?.message || 'Failed to adjust stock';
+      if (message.includes('INSUFFICIENT_STOCK')) {
+        Alert.alert(t('common:error'), t('products:insufficientStock'));
+      } else if (
+        message.includes('INVALID_QUANTITY') ||
+        message.includes('ZERO_QUANTITY_CHANGE')
+      ) {
+        Alert.alert(t('common:error'), t('products:invalidAdjustmentQuantity'));
+      } else {
+        Alert.alert(t('common:error'), message);
+      }
     } finally {
       setSubmitting(false);
     }

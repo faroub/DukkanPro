@@ -47,7 +47,7 @@
     "greeting": "Hello",
     "summary": {
       "revenue": "Today's Sales",
-      "profit": "Estimated profit",
+      "profit": "Estimated gross margin",
       "toCollect": "To collect",
       "lowStock": "Low stock"
     },
@@ -244,6 +244,8 @@
     "deleteTitle": "Archive Product",
     "archiveSuccess": "Product archived successfully",
     "adjustmentSuccess": "Stock adjusted successfully",
+    "insufficientStock": "Not enough stock available for this reduction",
+    "invalidAdjustmentQuantity": "The adjustment quantity must be a non-zero whole number",
     "stockUpdated": "Stock Updated",
     "restockSuccess": "Added {{amount}} units to {{name}}",
     "noProductsInList": "No products in list",
@@ -786,6 +788,8 @@
     "framingSubtitle": "Thermal receipts render instant bilingual headers",
     "active": "Active",
     "currentLanguageBadge": "Active Language",
+    "restartRequiredTitle": "Restart required",
+    "restartRequiredMessage": "The layout direction change takes effect after you close and reopen the app.",
     "zeroDowntimeTitle": "Zero Downtime Switch",
     "zeroDowntimeSubtitle": "Swapping languages requires no app restart. POS quick-keys and barcodes stay where your fingers expect them.",
     "ergonomicTitle": "Ergonomic Counter Usability (LTR)",
@@ -1059,7 +1063,9 @@
     "refundNotePlaceholder": "Refund reason (optional)",
     "noCreditToRefund": "This customer has no credit to refund. Credit appears when an already-paid sale is cancelled or returned.",
     "phoneArchived": "This phone number belongs to an archived customer. Restore that customer instead of creating a duplicate.",
-    "phoneDuplicate": "Another customer already uses this phone number."
+    "phoneDuplicate": "Another customer already uses this phone number.",
+    "phoneDuplicateTitle": "Duplicate phone number",
+    "phoneDuplicateOpen": "Open existing customer"
   },
   "payments": {
     "title": "Payments",

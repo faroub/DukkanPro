@@ -287,3 +287,101 @@ describe("CSV export currency column", () => {
     );
   });
 });
+
+describe("CSV export formula neutralization", () => {
+  it("exports phone numbers unchanged, without a leading apostrophe (F5)", () => {
+    const csv = exportCustomers(
+      [
+        {
+          id: 1,
+          name: "Samir",
+          phone: "+213555123456",
+        },
+      ],
+      t as never,
+    );
+    const dataLine = csv.split("\n")[1];
+    expect(dataLine).toBe(`"1","Samir","+213555123456"`);
+  });
+
+  it("still neutralizes = and @ on text fields", () => {
+    const csv = exportProducts(
+      [
+        {
+          id: 1,
+          name: "=SUM(A1)",
+          sku: "@evil",
+          category: "Dairy",
+          sale_price_centimes: 500,
+          unit: "pcs",
+        },
+      ],
+      t as never,
+    );
+    const dataLine = csv.split("\n")[1];
+    expect(dataLine).toBe(`"1","'=SUM(A1)","'@evil","Dairy","5","pcs"`);
+  });
+
+  it("neutralizes a leading - only when followed by a letter", () => {
+    const csv = exportProducts(
+      [
+        {
+          id: 1,
+          name: "-note",
+          sku: "-5",
+          category: "Dairy",
+          sale_price_centimes: 500,
+          unit: "pcs",
+        },
+      ],
+      t as never,
+    );
+    const dataLine = csv.split("\n")[1];
+    expect(dataLine).toBe(`"1","'-note","-5","Dairy","5","pcs"`);
+  });
+});
+
+describe("CSV export customer names", () => {
+  it("exports the customer name instead of 'Customer <id>' (F5)", () => {
+    const csv = exportSales(
+      [
+        {
+          id: 1,
+          customer_id: 7,
+          customer_name: "Samir Benali",
+          payment_method: "cash",
+          subtotal_centimes: 1000,
+          total_centimes: 1000,
+          status: "completed",
+          sold_at: "2026-11-07 14:30:00",
+          currency: "DZD",
+        },
+      ],
+      t as never,
+    );
+    const dataLine = csv.split("\n")[1];
+    expect(dataLine).toContain("Samir Benali");
+    expect(csv).not.toContain("Customer 7");
+  });
+
+  it("falls back to the unknown-client label when no customer name exists", () => {
+    const csv = exportSales(
+      [
+        {
+          id: 1,
+          customer_id: null,
+          customer_name: null,
+          payment_method: "cash",
+          subtotal_centimes: 1000,
+          total_centimes: 1000,
+          status: "completed",
+          sold_at: "2026-11-07 14:30:00",
+          currency: "DZD",
+        },
+      ],
+      t as never,
+    );
+    const dataLine = csv.split("\n")[1];
+    expect(dataLine).toContain("sales.unknown_client");
+  });
+});
