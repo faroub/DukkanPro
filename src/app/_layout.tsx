@@ -103,6 +103,14 @@ function RootNavigator() {
               name="settings/data-reset"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="settings/backup"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="settings/about"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen name="+not-found" options={{ headerShown: false }} />
           </Stack>
         </ThemeProvider>

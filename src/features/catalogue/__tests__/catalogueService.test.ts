@@ -3,6 +3,7 @@ import {
     generateCatalogueHtml,
     generateCatalogueText,
 } from "@/services/catalogue/catalogueService";
+import i18n from "@/localization/i18n";
 
 describe("Catalogue Service - Public Output & Privacy", () => {
   const mockOptions = {
@@ -47,6 +48,7 @@ describe("Catalogue Service - Public Output & Privacy", () => {
       "catalogue.selectProductsTitle": "Produits",
       "catalogue.showRetailPrices": "Prix de vente",
       "catalogue.noProductsForCatalogue": "Aucun produit pour le catalogue",
+      "catalogue.defaultShopName": "Notre catalogue",
     };
     return map[key] || key;
   };
@@ -126,6 +128,40 @@ describe("Catalogue Service - Public Output & Privacy", () => {
     expect(html).toContain("#1B6B3A"); // Primary theme green
     expect(html).toContain("Lait Candia 1L");
     expect(html).toContain("140 DZD");
+  });
+
+  it("declares the brochure dir='rtl' and lang='ar' for the Arabic locale", () => {
+    const previousLanguage = i18n.language;
+    i18n.changeLanguage("ar");
+    try {
+      const html = generateCatalogueHtml(mockOptions, sampleProducts, mockT);
+      expect(html).toContain('<html lang="ar" dir="rtl">');
+    } finally {
+      i18n.changeLanguage(previousLanguage);
+    }
+  });
+
+  it("declares dir='ltr' for non-Arabic locales", () => {
+    const previousLanguage = i18n.language;
+    i18n.changeLanguage("fr");
+    try {
+      const html = generateCatalogueHtml(mockOptions, sampleProducts, mockT);
+      expect(html).toContain('<html lang="fr" dir="ltr">');
+    } finally {
+      i18n.changeLanguage(previousLanguage);
+    }
+  });
+
+  it("falls back to a neutral translated shop name and never a hard-coded business name", () => {
+    const { shopName, ...optionsWithoutShopName } = mockOptions;
+    const html = generateCatalogueHtml(
+      optionsWithoutShopName,
+      sampleProducts,
+      mockT,
+    );
+
+    expect(html).not.toContain("El-Amel");
+    expect(html).toContain("Notre catalogue");
   });
 
   it("maintains backward compatibility with legacy exportCataloguePDF", async () => {

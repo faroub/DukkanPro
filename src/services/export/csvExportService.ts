@@ -3,14 +3,18 @@
  *
  * - All CSV headers are translated using the selected i18n locale.
  * - Money is stored as integer centimes and exported as decimal main
- *   units via formatCentimesToInputDzd; amount headers are labeled with
- *   the active store currency (e.g. "Amount (DZD)").
+ *   units via formatCentimesToInputDzd; refunds (negative centimes) export
+ *   with their sign via formatSignedCentimesToInputDzd; amount headers are
+ *   labeled with the active store currency (e.g. "Amount (DZD)").
  * - No cost prices, profit margins, or internal stock quantities in
  *   customer-facing exports.
- * - Formula injection characters are neutralized on text fields only: =, @,
- *   TAB and CR unconditionally, and a leading + or - only when followed by a
- *   letter, so numeric values such as a quantity of -3 and phone numbers like
- *   +213555123456 export unchanged.
+ * - Formula injection characters are neutralized on text fields: =, @, TAB
+ *   and CR unconditionally, and any leading + or - (numeric columns bypass
+ *   csvSafe, so negative numbers and quantities stay unchanged). The phone
+ *   column is exported unchanged only for values matching /^\+?\d+$/;
+ *   anything else is neutralized like any other text field.
+ * - Timestamps are UTC; the date columns show the device's local calendar
+ *   date (localDateFromUtcTimestamp), never a raw UTC slice.
  * - Uses expo-file-system for writing and expo-sharing for sharing.
  */
 
@@ -25,15 +29,28 @@ function buildCsvRow(values: string[]): string {
 }
 
 /**
+ * Signed decimal formatter for exports: refunds are stored as negative
+ * centimes and must export with their sign (e.g. -5000 -> "-50").
+ * formatCentimesToInputDzd clamps non-positive values to "0" (the payment UI
+ * depends on that behavior), so only its magnitude is reused here.
+ */
+function formatSignedCentimesToInputDzd(centimes: number): string {
+  if (centimes < 0) {
+    return `-${formatCentimesToInputDzd(-centimes)}`;
+  }
+  return formatCentimesToInputDzd(centimes);
+}
+
+/**
  * Escape a string for safe CSV embedding and neutralize formula injection.
  *
- * Neutralized unconditionally: =, @, TAB, CR. A leading + or - is neutralized
- * only when followed by a letter (e.g. "-memo"), so numeric values such as a
- * quantity of -3 stay unchanged.
+ * Neutralized unconditionally: =, @, TAB, CR, and any leading + or - (e.g.
+ * "-2+3", "+memo"). Numeric columns never go through csvSafe, so values like
+ * a quantity of -3 stay unchanged.
  */
 function csvSafe(value: string): string {
   const escaped = value.replace(/"/g, '""');
-  if (/^[=@\t\r]/.test(escaped) || /^[-+][A-Za-z]/.test(escaped)) {
+  if (/^[=@\t\r]/.test(escaped) || /^[-+]/.test(escaped)) {
     return `'${escaped}`;
   }
   return escaped;
@@ -42,10 +59,33 @@ function csvSafe(value: string): string {
 /**
  * Escape quotes only, without formula neutralization — used for the phone
  * column, whose legitimate values begin with + (e.g. +213555123456) and must
- * be exported unchanged.
+ * be exported unchanged. Values that are not plain digits (with an optional
+ * leading +) get the same neutralization as any other text field.
  */
 function csvSafePhone(value: string): string {
-  return value.replace(/"/g, '""');
+  const escaped = value.replace(/"/g, '""');
+  if (/^\+?\d+$/.test(escaped)) {
+    return escaped;
+  }
+  if (/^[=@\t\r]/.test(escaped) || /^[-+]/.test(escaped)) {
+    return `'${escaped}`;
+  }
+  return escaped;
+}
+
+/**
+ * SQLite timestamps are UTC without a timezone marker ("YYYY-MM-DD
+ * HH:MM:SS"); appending "Z" reads them as the UTC instant they were
+ * written, then the device's local calendar date is returned — the same
+ * approach as dashboardRepository's local day logic. Never slice a raw UTC
+ * timestamp: the local day can differ from the UTC day.
+ */
+function localDateFromUtcTimestamp(timestamp: string): string {
+  const d = new Date(`${timestamp}Z`);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 /**
@@ -125,7 +165,7 @@ export function exportSales(sales: any[], t: ReturnType<typeof useTranslation>["
     const customerName = sale.customer_name || t("sales.unknown_client");
     const row = [
       sale.id.toString(),
-      sale.sold_at ? sale.sold_at.slice(0, 10) : t("common:unknown"),
+      sale.sold_at ? localDateFromUtcTimestamp(sale.sold_at) : t("common:unknown"),
       csvSafe(customerName),
       csvSafe(t(`payment_method.${sale.payment_method}`)),
       formatCentimesToInputDzd(sale.subtotal_centimes),
@@ -186,10 +226,10 @@ export function exportPayments(payments: any[], t: ReturnType<typeof useTranslat
   for (const payment of payments) {
     const row = [
       payment.id.toString(),
-      formatCentimesToInputDzd(payment.amount_centimes),
+      formatSignedCentimesToInputDzd(payment.amount_centimes),
       payment.currency || "DZD",
       csvSafe(t(`payment_method.${payment.payment_method}`)),
-      payment.paid_at ? payment.paid_at.slice(0, 10) : t("common:unknown"),
+      payment.paid_at ? localDateFromUtcTimestamp(payment.paid_at) : t("common:unknown"),
     ];
     rows.push(buildCsvRow(row));
   }
@@ -220,7 +260,7 @@ export function exportInventoryMovements(movements: any[], t: ReturnType<typeof 
       csvSafe(t(`movementType.${movement.movement_type}`)),
       movement.quantity_change.toString(),
       csvSafe(movement.note || ""),
-      movement.created_at ? movement.created_at.slice(0, 10) : t("common:unknown"),
+      movement.created_at ? localDateFromUtcTimestamp(movement.created_at) : t("common:unknown"),
     ];
     rows.push(buildCsvRow(row));
   }

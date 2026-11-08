@@ -49,7 +49,6 @@ export function LowStockList({
 
   const list = lowStockProducts || products || [];
   const displayProducts: LowStockProductItem[] = list.slice(0, 3);
-  const handleRestockCall = onRestockProduct || onRestock;
 
   const headerText = lowStockTitle !== "Low Stock Alert" ? lowStockTitle : t("dashboard.lowStock.title", { defaultValue: "Low Stock Alert" });
   const viewAllText = t("dashboard.lowStock.viewAll", { defaultValue: "View all" });

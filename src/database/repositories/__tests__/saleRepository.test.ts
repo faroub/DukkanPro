@@ -271,6 +271,30 @@ describe("saleRepository", () => {
       );
       expect(movements[0]?.n).toBe(0);
     });
+
+    it("rejects a sale whose product is inactive (PRODUCT_INACTIVE)", async () => {
+      await db.runAsync(`UPDATE products SET is_active = 0 WHERE id = 1`);
+
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 5000 }],
+        })
+      ).rejects.toThrow(/PRODUCT_INACTIVE/);
+
+      // Nothing must be committed: no sale row, no stock change, no movement.
+      const allSales = await getAll({});
+      expect(allSales.length).toBe(0);
+      const stock = await db.getAllAsync(
+        `SELECT stock_quantity AS q FROM products WHERE id = 1`,
+      );
+      expect(stock[0]?.q).toBe(100);
+      const movements = await db.getAllAsync(
+        `SELECT COUNT(*) AS n FROM inventory_movements WHERE product_id = 1`,
+      );
+      expect(movements[0]?.n).toBe(0);
+    });
   });
 
   describe("cancel()", () => {
@@ -479,11 +503,9 @@ describe("saleRepository", () => {
       // nothing is persisted (sale not created, stock not deducted).
       // We simulate this by creating a sale where one product doesn't exist.
 
-      const { create: createFn } = require("../saleRepository");
-
       // Attempt to create a sale with a non-existent product
       await expect(
-        createFn({
+        create({
           customerId: 1,
           paymentMethod: "cash",
           items: [

@@ -5,6 +5,7 @@ import { CustomerDetailScreen } from "@/features/customers/CustomerDetailScreen"
 import { RecordPaymentScreen } from "@/features/customers/RecordPaymentScreen";
 import { parseDzdToCentimes } from "@/utils/money";
 import { getCustomerDebt } from "@/services/customers/customerBalanceService";
+import * as balanceService from "@/services/customers/customerBalanceService";
 import { fireEvent, waitFor } from "@testing-library/react-native";
 import {
   renderScreen,
@@ -122,6 +123,43 @@ describe("Customer Screens Integration Harness", () => {
         const remainingDebt = await getCustomerDebt(customer.id);
         expect(remainingDebt).toBe(0);
       });
+    });
+
+    it("blocks a double press from submitting the payment twice", async () => {
+      const customer = await seedTestCustomer({ name: "Double Tap Debtor" });
+      const product = await seedTestProduct({
+        name: "Double Tap Item",
+        sku: "DTAP-SKU-001",
+        sale_price_centimes: 1050,
+      });
+
+      // Create fractional debt: 1050 centimes = 10.50 DZD
+      await seedTestSale({
+        customerId: customer.id,
+        paymentMethod: "credit",
+        amountPaidCentimes: 0,
+        items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 1050 }],
+      });
+
+      const recordPaymentSpy = jest.spyOn(balanceService, "recordPayment");
+
+      const screen = await renderScreen(
+        <RecordPaymentScreen customerId={customer.id} customerName={customer.name} currentDebt={1050} />
+      );
+
+      const submitBtn = await screen.findByText(/Confirmer le paiement/i);
+
+      // Two presses land in the same tick, before the first await resolves:
+      // the disabled state (async) cannot block the second one.
+      fireEvent.press(submitBtn);
+      fireEvent.press(submitBtn);
+
+      await waitFor(async () => {
+        expect(await getCustomerDebt(customer.id)).toBe(0);
+      });
+
+      expect(recordPaymentSpy).toHaveBeenCalledTimes(1);
+      recordPaymentSpy.mockRestore();
     });
   });
 });

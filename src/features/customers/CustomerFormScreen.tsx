@@ -53,7 +53,7 @@ export function CustomerFormScreen({ customerId }: CustomerFormScreenProps) {
           setPhone(customer.phone || "");
           setNote(customer.note || "");
         }
-      } catch (err) {
+      } catch {
         Alert.alert(t("common:error"), t("customers:notFound"));
       } finally {
         setLoading(false);

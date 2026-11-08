@@ -4,22 +4,20 @@
  * - Retrieves data from SQLite via the dashboard repository
  * - Calculations use integer centimes, never floating-point
  * - Excludes cancelled/returned sales from revenue/profit/debt
- * - Profit is a CASH-basis gross margin (see dashboardRepository.getTodayProfit)
+ * - Profit is a sale-basis estimated gross margin (see dashboardRepository.getTodayProfit)
  * - "Today" figures cover the merchant's local calendar day
  * - All user-facing strings wrapped in t('dashboard.*') i18n pattern
  * - Remains LTR regardless of selected language
  */
 import { get as getBusinessProfile } from "@/database/repositories/businessProfileRepository";
-import { getAll as getAllCustomers } from "@/database/repositories/customerRepository";
 import {
   getSevenDaySales,
   getTodayProfit,
   getTodayRevenue,
 } from "@/database/repositories/dashboardRepository";
-import { getAllPayments } from "@/database/repositories/exportRepository";
 import { getAll as getAllProducts } from "@/database/repositories/productRepository";
 import { getAll as getAllSales } from "@/database/repositories/saleRepository";
-import { getCustomerDebt, getTotalShopCredit, getTotalShopDebt } from "@/services/customers/customerBalanceService";
+import { getTotalShopCredit, getTotalShopDebt } from "@/services/customers/customerBalanceService";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface DashboardData {
@@ -74,15 +72,14 @@ export async function fetchDashboardData(
   //      − COGS of today's completed sales; see dashboardRepository.getTodayProfit) ----
   const todayProfit_centimes = await getTodayProfit();
 
-  // ---- All sales & payments feed debt and the recent-sales list ----
+  // ---- All sales feed the recent-sales list ----
   const allSales = await getAllSales();
-  const allPayments = await getAllPayments();
 
   // ---- To collect: sum of per-customer debts in ONE grouped query ----
   let toCollect_centimes = 0;
   try {
     toCollect_centimes = await getTotalShopDebt();
-  } catch (_err) {
+  } catch {
     toCollect_centimes = 0;
   }
 
@@ -91,7 +88,7 @@ export async function fetchDashboardData(
   let storeCredit_centimes = 0;
   try {
     storeCredit_centimes = await getTotalShopCredit();
-  } catch (_err) {
+  } catch {
     storeCredit_centimes = 0;
   }
 
@@ -122,7 +119,7 @@ export async function fetchDashboardData(
       return (p.stock_quantity || 0) <= minThreshold;
     });
     lowStockCount = lowStockProducts.length;
-  } catch (_err) {
+  } catch {
     // Keep empty defaults if query fails
   }
 

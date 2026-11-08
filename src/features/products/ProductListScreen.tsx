@@ -10,7 +10,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { RefreshControl, ScrollView, StyleSheet, View, TouchableOpacity, Alert } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 

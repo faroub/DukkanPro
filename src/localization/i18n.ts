@@ -35,7 +35,7 @@ export function updateLayoutDirection(locale: string): void {
   try {
     I18nManager.allowRTL(isRTL);
     I18nManager.forceRTL(isRTL);
-  } catch (_e) {
+  } catch {
     // Ignore native I18nManager errors in non-native or test environments
   }
 }
@@ -47,13 +47,16 @@ if (typeof window !== "undefined" && window.localStorage) {
     if (stored && ["ar", "fr", "en"].includes(stored)) {
       initialLanguage = stored;
     }
-  } catch (e) {
+  } catch {
     // Ignore localStorage access issues
   }
 }
 
 updateLayoutDirection(initialLanguage);
 
+// i18n.use/changeLanguage are the documented i18next instance API; the named
+// exports are the same functions, but 'use' would trip react-hooks/rules-of-hooks.
+// eslint-disable-next-line import/no-named-as-default-member
 i18n.use(initReactI18next).init({
   fallbackLng: "fr",
   lng: initialLanguage,
@@ -73,12 +76,13 @@ export default i18n;
 
 // Export changeLocale utility for use by hooks and providers
 export function changeLocale(newLocale: string): void {
+  // eslint-disable-next-line import/no-named-as-default-member
   i18n.changeLanguage(newLocale);
   updateLayoutDirection(newLocale);
   if (typeof window !== "undefined" && window.localStorage) {
     try {
       window.localStorage.setItem(LOCALSTORAGE_KEY, newLocale);
-    } catch (e) {
+    } catch {
       // Ignore
     }
   }

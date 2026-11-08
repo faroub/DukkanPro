@@ -13,7 +13,6 @@ import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
 import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,7 +25,7 @@ interface ProductDetailScreenProps {
 }
 
 export default function ProductDetailScreen({ productId: propProductId }: ProductDetailScreenProps = {}) {
-  const { insets, style } = useEdgeToEdge();
+  const { insets } = useEdgeToEdge();
   const localParams = useLocalSearchParams<{ id?: string }>();
   const route = useRoute() as { params?: { id?: string } };
   const rawId = propProductId ?? localParams?.id ?? route?.params?.id;

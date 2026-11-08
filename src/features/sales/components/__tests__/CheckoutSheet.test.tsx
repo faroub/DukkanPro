@@ -165,7 +165,7 @@ describe("CheckoutSheet Component Money Math & Re-validation Harness", () => {
   });
 
   it("submits checkout with live validated items and exact amount paid", async () => {
-    const customer = await seedTestCustomer({ name: "Amine Purchaser" });
+    await seedTestCustomer({ name: "Amine Purchaser" });
     const product = await seedTestProduct({
       name: "Olive Oil 1L",
       sale_price_centimes: 20000, // 200 DZD

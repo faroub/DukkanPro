@@ -1,5 +1,7 @@
 import type { SQLiteOpenOptions } from "expo-sqlite";
 
+// Dynamically required: sql.js should only be loaded by the jest environment.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const initSqlJs: () => Promise<any> = require("sql.js");
 
 function normalizeParams(params: any[]): any[] {

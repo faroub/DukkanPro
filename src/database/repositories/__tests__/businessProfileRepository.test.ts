@@ -7,7 +7,6 @@
  - All assertions are on the return values of the repository methods.
  */
 
-import { BusinessProfile } from "../../../types/entities";
 import { getDatabase } from "../../database";
 import { create, get, update } from "../businessProfileRepository";
 

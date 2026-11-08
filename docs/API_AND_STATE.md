@@ -72,13 +72,13 @@ export interface DashboardResult extends DashboardData {
 
 - Re-queries SQLite on component mount and on screen focus via `useFocusEffect`.
 - `hasProductsOrSales` determines whether the live `DashboardScreen` or `EmptyDashboardScreen` is displayed.
-- `todayProfit_centimes` is a **cash-basis gross margin**, not net profit: it is the cash
-  collected at checkout on today's sales plus payments received from customers
-  today (repayments minus refunds, from `customer_payments`), minus the cost of
-  goods sold (from the historical unit costs recorded on today's completed sale
-  items). Credit sales made today do **not** count until the money is actually
-  collected, and expenses (rent, salaries, utilities) are not tracked in this
-  version — see `dashboardRepository.getTodayProfit`.
+- `todayProfit_centimes` is an **estimated gross margin**, not net profit: it is the revenue
+  of today's completed sales (including credit sales, which count as revenue when the
+  sale is made; discounts already applied) minus the cost of goods sold (from the
+  historical unit costs recorded on those same sale items). Repayments and customer
+  refunds move cash and debt only and do not affect this figure. Expenses (rent,
+  salaries, utilities) are not tracked in this version — see
+  `dashboardRepository.getTodayProfit`.
 
 ---
 

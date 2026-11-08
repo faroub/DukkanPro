@@ -149,7 +149,7 @@ export async function storeLocaleInAsyncStorage(
   if (typeof window !== "undefined" && window.localStorage) {
     try {
       window.localStorage.setItem(LOCALSTORAGE_KEY, locale);
-    } catch (e) {
+    } catch {
       // Ignore
     }
   }
@@ -179,7 +179,7 @@ export async function readStoredLocaleFromAsyncStorage(): Promise<Locale> {
       if (stored && isSupportedLocale(stored)) {
         return stored as Locale;
       }
-    } catch (e) {
+    } catch {
       // Ignore
     }
   }

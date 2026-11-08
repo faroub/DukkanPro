@@ -104,7 +104,11 @@ export const schema = {
   `,
 
   // ============================================================
-  // sales v2 — adds write-once currency column (migration 12)
+  // sales v2 — adds the historical currency column (migration 12)
+  // The currency is stamped per row at sale creation and never updated by
+  // the app. Enforcement lives in businessProfileRepository.update()
+  // (CURRENCY_LOCKED), not in the database: a SQLite trigger cannot be used
+  // here because execDefensiveSql splits migration SQL on ';'.
   // ============================================================
   salesCurrency: `
     ALTER TABLE sales ADD COLUMN currency TEXT NOT NULL DEFAULT 'DZD';
@@ -144,7 +148,10 @@ export const schema = {
   `,
 
   // ============================================================
-  // customer_payments v2 — adds write-once currency column (migration 13)
+  // customer_payments v2 — adds the historical currency column (migration 13)
+  // Same rule as sales.currency: stamped at creation, never updated by the
+  // app, guarded by businessProfileRepository.update() (CURRENCY_LOCKED)
+  // because execDefensiveSql's ';' splitting rules out a DB trigger.
   // ============================================================
   customerPaymentsCurrency: `
     ALTER TABLE customer_payments ADD COLUMN currency TEXT NOT NULL DEFAULT 'DZD';

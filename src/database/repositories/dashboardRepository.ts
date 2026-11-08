@@ -3,11 +3,11 @@
  *
  * - All methods use atomic reads from the SQLite database.
  * - Revenue/profit are computed from completed sales only; the profit figure
- *   is a CASH-basis gross margin (see getTodayProfit).
+ *   is a sale-basis estimated gross margin (see getTodayProfit).
  * - Stock counts exclude inactive/archived products.
  */
 
-import { executeAll, executeRead } from "../database";
+import { executeAll } from "../database";
 
 export type DashboardResult = {
   todayRevenue: number;    // centimes
@@ -105,22 +105,22 @@ export async function getTodayPaymentsReceived(): Promise<number> {
 }
 
 /**
- * Get today's estimated gross margin on a CASH basis (centimes).
+ * Get today's estimated gross margin on sales (centimes).
  *
- *   cash margin = cash collected at checkout on today's sales
- *                + payments received from customers today
- *                  (repayments minus refunds)
- *                − cost of goods sold for today's completed sales
+ *   gross margin = revenue of today's completed sales (incl. credit sales,
+ *                  counted as revenue when made, discounts already applied)
+ *                − cost of goods sold for those same sales
  *
- * Credit sales made today do NOT count until the money is actually collected,
- * so the figure never presents uncollected revenue as profit. Business
- * expenses (rent, salaries, utilities) are not tracked in this version.
+ * Uncollected credit sales DO count here: the margin is attributed to the day
+ * the sale was made, not the day the money changes hands. Repayments and
+ * customer refunds move cash/debt only and do not affect this figure.
+ * Business expenses (rent, salaries, utilities) are not tracked in this
+ * version, so this is a gross margin, not a net profit.
  */
 export async function getTodayProfit(): Promise<number> {
-  const cashCollected = await getTodayCashSales();
-  const paymentsReceived = await getTodayPaymentsReceived();
+  const revenue = await getTodayRevenue();
   const cost = await getTodayCost();
-  return cashCollected + paymentsReceived - cost;
+  return revenue - cost;
 }
 
 /**

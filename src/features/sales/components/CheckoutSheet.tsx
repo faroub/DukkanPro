@@ -13,7 +13,6 @@ import { SymbolView } from "expo-symbols";
 import { useCallback, useState, useEffect, useRef } from "react";
 import {
   Alert,
-  FlatList,
   Modal,
   Pressable,
   ScrollView,
@@ -87,7 +86,7 @@ export function CheckoutSheet({
   const [paymentMethod, setPaymentMethod] = useState<
     "cash" | "electronic" | "credit" | "partial"
   >("cash");
-  const [note, setNote] = useState<string>("");
+  const [note] = useState<string>("");
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);

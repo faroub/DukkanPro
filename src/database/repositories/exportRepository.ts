@@ -6,7 +6,7 @@
  - Read-only: no modifications to the database.
  */
 
-import { executeAll, executeRead } from "../database";
+import { executeAll } from "../database";
 import { Sale, SaleItem, Product, Customer, CustomerPayment, InventoryMovement } from "../../types/entities";
 
 /**

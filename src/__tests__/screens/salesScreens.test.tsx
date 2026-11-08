@@ -57,7 +57,7 @@ describe("Sales Screens Integration Harness", () => {
     });
 
     it("displays correct change due (50 DZD) on receipt preview when 150 DZD is tendered on a 100 DZD sale", async () => {
-      const product = await seedTestProduct({ name: "Cereal Box", sale_price_centimes: 10000, stock_quantity: 10 });
+      await seedTestProduct({ name: "Cereal Box", sale_price_centimes: 10000, stock_quantity: 10 });
 
       const screen = await renderScreen(<SellScreen />);
 

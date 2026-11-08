@@ -305,7 +305,7 @@ export async function create(saleInput: {
     for (const item of saleInput.items) {
       const productRows: any[] = await executeRead(
         tx,
-        `SELECT id, name, sale_price_centimes, cost_price_centimes, stock_quantity, unit FROM products WHERE id = ?`,
+        `SELECT id, name, sale_price_centimes, cost_price_centimes, stock_quantity, is_active, unit FROM products WHERE id = ?`,
         [item.productId],
       );
 
@@ -314,6 +314,12 @@ export async function create(saleInput: {
       }
 
       const product = productRows[0];
+
+      if (!product.is_active) {
+        throw new Error(
+          `PRODUCT_INACTIVE: '${product.name}' is no longer active and cannot be sold. Reactivate it in the catalogue before selling it.`,
+        );
+      }
 
       // The sale must record the catalogue price live at commit time. A mismatch
       // means the cart was built against a stale price snapshot: reject so the

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   Share,
   StyleSheet,
@@ -33,7 +32,7 @@ export function SaleDetailScreen(props?: SaleDetailScreenProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const localParams = useLocalSearchParams<{ id?: string }>();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const lang = i18n.language || 'fr';
   const isArabic = lang.startsWith('ar');
   const isFrench = lang.startsWith('fr');

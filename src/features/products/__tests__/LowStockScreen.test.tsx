@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, waitFor } from "@testing-library/react-native";
 
 import { LowStockScreen } from "../LowStockScreen";
 import {
@@ -8,6 +8,7 @@ import {
   seedTestProduct,
   resetMockRouter,
 } from "@/testing/screenTestHarness";
+import { adjustStock } from "@/database/repositories/productRepository";
 
 // Mock only adjustStock so the test can assert exactly which product id the
 // screen targets. All other exports (getAll, create, ...) stay real so the
@@ -16,8 +17,6 @@ jest.mock("@/database/repositories/productRepository", () => ({
   ...jest.requireActual("@/database/repositories/productRepository"),
   adjustStock: jest.fn(),
 }));
-
-import { adjustStock } from "@/database/repositories/productRepository";
 
 const adjustStockMock = adjustStock as jest.MockedFunction<typeof adjustStock>;
 

@@ -47,7 +47,7 @@
     "greeting": "Bonjour",
     "summary": {
       "revenue": "Chiffre d'affaires",
-      "profit": "Marge brute encaissée",
+      "profit": "Marge brute estimée",
       "toCollect": "Créances à recouvrer",
       "toRepay": "Crédit à rembourser",
       "lowStock": "Alerte stock"
@@ -443,6 +443,7 @@
     "onOrder": "Sur commande",
     "thanksMessage": "Merci de votre fidélité !",
     "validNotice": "Valable selon stocks disponibles",
+    "defaultShopName": "Notre catalogue",
     "itemsCount": "Articles",
     "noProductsFound": "Aucun produit correspondant",
     "noProductsFoundDesc": "Essayez de rechercher d'autres articles ou effacez le filtre"
@@ -864,6 +865,9 @@
     "restoring": "Restauration en cours…",
     "restoreSuccess": "Restauration terminée : {{rows}} lignes importées.",
     "pickCanceled": "Aucun fichier sélectionné.",
+    "privacyWarningTitle": "Cette sauvegarde contient des données personnelles",
+    "privacyWarningMessage": "Ce fichier contient les noms et numéros de téléphone de vos clients en clair. Ne le partagez qu'avec une personne de confiance et supprimez-le quand il n'est plus nécessaire.",
+    "privacyWarningShare": "Partager quand même",
     "sharingUnavailable": "Le partage n'est pas disponible ; le fichier a été enregistré dans le stockage de l'application.",
     "overwriteTitle": "Remplacer toutes les données actuelles ?",
     "overwriteMessage": "Cet appareil contient déjà des données. La restauration va les remplacer définitivement. Action irréversible.",
@@ -873,7 +877,7 @@
     "newerVersion": "Cette sauvegarde a été créée par une version plus récente de l'application. Restaurez-la sur un appareil exécutant cette version.",
     "invalidContent": "La sauvegarde contient des données invalides : {{detail}}",
     "brokenReferences": "La sauvegarde référence des enregistrements absents du fichier ; elle ne peut pas être restaurée.",
-    "restoreInconsistent": "Les données restaurées ne correspondent pas à l'inventaire ; la base de données a été laissée inchangée.",
+    "restoreReconciled": "Le journal de stock a été réparé pour {{count}} produit(s) ({{products}}) : leur mouvement d'ouverture manquait dans la sauvegarde.",
     "error": "L'opération de sauvegarde a échoué."
   },
   "dataReset": {

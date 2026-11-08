@@ -144,8 +144,21 @@ Per-table row counts, plus two financial invariants recomputed from the
 restored data:
 
 - `SUM(quantity_change) GROUP BY product_id == products.stock_quantity` (the
-  ledger reconciliation rule from Task 2);
+  ledger reconciliation rule from Task 2). A product whose movements do not
+  sum to `stock_quantity` — the classic case is a legacy product created
+  before the `inventory_movements` table existed, with stock but no opening
+  movement — is **not** rejected: restore records a one-time
+  `"Opening stock reconciliation"` movement (signed, `in`/`out` by sign of
+  `stock − SUM(quantity_change)`) inside the same transaction, and reports
+  the repaired products via `RestoreSummary.reconciliations` so the fix is
+  visible instead of silent;
 - customer debt totals equal the sum of unpaid balances.
+
+### 4.6 Privacy note
+
+The backup JSON contains customer names and phone numbers in plain text. The
+share sheet is only opened after an explicit warning in `BackupScreen`, and
+the file is written under the app's documents directory.
 
 ## 5. Whitelist (tables + columns, fixed in code)
 

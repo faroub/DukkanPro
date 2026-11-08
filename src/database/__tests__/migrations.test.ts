@@ -251,4 +251,103 @@ INSERT INTO probe_ln (note) VALUES ('offending; semicolon');`,
       ).rejects.toThrow(/line 3/);
     });
   });
+
+  describe("rebuild atomicity (runsOutsideTransaction)", () => {
+    it("rolls back the whole rebuild when a statement fails after DROP TABLE, and the rerun succeeds", async () => {
+      const db: any = await openDatabaseAsync("migrations-test.db");
+      await runMigrations(db, undefined, [
+        {
+          version: 210,
+          sql: `CREATE TABLE probe_rebuild (id INTEGER PRIMARY KEY, label TEXT);
+                 INSERT INTO probe_rebuild (label) VALUES ('original');`,
+        },
+      ]);
+
+      // A rebuild that crashes after the DROP (here: a statement erroring
+      // before the RENAME) left the old table dropped and the copy stranded
+      // when statements ran in autocommit mode.
+      await expect(
+        runMigrations(db, undefined, [
+          {
+            version: 211,
+            runsOutsideTransaction: true,
+            sql: `CREATE TABLE probe_rebuild_v (id INTEGER PRIMARY KEY, label TEXT);
+                   INSERT INTO probe_rebuild_v (id, label) SELECT id, label FROM probe_rebuild;
+                   DROP TABLE probe_rebuild;
+                   SELECT no_such_column FROM probe_rebuild_v;
+                   ALTER TABLE probe_rebuild_v RENAME TO probe_rebuild;`,
+          },
+        ]),
+      ).rejects.toThrow(/no such column/);
+
+      // Nothing stranded: the target table is intact with its data, the
+      // rebuild table is gone.
+      const tables: any[] = await db.getAllAsync(
+        `SELECT name FROM sqlite_master WHERE name IN ('probe_rebuild', 'probe_rebuild_v')`,
+      );
+      const names = tables.map((r: any) => r.name);
+      expect(names).toContain("probe_rebuild");
+      expect(names).not.toContain("probe_rebuild_v");
+      const row = await db.getFirstAsync(
+        `SELECT label FROM probe_rebuild`,
+      );
+      expect(row?.label).toBe("original");
+
+      // The failed migration was not recorded, and foreign keys stayed on.
+      const applied: any[] = await db.getAllAsync(
+        `SELECT version FROM _migration_version`,
+      );
+      expect(applied.map((r: any) => r.version)).not.toContain(211);
+      const pragma = await db.getFirstAsync(`PRAGMA foreign_keys`);
+      expect(pragma?.foreign_keys).toBe(1);
+
+      // The rerun succeeds: the schema is clean, nothing half-applied blocks it.
+      await runMigrations(db, undefined, [
+        {
+          version: 211,
+          runsOutsideTransaction: true,
+          sql: `CREATE TABLE probe_rebuild_v (id INTEGER PRIMARY KEY, label TEXT);
+                 INSERT INTO probe_rebuild_v (id, label) SELECT id, label FROM probe_rebuild;
+                 DROP TABLE probe_rebuild;
+                 ALTER TABLE probe_rebuild_v RENAME TO probe_rebuild;`,
+        },
+      ]);
+      const afterRerun = await db.getFirstAsync(
+        `SELECT label FROM probe_rebuild`,
+      );
+      expect(afterRerun?.label).toBe("original");
+      const appliedAfter: any[] = await db.getAllAsync(
+        `SELECT version FROM _migration_version`,
+      );
+      expect(appliedAfter.map((r: any) => r.version)).toContain(211);
+    });
+
+    it("aborts and rolls back when PRAGMA foreign_key_check finds violations before commit", async () => {
+      const db: any = await openDatabaseAsync("migrations-test.db");
+
+      // The rebuild inserts a child row pointing at a parent that does not
+      // exist — legal only while foreign_keys=OFF. The pre-commit check must
+      // catch it and roll the whole migration back.
+      await expect(
+        runMigrations(db, undefined, [
+          {
+            version: 212,
+            runsOutsideTransaction: true,
+            sql: `CREATE TABLE fk_parent (id INTEGER PRIMARY KEY);
+                   CREATE TABLE fk_child (id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES fk_parent(id));
+                   INSERT INTO fk_child (id, parent_id) VALUES (1, 999);`,
+          },
+        ]),
+      ).rejects.toThrow(/foreign-key violation/);
+
+      const tables: any[] = await db.getAllAsync(
+        `SELECT name FROM sqlite_master WHERE name IN ('fk_parent', 'fk_child')`,
+      );
+      expect(tables).toHaveLength(0);
+      const applied: any[] = await db.getAllAsync(
+        `SELECT version FROM _migration_version`,
+      );
+      expect(applied.map((r: any) => r.version)).not.toContain(212);
+    });
+  });
 });

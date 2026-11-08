@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   View,
   ScrollView,
@@ -75,6 +75,10 @@ export function RecordRefundScreen({
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Synchronous double-tap guard: state updates are asynchronous, so the
+  // disabled prop alone cannot block a second press landed in the same tick.
+  const isProcessingRef = useRef(false);
+
   // Parse the input in EXACT centimes with the strict parser ("10,50" / "10.50" → 1050).
   const parsedCentimes = useMemo(
     () => parseDzdToCentimes(amountInput),
@@ -89,6 +93,8 @@ export function RecordRefundScreen({
   };
 
   const handleConfirm = useCallback(async () => {
+    if (isProcessingRef.current) return;
+
     if (parsedCentimes <= 0) {
       Alert.alert(t("common:error"), t("customers:invalidAmount"));
       return;
@@ -99,6 +105,7 @@ export function RecordRefundScreen({
       return;
     }
 
+    isProcessingRef.current = true;
     setIsProcessing(true);
     try {
       const result = await recordRefund(
@@ -129,6 +136,7 @@ export function RecordRefundScreen({
     } catch (err: any) {
       Alert.alert(t("common:error"), err.message || t("common:unknownError"));
     } finally {
+      isProcessingRef.current = false;
       setIsProcessing(false);
     }
   }, [

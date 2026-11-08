@@ -64,6 +64,7 @@ describe("security business rules", () => {
       stock_quantity: 10,
       minimum_stock_quantity: 0,
       unit: "pcs",
+      is_active: true,
     } as any);
     const customer = await createCustomer({
       name: "Guard Cancel Client",
@@ -94,6 +95,7 @@ describe("security business rules", () => {
       stock_quantity: 10,
       minimum_stock_quantity: 0,
       unit: "pcs",
+      is_active: true,
     } as any);
     const customer = await createCustomer({
       name: "Guard Return Client",
@@ -124,6 +126,7 @@ describe("security business rules", () => {
       stock_quantity: 10,
       minimum_stock_quantity: 0,
       unit: "pcs",
+      is_active: true,
     } as any);
     const customer = await createCustomer({
       name: "Guard Refund Client",
@@ -164,6 +167,7 @@ describe("security business rules", () => {
       stock_quantity: 10,
       minimum_stock_quantity: 0,
       unit: "pcs",
+      is_active: true,
     } as any);
     const customer = await createCustomer({
       name: "Guard Payment Client",
@@ -203,6 +207,7 @@ describe("security business rules", () => {
       stock_quantity: 10,
       minimum_stock_quantity: 0,
       unit: "pcs",
+      is_active: true,
     } as any);
     const customer = await createCustomer({
       name: "Reset Client",
@@ -262,6 +267,7 @@ describe("security business rules", () => {
       stock_quantity: 1,
       minimum_stock_quantity: 0,
       unit: "pcs",
+      is_active: true,
     } as any);
     expect(firstProduct.id).toBe(1);
   });

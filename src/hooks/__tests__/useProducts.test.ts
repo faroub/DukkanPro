@@ -1,6 +1,5 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, jest } from "@jest/globals";
 import { useProducts } from "../useProducts";
-import * as productRepository from "@/database/repositories/productRepository";
 
 jest.mock("@/database/repositories/productRepository");
 

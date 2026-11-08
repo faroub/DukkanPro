@@ -1,4 +1,5 @@
 import { formatCentimes } from "@/utils/money";
+import i18n from "@/localization/i18n";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Platform, Share } from "react-native";
@@ -83,6 +84,12 @@ export function generateCatalogueHtml(
 ): string {
   const { showPrices, hideOutOfStock, contact, address, shopName, welcomeNote } = options;
 
+  // The brochure must declare the active locale and direction so the PDF
+  // renders right-to-left for Arabic instead of the hard-coded LTR default.
+  const activeLocale = i18n.language || "fr";
+  const brochureLang = ["ar", "fr", "en"].includes(activeLocale) ? activeLocale : "fr";
+  const brochureDir = activeLocale === "ar" ? "rtl" : "ltr";
+
   const validProducts = products.filter(
     (p) => !hideOutOfStock || p.stock > 0,
   );
@@ -114,7 +121,7 @@ export function generateCatalogueHtml(
 
   return `
     <!DOCTYPE html>
-    <html lang="fr" dir="ltr">
+    <html lang="${brochureLang}" dir="${brochureDir}">
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -257,7 +264,7 @@ export function generateCatalogueHtml(
     <body>
       <div class="header-bar"></div>
       <div class="store-header">
-        <h1 class="store-title">${escapeHtml(shopName || "Supérette El-Amel")}</h1>
+        <h1 class="store-title">${escapeHtml(shopName || t("catalogue.defaultShopName"))}</h1>
         ${address ? `<div class="store-meta">📍 ${escapeHtml(address)}</div>` : ""}
         ${contact ? `<div class="store-meta">📞 ${escapeHtml(contact)}</div>` : ""}
         ${welcomeNote ? `<div class="welcome-pill">${escapeHtml(welcomeNote)}</div>` : ""}

@@ -1,5 +1,3 @@
-import React from "react";
-
 interface FooterTrademarkProps {
   style?: any;
   lightText?: boolean;

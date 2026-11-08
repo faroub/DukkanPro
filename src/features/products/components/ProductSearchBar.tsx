@@ -2,7 +2,7 @@ import { Colors, Spacing, Shadows, BorderRadius } from "@/constants/theme";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTheme } from "@/hooks/use-theme";
 import { Ionicons } from "@expo/vector-icons";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -26,8 +26,16 @@ export function ProductSearchBar({
   // Debounced search to avoid too many re-renders
   const debouncedQuery = useDebounce(query, 300);
 
+  // Keep the latest onSearch callback without re-running the search effect on
+  // every parent render (which would fire spurious searches with an unchanged
+  // query).
+  const onSearchRef = useRef(onSearch);
   useEffect(() => {
-    onSearch(debouncedQuery);
+    onSearchRef.current = onSearch;
+  });
+
+  useEffect(() => {
+    onSearchRef.current(debouncedQuery);
   }, [debouncedQuery]);
 
   return (

@@ -39,6 +39,7 @@ async function makeProduct(sku: string, price = 10000) {
     stock_quantity: 100,
     minimum_stock_quantity: 0,
     unit: "pcs",
+    is_active: true,
   } as any);
 }
 

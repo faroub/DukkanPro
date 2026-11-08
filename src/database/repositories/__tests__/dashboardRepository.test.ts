@@ -183,7 +183,7 @@ describe("dashboardRepository", () => {
       expect(profit).toBe(0);
     });
 
-    it("is cash-based: credit sales do not count until the money is collected", async () => {
+    it("is sale-based: an all-credit sale counts as revenue when it is made", async () => {
       await db.runAsync(
         // language=SQLite
         `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
@@ -191,8 +191,8 @@ describe("dashboardRepository", () => {
         ["Credit Product", 6000, 3000, 10, "pcs"],
       );
 
-      // Completed CREDIT sale today: nothing was paid, so no cash margin —
-      // only the cost of the goods that left the shop.
+      // Completed CREDIT sale today: nothing was paid, yet the margin is
+      // attributed to the day of sale — revenue 6000 − cost 3000 = 3000.
       await db.runAsync(
         // language=SQLite
         `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
@@ -210,16 +210,73 @@ describe("dashboardRepository", () => {
       );
 
       expect(await getTodayRevenue()).toBe(6000);
-      expect(await getTodayProfit()).toBe(-3000);
+      expect(await getTodayProfit()).toBe(3000);
+    });
 
-      // A repayment received today brings cash in: 2000 - 3000 = -1000.
+    it("counts a partial payment the same as a credit sale: margin at sale time", async () => {
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
+         VALUES (?, ?, ?, ?, ?, 1)`,
+        ["Partial Product", 6000, 3000, 10, "pcs"],
+      );
+
+      // Completed sale today: total 6000, only 2000 paid at checkout.
+      // Margin is still revenue 6000 − cost 3000 = 3000.
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
+             total_centimes, amount_paid_centimes, remaining_balance_centimes,
+             payment_method, note, sold_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
+        [1, "completed", 6000, 0, 6000, 2000, 4000, "partial"],
+      );
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sale_items (sale_id, product_id, product_name_snapshot,
+             quantity, unit_sale_price_centimes, unit_cost_price_centimes, line_total_centimes, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        [1, 1, "Partial Product", 1, 6000, 3000, 6000],
+      );
+
+      expect(await getTodayProfit()).toBe(3000);
+    });
+
+    it("ignores customer refunds made today: they move cash and debt, not the margin", async () => {
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
+         VALUES (?, ?, ?, ?, ?, 1)`,
+        ["Refund Product", 6000, 3000, 10, "pcs"],
+      );
+
+      // Credit sale today: margin 3000 (see the all-credit test).
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
+             total_centimes, amount_paid_centimes, remaining_balance_centimes,
+             payment_method, note, sold_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
+        [1, "completed", 6000, 0, 6000, 6000, 0, "cash"],
+      );
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sale_items (sale_id, product_id, product_name_snapshot,
+             quantity, unit_sale_price_centimes, unit_cost_price_centimes, line_total_centimes, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        [1, 1, "Refund Product", 1, 6000, 3000, 6000],
+      );
+      expect(await getTodayProfit()).toBe(3000);
+
+      // A refund (negative customer_payments row) lands today: it returns
+      // money to the customer but does not change today's sale-based margin.
       await db.runAsync(
         // language=SQLite
         `INSERT INTO customer_payments (customer_id, amount_centimes, payment_method, currency, paid_at, created_at)
          VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
-        [1, 2000, "cash", "DZD"],
+        [1, -2000, "cash", "DZD"],
       );
-      expect(await getTodayProfit()).toBe(-1000);
+      expect(await getTodayProfit()).toBe(3000);
     });
   });
 

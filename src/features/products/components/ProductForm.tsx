@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -16,7 +16,7 @@ import { FooterTrademark } from '@/components/FooterTrademark';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
-import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/theme';
+import { Spacing, BorderRadius, Shadows } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { BarcodeScannerModal } from '@/features/sales/components/BarcodeScannerModal';
 import { get as getBusinessProfile } from '@/database/repositories/businessProfileRepository';
@@ -106,7 +106,7 @@ export function ProductForm({
       : '5'
   );
   const [unit, setUnit] = useState(initialValues?.unit || 'Piece');
-  const [isActive, setIsActive] = useState(initialValues?.is_active !== false);
+  const [isActive] = useState(initialValues?.is_active !== false);
 
   const [categoriesList, setCategoriesList] = useState<string[]>(() => {
     const list = [...DEFAULT_CATEGORIES];
@@ -228,7 +228,7 @@ export function ProductForm({
     }
   };
 
-  const { insets, style } = useEdgeToEdge();
+  const { insets } = useEdgeToEdge();
 
   return (
     <KeyboardAvoidingView

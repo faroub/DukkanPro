@@ -14,6 +14,7 @@ import {
 import { create as createProduct } from "@/database/repositories/productRepository";
 import { fireEvent, waitFor } from "@testing-library/react-native";
 import { getCustomerCredit, getCustomerDebt, recordRefund } from "@/services/customers/customerBalanceService";
+import * as balanceService from "@/services/customers/customerBalanceService";
 import { CustomerDetailScreen } from "@/features/customers/CustomerDetailScreen";
 import { getDatabase } from "@/database/database";
 
@@ -30,6 +31,7 @@ async function seedCustomerWithCredit(creditCentimes: number) {
     stock_quantity: 100,
     minimum_stock_quantity: 0,
     unit: "pcs",
+    is_active: true,
   } as any);
   const customer = await seedTestCustomer({
     name: "Refund Tester",
@@ -251,5 +253,32 @@ describe("RecordRefundScreen", () => {
     await waitFor(() => {
       expect(screen.getByText(/pas de crédit à rembourser/i)).toBeTruthy();
     });
+  });
+
+  it("blocks a double press from recording the refund twice", async () => {
+    const customer = await seedCustomerWithCredit(1050);
+
+    const recordRefundSpy = jest.spyOn(balanceService, "recordRefund");
+
+    const screen = await renderScreen(
+      <RecordRefundScreen customerId={customer.id} />
+    );
+    await waitFor(() => {
+      expect(screen.getByText("10,5 DZD")).toBeTruthy();
+    });
+
+    const confirm = await screen.findByText(/Confirmer le remboursement/i);
+
+    // Two presses land in the same tick, before the first await resolves:
+    // the disabled state (async) cannot block the second one.
+    fireEvent.press(confirm);
+    fireEvent.press(confirm);
+
+    await waitFor(async () => {
+      expect(await getCustomerCredit(customer.id)).toBe(0);
+    });
+
+    expect(recordRefundSpy).toHaveBeenCalledTimes(1);
+    recordRefundSpy.mockRestore();
   });
 });

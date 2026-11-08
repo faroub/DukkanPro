@@ -7,6 +7,11 @@ import {
     exportSales,
 } from "@/services/export/csvExportService";
 
+// SQLite timestamps are UTC; pin the zone so the date tests below are
+// deterministic regardless of the machine running them (Africa/Algiers is
+// UTC+1 with no DST around the fixture dates).
+process.env.TZ = "Africa/Algiers";
+
 const t = (key: string) => key;
 
 describe("CSV export privacy", () => {
@@ -189,6 +194,36 @@ describe("CSV export numeric values", () => {
   });
 });
 
+describe("CSV export refunds", () => {
+  it("exports a negative amount with its sign instead of clamping it to 0", () => {
+    const csv = exportPayments(
+      [
+        {
+          id: 1,
+          amount_centimes: -5000,
+          payment_method: "cash",
+          paid_at: "2026-11-07 08:15:00",
+        },
+        {
+          id: 2,
+          amount_centimes: 2500,
+          payment_method: "cash",
+          paid_at: "2026-11-07 09:00:00",
+        },
+      ],
+      t as never,
+    );
+    const lines = csv.split("\n");
+    // -5000 centimes = -50.00 units; +2500 centimes = 25 units.
+    expect(lines[1]).toBe(`"1","-50","DZD","payment_method.cash","2026-11-07"`);
+    expect(lines[2]).toBe(`"2","25","DZD","payment_method.cash","2026-11-07"`);
+    // The header label is unchanged.
+    expect(lines[0]).toBe(
+      `"payments.id","payments.amount (DZD)","payments.currency","payments.payment_method","payments.date"`,
+    );
+  });
+});
+
 describe("CSV export date trimming", () => {
   it("trims a SQLite space-separated timestamp to the date in sales", () => {
     const csv = exportSales(
@@ -240,6 +275,26 @@ describe("CSV export date trimming", () => {
     );
     expect(csv).toContain('"2026-11-07"');
     expect(csv).not.toContain("18:45:00");
+  });
+
+  it("converts UTC timestamps to the local calendar date, not the UTC date", () => {
+    // Africa/Algiers is UTC+1: 23:30 UTC on Nov 7 is 00:30 on Nov 8 locally.
+    const csv = exportSales(
+      [
+        {
+          id: 1,
+          payment_method: "cash",
+          subtotal_centimes: 1000,
+          total_centimes: 1000,
+          status: "completed",
+          sold_at: "2026-11-07 23:30:00",
+        },
+      ],
+      t as never,
+    );
+    expect(csv).toContain('"2026-11-08"');
+    expect(csv).not.toContain("2026-11-07");
+    expect(csv).not.toContain("23:30:00");
   });
 });
 
@@ -304,6 +359,24 @@ describe("CSV export formula neutralization", () => {
     expect(dataLine).toBe(`"1","Samir","+213555123456"`);
   });
 
+  it("keeps a phone number unchanged only when it is plain digits with an optional leading +", () => {
+    const csv = exportCustomers(
+      [
+        { id: 1, name: "Samir", phone: "+213555123456" },
+        { id: 2, name: "Amina", phone: "0661 11 22 33" },
+        { id: 3, name: "Karim", phone: "-1+cmd|x" },
+      ],
+      t as never,
+    );
+    const lines = csv.split("\n");
+    // Plain digits (with an optional leading +) export unchanged.
+    expect(lines[1]).toBe(`"1","Samir","+213555123456"`);
+    // A local spaced number starts with a digit, so it is not a formula.
+    expect(lines[2]).toBe(`"2","Amina","0661 11 22 33"`);
+    // Anything else starting with - is neutralized like any other text field.
+    expect(lines[3]).toBe(`"3","Karim","'-1+cmd|x"`);
+  });
+
   it("still neutralizes = and @ on text fields", () => {
     const csv = exportProducts(
       [
@@ -322,7 +395,7 @@ describe("CSV export formula neutralization", () => {
     expect(dataLine).toBe(`"1","'=SUM(A1)","'@evil","Dairy","5","pcs"`);
   });
 
-  it("neutralizes a leading - only when followed by a letter", () => {
+  it("neutralizes a leading - on any text field, including one starting with a digit", () => {
     const csv = exportProducts(
       [
         {
@@ -337,7 +410,27 @@ describe("CSV export formula neutralization", () => {
       t as never,
     );
     const dataLine = csv.split("\n")[1];
-    expect(dataLine).toBe(`"1","'-note","-5","Dairy","5","pcs"`);
+    // Text fields are neutralized unconditionally on a leading -; only
+    // numeric columns (which bypass csvSafe) keep their sign.
+    expect(dataLine).toBe(`"1","'-note","'-5","Dairy","5","pcs"`);
+  });
+
+  it("neutralizes a leading + or - regardless of what follows ('-2+3', '-1+cmd|x', '=1+1', '+memo')", () => {
+    const csv = exportProducts(
+      [
+        {
+          id: 1,
+          name: "-2+3",
+          sku: "-1+cmd|x",
+          category: "=1+1",
+          sale_price_centimes: 500,
+          unit: "+memo",
+        },
+      ],
+      t as never,
+    );
+    const dataLine = csv.split("\n")[1];
+    expect(dataLine).toBe(`"1","'-2+3","'-1+cmd|x","'=1+1","5","'+memo"`);
   });
 });
 

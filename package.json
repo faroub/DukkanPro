@@ -35,7 +35,6 @@
     "react-i18next": "^17.0.13",
     "react-native": "0.86.3",
     "react-native-gesture-handler": "~2.32.0",
-    "react-native-paper": "^5.15.3",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
@@ -64,6 +63,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "check:no-rtl": "node --experimental-strip-types --no-warnings scripts/check-no-rtl.ts",
+    "check:architecture": "node --experimental-strip-types --no-warnings scripts/check-architecture.ts",
     "test": "jest"
   },
   "private": true,

@@ -78,7 +78,7 @@ const REASONS: ReasonOption[] = [
 
 export function StockAdjustmentScreen() {
   const theme = useTheme();
-  const { insets, style } = useEdgeToEdge();
+  const { insets } = useEdgeToEdge();
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const route = useRoute();

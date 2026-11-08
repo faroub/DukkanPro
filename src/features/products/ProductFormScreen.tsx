@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useLocalSearchParams, useNavigation, useRoute, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRoute, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { View, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { ProductForm, ProductFormData } from './components/ProductForm';
@@ -30,11 +30,9 @@ export function ProductFormScreen({
 }: ProductFormScreenProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const defaultNavigation = useNavigation();
   const localParams = useLocalSearchParams<{ id?: string }>();
   const routerRoute = useRoute() as { params?: { id?: string } };
   const params = route?.params ?? routerRoute?.params ?? localParams ?? {};
-  const currentNavigation = navigation ?? defaultNavigation;
 
   const productId = propProductId ?? (params?.id ? Number(params.id) : undefined);
   const mode = propMode ?? (productId ? 'edit' : 'create');
@@ -108,7 +106,7 @@ export function ProductFormScreen({
         });
       }
     },
-    [mode, productId]
+    [mode, productId, propOnSave]
   );
 
   const handleArchive = useCallback(async () => {

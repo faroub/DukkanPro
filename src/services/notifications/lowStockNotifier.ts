@@ -90,7 +90,7 @@ export async function initSnoozeState(): Promise<void> {
         inMemorySnoozeUntil = snoozeUntil;
       }
     }
-  } catch (_e) {
+  } catch {
     // Ignore storage read issues
   }
 }

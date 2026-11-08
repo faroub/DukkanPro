@@ -3,13 +3,22 @@
  *
  * Rules:
  * - Each migration runs inside a single atomic SQLite transaction (SQL + _migration_version record).
- * - Table-rebuild migrations (runsOutsideTransaction) cannot use that transaction: rebuilding with
- *   foreign_keys=OFF requires a PRAGMA, and SQLite ignores PRAGMAs inside a transaction. Their
- *   optional precheck guard aborts before any data is touched when existing rows would violate a
- *   new constraint — the migration never silently rewrites data.
+ * - Table-rebuild migrations (runsOutsideTransaction) also run inside one atomic
+ *   BEGIN IMMEDIATE ... COMMIT — SQLite DDL is transactional, so a crash or error
+ *   between the copy, DROP and RENAME leaves the old schema untouched and the
+ *   migration re-runnable. Rebuilding requires PRAGMA foreign_keys=OFF, and
+ *   SQLite ignores PRAGMAs inside a transaction, so the pragma is set before
+ *   BEGIN and restored after COMMIT. PRAGMA foreign_key_check runs before
+ *   COMMIT and aborts the rebuild when references would be left dangling, and
+ *   the database file is snapshotted beforehand as a best-effort recovery copy.
+ * - Their optional precheck guard aborts before any data is touched when
+ *   existing rows would violate a new constraint — the migration never
+ *   silently rewrites data.
  * - ALTER TABLE statements are defensive: column existence is checked via PRAGMA table_info first.
  * - Migrations are numbered sequentially and run via `runMigrations(db)`.
  */
+
+import * as FileSystem from "expo-file-system/legacy";
 
 import { rawTransaction } from "./query";
 import { schema } from "./schema";
@@ -233,6 +242,35 @@ async function execDefensiveSql(db: any, sql: string): Promise<void> {
   }
 }
 
+const DATABASE_FILE_NAME = "DukkanPro.db";
+
+/**
+ * Before a table-rebuild migration, snapshot the database file so the data can
+ * be recovered by hand if anything catastrophic happens. The atomic
+ * transaction is the primary safety net; this copy is the last-resort one.
+ * Best-effort by design: when the file cannot be located or copied (in-memory
+ * test databases, unavailable file system), the migration still proceeds — a
+ * snapshot failure must never strand the merchant on their old schema.
+ */
+async function snapshotDatabaseFile(migrationVersion: number): Promise<void> {
+  try {
+    if (!FileSystem.documentDirectory) return;
+    const dbPath = `${FileSystem.documentDirectory}SQLite/${DATABASE_FILE_NAME}`;
+    const info = await FileSystem.getInfoAsync(dbPath);
+    if (!info?.exists) return;
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    await FileSystem.copyAsync({
+      from: dbPath,
+      to: `${FileSystem.documentDirectory}SQLite/${DATABASE_FILE_NAME}.pre-v${migrationVersion}-${stamp}`,
+    });
+  } catch (error) {
+    console.error(
+      `Pre-migration database snapshot (migration ${migrationVersion}) failed; the migration will proceed:`,
+      error,
+    );
+  }
+}
+
 /**
  * Run pending migrations in order. The third parameter exists so tests can
  * exercise the runner against synthetic migration fixtures; production code
@@ -260,21 +298,58 @@ export async function runMigrations(
 
     if (!appliedVersions.has(migration.version)) {
       if (migration.runsOutsideTransaction) {
-        // Table rebuilds (CREATE / copy / DROP / RENAME) require
-        // PRAGMA foreign_keys=OFF, which SQLite ignores inside a transaction,
-        // so these migrations run outside one. The precheck guard throws
-        // before any statement executes when data would violate the new
-        // constraints.
+        // Best-effort file snapshot before the rebuild (see snapshotDatabaseFile).
+        await snapshotDatabaseFile(migration.version);
+        // foreign_keys=OFF must be set OUTSIDE the transaction (SQLite ignores
+        // PRAGMAs inside one) and is restored after COMMIT.
         await db.execAsync("PRAGMA foreign_keys = OFF");
         try {
           if (migration.precheck) {
             await migration.precheck(db);
           }
-          await execDefensiveSql(db, migration.sql);
-          await db.runAsync(
-            "INSERT INTO _migration_version (version) VALUES (?)",
-            [migration.version],
-          );
+          // The whole rebuild — create, copy, drop, rename, indexes, version
+          // record — runs in one atomic transaction, so a crash or error
+          // anywhere inside leaves the pre-migration schema untouched and the
+          // migration still re-runnable.
+          await db.execAsync("BEGIN IMMEDIATE");
+          try {
+            await execDefensiveSql(db, migration.sql);
+            await db.runAsync(
+              "INSERT INTO _migration_version (version) VALUES (?)",
+              [migration.version],
+            );
+            // Integrity gate: never commit a rebuild that left dangling
+            // references. PRAGMA foreign_key_check works with foreign_keys
+            // disabled (it is a read-only diagnostic over the schema).
+            const violations: any[] = await db.getAllAsync(
+              "PRAGMA foreign_key_check",
+            );
+            if (violations.length > 0) {
+              throw new Error(
+                `Migration ${migration.version} aborted before commit: ${violations.length} foreign-key violation(s) (${violations
+                  .slice(0, 3)
+                  .map(
+                    (v) =>
+                      `${v.table} row ${v.rowid} references missing ${v.parent}`,
+                  )
+                  .join("; ")}). The transaction was rolled back.`,
+              );
+            }
+            await db.execAsync("COMMIT");
+          } catch (error) {
+            try {
+              await db.execAsync("ROLLBACK");
+            } catch (rollbackError) {
+              // ROLLBACK only fails when no transaction is open (the BEGIN
+              // itself failed) or the connection is gone — neither case can
+              // have modified the database.
+              console.error(
+                `Migration ${migration.version}: ROLLBACK failed after an error`,
+                rollbackError,
+              );
+            }
+            throw error;
+          }
         } finally {
           await db.execAsync("PRAGMA foreign_keys = ON");
         }

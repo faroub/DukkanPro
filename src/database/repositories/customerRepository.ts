@@ -164,13 +164,15 @@ export async function create(
 
 /**
  * Update an existing customer by id.
- * Only the provided fields are updated; id, created_at remain unchanged.
- * The phone number is normalized before storage, and a phone already used by
- * another customer is rejected with DUPLICATE_PHONE.
+ * Only the provided fields are updated; id, created_at and is_active remain
+ * unchanged — activity changes must go through archive()/restore() so the
+ * balance check can never be bypassed. The phone number is normalized before
+ * storage, and a phone already used by another customer is rejected with
+ * DUPLICATE_PHONE.
  */
 export async function update(
   id: number,
-  customer: Partial<Omit<Customer, "id" | "created_at">>,
+  customer: Partial<Omit<Customer, "id" | "created_at" | "is_active">>,
 ): Promise<Customer> {
   const db = await getDatabase();
   return await transaction(db, async (tx) => {
@@ -200,10 +202,6 @@ export async function update(
     if (customer.note !== undefined) {
       fields.push(`note = ?`);
       values.push(customer.note);
-    }
-    if (customer.is_active !== undefined) {
-      fields.push(`is_active = ?`);
-      values.push(customer.is_active ? 1 : 0);
     }
 
     // Reads use the transaction handle: getById would deadlock on the dbMutex.
@@ -268,6 +266,34 @@ export async function archive(id: number): Promise<void> {
        WHERE id = ?`,
       [id],
     );
+  });
+}
+
+/**
+ * Restore an archived customer by id: sets is_active = true with no balance
+ * requirement (restoring a customer never moves money). This is the only
+ * path besides archive() that changes is_active — update() cannot.
+ * Returns the restored customer.
+ */
+export async function restore(id: number): Promise<Customer> {
+  const db = await getDatabase();
+  return await transaction(db, async (tx) => {
+    await executeWrite(
+      tx,
+      `UPDATE customers
+       SET is_active = 1,
+           updated_at = datetime('now')
+       WHERE id = ?`,
+      [id],
+    );
+
+    const rows: any[] = await executeRead(
+      tx,
+      `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers WHERE id = ?`,
+      [id],
+    );
+    if (rows.length === 0) throw new Error(`Customer id=${id} not found`);
+    return mapCustomerRow(rows[0]);
   });
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { FooterTrademark } from "@/components/FooterTrademark";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing, BorderRadius, Typography, Shadows } from "@/constants/theme";

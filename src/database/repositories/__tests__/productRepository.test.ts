@@ -20,10 +20,8 @@ import {
     update,
 } from "../productRepository";
 
-let db: any;
-
 beforeAll(async () => {
-  db = await getDatabase();
+  await getDatabase();
 });
 
 describe("productRepository", () => {
@@ -69,7 +67,6 @@ describe("productRepository", () => {
         unit: "لتر",
         is_active: true,
       });
-      const product = await getById(1); // id may vary; this is illustrative
       // We'll just verify getById works with the id returned from create
       const created = await create({
         name: "سكر",

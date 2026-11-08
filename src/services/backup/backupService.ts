@@ -47,9 +47,23 @@ const DELETE_ORDER: BackupTable[] = [
 // Parent first, child last — safe insertion order.
 const INSERT_ORDER: BackupTable[] = [...DELETE_ORDER].reverse();
 
+export type LedgerReconciliation = {
+  productId: number;
+  name: string;
+  delta: number; // centimes-free integer stock units the ledger was short by
+};
+
 export type RestoreSummary = {
   rowsImported: number;
   tableCounts: Record<BackupTable, number>;
+  /**
+   * Products whose inventory_movements did not sum to stock_quantity (the
+   * classic case: a legacy product created before the inventory_movements
+   * table existed, with stock but no opening movement). Each received a
+   * one-time "Opening stock reconciliation" movement so the restored ledger
+   * reconciles. Empty when the backup was already consistent.
+   */
+  reconciliations?: LedgerReconciliation[];
 };
 
 function columnsOf(table: BackupTable): string[] {
@@ -122,8 +136,10 @@ export async function createBackup(): Promise<{ uri: string; data: BackupData }>
  * transaction. Refuses to overwrite a non-empty database unless
  * { confirmOverwrite: true } is passed. Throws with a typed prefix
  * (INVALID_BACKUP_FILE / UNSUPPORTED_BACKUP_VERSION / BACKUP_NEWER_VERSION /
- * INVALID_BACKUP_CONTENT / BROKEN_REFERENCES / OVERWRITE_REQUIRED /
- * RESTORE_INCONSISTENT) so callers can surface a specific message.
+ * INVALID_BACKUP_CONTENT / BROKEN_REFERENCES / OVERWRITE_REQUIRED) so callers
+ * can surface a specific message. Products whose stock ledger does not sum to
+ * stock_quantity are not rejected: each gets a one-time "Opening stock
+ * reconciliation" movement (reported in the returned summary).
  */
 export async function restoreBackup(
   fileContents: string,
@@ -177,32 +193,52 @@ export async function restoreBackup(
       }
     }
 
-    // 3. Verify what landed before committing: row counts and the stock
-    //    ledger reconciliation rule (SUM(quantity_change) per product equals
-    //    stock_quantity).
+    // 3. Verify what landed before committing: row counts and the stock ledger
+    //    rule. Products whose movements do not sum to stock_quantity (e.g. a
+    //    legacy product created before the inventory_movements table existed,
+    //    with stock but no opening movement) are NOT rejected: each receives a
+    //    one-time "Opening stock reconciliation" movement inside this same
+    //    transaction so the restored ledger reconciles, and the fix is reported
+    //    back in the summary instead of being applied silently.
     const tableCounts = {} as Record<BackupTable, number>;
     for (const table of BACKUP_TABLES) {
       const rows = await executeRead<{ n: number }>(tx, `SELECT COUNT(*) AS n FROM ${table}`);
       tableCounts[table] = rows[0].n;
     }
 
+    const products = await executeAll<{ id: number; name: string; stock_quantity: number }>(
+      tx,
+      `SELECT id, name, stock_quantity FROM products`,
+    );
+    const movementSums = new Map<number, number>();
     const ledger = await executeAll<{ product_id: number; total: number | null }>(
       tx,
       `SELECT product_id, SUM(quantity_change) AS total FROM inventory_movements GROUP BY product_id`,
     );
     for (const entry of ledger) {
-      const productRows = await executeRead<{ stock_quantity: number }>(
-        tx,
-        `SELECT stock_quantity FROM products WHERE id = ?`,
-        [entry.product_id],
-      );
-      if (productRows.length === 1 && (entry.total ?? 0) !== productRows[0].stock_quantity) {
-        throw new Error(
-          `RESTORE_INCONSISTENT: Restored ledger does not reconcile for product id=${entry.product_id} (movements sum ${entry.total} vs stock ${productRows[0].stock_quantity}). Restore rolled back.`,
-        );
-      }
+      movementSums.set(entry.product_id, entry.total ?? 0);
     }
 
-    return { rowsImported, tableCounts };
+    const reconciliations: LedgerReconciliation[] = [];
+    for (const product of products) {
+      const sum = movementSums.get(product.id) ?? 0;
+      if (sum === product.stock_quantity) continue;
+
+      const delta = product.stock_quantity - sum;
+      await executeWrite(
+        tx,
+        `INSERT INTO inventory_movements
+         (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
+         VALUES (?, ?, ?, NULL, 'Opening stock reconciliation', datetime('now'))`,
+        [product.id, delta >= 0 ? "in" : "out", delta],
+      );
+      reconciliations.push({
+        productId: product.id,
+        name: product.name,
+        delta,
+      });
+    }
+
+    return { rowsImported, tableCounts, reconciliations };
   });
 }

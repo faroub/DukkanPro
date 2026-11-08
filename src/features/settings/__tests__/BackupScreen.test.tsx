@@ -92,12 +92,33 @@ describe("BackupScreen backup & restore wiring", () => {
     alertSpy.mockRestore();
   });
 
-  it("creates a backup and offers the JSON file through the share sheet", async () => {
+  it("creates a backup and offers the JSON file through the share sheet after the privacy warning", async () => {
     await seedTestBusinessProfile("Share Shop");
     await seedTestProduct({ name: "Share Product", sku: "SHARE-1" });
     await renderScreen(<BackupScreen />);
 
     fireEvent.press(screen.getByLabelText(/Créer la sauvegarde/i));
+
+    // The share sheet must NOT open directly: a privacy warning comes first
+    // because the backup holds customer names and phone numbers in plain text.
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.stringContaining("personnelles"),
+        expect.any(String),
+        expect.any(Array),
+        expect.any(Object),
+      );
+    });
+    expect(Sharing.shareAsync).not.toHaveBeenCalled();
+
+    // Press the warning's share action to open the share sheet.
+    const lastCall = alertSpy.mock.calls[alertSpy.mock.calls.length - 1];
+    const buttons = lastCall[2] as { text?: string; onPress?: () => void }[];
+    const shareButton = buttons.find((b) => b.onPress);
+    expect(shareButton?.text).toMatch(/Partager/i);
+    await act(async () => {
+      shareButton!.onPress!();
+    });
 
     await waitFor(() => {
       expect(Sharing.shareAsync).toHaveBeenCalledWith(

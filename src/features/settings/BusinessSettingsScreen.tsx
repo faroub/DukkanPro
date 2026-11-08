@@ -40,7 +40,7 @@ import * as businessProfile from "@/database/repositories/businessProfileReposit
 import { useTheme } from "@/hooks/use-theme";
 
 export function BusinessSettingsScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();

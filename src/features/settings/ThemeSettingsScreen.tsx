@@ -71,7 +71,6 @@ export function ThemeSettingsScreen() {
   const insets = useSafeAreaInsets();
   const {
     themePreference,
-    colorScheme,
     systemColorScheme,
     setThemePreference,
   } = useThemePreference();

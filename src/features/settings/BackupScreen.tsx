@@ -56,9 +56,6 @@ function restoreErrorMessage(message: string, t: Translate): string {
   if (message.startsWith("BROKEN_REFERENCES")) {
     return t("backup.brokenReferences");
   }
-  if (message.startsWith("RESTORE_INCONSISTENT")) {
-    return t("backup.restoreInconsistent");
-  }
   return t("backup.invalidFile");
 }
 
@@ -84,10 +81,28 @@ export function BackupScreen() {
       const { uri } = await createBackup();
       const sharingAvailable = await Sharing.isAvailableAsync();
       if (sharingAvailable) {
-        await Sharing.shareAsync(uri, {
-          mimeType: "application/json",
-          dialogTitle: t("backup.title") || "DukkanPro backup",
-        });
+        // The backup contains customer personal data in plain text; make that
+        // explicit before the file leaves the device via the share sheet.
+        Alert.alert(
+          t("backup.privacyWarningTitle"),
+          t("backup.privacyWarningMessage"),
+          [
+            { text: t("common:cancel"), style: "cancel" },
+            {
+              text: t("backup.privacyWarningShare"),
+              onPress: () => {
+                Sharing.shareAsync(uri, {
+                  mimeType: "application/json",
+                  dialogTitle: t("backup.title") || "DukkanPro backup",
+                }).catch((error) => {
+                  console.error("Backup sharing error:", error);
+                  showToast(t("backup.error") || "Backup operation failed.");
+                });
+              },
+            },
+          ],
+          { cancelable: true },
+        );
       } else {
         showToast(
           t("backup.sharingUnavailable") ||
@@ -115,11 +130,22 @@ export function BackupScreen() {
         });
         // Restored data invalidates any in-memory cart.
         useCartStore.getState().clearCart();
+        // Legacy backups may have products whose stock ledger predates the
+        // inventory_movements table; restore repairs them and reports the
+        // fix here rather than applying it silently.
+        const reconciled = (summary.reconciliations ?? []).length;
         showToast(
           t("backup.restoreSuccess", {
             rows: summary.rowsImported,
             defaultValue: `Restore complete: ${summary.rowsImported} rows imported.`,
-          }),
+          }) +
+            (reconciled > 0
+              ? " " +
+                t("backup.restoreReconciled", {
+                  count: reconciled,
+                  products: summary.reconciliations!.map((r) => r.name).join(", "),
+                })
+              : ""),
         );
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

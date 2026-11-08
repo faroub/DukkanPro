@@ -14,6 +14,7 @@ import {
     getAll,
     getById,
     normalizePhone,
+    restore,
     search,
     update,
 } from "../customerRepository";
@@ -153,11 +154,27 @@ describe("customerRepository", () => {
         name: "اسم بعد التحديث",
         phone: "0553142222",
         note: "ملاحظة بعد",
-        is_active: false,
       });
       expect(updated?.name).toBe("اسم بعد التحديث");
       expect(updated?.phone).toBe("0553142222");
-      expect(updated?.is_active).toBe(false);
+      expect(updated?.is_active).toBe(true);
+    });
+
+    it("ignores is_active in the payload — activity only changes via archive()/restore() (F-archive)", async () => {
+      const created = await create({
+        name: "زبون نشط",
+        phone: "0553143333",
+        note: null,
+        is_active: true,
+      });
+      // The type no longer accepts is_active; cast to simulate a legacy caller.
+      const updated = await update(created.id, {
+        name: "زبون نشط",
+        is_active: false,
+      } as any);
+      expect(updated?.is_active).toBe(true);
+      const reloaded = await getById(created.id);
+      expect(reloaded?.is_active).toBe(true);
     });
 
     it("clears optional fields when update receives null (F2)", async () => {
@@ -212,6 +229,25 @@ describe("customerRepository", () => {
       const customer = await getById(created!.id);
       expect(customer).not.toBeNull();
       expect(customer?.is_active).toBe(false);
+    });
+  });
+
+  describe("restore()", () => {
+    it("reactivates an archived customer with no balance requirement", async () => {
+      const created = await create({
+        name: "إعادة تفعيل",
+        phone: "0562223334",
+        note: null,
+        is_active: true,
+      });
+      await archive(created.id);
+      const stillActive = await getById(created.id);
+      expect(stillActive?.is_active).toBe(false);
+
+      const restored = await restore(created.id);
+      expect(restored?.is_active).toBe(true);
+      const reloaded = await getById(created.id);
+      expect(reloaded?.is_active).toBe(true);
     });
   });
 

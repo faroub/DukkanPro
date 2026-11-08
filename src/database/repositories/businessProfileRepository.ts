@@ -86,7 +86,7 @@ export async function create(
     return existing;
   }
 
-  const result = await executeWrite(
+  await executeWrite(
     // language=SQLite
     `INSERT INTO business_profiles
      (business_name, owner_name, business_type, currency, selected_locale,

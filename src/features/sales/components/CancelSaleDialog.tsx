@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Alert,
   Modal,
-  ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -37,7 +36,7 @@ export function CancelSaleDialog({
   saleDetails,
   onCancelSuccess,
 }: CancelSaleDialogProps) {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const theme = useTheme();
   const lang = i18n.language || 'fr';
   const isArabic = lang.startsWith('ar');

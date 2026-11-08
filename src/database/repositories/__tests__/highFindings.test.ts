@@ -1,7 +1,7 @@
-import { cancel, create, getById, returnSale } from "../saleRepository";
+import { cancel, create, returnSale } from "../saleRepository";
 import { create as createCustomer } from "../customerRepository";
 import { create as createProduct } from "../productRepository";
-import { recordPayment, getCustomerDebt, getCustomerPayments } from "@/services/customers/customerBalanceService";
+import { recordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { executeAll, getDatabase } from "@/database/database";
 
 const dummyCustomer = (name: string) => ({
@@ -52,7 +52,7 @@ describe("High Findings Safeguards (H1, H2, H3)", () => {
       );
 
       // 1. Credit sale A for 100 DZD
-      const saleA = await create({
+      await create({
         customerId: customer.id,
         paymentMethod: "credit",
         items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 10000 }],
@@ -92,7 +92,7 @@ describe("High Findings Safeguards (H1, H2, H3)", () => {
       );
 
       // 1. Credit sale A for 40 DZD
-      const saleA = await create({
+      await create({
         customerId: customer.id,
         paymentMethod: "credit",
         items: [{ productId: product.id, quantity: 1, unitSalePriceCentimes: 4000 }],
@@ -141,7 +141,6 @@ describe("High Findings Safeguards (H1, H2, H3)", () => {
       ).rejects.toThrow("Insufficient stock for 'Scarce Item'");
 
       // Verify product stock remains 1
-      const db = await getDatabase();
       const pRows = await executeAll<{ stock_quantity: number }>(
         `SELECT stock_quantity FROM products WHERE id = ?`,
         [product.id]

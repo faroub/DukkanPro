@@ -1,7 +1,6 @@
 import React, { ErrorInfo } from 'react';
-import { View, ViewProps, StyleSheet } from 'react-native';
+import { ViewProps } from 'react-native';
 import { ErrorState } from './ErrorState';
-import { Spacing } from '@/constants/theme';
 
 export interface ErrorBoundaryProps extends ViewProps {
   children: React.ReactNode;

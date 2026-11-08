@@ -39,26 +39,36 @@ export async function getDatabase() {
   }
 
   databasePromise = (async () => {
-    const db = await openDatabaseAsync(DATABASE_NAME);
+    try {
+      const db = await openDatabaseAsync(DATABASE_NAME);
 
-    // --- Setup pragmas on every fresh connection ---
-    await db.execAsync(`
-      PRAGMA foreign_keys = ON;
-      PRAGMA journal_mode = WAL;
-      PRAGMA synchronous = NORMAL;
-      PRAGMA cache_size = -64000; -- 64MB cache
-    `);
+      // --- Setup pragmas on every fresh connection ---
+      await db.execAsync(`
+        PRAGMA foreign_keys = ON;
+        PRAGMA journal_mode = WAL;
+        PRAGMA synchronous = NORMAL;
+        PRAGMA cache_size = -64000; -- 64MB cache
+      `);
 
-    // --- Run migrations (idempotent, tracked in _migration_version) ---
-    await runMigrations(db);
+      // --- Run migrations (idempotent, tracked in _migration_version) ---
+      await runMigrations(db);
 
-    // --- Development-only seed data ---
-    if (__DEV__ && process.env.NODE_ENV !== "test" && !process.env.JEST_WORKER_ID) {
-      await seed(db);
+      // --- Development-only seed data ---
+      if (__DEV__ && process.env.NODE_ENV !== "test" && !process.env.JEST_WORKER_ID) {
+        await seed(db);
+      }
+
+      database = db;
+      return db;
+    } catch (error) {
+      // A rejected promise would poison every subsequent getDatabase() call
+      // until the app restarts. Clearing it lets the caller retry the open
+      // and migration once the transient cause is resolved.
+      databasePromise = null;
+      throw error instanceof Error
+        ? error
+        : new Error(`DATABASE_INIT_FAILED: ${String(error)}`);
     }
-
-    database = db;
-    return db;
   })();
 
   return databasePromise;

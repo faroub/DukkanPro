@@ -68,8 +68,6 @@ export function LanguageSettingsScreen() {
   const router = useRouter();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const isArabic = i18n.language?.startsWith("ar");
-  const textAlignStyle = isArabic ? styles.textRight : styles.textLeft;
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || "fr");
 
   useEffect(() => {

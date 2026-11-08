@@ -47,7 +47,7 @@
     "greeting": "Hello",
     "summary": {
       "revenue": "Today's Sales",
-      "profit": "Cash gross margin",
+      "profit": "Estimated gross margin",
       "toCollect": "To collect",
       "toRepay": "Outstanding credit",
       "lowStock": "Low stock"
@@ -443,6 +443,7 @@
     "onOrder": "On order",
     "thanksMessage": "Thank you for your business!",
     "validNotice": "Valid according to available stocks",
+    "defaultShopName": "Our Catalogue",
     "itemsCount": "Items",
     "noProductsFound": "No matching products",
     "noProductsFoundDesc": "Try searching for other items or clear the filter"
@@ -864,6 +865,9 @@
     "restoring": "Restoring data…",
     "restoreSuccess": "Restore complete: {{rows}} rows imported.",
     "pickCanceled": "No file selected.",
+    "privacyWarningTitle": "This backup contains personal data",
+    "privacyWarningMessage": "This file includes customer names and phone numbers in plain text. Share it only with someone you trust, and delete it once it is no longer needed.",
+    "privacyWarningShare": "Share anyway",
     "sharingUnavailable": "Sharing is unavailable; the backup file was saved inside the app storage.",
     "overwriteTitle": "Replace all current data?",
     "overwriteMessage": "This device already contains data. Restoring this backup will permanently replace all of it. This cannot be undone.",
@@ -873,7 +877,7 @@
     "newerVersion": "This backup was made by a newer version of the app. Restore it on a device running that version.",
     "invalidContent": "The backup contains invalid data: {{detail}}",
     "brokenReferences": "The backup references records that are missing from the file; it cannot be restored safely.",
-    "restoreInconsistent": "The restored data did not reconcile with inventory; the database was left unchanged.",
+    "restoreReconciled": "The stock ledger was repaired for {{count}} product(s) ({{products}}): their opening stock movement was missing from the backup.",
     "error": "Backup operation failed."
   },
   "dataReset": {

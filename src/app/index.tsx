@@ -1,7 +1,7 @@
 import { useRouter, type Href } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useEdgeToEdge } from "@/hooks/useEdgeToEdge";
 
 import { useTheme } from "@/hooks/use-theme";
@@ -38,7 +38,7 @@ export default function Root() {
     }
   }, [isOnboardingComplete, router]);
 
-  const { insets, style } = useEdgeToEdge();
+  const { style } = useEdgeToEdge();
 
   if (isOnboardingComplete === null) {
     return (
@@ -64,11 +64,3 @@ export default function Root() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

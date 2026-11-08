@@ -48,6 +48,7 @@ async function seed(tag: string) {
     stock_quantity: 20,
     minimum_stock_quantity: 2,
     unit: "pcs",
+    is_active: true,
   } as any);
   const customer = await createCustomer({
     name: `Client ${tag}`,
@@ -300,6 +301,99 @@ describe("backupService", () => {
       await expect(restoreBackup(JSON.stringify(missingTables))).rejects.toThrow(
         "INVALID_BACKUP_FILE",
       );
+    });
+  });
+
+  describe("restore legacy ledger reconciliation", () => {
+    it("accepts a legacy backup whose opening stock predates the ledger (reconciliation movement)", async () => {
+      // Legacy fixture: the product was created with stock 10 before the
+      // inventory_movements table existed, so it has no opening movement.
+      const db = await getDatabase();
+      await db.runAsync(
+        `INSERT INTO products (name, sku, sale_price_centimes, cost_price_centimes, stock_quantity, minimum_stock_quantity, unit, is_active)
+         VALUES ('Legacy Item', 'LEG-1', 10000, 5000, 10, 2, 'pcs', 1)`,
+      );
+      const product: any = await db.getFirstAsync(
+        `SELECT id FROM products WHERE sku = 'LEG-1'`,
+      );
+      await db.runAsync(
+        `INSERT INTO customers (name, phone) VALUES ('Legacy Client', '0770000099')`,
+      );
+      const customer: any = await db.getFirstAsync(
+        `SELECT id FROM customers WHERE phone = '0770000099'`,
+      );
+
+      // A later sale of 3: decrements stock to 7 and records the only
+      // movement this legacy product has (-3).
+      await createSale({
+        customerId: customer.id,
+        paymentMethod: "cash",
+        items: [{ productId: product.id, quantity: 3, unitSalePriceCentimes: 10000 }],
+        amountPaidCentimes: 30000,
+      });
+      expect(await ledgerSum(product.id)).toBe(-3);
+      const stockRow: any = await db.getFirstAsync(
+        `SELECT stock_quantity FROM products WHERE id = ?`,
+        [product.id],
+      );
+      expect(stockRow.stock_quantity).toBe(7);
+
+      const backup = await buildBackup();
+      await resetDatabase();
+
+      // Policy (b): the legacy backup is accepted. The missing opening
+      // movement is repaired with a one-time reconciliation movement equal to
+      // stock minus the movement sum (7 - (-3) = +10), the restore stays
+      // atomic, and the summary reports the reconciliation.
+      const summary = await restoreBackup(JSON.stringify(backup));
+      expect(summary.rowsImported).toBeGreaterThan(0);
+      expect(summary.reconciliations).toHaveLength(1);
+      expect(summary.reconciliations![0]).toMatchObject({
+        name: "Legacy Item",
+        delta: 10,
+      });
+
+      // After the repair the ledger reconciles with the restored stock.
+      expect(await ledgerSum(product.id)).toBe(7);
+      const stockAfter: any = await db.getFirstAsync(
+        `SELECT stock_quantity FROM products WHERE id = ?`,
+        [product.id],
+      );
+      expect(stockAfter.stock_quantity).toBe(7);
+
+      // The reconciliation movement itself is identifiable and signed 'in'.
+      const movements: any[] = await db.getAllAsync(
+        `SELECT movement_type, quantity_change, note FROM inventory_movements
+         WHERE product_id = ? AND note = 'Opening stock reconciliation'`,
+        [product.id],
+      );
+      expect(movements).toHaveLength(1);
+      expect(movements[0].movement_type).toBe("in");
+      expect(movements[0].quantity_change).toBe(10);
+    });
+
+    it("leaves an already-consistent ledger untouched (no reconciliation)", async () => {
+      // A product created through the repository always gets an opening
+      // movement, so a normal backup needs no repair on restore.
+      const db = await getDatabase();
+      await createProduct({
+        name: "Modern Item",
+        sku: "MOD-1",
+        sale_price_centimes: 10000,
+        cost_price_centimes: 5000,
+        stock_quantity: 10,
+        minimum_stock_quantity: 2,
+        unit: "pcs",
+        is_active: true,
+      } as any);
+      const product: any = await db.getFirstAsync(`SELECT id FROM products WHERE sku = 'MOD-1'`);
+
+      const backup = await buildBackup();
+      await resetDatabase();
+
+      const summary = await restoreBackup(JSON.stringify(backup));
+      expect(summary.reconciliations ?? []).toHaveLength(0);
+      expect(await ledgerSum(product.id)).toBe(10);
     });
   });
 });

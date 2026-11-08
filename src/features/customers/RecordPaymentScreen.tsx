@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   View,
   ScrollView,
@@ -45,6 +45,10 @@ export function RecordPaymentScreen({
   const [note, setNote] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Synchronous double-tap guard: state updates are asynchronous, so the
+  // disabled prop alone cannot block a second press landed in the same tick.
+  const isProcessingRef = useRef(false);
+
   // Reflesh customer/debt from SQLite only when the caller did not pass them.
   // Depends on the initial props so a successful payment (currentDebt → 0)
   // does not re-trigger the fetch, and guards against post-unmount updates.
@@ -82,6 +86,8 @@ export function RecordPaymentScreen({
   };
 
   const handleConfirm = useCallback(async () => {
+    if (isProcessingRef.current) return;
+
     if (parsedCentimes <= 0) {
       Alert.alert(t("common:error"), t("customers:invalidAmount"));
       return;
@@ -92,6 +98,7 @@ export function RecordPaymentScreen({
       return;
     }
 
+    isProcessingRef.current = true;
     setIsProcessing(true);
     try {
       const result = await recordPayment(
@@ -129,6 +136,7 @@ export function RecordPaymentScreen({
     } catch (err: any) {
       Alert.alert(t("common:error"), err.message || t("common:unknownError"));
     } finally {
+      isProcessingRef.current = false;
       setIsProcessing(false);
     }
   }, [
