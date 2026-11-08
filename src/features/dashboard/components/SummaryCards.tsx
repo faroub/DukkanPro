@@ -16,6 +16,9 @@ interface SummaryCardsProps {
   profitValue_centimes: number;
   toCollectKey?: string;
   toCollectValue_centimes?: number;
+  /** Outstanding store credit (money the shop owes its customers). */
+  storeCreditKey?: string;
+  storeCreditValue_centimes?: number;
   lowStockKey?: string;
   lowStockCount?: number;
   salesCount?: number;
@@ -27,6 +30,7 @@ interface SummaryCardsProps {
   onPressRevenue?: () => void;
   onPressProfit?: () => void;
   onPressToCollect?: () => void;
+  onPressStoreCredit?: () => void;
   onPressLowStock?: () => void;
 }
 
@@ -37,6 +41,8 @@ export function SummaryCards({
   profitValue_centimes,
   toCollectKey = "To Collect",
   toCollectValue_centimes = 0,
+  storeCreditKey = "Outstanding credit",
+  storeCreditValue_centimes = 0,
   lowStockKey = "Low Stock",
   lowStockCount = 0,
   salesCount = 14,
@@ -47,6 +53,7 @@ export function SummaryCards({
   onPressRevenue,
   onPressProfit,
   onPressToCollect,
+  onPressStoreCredit,
   onPressLowStock,
 }: SummaryCardsProps) {
   const router = useRouter();
@@ -68,6 +75,11 @@ export function SummaryCards({
     else router.push("/(tabs)/customers" as any);
   };
 
+  const handleStoreCreditPress = () => {
+    if (onPressStoreCredit) onPressStoreCredit();
+    else router.push("/(tabs)/customers" as any);
+  };
+
   const handleLowStockPress = () => {
     if (onPressLowStock) onPressLowStock();
     else router.push("/products/low-stock" as any);
@@ -77,6 +89,7 @@ export function SummaryCards({
   const revenueDZD = Math.round(revenueValue_centimes / 100);
   const profitDZD = Math.round(profitValue_centimes / 100);
   const toCollectDZD = Math.round(toCollectValue_centimes / 100);
+  const storeCreditDZD = Math.round(storeCreditValue_centimes / 100);
 
   const formatAmount = (val: number) => {
     return val.toLocaleString(locale === "ar" ? "ar-DZ" : "fr-DZ");
@@ -154,10 +167,10 @@ export function SummaryCards({
           </View>
           <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
             {locale === "ar"
-              ? "الربح التقديري"
+              ? "هامش نقدي"
               : locale === "fr"
-              ? "Bénéfice net"
-              : "Estimated net"}
+              ? "Marge encaissée"
+              : "Cash margin"}
           </ThemedText>
         </View>
       </TouchableOpacity>
@@ -245,6 +258,50 @@ export function SummaryCards({
           </ThemedText>
         </View>
       </TouchableOpacity>
+
+      {/* Metric Card 5: Outstanding store credit (Amber) — only when the shop
+          owes customers money (e.g. cancelled prepaid sales), so credit never
+          disappears from shop totals. */}
+      {storeCreditValue_centimes > 0 && (
+        <TouchableOpacity
+          style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={handleStoreCreditPress}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={`${storeCreditKey}: ${storeCreditDZD} DZD`}
+        >
+          <View style={styles.cardTop}>
+            <ThemedText style={[styles.cardLabel, { color: theme.textSecondary }]} numberOfLines={1}>
+              {storeCreditKey}
+            </ThemedText>
+            <View style={[styles.iconBoxWarning, { backgroundColor: theme.warningLight }]}>
+              <MaterialIcons
+                name="account-balance-wallet"
+                size={15}
+                color={theme.secondary}
+              />
+            </View>
+          </View>
+
+          <View style={styles.cardBottom}>
+            <View style={styles.amountRow}>
+              <ThemedText style={[styles.amountText, { color: theme.secondary }]}>
+                {formatAmount(storeCreditDZD)}
+              </ThemedText>
+              <ThemedText style={[styles.currencyLabel, { color: theme.secondary }]}>
+                {currencySymbol}
+              </ThemedText>
+            </View>
+            <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
+              {locale === "ar"
+                ? "ائتمان للسداد"
+                : locale === "fr"
+                ? "Crédit à rembourser"
+                : "Owed to customers"}
+            </ThemedText>
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

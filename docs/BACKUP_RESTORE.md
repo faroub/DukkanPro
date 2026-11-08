@@ -1,9 +1,10 @@
 # Backup & Restore — Design Plan (DukkanPro)
 
-> Status: **Service implemented** (`src/services/backup/backupFormat.ts`,
-> `backupService.ts`, round-trip tests in `__tests__/`). The settings-screen UI
-> (buttons + overwrite-confirmation dialog + `expo-document-picker` wiring) is
-> intentionally NOT part of this change and remains a separate follow-up.
+> Status: **Fully implemented** — `src/services/backup/backupFormat.ts` +
+> `backupService.ts` (round-trip tests in `__tests__/`), wired into the app via
+> `src/features/settings/BackupScreen.tsx` (route `/settings/backup`, linked
+> from the More menu and from the Data Reset screen's critical callout), with
+> `expo-document-picker` for file selection and `expo-sharing` for export.
 > Scope: full-data backup (export) and restore (import) for the offline-first
 > SQLite database, with no new cloud dependencies.
 
@@ -24,7 +25,7 @@
 |---|---|---|
 | `expo-file-system` | ✅ `~57.0.6` | Writing/reading backup JSON on disk |
 | `expo-sharing` | ✅ `~57.0.18` (plugin declared in `app.json`) | Share sheet for the exported file |
-| `expo-document-picker` | ❌ **not installed** | **Proposed addition** — see §7 |
+| `expo-document-picker` | ✅ `~57.0.3` (plugin declared in `app.json`) | Picking a backup file to restore |
 
 No other new dependency is proposed. The SQLite layer (`expo-sqlite`),
 `getDatabase()`/`transaction()` from `src/database/database.ts`, and

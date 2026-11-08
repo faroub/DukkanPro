@@ -2,7 +2,8 @@
  * dashboardRepository — Repository for dashboard summary data.
  *
  * - All methods use atomic reads from the SQLite database.
- * - Revenue/profit are computed from completed sales only.
+ * - Revenue/profit are computed from completed sales only; the profit figure
+ *   is a CASH-basis gross margin (see getTodayProfit).
  * - Stock counts exclude inactive/archived products.
  */
 
@@ -86,13 +87,40 @@ export async function getTodayCost(): Promise<number> {
 }
 
 /**
- * Get today's estimated profit (centimes).
- * Profit = Revenue - Cost of Goods Sold
+ * Get today's payments received from customers (centimes): repayments count
+ * positively, refunds (negative rows) subtract. "Today" means the merchant's
+ * local calendar day, by paid_at.
+ */
+export async function getTodayPaymentsReceived(): Promise<number> {
+  const [start, end] = localDayBounds();
+  const rows: any[] = await executeAll(
+    // language=SQLite
+    `SELECT COALESCE(SUM(amount_centimes), 0) as total
+       FROM customer_payments
+      WHERE paid_at >= ?
+        AND paid_at < ?`,
+    [start, end],
+  );
+  return rows[0]?.total as number;
+}
+
+/**
+ * Get today's estimated gross margin on a CASH basis (centimes).
+ *
+ *   cash margin = cash collected at checkout on today's sales
+ *                + payments received from customers today
+ *                  (repayments minus refunds)
+ *                − cost of goods sold for today's completed sales
+ *
+ * Credit sales made today do NOT count until the money is actually collected,
+ * so the figure never presents uncollected revenue as profit. Business
+ * expenses (rent, salaries, utilities) are not tracked in this version.
  */
 export async function getTodayProfit(): Promise<number> {
-  const revenue = await getTodayRevenue();
+  const cashCollected = await getTodayCashSales();
+  const paymentsReceived = await getTodayPaymentsReceived();
   const cost = await getTodayCost();
-  return revenue - cost;
+  return cashCollected + paymentsReceived - cost;
 }
 
 /**

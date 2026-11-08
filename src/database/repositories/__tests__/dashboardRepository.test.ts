@@ -179,8 +179,47 @@ describe("dashboardRepository", () => {
       );
 
       const profit = await getTodayProfit();
-      // Revenue 6000 - Cost 6000 = 0 profit
+      // Cash collected 6000 - Cost 6000 = 0 margin
       expect(profit).toBe(0);
+    });
+
+    it("is cash-based: credit sales do not count until the money is collected", async () => {
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
+         VALUES (?, ?, ?, ?, ?, 1)`,
+        ["Credit Product", 6000, 3000, 10, "pcs"],
+      );
+
+      // Completed CREDIT sale today: nothing was paid, so no cash margin —
+      // only the cost of the goods that left the shop.
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sales (customer_id, status, subtotal_centimes, discount_centimes,
+             total_centimes, amount_paid_centimes, remaining_balance_centimes,
+             payment_method, note, sold_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'), datetime('now'), datetime('now'))`,
+        [1, "completed", 6000, 0, 6000, 0, 6000, "credit"],
+      );
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO sale_items (sale_id, product_id, product_name_snapshot,
+             quantity, unit_sale_price_centimes, unit_cost_price_centimes, line_total_centimes, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        [1, 1, "Credit Product", 1, 6000, 3000, 6000],
+      );
+
+      expect(await getTodayRevenue()).toBe(6000);
+      expect(await getTodayProfit()).toBe(-3000);
+
+      // A repayment received today brings cash in: 2000 - 3000 = -1000.
+      await db.runAsync(
+        // language=SQLite
+        `INSERT INTO customer_payments (customer_id, amount_centimes, payment_method, currency, paid_at, created_at)
+         VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        [1, 2000, "cash", "DZD"],
+      );
+      expect(await getTodayProfit()).toBe(-1000);
     });
   });
 

@@ -4,6 +4,7 @@
  * - Retrieves data from SQLite via the dashboard repository
  * - Calculations use integer centimes, never floating-point
  * - Excludes cancelled/returned sales from revenue/profit/debt
+ * - Profit is a CASH-basis gross margin (see dashboardRepository.getTodayProfit)
  * - "Today" figures cover the merchant's local calendar day
  * - All user-facing strings wrapped in t('dashboard.*') i18n pattern
  * - Remains LTR regardless of selected language
@@ -12,13 +13,13 @@ import { get as getBusinessProfile } from "@/database/repositories/businessProfi
 import { getAll as getAllCustomers } from "@/database/repositories/customerRepository";
 import {
   getSevenDaySales,
-  getTodayCost,
+  getTodayProfit,
   getTodayRevenue,
 } from "@/database/repositories/dashboardRepository";
 import { getAllPayments } from "@/database/repositories/exportRepository";
 import { getAll as getAllProducts } from "@/database/repositories/productRepository";
 import { getAll as getAllSales } from "@/database/repositories/saleRepository";
-import { getCustomerDebt, getTotalShopDebt } from "@/services/customers/customerBalanceService";
+import { getCustomerDebt, getTotalShopCredit, getTotalShopDebt } from "@/services/customers/customerBalanceService";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface DashboardData {
@@ -32,6 +33,8 @@ export interface DashboardData {
   todayRevenue_centimes: number;
   todayProfit_centimes: number;
   toCollect_centimes: number;
+  /** Store credit: total money the shop owes its customers (negative balances). */
+  storeCredit_centimes: number;
 
   // Store activity status
   totalProductsCount: number;
@@ -66,7 +69,10 @@ export async function fetchDashboardData(
 ): Promise<DashboardData> {
   // ---- Today's revenue & cost (repository filters to the local calendar day) ----
   const todayRevenue_centimes = await getTodayRevenue();
-  const historicalCost_centimes = await getTodayCost();
+
+  // ---- Cash-basis gross margin for today (checkout cash + payments received
+  //      − COGS of today's completed sales; see dashboardRepository.getTodayProfit) ----
+  const todayProfit_centimes = await getTodayProfit();
 
   // ---- All sales & payments feed debt and the recent-sales list ----
   const allSales = await getAllSales();
@@ -78,6 +84,15 @@ export async function fetchDashboardData(
     toCollect_centimes = await getTotalShopDebt();
   } catch (_err) {
     toCollect_centimes = 0;
+  }
+
+  // ---- Outstanding store credit: sum of per-customer credit (negative
+  //      balances), so prepaid money never disappears from shop totals ----
+  let storeCredit_centimes = 0;
+  try {
+    storeCredit_centimes = await getTotalShopCredit();
+  } catch (_err) {
+    storeCredit_centimes = 0;
   }
 
   // ---- Recent sales (getAll already returns newest first) ----
@@ -138,8 +153,9 @@ export async function fetchDashboardData(
 
     // Financial summaries
     todayRevenue_centimes,
-    todayProfit_centimes: todayRevenue_centimes - historicalCost_centimes,
+    todayProfit_centimes,
     toCollect_centimes,
+    storeCredit_centimes,
 
     // Store activity status
     totalProductsCount,
@@ -164,7 +180,8 @@ export async function fetchDashboardData(
  * Main hook: useDashboard
  *
  * - Fetches data from SQLite via repository functions
- * - Computes profit = revenue - historical cost
+ * - Loads the cash-basis gross margin (cash collected + payments received
+ *   − COGS of today's completed sales) directly from the repository
  * - Returns DashboardResult for DashboardScreen including refetch()
  */
 export function useDashboard(deps: {
@@ -185,6 +202,7 @@ export function useDashboard(deps: {
       todayRevenue_centimes: 0,
       todayProfit_centimes: 0,
       toCollect_centimes: 0,
+      storeCredit_centimes: 0,
       totalProductsCount: 0,
       totalSalesCount: 0,
       hasProductsOrSales: false,

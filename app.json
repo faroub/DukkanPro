@@ -38,6 +38,7 @@
       "expo-sqlite",
       "expo-localization",
       "expo-sharing",
+      "expo-document-picker",
       ["expo-status-bar", { "style": "dark" }],
       [
         "expo-camera",

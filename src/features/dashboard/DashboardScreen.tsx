@@ -66,6 +66,7 @@ export default function DashboardScreenDefault({
     todayRevenue_centimes,
     todayProfit_centimes,
     toCollect_centimes,
+    storeCredit_centimes,
     hasProductsOrSales,
     lowStockCount,
     recentSales,
@@ -214,10 +215,12 @@ export default function DashboardScreenDefault({
         <SummaryCards
           revenueKey={t("dashboard.summary.revenue") || (locale === "ar" ? "مبيعات اليوم" : "Today's Sales")}
           revenueValue_centimes={todayRevenue_centimes}
-          profitKey={t("dashboard.summary.profit") || (locale === "ar" ? "هامش الربح الإجمالي المقدر" : "Est. Gross Margin")}
+          profitKey={t("dashboard.summary.profit") || (locale === "ar" ? "هامش الربح النقدي" : "Cash gross margin")}
           profitValue_centimes={todayProfit_centimes}
           toCollectKey={t("dashboard.summary.toCollect") || (locale === "ar" ? "ديون للتحصيل" : "To Collect")}
           toCollectValue_centimes={toCollect_centimes}
+          storeCreditKey={t("dashboard.summary.toRepay") || (locale === "ar" ? "ائتمان مستحق" : "Outstanding credit")}
+          storeCreditValue_centimes={storeCredit_centimes}
           lowStockKey={t("dashboard.summary.lowStock") || t("dashboard.lowStock.title") || (locale === "ar" ? "نقص المخزون" : "Low Stock")}
           lowStockCount={lowStockCount}
           currency={currencyCode}

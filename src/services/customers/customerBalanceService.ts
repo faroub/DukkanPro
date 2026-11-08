@@ -167,6 +167,48 @@ export async function getTotalShopDebt(tx?: SQLiteDatabase): Promise<number> {
 }
 
 /**
+ * Calculate the total store credit owed to customers for the whole shop in ONE
+ * grouped query (mirror of getTotalShopDebt). Credit arises when a customer's
+ * balance goes negative, e.g. after cancelling a sale they had already paid
+ * for — that money must stay visible at the shop level, never silently
+ * absorbed by the debt total.
+ */
+export async function getTotalShopCredit(tx?: SQLiteDatabase): Promise<number> {
+  const sql = `
+    SELECT COALESCE(SUM(c_credit), 0) AS total_credit
+      FROM (
+        SELECT c.id,
+               MAX(0, -(COALESCE(s.completed_remaining, 0) - COALESCE(r.cancelled_taken, 0) - COALESCE(p.total_payments, 0))) AS c_credit
+          FROM customers c
+          LEFT JOIN (
+            SELECT customer_id, SUM(remaining_balance_centimes) AS completed_remaining
+              FROM sales
+             WHERE status = 'completed' AND remaining_balance_centimes > 0
+             GROUP BY customer_id
+          ) s ON s.customer_id = c.id
+          LEFT JOIN (
+            SELECT customer_id, SUM(CASE WHEN amount_paid_centimes < total_centimes THEN amount_paid_centimes ELSE total_centimes END) AS cancelled_taken
+              FROM sales
+             WHERE status IN ('cancelled', 'returned')
+             GROUP BY customer_id
+          ) r ON r.customer_id = c.id
+          LEFT JOIN (
+            SELECT customer_id, SUM(amount_centimes) AS total_payments
+              FROM customer_payments
+             GROUP BY customer_id
+          ) p ON p.customer_id = c.id
+         WHERE c.is_active = 1
+      )
+  `;
+
+  const rows: any[] = tx
+    ? await executeRead<{ total_credit: number }>(tx, sql)
+    : await executeRead<{ total_credit: number }>(sql);
+
+  return rows[0]?.total_credit ?? 0;
+}
+
+/**
  * Calculate outstanding customer debt for all active customers in ONE grouped query.
  * Replaces N+1 per-customer queries in customer lists with a single atomic aggregation map.
  */

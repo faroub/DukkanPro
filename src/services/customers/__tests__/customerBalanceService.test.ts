@@ -338,4 +338,32 @@ describe("customerBalanceService", () => {
       expect(shopDebt).toBe(10000);
     });
   });
+
+  describe("getTotalShopCredit", () => {
+    it("reports shop-level credit from a cancelled prepaid sale and keeps it out of debt", async () => {
+      const productPrepaid = await makeProduct("TSC1", 20000);
+      const customer = await makeCustomer();
+
+      // Prepaid cash sale for 20,000 centimes, then cancelled: the shop now
+      // owes the customer 20,000 in store credit.
+      const cashSale = await createSale({
+        customerId: customer.id,
+        paymentMethod: "cash",
+        amountPaidCentimes: 20000,
+        items: [{ productId: productPrepaid.id, quantity: 1, unitSalePriceCentimes: 20000 }],
+      });
+      await cancelSale(cashSale.id, "Customer cancelled the order");
+
+      const customerCredit = await customerBalanceService.getCustomerCredit(customer.id);
+      expect(customerCredit).toBe(20000);
+
+      // The credit must be visible at the shop level...
+      const shopCredit = await customerBalanceService.getTotalShopCredit();
+      expect(shopCredit).toBe(20000);
+
+      // ...and must NOT be silently absorbed into (or netted against) debt.
+      const shopDebt = await customerBalanceService.getTotalShopDebt();
+      expect(shopDebt).toBe(0);
+    });
+  });
 });

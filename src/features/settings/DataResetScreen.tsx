@@ -230,6 +230,21 @@ export function DataResetScreen() {
               {t("dataReset.permanentActionWarning") ||
                 "Permanent Action: This will permanently delete ALL business data including products, customers, sales, and payments. This action CANNOT be undone."}
             </ThemedText>
+            <TouchableOpacity
+              style={styles.backupLink}
+              onPress={() => router.push("/settings/backup")}
+              activeOpacity={0.7}
+              accessibilityRole="link"
+              accessibilityLabel={
+                t("dataReset.backupFirstLink") || "Back up my data first"
+              }
+            >
+              <ThemedText
+                style={[styles.backupLinkText, { color: theme.primary }]}
+              >
+                {t("dataReset.backupFirstLink") || "Back up my data first"}
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -738,6 +753,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 20,
+  },
+  backupLink: {
+    marginTop: 4,
+    alignSelf: "flex-start",
+  },
+  backupLinkText: {
+    fontSize: 13,
+    fontWeight: "700",
+    textDecorationLine: "underline",
   },
   sectionCard: {
     padding: ComponentDimensions.cardPadding,

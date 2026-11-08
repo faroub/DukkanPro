@@ -86,8 +86,9 @@ it("computes today-only revenue, real cost, and debt minus payments", async () =
 
   // Revenue = 6000 + 4000 (old + cancelled excluded)
   expect(data.todayRevenue_centimes).toBe(10000);
-  // Cost = 2 x 3000 (only today's completed sale has items)
-  expect(data.todayProfit_centimes).toBe(10000 - 6000);
+  // Cash-basis gross margin: cash collected on today's sales (6000)
+  // + payments received today (1000) − COGS of today's completed sales (2 × 3000)
+  expect(data.todayProfit_centimes).toBe(6000 + 1000 - 6000);
   // Debt = 4000 balance - 1000 payment
   expect(data.toCollect_centimes).toBe(3000);
   // Recent sales = latest valid sales across all days (cancelled/returned excluded):

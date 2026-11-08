@@ -445,6 +445,28 @@ export function MoreScreen() {
 
           <View style={[styles.divider, { backgroundColor: theme.borderLight }]} />
 
+          {/* 5. Backup & Restore */}
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => handleNavigate("/settings/backup")}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: theme.primaryLight }]}>
+              <MaterialIcons name="backup" size={22} color={theme.primary} />
+            </View>
+            <View style={styles.menuRowContent}>
+              <ThemedText style={[styles.menuRowTitle, textAlignStyle, { color: theme.textPrimary }]}>
+                {t("settings.backup") || "Backup & Restore"}
+              </ThemedText>
+              <ThemedText style={[styles.menuRowSubtitle, textAlignStyle, { color: theme.textSecondary }]} numberOfLines={1}>
+                {t("settings.backupSubtitle") || "Export or restore your full store data"}
+              </ThemedText>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={theme.textMuted} />
+          </TouchableOpacity>
+
+          <View style={[styles.divider, { backgroundColor: theme.borderLight }]} />
+
           {/* 7. Data Reset (Destructive) */}
           <TouchableOpacity
             style={styles.menuRow}
