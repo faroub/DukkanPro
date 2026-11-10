@@ -251,8 +251,38 @@ const DATABASE_FILE_NAME = "DukkanPro.db";
  * Best-effort by design: when the file cannot be located or copied (in-memory
  * test databases, unavailable file system), the migration still proceeds — a
  * snapshot failure must never strand the merchant on their old schema.
+ *
+ * The snapshot is made consistent by checkpointing the WAL to the main file
+ * and then verifying integrity with a PRAGMA integrity_check.
  */
-async function snapshotDatabaseFile(migrationVersion: number): Promise<void> {
+export async function snapshotDatabaseFile(db: any, migrationVersion: number): Promise<void> {
+  try {
+    // Ensure all pending changes are in the main file by checkpointing the WAL.
+    // TRUNCATE mode checks the WAL and then optionally Truncates it to release resources.
+    await db.runAsync("PRAGMA wal_checkpoint(TRUNCATE)");
+  } catch (error) {
+    console.error(
+      `Pre-migration WAL checkpoint (migration ${migrationVersion}) failed; the migration will proceed:`,
+      error,
+    );
+  }
+
+  try {
+    // Verify that the database is in a consistent state after checkpoint.
+    const integrityResult: any[] = await db.getAllAsync("PRAGMA integrity_check");
+    if (integrityResult.length === 0 || integrityResult[0].integrity_check !== "ok") {
+      console.warn(
+        `Pre-migration database integrity failed (migration ${migrationVersion}); the snapshot may be unverified:`,
+        integrityResult,
+      );
+    }
+  } catch (error) {
+    console.error(
+      `Pre-migration integrity check (migration ${migrationVersion}) failed; the migration will proceed:`,
+      error,
+    );
+  }
+
   try {
     if (!FileSystem.documentDirectory) return;
     const dbPath = `${FileSystem.documentDirectory}SQLite/${DATABASE_FILE_NAME}`;
@@ -299,7 +329,7 @@ export async function runMigrations(
     if (!appliedVersions.has(migration.version)) {
       if (migration.runsOutsideTransaction) {
         // Best-effort file snapshot before the rebuild (see snapshotDatabaseFile).
-        await snapshotDatabaseFile(migration.version);
+        await snapshotDatabaseFile(db, migration.version);
         // foreign_keys=OFF must be set OUTSIDE the transaction (SQLite ignores
         // PRAGMAs inside one) and is restored after COMMIT.
         await db.execAsync("PRAGMA foreign_keys = OFF");

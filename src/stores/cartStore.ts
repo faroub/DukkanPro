@@ -3,8 +3,24 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Product } from '@/types/entities';
 
+/**
+ * Minimal product shape for cart item persistence.
+ * Contains only what the cart needs for display and calculation.
+ * cost_price_centimes and other internal fields are excluded.
+ */
+export interface CartProduct {
+  id: number;
+  name: string;
+  sku?: string | null;
+  category?: string | null;
+  sale_price_centimes: number;
+  stock_quantity: number;
+  unit?: string;
+  is_active?: boolean;
+}
+
 export interface CartItem {
-  product: Product;
+  product: CartProduct;
   quantity: number;
 }
 
@@ -37,11 +53,22 @@ export const useCartStore = create<CartState>()(
       preserveCart: false,
       discount: 0,
 
-      // Expects a full product object and enforces live stock constraints
+      // Expects a full product object; converts to CartProduct before storing
       addItemWithProduct: (product: Product, quantity: number) => {
+        // Convert to CartProduct (exclude sensitive fields)
+        const cartProduct: CartProduct = {
+          id: product.id,
+          name: product.name,
+          sku: product.sku,
+          category: product.category,
+          sale_price_centimes: product.sale_price_centimes,
+          stock_quantity: product.stock_quantity,
+          unit: product.unit,
+          is_active: product.is_active,
+        };
         set((state) => {
-          const existingItem = state.items.find(item => item.product.id === product.id);
-          const maxAvailable = Math.max(0, product.stock_quantity ?? 0);
+          const existingItem = state.items.find(item => item.product.id === cartProduct.id);
+          const maxAvailable = Math.max(0, cartProduct.stock_quantity ?? 0);
 
           if (existingItem) {
             const desiredQty = existingItem.quantity + quantity;
@@ -50,7 +77,7 @@ export const useCartStore = create<CartState>()(
 
             return {
               items: state.items.map(item =>
-                item.product.id === product.id
+                item.product.id === cartProduct.id
                   ? { ...item, quantity: clampedQty }
                   : item
               ),
@@ -60,7 +87,7 @@ export const useCartStore = create<CartState>()(
             if (initialQty <= 0) return state;
 
             return {
-              items: [...state.items, { product, quantity: initialQty }],
+              items: [...state.items, { product: cartProduct, quantity: initialQty }],
             };
           }
         });
@@ -163,7 +190,19 @@ export const useCartStore = create<CartState>()(
       name: 'dukkanos-cart-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        items: state.items,
+        items: state.items.map((item) => ({
+          product: {
+            id: item.product.id,
+            name: item.product.name,
+            sku: item.product.sku,
+            category: item.product.category,
+            sale_price_centimes: item.product.sale_price_centimes,
+            stock_quantity: item.product.stock_quantity,
+            unit: item.product.unit,
+            is_active: item.product.is_active,
+          },
+          quantity: item.quantity,
+        })),
         preserveCart: state.preserveCart,
         discount: state.discount,
       }),

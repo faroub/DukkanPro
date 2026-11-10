@@ -7,11 +7,6 @@ import {
     exportSales,
 } from "@/services/export/csvExportService";
 
-// SQLite timestamps are UTC; pin the zone so the date tests below are
-// deterministic regardless of the machine running them (Africa/Algiers is
-// UTC+1 with no DST around the fixture dates).
-process.env.TZ = "Africa/Algiers";
-
 const t = (key: string) => key;
 
 describe("CSV export privacy", () => {

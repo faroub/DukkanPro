@@ -1,0 +1,1891 @@
+PASS src/hooks/__tests__/useDashboard.test.ts
+  ✓ computes today-only revenue, real cost, and debt minus payments (57 ms)
+
+  console.error
+    Pre-migration database snapshot (migration 14) failed; the migration will proceed: TypeError: FileSystem.getInfoAsync is not a function
+        at getInfoAsync (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:259:35)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+        at _next (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+        at /home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+        at new Promise (<anonymous>)
+        at /home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+        at apply (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:272:2)
+        at apply (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:255:36)
+        at snapshotDatabaseFile (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:302:15)
+        at _loop2.next (<anonymous>)
+        at _loop2 (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:296:37)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+        at _next (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+      265 |     });
+      266 |   } catch (error) {
+    > 267 |     console.error(
+          |             ^
+      268 |       `Pre-migration database snapshot (migration ${migrationVersion}) failed; the migration will proceed:`,
+      269 |       error,
+      270 |     );
+
+      at error (src/database/migrations.ts:267:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/database/migrations.ts:272:2)
+      at apply (src/database/migrations.ts:255:36)
+      at snapshotDatabaseFile (src/database/migrations.ts:302:15)
+          at _loop2.next (<anonymous>)
+      at _loop2 (src/database/migrations.ts:296:37)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at Object.enqueueSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:18909:13)
+      at VirtualizedList.Object.<anonymous>.process.env.NODE_ENV.Component.setState (node_modules/react/cjs/react.development.js:655:20)
+      at node_modules/@babel/runtime/helpers/superPropGet.js:6:14
+      at VirtualizedList.setState (node_modules/@react-native/virtualized-lists/Lists/StateSafePureComponent.js:40:7)
+      at VirtualizedList.setState [as _updateCellsToRender] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1909:10)
+      at Timeout._updateCellsToRender [as _onTimeout] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1806:16)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at Object.enqueueSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:18909:13)
+      at VirtualizedList.Object.<anonymous>.process.env.NODE_ENV.Component.setState (node_modules/react/cjs/react.development.js:655:20)
+      at node_modules/@babel/runtime/helpers/superPropGet.js:6:14
+      at VirtualizedList.setState (node_modules/@react-native/virtualized-lists/Lists/StateSafePureComponent.js:40:7)
+      at VirtualizedList.setState [as _updateCellsToRender] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1909:10)
+      at Timeout._updateCellsToRender [as _onTimeout] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1806:16)
+
+PASS src/features/sales/components/__tests__/CartList.test.tsx (11.681 s)
+  CartList Component Harness
+    ✓ expands discount input field on Android when discount button is pressed (10267 ms)
+
+PASS src/services/export/__tests__/csvExportService.test.ts
+  CSV export privacy
+    ✓ excludes product cost and internal stock (2 ms)
+    ✓ excludes customer debt and private notes (2 ms)
+    ✓ excludes historical unit cost from sale items (2 ms)
+    ✓ excludes profit and internal balances from sales (1 ms)
+  CSV export quoting
+    ✓ quotes a value containing a comma exactly once (1 ms)
+    ✓ escapes an embedded double quote exactly once, not twice
+    ✓ keeps a value containing a newline inside a single quoted field
+  CSV export numeric values
+    ✓ exports a negative quantity_change without a formula-injection apostrophe (1 ms)
+    ✓ exports a negative sale-item quantity unchanged (1 ms)
+  CSV export refunds
+    ✓ exports a negative amount with its sign instead of clamping it to 0 (1 ms)
+  CSV export date trimming
+    ✓ trims a SQLite space-separated timestamp to the date in sales (1 ms)
+    ✓ trims a SQLite space-separated timestamp to the date in payments (1 ms)
+    ✓ trims a SQLite space-separated timestamp to the date in inventory movements
+    ✓ converts UTC timestamps to the local calendar date, not the UTC date
+  CSV export currency column
+    ✓ includes the currency column in sales exports (1 ms)
+    ✓ includes the currency column in payments exports
+    ✓ labels amount headers with the active currency unit (1 ms)
+  CSV export formula neutralization
+    ✓ exports phone numbers unchanged, without a leading apostrophe (F5)
+    ✓ keeps a phone number unchanged only when it is plain digits with an optional leading + (1 ms)
+    ✓ still neutralizes = and @ on text fields
+    ✓ neutralizes a leading - on any text field, including one starting with a digit (1 ms)
+    ✓ neutralizes a leading + or - regardless of what follows ('-2+3', '-1+cmd|x', '=1+1', '+memo')
+  CSV export customer names
+    ✓ exports the customer name instead of 'Customer <id>' (F5) (1 ms)
+    ✓ falls back to the unknown-client label when no customer name exists
+
+PASS src/__tests__/screens/settingsScreens.test.tsx (16.921 s)
+  Settings Screens Integration Harness
+    MoreScreen (Settings Overview)
+      ✓ renders settings options and navigation items (7670 ms)
+    BusinessSettingsScreen
+      ✓ renders business profile form fields and currency options (340 ms)
+    LanguageSettingsScreen
+      ✓ renders language choices (FR, AR, EN) (78 ms)
+    ThemeSettingsScreen
+      ✓ renders theme selection options (56 ms)
+    ExportSettingsScreen
+      ✓ renders data export options for products, sales and customers (116 ms)
+    DataResetScreen
+      ✓ renders data reset confirmation interface (87 ms)
+
+  console.error
+    Pre-migration database snapshot (migration 14) failed; the migration will proceed: TypeError: FileSystem.getInfoAsync is not a function
+        at getInfoAsync (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:259:35)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+        at _next (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+        at /home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+        at new Promise (<anonymous>)
+        at /home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+        at apply (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:272:2)
+        at apply (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:255:36)
+        at snapshotDatabaseFile (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:302:15)
+        at _loop2.next (<anonymous>)
+        at _loop2 (/home/faroub/Documents/Projects/DukkanPro/src/database/migrations.ts:296:37)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+        at _next (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+      265 |     });
+      266 |   } catch (error) {
+    > 267 |     console.error(
+          |             ^
+      268 |       `Pre-migration database snapshot (migration ${migrationVersion}) failed; the migration will proceed:`,
+      269 |       error,
+      270 |     );
+
+      at error (src/database/migrations.ts:267:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/database/migrations.ts:272:2)
+      at apply (src/database/migrations.ts:255:36)
+      at snapshotDatabaseFile (src/database/migrations.ts:302:15)
+          at _loop2.next (<anonymous>)
+      at _loop2 (src/database/migrations.ts:296:37)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      118 |       showToast(t("backup.error") || "Backup operation failed.");
+      119 |     } finally {
+    > 120 |       setIsCreating(false);
+          |       ^
+      121 |     }
+      122 |   }, [t]);
+      123 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsCreating (src/features/settings/BackupScreen.tsx:120:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      138 |     } finally {
+      139 |       isProcessingRef.current = false;
+    > 140 |       setIsProcessing(false);
+          |       ^
+      141 |     }
+      142 |   }, [
+      143 |     customerId,
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsProcessing (src/features/customers/RecordPaymentScreen.tsx:140:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      124 |   const runRestore = useCallback(
+      125 |     async (fileContents: string, confirmOverwrite: boolean) => {
+    > 126 |       setIsRestoring(true);
+          |       ^
+      127 |       try {
+      128 |         const summary: RestoreSummary = await restoreBackup(fileContents, {
+      129 |           confirmOverwrite,
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsRestoring (src/features/settings/BackupScreen.tsx:126:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/features/settings/BackupScreen.tsx:175:6)
+      at runRestore (src/features/settings/BackupScreen.tsx:197:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      171 |         showToast(restoreErrorMessage(message, t));
+      172 |       } finally {
+    > 173 |         setIsRestoring(false);
+          |         ^
+      174 |       }
+      175 |     },
+      176 |     [t],
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsRestoring (src/features/settings/BackupScreen.tsx:173:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      138 |     } finally {
+      139 |       isProcessingRef.current = false;
+    > 140 |       setIsProcessing(false);
+          |       ^
+      141 |     }
+      142 |   }, [
+      143 |     customerId,
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsProcessing (src/features/customers/RecordRefundScreen.tsx:140:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/services/backup/__tests__/backupService.test.ts
+  backupService
+    export
+      ✓ builds a backup with the expected envelope and every table (204 ms)
+      ✓ createBackup writes a dated JSON file under the backups directory (30 ms)
+    restore round-trip
+      ✓ reproduces row counts, stock totals, debt and currency after reset (75 ms)
+      ✓ replaces existing data when confirmOverwrite is set (51 ms)
+    restore guards
+      ✓ refuses to overwrite a non-empty database without confirmation (23 ms)
+      ✓ rejects a file with an unknown column before touching the database (27 ms)
+      ✓ rejects non-integer money values before touching the database (16 ms)
+      ✓ rejects a backup whose foreign keys do not resolve inside the backup (24 ms)
+      ✓ rejects a backup made by a newer app (24 ms)
+      ✓ rejects structurally invalid files (54 ms)
+    restore legacy ledger reconciliation
+      ✓ accepts a legacy backup whose opening stock predates the ledger (reconciliation movement) (63 ms)
+      ✓ leaves an already-consistent ledger untouched (no reconciliation) (35 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      124 |   const runRestore = useCallback(
+      125 |     async (fileContents: string, confirmOverwrite: boolean) => {
+    > 126 |       setIsRestoring(true);
+          |       ^
+      127 |       try {
+      128 |         const summary: RestoreSummary = await restoreBackup(fileContents, {
+      129 |           confirmOverwrite,
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsRestoring (src/features/settings/BackupScreen.tsx:126:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/features/settings/BackupScreen.tsx:175:6)
+      at runRestore (src/features/settings/BackupScreen.tsx:197:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      171 |         showToast(restoreErrorMessage(message, t));
+      172 |       } finally {
+    > 173 |         setIsRestoring(false);
+          |         ^
+      174 |       }
+      175 |     },
+      176 |     [t],
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsRestoring (src/features/settings/BackupScreen.tsx:173:9)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+  console.error
+    You seem to have overlapping act() calls, this is not supported. Be sure to await previous act() calls before making a new one.
+
+      at popActScope (node_modules/react/cjs/react.development.js:556:17)
+      at node_modules/react/cjs/react.development.js:844:17
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      119 |           style: "destructive",
+      120 |           onPress: async () => {
+    > 121 |             setIsLoading(true);
+          |             ^
+      122 |             try {
+      123 |               await resetDatabase();
+      124 |               useCartStore.getState().clearCart();
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at Object.setIsLoading (src/features/settings/DataResetScreen.tsx:121:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+      at Object.apply [as onPress] (src/features/settings/DataResetScreen.tsx:120:18)
+      at onPress (src/features/settings/__tests__/DataResetScreen.test.tsx:59:23)
+      at expectation (node_modules/@testing-library/react-native/src/wait-for.ts:162:24)
+      at checkExpectation (node_modules/@testing-library/react-native/src/wait-for.ts:101:7)
+      at waitForInternal (node_modules/@testing-library/react-native/src/wait-for.ts:38:10)
+      at waitForInternal (node_modules/@testing-library/react-native/src/wait-for.ts:227:26)
+      at callback (node_modules/@testing-library/react-native/src/helpers/wrap-async.ts:17:26)
+      at waitFor (node_modules/@testing-library/react-native/src/wait-for.ts:227:19)
+      at src/features/settings/__tests__/DataResetScreen.test.tsx:54:16
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/features/settings/__tests__/DataResetScreen.test.tsx:61:2)
+      at apply (src/features/settings/__tests__/DataResetScreen.test.tsx:53:35)
+      at Object.confirmPressedAlert (src/features/settings/__tests__/DataResetScreen.test.tsx:113:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    You seem to have overlapping act() calls, this is not supported. Be sure to await previous act() calls before making a new one.
+
+      at popActScope (node_modules/react/cjs/react.development.js:556:17)
+      at node_modules/react/cjs/react.development.js:844:17
+
+PASS src/__tests__/screens/customerScreens.test.tsx (17.969 s)
+  Customer Screens Integration Harness
+    CustomerListScreen
+      ✓ renders list of customers from database (7149 ms)
+    CustomerFormScreen
+      ✓ renders form inputs for adding a customer (54 ms)
+      ✓ renders form in edit mode when customerId is provided (61 ms)
+    CustomerDetailScreen
+      ✓ renders customer profile and debt balance (184 ms)
+    RecordPaymentScreen
+      ✓ renders payment recording interface for a customer (102 ms)
+      ✓ parses decimal DZD inputs with periods and commas correctly to centimes (3 ms)
+      ✓ accepts exact repayment of fractional-unit debt (1050 centimes / 10.50 DZD) and clears debt to 0 (1180 ms)
+      ✓ blocks a double press from submitting the payment twice (206 ms)
+
+  console.log
+    Toast: Toutes les données ont été réinitialisées avec succès. duration: 2000
+
+      at log (src/components/use-toast.tsx:8:13)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      132 |               showToast(t("dataReset.error") || "Error during data reset");
+      133 |             } finally {
+    > 134 |               setIsLoading(false);
+          |               ^
+      135 |             }
+      136 |           },
+      137 |         },
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at Object.setIsLoading (src/features/settings/DataResetScreen.tsx:134:15)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      124 |   const runRestore = useCallback(
+      125 |     async (fileContents: string, confirmOverwrite: boolean) => {
+    > 126 |       setIsRestoring(true);
+          |       ^
+      127 |       try {
+      128 |         const summary: RestoreSummary = await restoreBackup(fileContents, {
+      129 |           confirmOverwrite,
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsRestoring (src/features/settings/BackupScreen.tsx:126:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/features/settings/BackupScreen.tsx:175:6)
+      at runRestore (src/features/settings/BackupScreen.tsx:197:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    Backup restore error: Error: INVALID_BACKUP_FILE: file is not valid JSON (Unexpected token 'h', "this is not json" is not valid JSON)
+        at /home/faroub/Documents/Projects/DukkanPro/src/services/backup/backupService.ts:152:11
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+        at _next (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+        at /home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+        at new Promise (<anonymous>)
+        at /home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+        at apply (/home/faroub/Documents/Projects/DukkanPro/src/services/backup/backupService.ts:144:36)
+        at /home/faroub/Documents/Projects/DukkanPro/src/features/settings/BackupScreen.tsx:128:60
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+        at _next (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+        at /home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+        at new Promise (<anonymous>)
+        at /home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+        at apply (/home/faroub/Documents/Projects/DukkanPro/src/features/settings/BackupScreen.tsx:175:6)
+        at runRestore (/home/faroub/Documents/Projects/DukkanPro/src/features/settings/BackupScreen.tsx:197:13)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+        at _next (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+      168 |           return;
+      169 |         }
+    > 170 |         console.error("Backup restore error:", error);
+          |                 ^
+      171 |         showToast(restoreErrorMessage(message, t));
+      172 |       } finally {
+      173 |         setIsRestoring(false);
+
+      at error (src/features/settings/BackupScreen.tsx:170:17)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      171 |         showToast(restoreErrorMessage(message, t));
+      172 |       } finally {
+    > 173 |         setIsRestoring(false);
+          |         ^
+      174 |       }
+      175 |     },
+      176 |     [t],
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsRestoring (src/features/settings/BackupScreen.tsx:173:9)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+PASS src/localization/__tests__/translationPlaceholders.test.ts
+  translation interpolation placeholders
+    ✓ keeps placeholders identical across Arabic, French, and English (410 ms)
+    ✓ ensures every translation key exists in all three locales (ar, fr, en) (491 ms)
+
+PASS src/features/settings/__tests__/BackupScreen.test.tsx (18.171 s)
+  BackupScreen backup & restore wiring
+    ✓ creates a backup and offers the JSON file through the share sheet after the privacy warning (10067 ms)
+    ✓ restores a picked backup file into an empty database (107 ms)
+    ✓ requires an explicit confirmation before overwriting a non-empty database (126 ms)
+    ✓ does nothing when the document picker is canceled (82 ms)
+    ✓ rejects an invalid file with a clear message and leaves the database untouched (131 ms)
+
+PASS src/features/settings/__tests__/DataResetScreen.test.tsx (18.302 s)
+  DataResetScreen hard-reset gate (F13)
+    ✓ keeps the hard reset buttons disabled while the typed name does not match (8902 ms)
+    ✓ runs the hard reset only after the exact name is typed and confirmed (1801 ms)
+    ✓ does not open the confirmation dialog when the name does not match (119 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      138 |     } finally {
+      139 |       isProcessingRef.current = false;
+    > 140 |       setIsProcessing(false);
+          |       ^
+      141 |     }
+      142 |   }, [
+      143 |     customerId,
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsProcessing (src/features/customers/RecordRefundScreen.tsx:140:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      138 |     } finally {
+      139 |       isProcessingRef.current = false;
+    > 140 |       setIsProcessing(false);
+          |       ^
+      141 |     }
+      142 |   }, [
+      143 |     customerId,
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsProcessing (src/features/customers/RecordRefundScreen.tsx:140:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/services/customers/__tests__/customerCreditRefund.test.ts
+  Customer credit & refund workflow
+    ✓ cancelling a repaid credit sale surfaces the money as customer credit (85 ms)
+    ✓ returning a repaid credit sale also surfaces customer credit (10 ms)
+    ✓ cancelling a customer-linked fully-paid cash sale creates credit (upfront payment counted) (8 ms)
+    ✓ cancelling a partially-paid sale creates credit equal to the upfront payment (8 ms)
+    ✓ killer regression: refunding credit after cancelling a paid cash sale never revives another sale's debt (33 ms)
+    ✓ recordRefund validation: partial, full, exceeding credit, and invalid amounts (15 ms)
+    ✓ a later credit sale consumes existing credit exactly once (18 ms)
+    ✓ payments are still blocked when there is no debt (overpayment guard unchanged) (11 ms)
+    ✓ concurrent refunds cannot exceed the available credit (11 ms)
+    ✓ one customer's credit never offsets another customer's debt (14 ms)
+    ✓ refund rows appear in payment history and are labelled by their sign (12 ms)
+    ✓ normal completed sales keep the exact same debt as before (no regression) (11 ms)
+
+  console.error
+    An update to VirtualizedList inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+      at node_modules/react-reconciler/cjs/react-reconciler.development.js:16307:19
+      at runWithFiberInDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:2508:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16306:9)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at Object.enqueueSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:18909:13)
+      at VirtualizedList.Object.<anonymous>.process.env.NODE_ENV.Component.setState (node_modules/react/cjs/react.development.js:655:20)
+      at node_modules/@babel/runtime/helpers/superPropGet.js:6:14
+      at VirtualizedList.setState (node_modules/@react-native/virtualized-lists/Lists/StateSafePureComponent.js:40:7)
+      at VirtualizedList.setState [as _updateCellsToRender] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1909:10)
+      at Timeout._updateCellsToRender [as _onTimeout] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1806:16)
+
+PASS src/database/__tests__/migrations.test.ts
+  migrations
+    ✓ exposes a contiguous, ordered set of migration versions (1 ms)
+    migration 14 — integrity constraints
+      ✓ rebuilds products and sales with non-negative CHECKs, preserving rows and indexes (186 ms)
+      ✓ aborts with a clear error when existing rows violate the new constraints (49 ms)
+      ✓ leaves foreign keys enabled after running (36 ms)
+    execDefensiveSql semicolon safety (F14)
+      ✓ runs each statement of a normal multi-statement migration (5 ms)
+      ✓ tolerates escaped quotes and ordinary comments without semicolons (5 ms)
+      ✓ rejects a semicolon inside a string literal and writes nothing (8 ms)
+      ✓ rejects a semicolon inside a line comment (4 ms)
+      ✓ rejects a semicolon inside a block comment (6 ms)
+      ✓ reports the line number of the offending semicolon (5 ms)
+    rebuild atomicity (runsOutsideTransaction)
+      ✓ rolls back the whole rebuild when a statement fails after DROP TABLE, and the rerun succeeds (20 ms)
+      ✓ aborts and rolls back when PRAGMA foreign_key_check finds violations before commit (28 ms)
+
+  console.error
+    You seem to have overlapping act() calls, this is not supported. Be sure to await previous act() calls before making a new one.
+
+      at popActScope (node_modules/react/cjs/react.development.js:556:17)
+      at node_modules/react/cjs/react.development.js:844:17
+
+  console.error
+    You seem to have overlapping act() calls, this is not supported. Be sure to await previous act() calls before making a new one.
+
+      at popActScope (node_modules/react/cjs/react.development.js:556:17)
+      at node_modules/react/cjs/react.development.js:844:17
+
+  console.error
+    An update to VirtualizedList inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+      at node_modules/react-reconciler/cjs/react-reconciler.development.js:16307:19
+      at runWithFiberInDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:2508:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16306:9)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at Object.enqueueSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:18909:13)
+      at VirtualizedList.Object.<anonymous>.process.env.NODE_ENV.Component.setState (node_modules/react/cjs/react.development.js:655:20)
+      at node_modules/@babel/runtime/helpers/superPropGet.js:6:14
+      at VirtualizedList.setState (node_modules/@react-native/virtualized-lists/Lists/StateSafePureComponent.js:40:7)
+      at VirtualizedList.setState [as _updateCellsToRender] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1909:10)
+      at Timeout._updateCellsToRender [as _onTimeout] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1806:16)
+
+PASS src/services/customers/__tests__/customerBalanceService.test.ts
+  customerBalanceService
+    getCustomerDebt
+      ✓ should calculate debt from completed sales balance minus payments (184 ms)
+      ✓ should exclude cancelled sales from debt calculation (12 ms)
+      ✓ should exclude returned sales from debt calculation (7 ms)
+      ✓ should handle multiple completed sales (11 ms)
+      ✓ should block overpayment (debt cannot be negative) (9 ms)
+      ✓ should return 0 debt when no sales exist (2 ms)
+    getCustomerPayments
+      ✓ should retrieve payments for a customer (9 ms)
+      ✓ should return empty array when no payments exist (6 ms)
+    canRecordPayment
+      ✓ should allow payment when amount <= debt (5 ms)
+      ✓ should block overpayment when amount > debt (6 ms)
+      ✓ should block zero amount payment (5 ms)
+      ✓ should block negative amount payment (6 ms)
+    recordPayment
+      ✓ should record a payment successfully (13 ms)
+      ✓ should return null when payment would exceed debt (9 ms)
+      ✓ should record electronic payment (19 ms)
+      ✓ re-checks debt inside the transaction so a concurrent payment cannot cause overpayment (7 ms)
+    getCustomerBalanceSummary
+      ✓ should return balance summary with debt, total paid, and payment count (14 ms)
+      ✓ should return zero summary for customer with no sales or payments (4 ms)
+      ✓ should report credit in the summary after cancelling a repaid sale (9 ms)
+    getTotalShopDebt
+      ✓ matches per-customer balance sum including store credits from cancelled prepaid sales (10 ms)
+    getTotalShopCredit
+      ✓ reports shop-level credit from a cancelled prepaid sale and keeps it out of debt (13 ms)
+
+PASS src/features/dashboard/components/__tests__/SalesChartView.test.tsx
+  SalesChartView (native)
+    ✓ renders bar mode with the peak selected by default (127 ms)
+    ✓ renders area mode without crashing (16 ms)
+    ✓ updates the readout when a point is tapped (163 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      190 |       if (!isCashUserModified) {
+      191 |         setAmountReceived(displayTotal);
+    > 192 |         setRawCashInput(formatCentimesToInputDzd(displayTotal));
+          |         ^
+      193 |       }
+      194 |
+      195 |       if (!isPartialUserModified) {
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setRawCashInput (src/features/sales/components/CheckoutSheet.tsx:192:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      195 |       if (!isPartialUserModified) {
+      196 |         const half = Math.round(displayTotal / 2);
+    > 197 |         setPartialAmount(half);
+          |         ^
+      198 |         setRawPartialInput(formatCentimesToInputDzd(half));
+      199 |       }
+      200 |     });
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setPartialAmount (src/features/sales/components/CheckoutSheet.tsx:197:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      196 |         const half = Math.round(displayTotal / 2);
+      197 |         setPartialAmount(half);
+    > 198 |         setRawPartialInput(formatCentimesToInputDzd(half));
+          |         ^
+      199 |       }
+      200 |     });
+      201 |   }, [visible, displayTotal, isCashUserModified, isPartialUserModified]);
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setRawPartialInput (src/features/sales/components/CheckoutSheet.tsx:198:9)
+
+FAIL src/database/repositories/__tests__/saleRepository.test.ts
+  saleRepository
+    create()
+      ✓ creates a sale with 2 items, deducts stock, and creates inventory movements (13 ms)
+      ✓ records a credit sale as unsettled debt (6 ms)
+      ✓ applies a discount to the sale total (16 ms)
+      ✓ rejects credit or partial sales for inactive/archived customers (14 ms)
+      ✓ rejects sales where an item has quantity <= 0 or invalid quantity (5 ms)
+      ✓ honours an explicit amount paid and tracks the shortfall (5 ms)
+      ✓ records a partial payment against the total (6 ms)
+      ✓ settles electronic and mixed sales in full by default (18 ms)
+      ✓ clamps a discount larger than the subtotal (7 ms)
+      ✓ stores historical cost price on sale items (snapshot) (9 ms)
+      ✓ rejects amountPaidCentimes that is negative or not a safe integer (5 ms)
+      ✓ rejects a sale whose submitted unit price no longer matches the catalogue (PRICE_CHANGED) (4 ms)
+      ✓ rejects a sale whose product is inactive (PRODUCT_INACTIVE) (4 ms)
+    cancel()
+      ✓ cancels a sale, restores stock, and creates reverse inventory movements (10 ms)
+      ✓ creates inventory movements with 'in' type for cancelled sale (11 ms)
+      ✓ cancels a sale even when one of its items' product was hard-deleted (9 ms)
+      ✓ does not count cancelled sale toward revenue (10 ms)
+    returnSale()
+      ✓ returns a sale, restores stock, and sets status to 'returned' (8 ms)
+      ✓ creates inventory movements with 'in' type for returned sale (8 ms)
+      ✓ does not count returned sale toward debt (6 ms)
+      ✓ returns a sale even when its product was hard-deleted (10 ms)
+    transaction atomicity
+      ✓ rolls back transaction on failure mid-create (4 ms)
+      ✓ cancel atomicity: if cancel fails, stock should not be restored (9 ms)
+    getAll() pagination
+      ✓ paginates sales via limit and offset filters (27 ms)
+    queries
+      ✓ getByCustomerId returns sales for a specific customer (19 ms)
+      ✓ getTodaySales returns completed sales (4 ms)
+      ✕ includes midday sales made on the end date when filtering by YYYY-MM-DD date range (108 ms)
+    historical write-once currency
+      ✓ persists sale currency at creation and retains DZD labeling even if store currency switches to EUR (42 ms)
+
+  ● saleRepository › queries › includes midday sales made on the end date when filtering by YYYY-MM-DD date range
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      640 |       });
+      641 |
+    > 642 |       expect(filteredSales.length).toBeGreaterThan(0);
+          |                                    ^
+      643 |       expect(filteredSales.some((s) => s.note === "Midday Sale Test")).toBe(true);
+      644 |     });
+      645 |   });
+
+      at Object.toBeGreaterThan (src/database/repositories/__tests__/saleRepository.test.ts:642:36)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      123 |
+      124 |       if (isMounted) {
+    > 125 |         setLiveSubtotal(sum);
+          |         ^
+      126 |         setValidatedItems(valItems);
+      127 |       }
+      128 |     })();
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setLiveSubtotal (src/features/sales/components/CheckoutSheet.tsx:125:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      124 |       if (isMounted) {
+      125 |         setLiveSubtotal(sum);
+    > 126 |         setValidatedItems(valItems);
+          |         ^
+      127 |       }
+      128 |     })();
+      129 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setValidatedItems (src/features/sales/components/CheckoutSheet.tsx:126:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      126 |
+      127 |         if (isMounted) {
+    > 128 |           setCustomers(list);
+          |           ^
+      129 |           setLoading(false);
+      130 |         }
+      131 |       } catch (err) {
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setCustomers (src/hooks/useCustomers.ts:128:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      127 |         if (isMounted) {
+      128 |           setCustomers(list);
+    > 129 |           setLoading(false);
+          |           ^
+      130 |         }
+      131 |       } catch (err) {
+      132 |         if (isMounted) {
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setLoading (src/hooks/useCustomers.ts:129:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/__tests__/screens/recordRefundScreen.test.tsx (19.291 s)
+  RecordRefundScreen
+    ✓ renders the customer's exact credit and defaults the amount to it (centimes preserved) (8116 ms)
+    ✓ refunds a fractional credit exactly, leaving zero credit (1923 ms)
+    ✓ supports credits smaller than one dinar (609 ms)
+    ✓ blocks refunds exceeding the available credit and disables confirm (99 ms)
+    ✓ records a partial refund exactly and refreshes the detail screen on refocus (540 ms)
+    ✓ shows the no-credit state for customers without credit (28 ms)
+    ✓ blocks a double press from recording the refund twice (128 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at Object.enqueueSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:18909:13)
+      at VirtualizedList.Object.<anonymous>.process.env.NODE_ENV.Component.setState (node_modules/react/cjs/react.development.js:655:20)
+      at node_modules/@babel/runtime/helpers/superPropGet.js:6:14
+      at VirtualizedList.setState (node_modules/@react-native/virtualized-lists/Lists/StateSafePureComponent.js:40:7)
+      at VirtualizedList.setState [as _updateCellsToRender] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1909:10)
+      at Timeout._updateCellsToRender [as _onTimeout] (node_modules/@react-native/virtualized-lists/Lists/VirtualizedList.js:1806:16)
+
+PASS src/__tests__/screens/productScreens.test.tsx (19.396 s)
+  Product Screens Integration Harness
+    ProductListScreen
+      ✓ renders list of products from catalogue (7285 ms)
+    ProductFormScreen
+      ✓ renders form inputs for adding a product (2658 ms)
+    ProductDetailScreen
+      ✓ renders product details and current stock (119 ms)
+    StockAdjustmentScreen
+      ✓ renders stock adjustment form for a product (84 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      195 |       if (!isPartialUserModified) {
+      196 |         const half = Math.round(displayTotal / 2);
+    > 197 |         setPartialAmount(half);
+          |         ^
+      198 |         setRawPartialInput(formatCentimesToInputDzd(half));
+      199 |       }
+      200 |     });
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setPartialAmount (src/features/sales/components/CheckoutSheet.tsx:197:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      196 |         const half = Math.round(displayTotal / 2);
+      197 |         setPartialAmount(half);
+    > 198 |         setRawPartialInput(formatCentimesToInputDzd(half));
+          |         ^
+      199 |       }
+      200 |     });
+      201 |   }, [visible, displayTotal, isCashUserModified, isPartialUserModified]);
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setRawPartialInput (src/features/sales/components/CheckoutSheet.tsx:198:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      195 |       if (!isPartialUserModified) {
+      196 |         const half = Math.round(displayTotal / 2);
+    > 197 |         setPartialAmount(half);
+          |         ^
+      198 |         setRawPartialInput(formatCentimesToInputDzd(half));
+      199 |       }
+      200 |     });
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setPartialAmount (src/features/sales/components/CheckoutSheet.tsx:197:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      196 |         const half = Math.round(displayTotal / 2);
+      197 |         setPartialAmount(half);
+    > 198 |         setRawPartialInput(formatCentimesToInputDzd(half));
+          |         ^
+      199 |       }
+      200 |     });
+      201 |   }, [visible, displayTotal, isCashUserModified, isPartialUserModified]);
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setRawPartialInput (src/features/sales/components/CheckoutSheet.tsx:198:9)
+
+  console.warn
+    "water-bottle" is not a valid icon name for family "material"
+
+      at Icon.warn [as render] (node_modules/@expo/vector-icons/src/createIconSet.tsx:197:17)
+      at Object.react_stack_bottom_frame (node_modules/react-reconciler/cjs/react-reconciler.development.js:17609:29)
+      at updateClassComponent (node_modules/react-reconciler/cjs/react-reconciler.development.js:8273:25)
+      at beginWork (node_modules/react-reconciler/cjs/react-reconciler.development.js:9291:13)
+      at runWithFiberInDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:2508:13)
+      at performUnitOfWork (node_modules/react-reconciler/cjs/react-reconciler.development.js:15273:22)
+      at workLoopSync (node_modules/react-reconciler/cjs/react-reconciler.development.js:15099:41)
+      at renderRootSync (node_modules/react-reconciler/cjs/react-reconciler.development.js:15080:11)
+      at performWorkOnRoot (node_modules/react-reconciler/cjs/react-reconciler.development.js:14165:11)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-reconciler/cjs/react-reconciler.development.js:3335:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)
+      at recursivelyFlushAsyncActWork (node_modules/react/cjs/react.development.js:566:13)
+      at Immediate._onImmediate (node_modules/react/cjs/react.development.js:849:32)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      106 |           is_active: p.is_active,
+      107 |         }));
+    > 108 |       setProducts(lowStock);
+          |       ^
+      109 |
+      110 |       setModalVisible(false);
+      111 |       Alert.alert(
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setProducts (src/features/products/LowStockScreen.tsx:108:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      108 |       setProducts(lowStock);
+      109 |
+    > 110 |       setModalVisible(false);
+          |       ^
+      111 |       Alert.alert(
+      112 |         t("products:stockUpdated", { defaultValue: "Stock Updated" }),
+      113 |         t("products:restockSuccess", {
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setModalVisible (src/features/products/LowStockScreen.tsx:110:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      158 |       }
+      159 |
+    > 160 |       setIsSaving(true);
+          |       ^
+      161 |       setErrorState(null);
+      162 |       setLastTenderReceived(details.rawAmountReceived ?? details.amountPaid);
+      163 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsSaving (src/features/sales/SellScreen.tsx:160:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/features/sales/SellScreen.tsx:214:6)
+      at onCheckout (src/features/sales/components/CheckoutSheet.tsx:342:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      159 |
+      160 |       setIsSaving(true);
+    > 161 |       setErrorState(null);
+          |       ^
+      162 |       setLastTenderReceived(details.rawAmountReceived ?? details.amountPaid);
+      163 |
+      164 |       try {
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setErrorState (src/features/sales/SellScreen.tsx:161:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/features/sales/SellScreen.tsx:214:6)
+      at onCheckout (src/features/sales/components/CheckoutSheet.tsx:342:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      160 |       setIsSaving(true);
+      161 |       setErrorState(null);
+    > 162 |       setLastTenderReceived(details.rawAmountReceived ?? details.amountPaid);
+          |       ^
+      163 |
+      164 |       try {
+      165 |         const saleItemsInput =
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setLastTenderReceived (src/features/sales/SellScreen.tsx:162:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/features/sales/SellScreen.tsx:214:6)
+      at onCheckout (src/features/sales/components/CheckoutSheet.tsx:342:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.warn
+    "water-bottle" is not a valid icon name for family "material"
+
+      at Icon.warn [as render] (node_modules/@expo/vector-icons/src/createIconSet.tsx:197:17)
+      at Object.react_stack_bottom_frame (node_modules/react-reconciler/cjs/react-reconciler.development.js:17609:29)
+      at updateClassComponent (node_modules/react-reconciler/cjs/react-reconciler.development.js:8273:25)
+      at beginWork (node_modules/react-reconciler/cjs/react-reconciler.development.js:9291:13)
+      at runWithFiberInDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:2508:13)
+      at performUnitOfWork (node_modules/react-reconciler/cjs/react-reconciler.development.js:15273:22)
+      at workLoopSync (node_modules/react-reconciler/cjs/react-reconciler.development.js:15099:41)
+      at renderRootSync (node_modules/react-reconciler/cjs/react-reconciler.development.js:15080:11)
+      at performWorkOnRoot (node_modules/react-reconciler/cjs/react-reconciler.development.js:14165:11)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-reconciler/cjs/react-reconciler.development.js:3335:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)
+      at recursivelyFlushAsyncActWork (node_modules/react/cjs/react.development.js:566:13)
+      at Immediate._onImmediate (node_modules/react/cjs/react.development.js:849:32)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      183 |
+      184 |         const newSale = await create(saleInput);
+    > 185 |         setSale(newSale);
+          |         ^
+      186 |         setReceiptVisible(true);
+      187 |         setIsSaving(false);
+      188 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setSale (src/features/sales/SellScreen.tsx:185:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      184 |         const newSale = await create(saleInput);
+      185 |         setSale(newSale);
+    > 186 |         setReceiptVisible(true);
+          |         ^
+      187 |         setIsSaving(false);
+      188 |
+      189 |         clearCart();
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setReceiptVisible (src/features/sales/SellScreen.tsx:186:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      185 |         setSale(newSale);
+      186 |         setReceiptVisible(true);
+    > 187 |         setIsSaving(false);
+          |         ^
+      188 |
+      189 |         clearCart();
+      190 |         setCheckoutVisible(false);
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsSaving (src/features/sales/SellScreen.tsx:187:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      125 |
+      126 |       clearCart: () => {
+    > 127 |         set({ items: [], discount: 0 });
+          |         ^
+      128 |       },
+      129 |
+      130 |       setPreserveCart: (value: boolean) => {
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at forceStoreRerender (node_modules/react-reconciler/cjs/react-reconciler.development.js:5935:24)
+      at node_modules/react-reconciler/cjs/react-reconciler.development.js:5920:11
+      at node_modules/zustand/vanilla.js:11:39
+          at Set.forEach (<anonymous>)
+      at setState (node_modules/zustand/vanilla.js:11:17)
+      at node_modules/zustand/middleware.js:374:7
+      at set (src/stores/cartStore.ts:127:9)
+      at clearCart (src/features/sales/SellScreen.tsx:189:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      125 |
+      126 |       clearCart: () => {
+    > 127 |         set({ items: [], discount: 0 });
+          |         ^
+      128 |       },
+      129 |
+      130 |       setPreserveCart: (value: boolean) => {
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at forceStoreRerender (node_modules/react-reconciler/cjs/react-reconciler.development.js:5935:24)
+      at node_modules/react-reconciler/cjs/react-reconciler.development.js:5920:11
+      at node_modules/zustand/vanilla.js:11:39
+          at Set.forEach (<anonymous>)
+      at setState (node_modules/zustand/vanilla.js:11:17)
+      at node_modules/zustand/middleware.js:374:7
+      at set (src/stores/cartStore.ts:127:9)
+      at clearCart (src/features/sales/SellScreen.tsx:189:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      188 |
+      189 |         clearCart();
+    > 190 |         setCheckoutVisible(false);
+          |         ^
+      191 |         setNote("");
+      192 |         setCustomerId(null);
+      193 |       } catch (err: any) {
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setCheckoutVisible (src/features/sales/SellScreen.tsx:190:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      189 |         clearCart();
+      190 |         setCheckoutVisible(false);
+    > 191 |         setNote("");
+          |         ^
+      192 |         setCustomerId(null);
+      193 |       } catch (err: any) {
+      194 |         console.error("Sale checkout failed", err);
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setNote (src/features/sales/SellScreen.tsx:191:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      190 |         setCheckoutVisible(false);
+      191 |         setNote("");
+    > 192 |         setCustomerId(null);
+          |         ^
+      193 |       } catch (err: any) {
+      194 |         console.error("Sale checkout failed", err);
+      195 |         const message = err?.message ?? "";
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setCustomerId (src/features/sales/SellScreen.tsx:192:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      334 |           }),
+      335 |         );
+    > 336 |         setShowCustomerPicker(true);
+          |         ^
+      337 |         isConfirmingRef.current = false;
+      338 |         setIsConfirming(false);
+      339 |         return;
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setShowCustomerPicker (src/features/sales/components/CheckoutSheet.tsx:336:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      336 |         setShowCustomerPicker(true);
+      337 |         isConfirmingRef.current = false;
+    > 338 |         setIsConfirming(false);
+          |         ^
+      339 |         return;
+      340 |       }
+      341 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsConfirming (src/features/sales/components/CheckoutSheet.tsx:338:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      352 |     } finally {
+      353 |       isConfirmingRef.current = false;
+    > 354 |       setIsConfirming(false);
+          |       ^
+      355 |     }
+      356 |   }, [items, isSaving, paymentMethod, amountReceived, partialAmount, discount, note, customerId, onCheckout, t]);
+      357 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsConfirming (src/features/sales/components/CheckoutSheet.tsx:354:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/features/products/__tests__/LowStockScreen.test.tsx (19.683 s)
+  LowStockScreen
+    ✓ shows the empty state and no mock products when the database has no low-stock rows (9147 ms)
+    ✓ targets the real database product when confirming a quick restock (529 ms)
+
+PASS src/__tests__/screens/dashboardScreen.test.tsx (19.686 s)
+  Dashboard Screen Integration Harness
+    ✓ renders the dashboard screen with metrics and revenue (9239 ms)
+    ✓ displays low stock alerts when products are below minimum threshold (310 ms)
+    ✓ navigates on Quick Action press (96 ms)
+
+PASS src/__tests__/security-rules.test.ts
+  security business rules
+    ✓ refuses to cancel a sale that is not completed (72 ms)
+    ✓ refuses to return a sale that is not completed (20 ms)
+    ✓ blocks a refund that exceeds the customer's available credit (19 ms)
+    ✓ blocks a payment that exceeds the customer's current debt (24 ms)
+    ✓ empties every table and resets the autoincrement sequences on hard reset (47 ms)
+
+PASS src/database/repositories/__tests__/productRepository.test.ts
+  productRepository
+    getAll()
+      ✓ returns an empty array when no products exist (9 ms)
+      ✓ returns products after creation (5 ms)
+    getById()
+      ✓ returns null when product does not exist (1 ms)
+      ✓ returns the product after creation (19 ms)
+      ✓ rejects negative sale or cost prices (8 ms)
+    search()
+      ✓ searches by name (8 ms)
+      ✓ searches by SKU (3 ms)
+      ✓ filters by is_active and search (3 ms)
+    create()
+      ✓ creates a new product (2 ms)
+      ✓ throws when a product with the same SKU already exists (4 ms)
+    update()
+      ✓ updates product fields (3 ms)
+      ✓ throws DUPLICATE_SKU when updating to a SKU another product already uses (20 ms)
+    archive()
+      ✓ sets is_active = false without deleting the row (17 ms)
+      ✓ archived product cannot be included in active listings (4 ms)
+    create() without a SKU
+      ✓ returns the product it just created, not another row (8 ms)
+    adjustStock()
+      ✓ creates an inventory movement and updates stock (54 ms)
+      ✓ rejects a reduction larger than current stock with INSUFFICIENT_STOCK instead of clamping (F4) (15 ms)
+      ✓ rejects a non-integer quantityChange with INVALID_QUANTITY (F4) (11 ms)
+      ✓ rejects a zero quantityChange so no zero movement is ever recorded (F4) (4 ms)
+      ✓ records movement_type 'in' for increases and 'out' for decreases (12 ms)
+    getTopSellingProducts()
+      ✓ ranks products by completed sales and excludes quantities from cancelled sales (23 ms)
+    stock ledger reconciliation
+      ✓ records an 'Opening stock' movement when a product is created with stock (10 ms)
+      ✓ does not record an opening movement when a product is created with zero stock (9 ms)
+      ✓ keeps SUM(quantity_change) equal to stock_quantity across create, adjustStock, sale, cancel and return (26 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      195 |       if (!isPartialUserModified) {
+      196 |         const half = Math.round(displayTotal / 2);
+    > 197 |         setPartialAmount(half);
+          |         ^
+      198 |         setRawPartialInput(formatCentimesToInputDzd(half));
+      199 |       }
+      200 |     });
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setPartialAmount (src/features/sales/components/CheckoutSheet.tsx:197:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      196 |         const half = Math.round(displayTotal / 2);
+      197 |         setPartialAmount(half);
+    > 198 |         setRawPartialInput(formatCentimesToInputDzd(half));
+          |         ^
+      199 |       }
+      200 |     });
+      201 |   }, [visible, displayTotal, isCashUserModified, isPartialUserModified]);
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setRawPartialInput (src/features/sales/components/CheckoutSheet.tsx:198:9)
+
+PASS src/database/repositories/__tests__/customerRepository.test.ts
+  customerRepository
+    getAll()
+      ✓ returns an empty array when no customers exist (7 ms)
+      ✓ returns customers after creation (7 ms)
+    getById()
+      ✓ returns null when customer does not exist (1 ms)
+      ✓ returns the customer after creation (7 ms)
+    search()
+      ✓ searches customers by name substring (9 ms)
+      ✓ returns empty when no match (1 ms)
+    create()
+      ✓ creates a new customer (2 ms)
+      ✓ rejects an active duplicate phone with DUPLICATE_PHONE carrying id and name (F3) (13 ms)
+      ✓ returns the exact newly created customer when no phone number is provided (4 ms)
+    update()
+      ✓ updates customer fields (6 ms)
+      ✓ ignores is_active in the payload — activity only changes via archive()/restore() (F-archive) (4 ms)
+      ✓ clears optional fields when update receives null (F2) (4 ms)
+    archive()
+      ✓ sets is_active = false without deleting the row (6 ms)
+      ✓ archived customer retains history — sales and payments still reference it (3 ms)
+    restore()
+      ✓ reactivates an archived customer with no balance requirement (4 ms)
+    normalizePhone()
+      ✓ strips spaces, dashes, dots and parentheses (1 ms)
+      ✓ canonicalizes a leading +213 onto the local trunk 0
+      ✓ treats '0555 12 34 56' and '+213555123456' as the same number (F3) (1 ms)
+    phone normalization in create, update and search
+      ✓ stores the phone normalized on create and update (2 ms)
+      ✓ matches an international +213 variant against a locally stored number (3 ms)
+      ✓ matches a legacy stored '+213...' row when the local form is submitted (F3) (4 ms)
+      ✓ finds a customer by a differently formatted phone query (3 ms)
+    create() with an archived phone match
+      ✓ throws PHONE_ARCHIVED instead of silently returning the archived customer (3 ms)
+    update() duplicate phone guard
+      ✓ rejects a phone already used by another customer with DUPLICATE_PHONE (13 ms)
+      ✓ allows a customer to keep their own phone (7 ms)
+    archive() balance guards
+      ✓ refuses to archive a customer who still owes money (15 ms)
+      ✓ refuses to archive a customer holding store credit (15 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      323 |         );
+      324 |         isConfirmingRef.current = false;
+    > 325 |         setIsConfirming(false);
+          |         ^
+      326 |         return;
+      327 |       }
+      328 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsConfirming (src/features/sales/components/CheckoutSheet.tsx:325:9)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      352 |     } finally {
+      353 |       isConfirmingRef.current = false;
+    > 354 |       setIsConfirming(false);
+          |       ^
+      355 |     }
+      356 |   }, [items, isSaving, paymentMethod, amountReceived, partialAmount, discount, note, customerId, onCheckout, t]);
+      357 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsConfirming (src/features/sales/components/CheckoutSheet.tsx:354:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/database/repositories/__tests__/highFindings.test.ts
+  High Findings Safeguards (H1, H2, H3)
+    H1: Cancel/Return Payment Reversal & Debt Reconciliation
+      ✓ cancelling an unrelated cash sale B leaves customer A's credit sale A settled (debt = 0) (70 ms)
+      ✓ returning an unrelated cash sale B leaves customer A's credit sale A settled (debt = 0) (12 ms)
+    H2: Overselling Prevention & Accurate Stock Restoration
+      ✓ rejects sales where requested quantity exceeds available stock (4 ms)
+    H3: Cash Underpayment & Over-tender Clamping
+      ✓ rejects underpayment / partial debt sales if no customer is selected (5 ms)
+      ✓ clamps stored amount_paid_centimes to total_centimes when over-tendered (5 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      352 |     } finally {
+      353 |       isConfirmingRef.current = false;
+    > 354 |       setIsConfirming(false);
+          |       ^
+      355 |     }
+      356 |   }, [items, isSaving, paymentMethod, amountReceived, partialAmount, discount, note, customerId, onCheckout, t]);
+      357 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsConfirming (src/features/sales/components/CheckoutSheet.tsx:354:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/features/catalogue/__tests__/catalogueService.test.ts
+  Catalogue Service - Public Output & Privacy
+    ✓ generates text output that includes store info and public product data (12 ms)
+    ✓ filters out of stock products when hideOutOfStock is true (1 ms)
+    ✓ includes out of stock products with badge when hideOutOfStock is false (1 ms)
+    ✓ hides prices when showPrices is false (1 ms)
+    ✓ STRICT PRIVACY: ensures NO cost price, profit, debt, customer data or internal warehouse stock count is in the output (4 ms)
+    ✓ generates valid HTML brochure structure matching Stitch design (1 ms)
+    ✓ declares the brochure dir='rtl' and lang='ar' for the Arabic locale (9 ms)
+    ✓ declares dir='ltr' for non-Arabic locales (1 ms)
+    ✓ falls back to a neutral translated shop name and never a hard-coded business name (1 ms)
+    ✓ maintains backward compatibility with legacy exportCataloguePDF (1 ms)
+
+PASS src/database/repositories/__tests__/businessProfileRepository.test.ts
+  businessProfileRepository
+    get()
+      ✓ returns null when no profile exists (4 ms)
+      ✓ returns the existing profile after create (4 ms)
+      ✓ is idempotent — returning the same profile on repeated calls (3 ms)
+    create()
+      ✓ creates a new profile and returns it (2 ms)
+      ✓ is idempotent — re-creating the same profile returns the existing one (3 ms)
+    update()
+      ✓ updates the profile fields (17 ms)
+      ✓ rejects currency changes if sales or payments exist (6 ms)
+
+PASS src/database/repositories/__tests__/resetRepository.test.ts
+  resetRepository
+    ✓ clears transaction data but keeps the profile and settings (34 ms)
+    ✓ wipes everything on a full reset (9 ms)
+    ✓ is safe to run on an already-empty database (23 ms)
+    ✓ clears sqlite_sequence entries so autoincrement IDs restart from 1 on hard reset (9 ms)
+
+  console.error
+    Confirm checkout error: Error: Database transaction conflict
+        at Object.<anonymous> (/home/faroub/Documents/Projects/DukkanPro/src/features/sales/components/__tests__/CheckoutSheet.test.tsx:222:30)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+        at _next (/home/faroub/Documents/Projects/DukkanPro/node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+      349 |       });
+      350 |     } catch (err) {
+    > 351 |       console.error("Confirm checkout error:", err);
+          |               ^
+      352 |     } finally {
+      353 |       isConfirmingRef.current = false;
+      354 |       setIsConfirming(false);
+
+      at error (src/features/sales/components/CheckoutSheet.tsx:351:15)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      352 |     } finally {
+      353 |       isConfirmingRef.current = false;
+    > 354 |       setIsConfirming(false);
+          |       ^
+      355 |     }
+      356 |   }, [items, isSaving, paymentMethod, amountReceived, partialAmount, discount, note, customerId, onCheckout, t]);
+      357 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsConfirming (src/features/sales/components/CheckoutSheet.tsx:354:7)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+PASS src/database/__tests__/database.test.ts
+  getDatabase failure recovery
+    ✓ does not poison the next getDatabase() call when initialization fails (119 ms)
+    ✓ wraps non-Error rejections in a typed error the UI can show (20 ms)
+
+PASS src/database/__tests__/concurrencyIsolation.test.ts
+  Database Concurrency & Transaction Isolation (AsyncMutex)
+    ✓ serializes overlapping transactions cleanly without BEGIN IMMEDIATE collision (227 ms)
+    ✓ prevents silent data loss when a standalone write runs while an unrelated transaction rolls back (51 ms)
+
+PASS src/__tests__/screens/salesScreens.test.tsx (20.136 s)
+  Sales Screens Integration Harness
+    SellScreen (POS Checkout Flow)
+      ✓ renders available products and adds item to cart (7649 ms)
+      ✓ completes checkout transaction and displays payment options (2768 ms)
+      ✓ displays correct change due (50 DZD) on receipt preview when 150 DZD is tendered on a 100 DZD sale (686 ms)
+    SalesHistoryScreen
+      ✓ renders list of sales from database (241 ms)
+    SaleDetailScreen
+      ✓ renders sale receipt details for a specific sale ID (165 ms)
+
+  console.error
+    The current testing environment is not configured to support act(...)
+
+      352 |     } finally {
+      353 |       isConfirmingRef.current = false;
+    > 354 |       setIsConfirming(false);
+          |       ^
+      355 |     }
+      356 |   }, [items, isSaving, paymentMethod, amountReceived, partialAmount, discount, note, customerId, onCheckout, t]);
+      357 |
+
+      at isConcurrentActEnvironment (node_modules/react-reconciler/cjs/react-reconciler.development.js:13990:17)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-reconciler/cjs/react-reconciler.development.js:16304:7)
+      at scheduleUpdateOnFiber (node_modules/react-reconciler/cjs/react-reconciler.development.js:14070:11)
+      at dispatchSetStateInternal (node_modules/react-reconciler/cjs/react-reconciler.development.js:6784:13)
+      at dispatchSetState (node_modules/react-reconciler/cjs/react-reconciler.development.js:6741:7)
+      at setIsConfirming (src/features/sales/components/CheckoutSheet.tsx:354:7)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/localization/__tests__/localePersistence.test.ts
+  locale persistence
+    ✓ round-trips the selected locale through the unified key (12 ms)
+    ✓ reads a locale written during onboarding (9 ms)
+    ✓ defaults to French when nothing is stored (1 ms)
+
+PASS src/database/repositories/__tests__/dashboardRepository.test.ts
+  dashboardRepository
+    getTodayRevenue
+      ✓ excludes completed sales from previous days (10 ms)
+      ✓ adds sale revenue and reflects in getTodayRevenue (4 ms)
+      ✓ excludes cancelled sale from revenue (4 ms)
+    getTodayCost
+      ✓ computes cost from sale items' historical cost price (5 ms)
+      ✓ excludes cost from sales outside the local calendar day (4 ms)
+    getTodayProfit
+      ✓ computes profit as revenue minus cost (3 ms)
+      ✓ is sale-based: an all-credit sale counts as revenue when it is made (5 ms)
+      ✓ counts a partial payment the same as a credit sale: margin at sale time (7 ms)
+      ✓ ignores customer refunds made today: they move cash and debt, not the margin (18 ms)
+    getLowStockCount
+      ✓ counts products at or below minimum stock quantity (5 ms)
+    getLowStockProducts
+      ✓ returns products at or below minimum stock, limited by limit (7 ms)
+    getSevenDaySales
+      ✓ returns seven-day sales trend with daily totals (11 ms)
+      ✓ buckets sales by the local calendar day, not the UTC day (4 ms)
+
+PASS src/stores/__tests__/cartStore.test.ts
+  cartStore with AsyncStorage persistence
+    ✓ adds item to cart and calculates subtotal and total (5 ms)
+    ✓ applies discount correctly (3 ms)
+    ✓ updates quantity and removes item when quantity reaches zero (1 ms)
+    ✓ subtracts item quantity and removes it when reaching zero (4 ms)
+    ✓ persists cart state to AsyncStorage (114 ms)
+
+PASS src/utils/__tests__/text.test.ts
+  getTextAlignment
+    ✓ should return "right" for Arabic locale (2 ms)
+    ✓ should return "left" for French locale (1 ms)
+    ✓ should return "left" for English locale (1 ms)
+  getWritingDirection
+    ✓ should return "rtl" for Arabic locale (1 ms)
+    ✓ should return "ltr" for French locale (1 ms)
+    ✓ should return "ltr" for English locale
+  truncateText
+    ✓ should return text unchanged when shorter than maxWidth
+    ✓ should truncate text with ellipsis
+    ✓ should handle Arabic text truncation (1 ms)
+    ✓ should return truncated English text
+    ✓ should handle edge case of exact maxWidth
+  toArabicIndicDigits
+    ✓ should convert Latin digits to Arabic-Indic digits (1 ms)
+    ✓ should preserve non-digit characters (1 ms)
+    ✓ should handle empty string
+  toLatinDigits
+    ✓ should convert Arabic-Indic digits to Latin digits (1 ms)
+    ✓ should preserve non-digit characters (1 ms)
+    ✓ should handle empty string
+  containsArabic
+    ✓ should return true for Arabic text
+    ✓ should return false for French text
+    ✓ should return false for English text (1 ms)
+    ✓ should return true for mixed text
+  containsRTL
+    ✓ should return true for Arabic text (2 ms)
+    ✓ should return false for French text
+    ✓ should return false for English text (1 ms)
+  textStyle
+    ✓ should return style with right alignment for Arabic
+    ✓ should return style with left alignment for French
+    ✓ should allow option overrides
+
+PASS src/features/sales/components/__tests__/CheckoutSheet.test.tsx (20.517 s)
+  CheckoutSheet Component Money Math & Re-validation Harness
+    ✓ re-validates live prices from SQLite and updates display total when cart price is stale (14181 ms)
+    ✓ calculates exact change due for cash payments (281 ms)
+    ✓ requires customer selection before confirming credit or partial debt sales (248 ms)
+    ✓ blocks a cash sale when the received amount parses to zero (malformed input) (201 ms)
+    ✓ submits checkout with live validated items and exact amount paid (132 ms)
+    ✓ displays error banner, re-enables confirm button, and allows retry on checkout failure (352 ms)
+
+PASS src/__tests__/ltr-architecture.test.ts
+  RTL and LTR layout direction management
+    ✓ applies RTL layout direction when arabic ('ar') is selected (3 ms)
+    ✓ applies LTR layout direction when french ('fr') or english ('en') is selected (1 ms)
+
+PASS src/hooks/__tests__/useProducts.test.ts
+  useProducts hook
+    ✓ should be defined (1 ms)
+
+PASS src/utils/__tests__/money.test.ts
+  formatCentimes
+    ✓ should format 14000 centimes in French locale (2 ms)
+    ✓ should format 14000 centimes in English locale (5 ms)
+    ✓ should format 14000 centimes in Arabic locale (1 ms)
+    ✓ should format 500 centimes in French locale (1 ms)
+    ✓ should format 0 centimes (7 ms)
+    ✓ should format 14000 centimes in EUR currency (2 ms)
+    ✓ should format 14000 centimes in USD currency (1 ms)
+  parseFormattedCentimes
+    ✓ should parse "140 DZD" to 14000 (4 ms)
+    ✓ should parse "140,00 DZD" to 14000 (1 ms)
+    ✓ should parse Arabic-Indic digits "١٤٠ دj" to 14000
+    ✓ should parse "5 DZD" to 500
+    ✓ should return 0 for invalid input (1 ms)
+    ✓ should parse "0 DZD" to 0 (1 ms)
+    ✓ should treat a comma group separator as grouping, not decimals (1 ms)
+    ✓ should treat a comma as a decimal separator in French format (1 ms)
+    ✓ should parse sub-dinar English format (1 ms)
+    with an explicit locale
+      ✓ treats "," as grouping in en-DZ (1 ms)
+      ✓ treats "," as the decimal separator in fr-DZ (1 ms)
+      ✓ resolves the ambiguous "1,234" by locale
+      ✓ accepts short language codes
+  formatCentimes ↔ parseFormattedCentimes round-trip
+    ✓ round-trips 0 centimes through every locale (2 ms)
+    ✓ round-trips 5 centimes through every locale (1 ms)
+    ✓ round-trips 105 centimes through every locale (1 ms)
+    ✓ round-trips 500 centimes through every locale (1 ms)
+    ✓ round-trips 1255 centimes through every locale (1 ms)
+    ✓ round-trips 14000 centimes through every locale (1 ms)
+    ✓ round-trips 140000 centimes through every locale (1 ms)
+    ✓ round-trips 99999999 centimes through every locale
+  parseDzdToCentimes
+    ✓ parses comma-decimal and dot-decimal inputs correctly to centimes (6 ms)
+  format14000Centimes
+    ✓ should format 14000 centimes (2 ms)
+
+PASS src/localization/__tests__/cataloguePrivacy.test.ts
+  Catalogue Privacy
+    ✓ should have catalogue section in all languages (1 ms)
+    ✓ should have identical catalogue section keys across all languages (2 ms)
+    ✓ should not expose customer data in catalogue keys (1 ms)
+
+PASS src/__tests__/route-architecture.test.ts
+  route architecture
+    ✓ contains only route/layout files under src/app (3 ms)
+
+PASS src/localization/translations.test.ts
+  translation dictionaries validation
+    ✓ all translation keys match 1-to-1 recursively across French, English, and Arabic (25 ms)
+    ✓ deep key count is identical across all three locale files (20 ms)
+
+PASS src/__tests__/recharts-guard.test.ts
+  recharts guard
+    ✓ imports recharts only from web-only modules (28 ms)
+
+PASS src/utils/__tests__/dates.test.ts
+  formatDate
+    ✓ should format date in French locale (2 ms)
+    ✓ should format date in English locale (1 ms)
+    ✓ should format date in Arabic locale (2 ms)
+    ✓ should handle invalid date string
+    ✓ should handle invalid date object (1 ms)
+  formatRelativeDate
+    ✓ should return a relative date string in French (1 ms)
+    ✓ should return a relative date string in English (1 ms)
+    ✓ should return a relative date string in Arabic (1 ms)
+    ✓ should handle same-day date as today-like (1 ms)
+    ✓ should return relative date for past date (1 ms)
+    ✓ should return relative date for older date (1 ms)
+  formatTime
+    ✓ should format time in French locale (1 ms)
+    ✓ should format time in English locale
+    ✓ should format time in Arabic locale (1 ms)
+  formatDateTime
+    ✓ should format date and time in French locale (1 ms)
+    ✓ should format date and time in English locale (1 ms)
+    ✓ should format date and time in Arabic locale (1 ms)
+
+Summary of all failing tests
+FAIL src/database/repositories/__tests__/saleRepository.test.ts
+  ● saleRepository › queries › includes midday sales made on the end date when filtering by YYYY-MM-DD date range
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      640 |       });
+      641 |
+    > 642 |       expect(filteredSales.length).toBeGreaterThan(0);
+          |                                    ^
+      643 |       expect(filteredSales.some((s) => s.note === "Midday Sale Test")).toBe(true);
+      644 |     });
+      645 |   });
+
+      at Object.toBeGreaterThan (src/database/repositories/__tests__/saleRepository.test.ts:642:36)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+
+Test Suites: 1 failed, 40 passed, 41 total
+Tests:       1 failed, 355 passed, 356 total
+Snapshots:   0 total
+Time:        21.539 s
+Ran all test suites.

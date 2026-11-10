@@ -29,6 +29,7 @@ import {
   type BackupTable,
   validateBackup,
 } from "./backupFormat";
+import { setActiveStoreCurrency } from "@/utils/money";
 
 const CURRENT_DATABASE_VERSION = migrationVersions[migrationVersions.length - 1];
 
@@ -237,6 +238,12 @@ export async function restoreBackup(
         name: product.name,
         delta,
       });
+    }
+
+    // Sync the active store currency with the restored business profile.
+    const profile = backup.tables.business_profiles[0];
+    if (profile?.currency) {
+      setActiveStoreCurrency(profile.currency);
     }
 
     return { rowsImported, tableCounts, reconciliations };

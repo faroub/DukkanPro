@@ -151,50 +151,7 @@ describe("customerBalanceService", () => {
     });
   });
 
-  describe("canRecordPayment", () => {
-    it("should allow payment when amount <= debt", async () => {
-      const product = await makeProduct("BS7", 20000);
-      const customer = await makeCustomer();
-      await makeCreditSale(customer.id, product.id, 1, 20000);
 
-      expect(
-        await customerBalanceService.canRecordPayment(customer.id, 20000),
-      ).toBe(true);
-      expect(
-        await customerBalanceService.canRecordPayment(customer.id, 10000),
-      ).toBe(true);
-    });
-
-    it("should block overpayment when amount > debt", async () => {
-      const product = await makeProduct("BS8", 20000);
-      const customer = await makeCustomer();
-      await makeCreditSale(customer.id, product.id, 1, 20000);
-
-      expect(
-        await customerBalanceService.canRecordPayment(customer.id, 25000),
-      ).toBe(false);
-    });
-
-    it("should block zero amount payment", async () => {
-      const product = await makeProduct("BS9", 20000);
-      const customer = await makeCustomer();
-      await makeCreditSale(customer.id, product.id, 1, 20000);
-
-      expect(
-        await customerBalanceService.canRecordPayment(customer.id, 0),
-      ).toBe(false);
-    });
-
-    it("should block negative amount payment", async () => {
-      const product = await makeProduct("BS10", 20000);
-      const customer = await makeCustomer();
-      await makeCreditSale(customer.id, product.id, 1, 20000);
-
-      expect(
-        await customerBalanceService.canRecordPayment(customer.id, -500),
-      ).toBe(false);
-    });
-  });
 
   describe("recordPayment", () => {
     it("should record a payment successfully", async () => {

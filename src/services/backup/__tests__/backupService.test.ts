@@ -17,6 +17,7 @@ import { getDatabase } from "@/database/database";
 import { create as createProduct, adjustStock } from "@/database/repositories/productRepository";
 import { create as createCustomer } from "@/database/repositories/customerRepository";
 import { create as createSale } from "@/database/repositories/saleRepository";
+import { getActiveStoreCurrency } from "@/utils/money";
 import { recordPayment, getCustomerDebt } from "@/services/customers/customerBalanceService";
 import { resetDatabase } from "@/database/repositories/resetRepository";
 import { migrationVersions } from "@/database/migrations";
@@ -212,6 +213,30 @@ describe("backupService", () => {
       expect(customerRows[0].phone).toBe("0558A4");
       expect(await ledgerSum(seededA.product.id)).toBe(22);
     });
+
+    it("updates getActiveStoreCurrency() after restoring an EUR backup", async () => {
+      const db = await getDatabase();
+      // Create a shop in EUR.
+      await resetDatabase();
+      await db.runAsync(
+        `INSERT INTO business_profiles (business_name, owner_name, business_type, currency, selected_locale)
+         VALUES ('EUR Shop', 'Owner', 'grocery', 'EUR', 'fr')`,
+      );
+      // At this point, getActiveStoreCurrency is still "DZD" because INSERT does not call setActiveStoreCurrency.
+      // Build a backup with EUR currency.
+      const backup = await buildBackup();
+      await resetDatabase();
+      // Seed a minimal DZD profile afterwards.
+      await db.runAsync(
+        `INSERT INTO business_profiles (business_name, owner_name, business_type, currency, selected_locale)
+         VALUES ('DZD Shop', 'Owner', 'grocery', 'DZD', 'fr')`,
+      );
+      expect(getActiveStoreCurrency()).toBe("DZD");
+      // Restore the EUR backup.
+      await restoreBackup(JSON.stringify(backup), { confirmOverwrite: true });
+      // After restore, setActiveStoreCurrency should be called with the backup's currency.
+      expect(getActiveStoreCurrency()).toBe("EUR");
+    });
   });
 
   describe("restore guards", () => {
@@ -394,6 +419,106 @@ describe("backupService", () => {
       const summary = await restoreBackup(JSON.stringify(backup));
       expect(summary.reconciliations ?? []).toHaveLength(0);
       expect(await ledgerSum(product.id)).toBe(10);
+    });
+  });
+
+  describe("invariant validation rules", () => {
+    it("accepts a valid backup", async () => {
+      await seed("InvA");
+      const backup = await buildBackup();
+      const summary = await restoreBackup(JSON.stringify(backup), { confirmOverwrite: true });
+      expect(summary.rowsImported).toBeGreaterThan(0);
+      expect(summary.tableCounts).toEqual(
+        expect.objectContaining({ business_profiles: 1, sales: 1, sale_items: 1 })
+      );
+    });
+
+    it("rejects a sale item with line_total ≠ unit_sale_price_centimes * quantity", async () => {
+      await seed("InvB");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      tampered.tables.sale_items[0].line_total_centimes = 9999 as never;
+      await expect(restoreBackup(JSON.stringify(tampered), { confirmOverwrite: true })).rejects.toThrow(
+        /INVALID_BACKUP_CONTENT: sale_items: line_total_centimes must equal unit_sale_price_centimes \* quantity/
+      );
+    });
+
+    it("rejects a sale where total_centimes ≠ subtotal_centimes - discount_centimes", async () => {
+      await seed("InvC");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      tampered.tables.sales[0].total_centimes = 9999 as never;
+      await expect(restoreBackup(JSON.stringify(tampered), { confirmOverwrite: true })).rejects.toThrow(
+        /INVALID_BACKUP_CONTENT: sales: total_centimes must equal subtotal_centimes - discount_centimes/
+      );
+    });
+
+    it("rejects a sale where amount_paid_centimes is negative", async () => {
+      await seed("InvD");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      tampered.tables.sales[0].amount_paid_centimes = -1000 as never;
+      await expect(restoreBackup(JSON.stringify(tampered), { confirmOverwrite: true })).rejects.toThrow(
+        /INVALID_BACKUP_CONTENT: sales: amount_paid_centimes must be non-negative/
+      );
+    });
+
+    it("rejects a sale where amount_paid_centimes exceeds total_centimes", async () => {
+      await seed("InvE");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      tampered.tables.sales[0].amount_paid_centimes = 9999999 as never;
+      await expect(restoreBackup(JSON.stringify(tampered), { confirmOverwrite: true })).rejects.toThrow(
+        /INVALID_BACKUP_CONTENT: sales: amount_paid_centimes must be between 0 and total_centimes/
+      );
+    });
+
+    it("rejects a sale where remaining_balance_centimes ≠ total_centimes - amount_paid_centimes", async () => {
+      await seed("InvF");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      tampered.tables.sales[0].remaining_balance_centimes = 9999 as never;
+      await expect(restoreBackup(JSON.stringify(tampered), { confirmOverwrite: true })).rejects.toThrow(
+        /INVALID_BACKUP_CONTENT: sales: remaining_balance_centimes must equal total_centimes - amount_paid_centimes/
+      );
+    });
+
+    it("rejects a sale whose subtotal does not match the sum of its sale_items line totals", async () => {
+      await seed("InvG");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      // Tamper subtotal and other fields so that only the subtotal vs sum-of-items invariant fails.
+      const saleIdx = 0;
+      const newSubtotal = 9999 as number;
+      // Ensure all other invariants pass: total = subtotal - discount, amountPaid = 0 so it's within total, remaining = total - amountPaid.
+      const newTotal = newSubtotal - 0; // discount remains 0
+      tampered.tables.sales[saleIdx].subtotal_centimes = newSubtotal;
+      tampered.tables.sales[saleIdx].total_centimes = newTotal;
+      tampered.tables.sales[saleIdx].amount_paid_centimes = 0 as never; // < total
+      tampered.tables.sales[saleIdx].remaining_balance_centimes = newTotal - 0 as never;
+      await expect(restoreBackup(JSON.stringify(tampered), { confirmOverwrite: true })).rejects.toThrow(
+        /INVALID_BACKUP_CONTENT: sales: subtotal_centimes must equal sum of sale_items line_total_centimes/
+      );
+    });
+
+    it("rejects a sale with negative discount_centimes", async () => {
+      await seed("InvH");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      tampered.tables.sales[0].discount_centimes = -100 as never;
+      await expect(restoreBackup(JSON.stringify(tampered), { confirmOverwrite: true })).rejects.toThrow(
+        /INVALID_BACKUP_CONTENT: sales: discount_centimes must be non-negative/
+      );
+    });
+
+    it("rejects a sale with negative total_centimes", async () => {
+      await seed("InvI");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      tampered.tables.sales[0].total_centimes = -500 as never;
+      await expect(restoreBackup(JSON.stringify(tampered), { confirmOverwrite: true })).rejects.toThrow(
+        /INVALID_BACKUP_CONTENT: sales: total_centimes must be non-negative/
+      );
     });
   });
 });

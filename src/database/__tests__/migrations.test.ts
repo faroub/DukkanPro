@@ -350,4 +350,26 @@ INSERT INTO probe_ln (note) VALUES ('offending; semicolon');`,
       expect(applied.map((r: any) => r.version)).not.toContain(212);
     });
   });
+
+  // @ts-ignore - the mock tests use the internal function directly
+  describe("snapshotDatabaseFile (internal)", () => {
+    it("executes PRAGMA wal_checkpoint(TRUNCATE) and PRAGMA integrity_check before copying", async () => {
+      // Mock a DB with explicit runAsync and getAllAsync to capture calls.
+      const db: any = {
+        runAsync: jest.fn(),
+        getAllAsync: jest.fn().mockResolvedValue([{ integrity_check: "ok" }]),
+      };
+
+      // Call the internal snapshot function with minimal mocking to avoid real file I/O.
+      // Since we are testing an internal function, we can just let the failure happen in the FileSystem.locationCheck.
+      // This test focuses on verifying the DB calls for checkpoint and integrity.
+      await require("../migrations").snapshotDatabaseFile(db, 1).catch(() => {});
+
+      // Verify the checkpoint was called via runAsync.
+      expect(db.runAsync).toHaveBeenCalledWith("PRAGMA wal_checkpoint(TRUNCATE)");
+
+      // Verify the integrity check was called via getAllAsync.
+      expect(db.getAllAsync).toHaveBeenCalledWith("PRAGMA integrity_check");
+    });
+  });
 });

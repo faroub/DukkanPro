@@ -247,5 +247,106 @@ export function validateBackup(
     );
   }
 
+  // Validate financial invariants using business logic from saleRepository.
+  // These rules reflect exactly what the app writes and must always hold.
+  const salesRows = tables.sales as TableRow[];
+  const saleItemsRows = tables.sale_items as TableRow[];
+
+  // 1. Compute sum of sale_items line_total per sale.
+  const itemSumBySaleId = new Map<number, number>();
+  const itemRowBySaleId = new Map<number, number>(); // to reference a row index for error
+  for (const item of saleItemsRows) {
+    const saleId = item.sale_id as number;
+    const lineTotal = item.line_total_centimes as number;
+    const unitPrice = item.unit_sale_price_centimes as number;
+    const quantity = item.quantity as number;
+    const idx = saleItemsRows.indexOf(item);
+
+    // Rule: line_total = unit_price * quantity
+    if (lineTotal !== undefined && unitPrice !== undefined && quantity !== undefined) {
+      const computedTotal = unitPrice * quantity;
+      if (lineTotal !== computedTotal) {
+        throw invalidContent(
+          "sale_items",
+          `line_total_centimes must equal unit_sale_price_centimes * quantity (row ${idx}: ${lineTotal} ≠ ${unitPrice} * ${quantity} = ${computedTotal})`,
+        );
+      }
+    }
+
+    // Accumulate sum per sale.
+    const currentSum = itemSumBySaleId.get(saleId) || 0;
+    itemSumBySaleId.set(saleId, currentSum + lineTotal);
+    itemRowBySaleId.set(saleId, idx);
+  }
+
+  // 2. Validate each sale header.
+  for (const sale of salesRows) {
+    const saleIdx = salesRows.indexOf(sale);
+    const subtotal = sale.subtotal_centimes as number | null | undefined;
+    const discount = sale.discount_centimes as number | null | undefined;
+    const total = sale.total_centimes as number | null | undefined;
+    const amountPaid = sale.amount_paid_centimes as number | null | undefined;
+    const remaining = sale.remaining_balance_centimes as number | null | undefined;
+    const saleId = sale.id as number;
+
+    // Option: all money fields must be non-negative (from migration 14 constraints).
+    if (subtotal !== null && subtotal !== undefined && subtotal < 0) {
+      throw invalidContent("sales", `subtotal_centimes must be non-negative (row ${saleIdx}: ${subtotal})`);
+    }
+    if (discount !== null && discount !== undefined && discount < 0) {
+      throw invalidContent("sales", `discount_centimes must be non-negative (row ${saleIdx}: ${discount})`);
+    }
+    if (total !== null && total !== undefined && total < 0) {
+      throw invalidContent("sales", `total_centimes must be non-negative (row ${saleIdx}: ${total})`);
+    }
+    if (amountPaid !== null && amountPaid !== undefined && amountPaid < 0) {
+      throw invalidContent("sales", `amount_paid_centimes must be non-negative (row ${saleIdx}: ${amountPaid})`);
+    }
+    if (remaining !== null && remaining !== undefined && remaining < 0) {
+      throw invalidContent("sales", `remaining_balance_centimes must be non-negative (row ${saleIdx}: ${remaining})`);
+    }
+
+    // Rule: total = subtotal - discount.
+    if (subtotal !== null && subtotal !== undefined && discount !== null && discount !== undefined && total !== null && total !== undefined) {
+      const computedTotal = subtotal - discount;
+      if (total !== computedTotal) {
+        throw invalidContent(
+          "sales",
+          `total_centimes must equal subtotal_centimes - discount_centimes (row ${saleIdx}: ${total} ≠ ${subtotal} - ${discount} = ${computedTotal})`,
+        );
+      }
+    }
+
+    // Rule: 0 ≤ amount_paid ≤ total.
+    if (amountPaid !== null && amountPaid !== undefined && total !== null && total !== undefined) {
+      if (amountPaid < 0 || amountPaid > total) {
+        throw invalidContent(
+          "sales",
+          `amount_paid_centimes must be between 0 and total_centimes (row ${saleIdx}: ${amountPaid} vs total ${total})`,
+        );
+      }
+    }
+
+    // Rule: remaining = total - amount_paid.
+    if (remaining !== null && remaining !== undefined && total !== null && total !== undefined && amountPaid !== null && amountPaid !== undefined) {
+      const computedRemaining = total - amountPaid;
+      if (remaining !== computedRemaining) {
+        throw invalidContent(
+          "sales",
+          `remaining_balance_centimes must equal total_centimes - amount_paid_centimes (row ${saleIdx}: ${remaining} ≠ ${total} - ${amountPaid} = ${computedRemaining})`,
+        );
+      }
+    }
+
+    // Rule: sale's subtotal must equal the sum of its item line totals.
+    const sumItems = itemSumBySaleId.get(saleId) || 0;
+    if (subtotal !== null && subtotal !== undefined && sumItems !== subtotal) {
+      throw invalidContent(
+        "sales",
+        `subtotal_centimes must equal sum of sale_items line_total_centimes (row ${saleIdx}: ${subtotal} ≠ sum ${sumItems})`,
+      );
+    }
+  }
+
   return root as unknown as BackupData;
 }

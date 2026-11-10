@@ -469,6 +469,57 @@ export async function create(saleInput: {
 }
 
 /**
+ * Returns the notes for cancel/return operations, based on status and reason.
+ */
+function makeCancelOrReturnNote(status: "cancelled" | "returned", reason: string): string {
+  return `${status === "cancelled" ? "Sale cancelled" : "Sale returned"}: ${reason}`;
+}
+
+/**
+ * Helper: restores stock and logs reverse movements for all sale items of a given sale.
+ * Runs inside the transaction that called it. Returns void if any product_id is NULL.
+ */
+async function restoreSaleStockAndLogMovement(
+  tx: any,
+  saleId: number,
+  reason: string,
+  status: "cancelled" | "returned",
+): Promise<void> {
+  const saleRows: any[] = await executeRead(
+    tx,
+    `SELECT si.product_id, si.quantity
+       FROM sale_items si
+      WHERE si.sale_id = ?`,
+    [saleId],
+  );
+
+  for (const item of saleRows) {
+    // product_id is NULL only when the product row was hard-deleted externally
+    // (FK ON DELETE SET NULL): there is no stock row to restore and no valid
+    // movement to log — skipping keeps the operation atomic instead of
+    // failing the whole transaction on a NOT NULL constraint violation.
+    if (item.product_id === null || item.product_id === undefined) continue;
+
+    await executeWrite(
+      tx,
+      `UPDATE products
+          SET stock_quantity = stock_quantity + ?,
+              updated_at = datetime('now')
+        WHERE id = ?`,
+      [item.quantity, item.product_id],
+    );
+
+    await executeWrite(
+      tx,
+      `INSERT INTO inventory_movements
+       (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
+       VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+      [item.product_id, "in", item.quantity, saleId, makeCancelOrReturnNote(status, reason)],
+    );
+  }
+}
+
+/**
  * Cancel a sale atomically.
  * Restores exact stock, creates reverse inventory movements, and preserves historical settlement fields.
  */
@@ -493,39 +544,8 @@ export async function cancel(id: number, reason: string): Promise<void> {
       throw new Error(`Sale id=${id} is already ${saleHeader.status}; cannot cancel`);
     }
 
-    const saleRows: any[] = await executeRead(
-      tx,
-      `SELECT si.product_id, si.quantity
-         FROM sale_items si
-        WHERE si.sale_id = ?`,
-      [id],
-    );
-
-    // 1. For each sale item, restore exact stock and create reverse inventory movement
-    for (const item of saleRows) {
-      // product_id is NULL only when the product row was hard-deleted externally
-      // (FK ON DELETE SET NULL): there is no stock row to restore and no valid
-      // movement to log — skipping keeps the cancellation atomic instead of
-      // failing the whole transaction on a NOT NULL constraint violation.
-      if (item.product_id === null || item.product_id === undefined) continue;
-
-      await executeWrite(
-        tx,
-        `UPDATE products
-            SET stock_quantity = stock_quantity + ?,
-                updated_at = datetime('now')
-          WHERE id = ?`,
-        [item.quantity, item.product_id],
-      );
-
-      await executeWrite(
-        tx,
-        `INSERT INTO inventory_movements
-         (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
-         VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-        [item.product_id, "in", item.quantity, id, `Sale cancelled: ${reason}`],
-      );
-    }
+    // 1. Restore stock and log movement
+    await restoreSaleStockAndLogMovement(tx, id, reason, "cancelled");
 
     // 2. Set sale status to cancelled while preserving historical settlement values
     await executeWrite(
@@ -564,39 +584,8 @@ export async function returnSale(id: number, reason: string): Promise<void> {
       throw new Error(`Sale id=${id} is already ${saleHeader.status}; cannot return`);
     }
 
-    const saleRows: any[] = await executeRead(
-      tx,
-      `SELECT si.product_id, si.quantity
-         FROM sale_items si
-        WHERE si.sale_id = ?`,
-      [id],
-    );
-
-    // 1. For each sale item, restore exact stock and create reverse inventory movement
-    for (const item of saleRows) {
-      // product_id is NULL only when the product row was hard-deleted externally
-      // (FK ON DELETE SET NULL): there is no stock row to restore and no valid
-      // movement to log — skipping keeps the return atomic instead of failing
-      // the whole transaction on a NOT NULL constraint violation.
-      if (item.product_id === null || item.product_id === undefined) continue;
-
-      await executeWrite(
-        tx,
-        `UPDATE products
-            SET stock_quantity = stock_quantity + ?,
-                updated_at = datetime('now')
-          WHERE id = ?`,
-        [item.quantity, item.product_id],
-      );
-
-      await executeWrite(
-        tx,
-        `INSERT INTO inventory_movements
-         (product_id, movement_type, quantity_change, reference_sale_id, note, created_at)
-         VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-        [item.product_id, "in", item.quantity, id, `Sale returned: ${reason}`],
-      );
-    }
+    // 1. Restore stock and log movement
+    await restoreSaleStockAndLogMovement(tx, id, reason, "returned");
 
     // 2. Set sale status to returned while preserving historical settlement values
     await executeWrite(

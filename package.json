@@ -75,6 +75,7 @@
     "setupFiles": [
       "<rootDir>/jest.setup.js"
     ],
+    "globalSetup": "<rootDir>/jest.globalSetup.js",
     "testTimeout": 15000
   }
 }

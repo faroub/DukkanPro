@@ -81,4 +81,24 @@ describe('cartStore with AsyncStorage persistence', () => {
     expect(parsed.state.items[0].product.id).toBe(1);
     expect(parsed.state.preserveCart).toBe(true);
   });
+
+it('does not persist sensitive product fields (cost_price_centimes)', async () => {
+    useCartStore.getState().addItemWithProduct(mockProduct, 1);
+    useCartStore.getState().setPreserveCart(true);
+
+    await new Promise((r) => setTimeout(r, 100));
+
+    const storedData = await AsyncStorage.getItem('dukkanos-cart-storage');
+    const parsed = JSON.parse(storedData!);
+    const persistedProduct = parsed.state.items[0].product;
+    expect(persistedProduct.id).toBe(1);
+    expect(persistedProduct.name).toBe('Test Milk');
+    expect(persistedProduct.sale_price_centimes).toBe(12000);
+    expect(persistedProduct.stock_quantity).toBe(50);
+    // Ensure sensitive field is excluded
+    expect(persistedProduct).not.toHaveProperty('cost_price_centimes');
+    expect(persistedProduct).not.toHaveProperty('minimum_stock_quantity');
+    expect(persistedProduct).not.toHaveProperty('created_at');
+    expect(persistedProduct).not.toHaveProperty('updated_at');
+  });
 });
