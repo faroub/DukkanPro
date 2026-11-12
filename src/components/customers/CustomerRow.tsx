@@ -145,7 +145,7 @@ export function CustomerRow({ customer, onPress }: CustomerRowProps) {
             <ThemedText
               style={[styles.settledAmount, { color: theme.textSecondary }]}
             >
-              0 DZD
+              {formatCentimes(0, i18n.language as any)}
             </ThemedText>
             <View
               style={[

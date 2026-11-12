@@ -251,6 +251,21 @@ export async function getAllCustomerDebts(
 }
 
 /**
+ * Check if a payment can be recorded for a customer.
+ * Blocks overpayment: the payment cannot exceed the customer's current debt.
+ */
+export async function canRecordPayment(
+  customerId: number,
+  amount: number,
+): Promise<boolean> {
+  if (amount <= 0) {
+    return false;
+  }
+  const debt = await getCustomerDebt(customerId);
+  return amount <= debt;
+}
+
+/**
  * Record a payment for a customer in a single SQLite transaction.
  * Returns null (no row written) when the payment would overpay the debt.
  */
