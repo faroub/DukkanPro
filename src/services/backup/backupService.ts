@@ -123,8 +123,19 @@ export async function createBackup(): Promise<{ uri: string; data: BackupData }>
   }
   const dir = `${FileSystem.documentDirectory}DukkanPro/backups`;
   await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
-  const date = new Date().toISOString().slice(0, 10);
-  const uri = `${dir}/dukkanpro-backup-${date}.json`;
+
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/:/g, "-")
+    .replace(/\./g, "-");
+  const filename = `dukkanpro-backup-${timestamp}.json`;
+  const uri = `${dir}/${filename}`;
+
+  const existingInfo = await FileSystem.getInfoAsync(uri);
+  if (existingInfo && existingInfo.exists) {
+    throw new Error(`BACKUP_IO_ERROR: Backup file already exists at ${uri}`);
+  }
+
   await FileSystem.writeAsStringAsync(uri, JSON.stringify(data, null, 2), {
     encoding: FileSystem.EncodingType.UTF8,
   });
@@ -155,7 +166,7 @@ export async function restoreBackup(
   const backup = validateBackup(parsed, CURRENT_DATABASE_VERSION);
 
   const db = await getDatabase();
-  return await transaction(db, async (tx) => {
+  const { summary, restoredCurrency } = await transaction(db, async (tx) => {
     // Overwrite guard — runs before any DELETE, so a refusal leaves the
     // existing database byte-for-byte untouched.
     const nonEmpty: string[] = [];
@@ -240,12 +251,18 @@ export async function restoreBackup(
       });
     }
 
-    // Sync the active store currency with the restored business profile.
     const profile = backup.tables.business_profiles[0];
-    if (profile?.currency) {
-      setActiveStoreCurrency(String(profile.currency));
-    }
+    const restoredCurrency = profile?.currency ? String(profile.currency) : null;
 
-    return { rowsImported, tableCounts, reconciliations };
+    return {
+      summary: { rowsImported, tableCounts, reconciliations },
+      restoredCurrency,
+    };
   });
+
+  if (restoredCurrency) {
+    setActiveStoreCurrency(restoredCurrency);
+  }
+
+  return summary;
 }

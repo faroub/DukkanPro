@@ -35,6 +35,7 @@ jest.mock("expo-file-system/legacy", () => ({
   makeDirectoryAsync: jest.fn(() => Promise.resolve()),
   writeAsStringAsync: jest.fn(() => Promise.resolve()),
   readAsStringAsync: jest.fn(() => Promise.resolve("{}")),
+  getInfoAsync: jest.fn(() => Promise.resolve({ exists: false })),
   EncodingType: { UTF8: "utf8" },
 }));
 jest.mock("expo-document-picker", () => ({

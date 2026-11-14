@@ -255,12 +255,11 @@ export function validateBackup(
   // 1. Compute sum of sale_items line_total per sale.
   const itemSumBySaleId = new Map<number, number>();
   const itemRowBySaleId = new Map<number, number>(); // to reference a row index for error
-  for (const item of saleItemsRows) {
+  saleItemsRows.forEach((item, idx) => {
     const saleId = item.sale_id as number;
     const lineTotal = item.line_total_centimes as number;
     const unitPrice = item.unit_sale_price_centimes as number;
     const quantity = item.quantity as number;
-    const idx = saleItemsRows.indexOf(item);
 
     // Rule: line_total = unit_price * quantity
     if (lineTotal !== undefined && unitPrice !== undefined && quantity !== undefined) {
@@ -277,11 +276,10 @@ export function validateBackup(
     const currentSum = itemSumBySaleId.get(saleId) || 0;
     itemSumBySaleId.set(saleId, currentSum + lineTotal);
     itemRowBySaleId.set(saleId, idx);
-  }
+  });
 
   // 2. Validate each sale header.
-  for (const sale of salesRows) {
-    const saleIdx = salesRows.indexOf(sale);
+  salesRows.forEach((sale, saleIdx) => {
     const subtotal = sale.subtotal_centimes as number | null | undefined;
     const discount = sale.discount_centimes as number | null | undefined;
     const total = sale.total_centimes as number | null | undefined;
@@ -346,7 +344,7 @@ export function validateBackup(
         `subtotal_centimes must equal sum of sale_items line_total_centimes (row ${saleIdx}: ${subtotal} ≠ sum ${sumItems})`,
       );
     }
-  }
+  });
 
   return root as unknown as BackupData;
 }

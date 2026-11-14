@@ -23,6 +23,7 @@ import {
 } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import {
   BorderRadius,
@@ -78,6 +79,7 @@ export function CheckoutSheet({
   cartTotal,
   isSaving,
   error,
+  customerId: propCustomerId,
 }: CheckoutSheetProps) {
   const theme = useTheme();
   const { items, discount } = useCartStoreHook();
@@ -87,7 +89,15 @@ export function CheckoutSheet({
     "cash" | "electronic" | "credit" | "partial"
   >("cash");
   const [note] = useState<string>("");
-  const [customerId, setCustomerId] = useState<number | null>(null);
+  const [customerId, setCustomerId] = useState<number | null>(propCustomerId ?? null);
+
+  useEffect(() => {
+    if (visible && propCustomerId !== undefined) {
+      Promise.resolve().then(() => {
+        setCustomerId(propCustomerId ?? null);
+      });
+    }
+  }, [visible, propCustomerId]);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const isConfirmingRef = useRef(false);
@@ -176,6 +186,14 @@ export function CheckoutSheet({
   const [rawPartialInput, setRawPartialInput] = useState<string>("");
   const [isCashUserModified, setIsCashUserModified] = useState<boolean>(false);
   const [isPartialUserModified, setIsPartialUserModified] = useState<boolean>(false);
+
+  const [showUnderpaidConfirm, setShowUnderpaidConfirm] = useState(false);
+  const [underpaidInfo, setUnderpaidInfo] = useState<{
+    remaining: number;
+    customerName: string;
+    checkoutItems: any[];
+    effectiveAmountPaid: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!visible) {
@@ -339,6 +357,17 @@ export function CheckoutSheet({
         return;
       }
 
+      if (paymentMethod === "cash" && remaining > 0 && customerId) {
+        setUnderpaidInfo({
+          remaining,
+          customerName: selectedCustomer?.name || "",
+          checkoutItems,
+          effectiveAmountPaid,
+        });
+        setShowUnderpaidConfirm(true);
+        return;
+      }
+
       await onCheckout({
         method: paymentMethod,
         amountPaid: effectiveAmountPaid,
@@ -350,10 +379,34 @@ export function CheckoutSheet({
     } catch (err) {
       console.error("Confirm checkout error:", err);
     } finally {
+      if (!showUnderpaidConfirm) {
+        isConfirmingRef.current = false;
+        setIsConfirming(false);
+      }
+    }
+  }, [items, isSaving, paymentMethod, amountReceived, partialAmount, discount, note, customerId, selectedCustomer, showUnderpaidConfirm, onCheckout, t]);
+
+  const handleProceedUnderpaid = useCallback(async () => {
+    if (!underpaidInfo) return;
+    const info = underpaidInfo;
+    setShowUnderpaidConfirm(false);
+    try {
+      await onCheckout({
+        method: paymentMethod,
+        amountPaid: info.effectiveAmountPaid,
+        rawAmountReceived: amountReceived,
+        note,
+        customerId: customerId || undefined,
+        validatedItems: info.checkoutItems,
+      });
+    } catch (err) {
+      console.error("Underpaid checkout error:", err);
+    } finally {
+      setUnderpaidInfo(null);
       isConfirmingRef.current = false;
       setIsConfirming(false);
     }
-  }, [items, isSaving, paymentMethod, amountReceived, partialAmount, discount, note, customerId, onCheckout, t]);
+  }, [underpaidInfo, onCheckout, paymentMethod, amountReceived, note, customerId]);
 
   return (
     <Modal
@@ -651,6 +704,7 @@ export function CheckoutSheet({
                         setAmountReceived(parseDzdToCentimes(val));
                       }}
                       keyboardType="decimal-pad"
+                      testID="cash-amount-input"
                     />
                     <Text style={[styles.currencySuffix, { color: theme.textSecondary }]}>{getCurrencySymbol(storeCurrency, i18n.language)}</Text>
                   </View>
@@ -801,6 +855,29 @@ export function CheckoutSheet({
           </ScrollView>
         </View>
       </View>
+
+      {showUnderpaidConfirm && underpaidInfo && (
+        <Modal transparent animationType="fade" visible={showUnderpaidConfirm}>
+          <ConfirmDialog
+            title={t("sales:underpaidCashTitle", { defaultValue: "Record Customer Debt?" })}
+            message={t("sales:underpaidCashMessage", {
+              amount: formatCentimes(underpaidInfo.remaining, i18n.language as any, storeCurrency),
+              customer: underpaidInfo.customerName,
+              defaultValue: `An underpayment of ${formatCentimes(underpaidInfo.remaining)} will be recorded as debt for ${underpaidInfo.customerName}.`,
+            })}
+            confirmLabel={t("sales:confirmDebtRecord", { defaultValue: "Confirm Debt" })}
+            cancelLabel={t("common:cancel", { defaultValue: "Cancel" })}
+            onCancel={() => {
+              setShowUnderpaidConfirm(false);
+              setUnderpaidInfo(null);
+              isConfirmingRef.current = false;
+              setIsConfirming(false);
+            }}
+            onConfirm={handleProceedUnderpaid}
+            testID="underpaid-cash-confirm-dialog"
+          />
+        </Modal>
+      )}
     </Modal>
   );
 }

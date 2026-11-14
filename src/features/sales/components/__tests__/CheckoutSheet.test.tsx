@@ -253,4 +253,61 @@ describe("CheckoutSheet Component Money Math & Re-validation Harness", () => {
       expect(onCheckoutMock).toHaveBeenCalledTimes(2);
     });
   });
+
+  it("prompts underpaid cash sale confirmation with customer selected and holds onCheckout until confirmed", async () => {
+    const product = await seedTestProduct({
+      name: "Underpaid Juice",
+      sale_price_centimes: 10000, // 100 DZD
+    });
+    const customer = await seedTestCustomer({
+      name: "Underpaid Karim",
+    });
+
+    useCartStore.getState().addItemWithProduct(product, 1);
+
+    const onCheckoutMock = jest.fn().mockResolvedValue(undefined);
+
+    const screen = await renderScreen(
+      <CheckoutSheet
+        visible={true}
+        onRequestClose={jest.fn()}
+        onCheckout={onCheckoutMock}
+        cartTotal={10000}
+        customerId={customer.id}
+        isSaving={false}
+      />
+    );
+
+    // Wait for customer info to load from SQLite
+    await waitFor(() => {
+      expect(screen.getByText("Underpaid Karim")).toBeTruthy();
+    });
+
+    // Enter 60 DZD cash (underpaying 100 DZD total by 40 DZD)
+    const cashInput = await screen.findByTestId("cash-amount-input");
+    fireEvent.changeText(cashInput, "60");
+
+    const confirmButton = await screen.findByText("Confirmer la vente");
+    fireEvent.press(confirmButton);
+
+    // onCheckout should NOT be called yet
+    expect(onCheckoutMock).not.toHaveBeenCalled();
+
+    // Dialog should display confirmation button
+    const dialogConfirmBtn = await screen.findByText("Confirmer la dette");
+    expect(dialogConfirmBtn).toBeTruthy();
+
+    // Press Confirm Debt in dialog
+    fireEvent.press(dialogConfirmBtn);
+
+    await waitFor(() => {
+      expect(onCheckoutMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: "cash",
+          amountPaid: 6000, // 60 DZD
+          customerId: customer.id,
+        })
+      );
+    });
+  });
 });

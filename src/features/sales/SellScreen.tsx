@@ -32,7 +32,9 @@ import { CheckoutSheet } from "@/features/sales/components/CheckoutSheet";
 import { ReceiptPreview } from "@/features/sales/components/ReceiptPreview";
 import { useTheme } from "@/hooks/use-theme";
 import { useProducts } from "@/hooks/useProducts";
-import { useCartStoreHook } from "@/stores/cartStore";
+import { useCartStore, useCartStoreHook } from "@/stores/cartStore";
+import { showToast } from "@/components/use-toast";
+import { mapSaleErrorToMessage } from "@/features/sales/utils/saleErrors";
 import { Product, Sale } from "@/types/entities";
 import { formatCentimes } from "@/utils/money";
 import { useRouter } from "expo-router";
@@ -116,6 +118,30 @@ export default function SellScreen() {
     };
   }, [products]);
 
+  const handleAddProductToCart = useCallback(
+    (product: Product, quantity = 1) => {
+      const currentItems = useCartStore.getState().items;
+      const existing = currentItems.find((i: any) => i.product.id === product.id);
+      const qtyBefore = existing ? existing.quantity : 0;
+
+      addItemWithProduct(product, quantity);
+
+      const afterItems = useCartStore.getState().items;
+      const afterItem = afterItems.find((i: any) => i.product.id === product.id);
+      const qtyAfter = afterItem ? afterItem.quantity : 0;
+
+      if (qtyAfter === qtyBefore && qtyBefore >= product.stock_quantity) {
+        showToast(
+          t("sales:stockLimitReached", {
+            count: product.stock_quantity,
+            defaultValue: `Only ${product.stock_quantity} available in stock.`,
+          }),
+        );
+      }
+    },
+    [addItemWithProduct, t],
+  );
+
   const handleBarcodeScanned = (code: string, matchedProduct?: Product) => {
     const cleanCode = code.trim();
     const productToAdd =
@@ -132,7 +158,7 @@ export default function SellScreen() {
       });
 
     if (productToAdd) {
-      addItemWithProduct(productToAdd, 1);
+      handleAddProductToCart(productToAdd, 1);
     } else {
       setSearchQuery(cleanCode);
       setScannerVisible(false);
@@ -199,15 +225,8 @@ export default function SellScreen() {
           // sees match the new prices before confirming again.
           const freshProducts = await getAllProducts({ is_active: true });
           refreshItemProducts(freshProducts);
-          setErrorState(
-            t("sales:priceChanged", {
-              defaultValue:
-                "A product price changed since checkout started. The cart has been refreshed — please confirm the sale again.",
-            })
-          );
-        } else {
-          setErrorState(message || "Failed to process sale");
         }
+        setErrorState(mapSaleErrorToMessage(message, t));
         setIsSaving(false);
         throw err;
       }
@@ -379,7 +398,7 @@ export default function SellScreen() {
                       style={styles.frequentCardContent}
                       onPress={() => {
                         if (cartQty === 0) {
-                          addItemWithProduct(p, 1);
+                          handleAddProductToCart(p, 1);
                         }
                       }}
                     >
@@ -448,7 +467,7 @@ export default function SellScreen() {
                           {cartQty}
                         </Text>
                         <Pressable
-                          onPress={() => addItemWithProduct(p, 1)}
+                          onPress={() => handleAddProductToCart(p, 1)}
                           style={[
                             styles.frequentStepBtn,
                             { backgroundColor: theme.surface, borderColor: theme.border },
@@ -465,7 +484,7 @@ export default function SellScreen() {
                       </View>
                     ) : (
                       <Pressable
-                        onPress={() => addItemWithProduct(p, 1)}
+                        onPress={() => handleAddProductToCart(p, 1)}
                         style={[
                           styles.frequentAddQuickBtn,
                           { backgroundColor: theme.primary },
@@ -660,7 +679,7 @@ export default function SellScreen() {
 
                       {cartQty === 0 ? (
                         <Pressable
-                          onPress={() => addItemWithProduct(item, 1)}
+                          onPress={() => handleAddProductToCart(item, 1)}
                           style={[
                             styles.addBtn,
                             {
@@ -731,7 +750,7 @@ export default function SellScreen() {
                             </Text>
                           </View>
                           <Pressable
-                            onPress={() => addItemWithProduct(item, 1)}
+                            onPress={() => handleAddProductToCart(item, 1)}
                             style={[
                               styles.stepperBtnPlus,
                               { backgroundColor: theme.primary },

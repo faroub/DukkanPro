@@ -73,10 +73,9 @@ export function PaymentReminderPreview({
       const whatsappUrl = formattedPhone
         ? `https://wa.me/${formattedPhone}?text=${encodedText}`
         : `https://wa.me/?text=${encodedText}`;
-      const canOpen = await Linking.canOpenURL(whatsappUrl);
-      if (canOpen) {
+      try {
         await Linking.openURL(whatsappUrl);
-      } else {
+      } catch (_err) {
         Alert.alert(
           t("common:error"),
           t("customers:whatsappNotInstalled") || "WhatsApp is not installed.",
@@ -86,10 +85,9 @@ export function PaymentReminderPreview({
       const smsUrl = formattedPhone
         ? `sms:${formattedPhone}?body=${encodedText}`
         : `sms:?body=${encodedText}`;
-      const canOpen = await Linking.canOpenURL(smsUrl);
-      if (canOpen) {
+      try {
         await Linking.openURL(smsUrl);
-      } else {
+      } catch (_err) {
         Alert.alert(
           t("common:error"),
           t("customers:smsNotSupported") ||

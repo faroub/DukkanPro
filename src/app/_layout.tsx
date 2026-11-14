@@ -6,6 +6,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import { ToastHost } from "@/components/use-toast";
 import {
     AppThemeProvider,
     useThemePreference,
@@ -113,6 +114,7 @@ function RootNavigator() {
             />
             <Stack.Screen name="+not-found" options={{ headerShown: false }} />
           </Stack>
+          <ToastHost />
         </ThemeProvider>
       </SafeAreaProvider>
     </ErrorBoundary>

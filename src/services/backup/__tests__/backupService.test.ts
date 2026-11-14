@@ -22,12 +22,13 @@ import { recordPayment, getCustomerDebt } from "@/services/customers/customerBal
 import { resetDatabase } from "@/database/repositories/resetRepository";
 import { migrationVersions } from "@/database/migrations";
 import { buildBackup, createBackup, restoreBackup } from "../backupService";
-import type { BackupData, BackupTable } from "../backupFormat";
+import { validateBackup, type BackupData, type BackupTable } from "../backupFormat";
 
 jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "/mock/documents/",
   makeDirectoryAsync: jest.fn(() => Promise.resolve()),
   writeAsStringAsync: jest.fn(() => Promise.resolve()),
+  getInfoAsync: jest.fn(() => Promise.resolve({ exists: false })),
   EncodingType: { UTF8: "utf8" },
 }));
 
@@ -138,12 +139,12 @@ describe("backupService", () => {
       expect(backup.tables.sales[0].id).toBe(seeded.sale.id);
     });
 
-    it("createBackup writes a dated JSON file under the backups directory", async () => {
+    it("createBackup writes a timestamped JSON file under the backups directory", async () => {
       await seed("A2");
 
       const { uri } = await createBackup();
 
-      expect(uri).toMatch(/^\/mock\/documents\/DukkanPro\/backups\/dukkanpro-backup-\d{4}-\d{2}-\d{2}\.json$/);
+      expect(uri).toMatch(/^\/mock\/documents\/DukkanPro\/backups\/dukkanpro-backup-.*\.json$/);
       expect(FileSystem.makeDirectoryAsync).toHaveBeenCalledWith(
         "/mock/documents/DukkanPro/backups",
         { intermediates: true },
@@ -151,6 +152,24 @@ describe("backupService", () => {
       const [, contents] = (FileSystem.writeAsStringAsync as jest.Mock).mock.calls[0];
       expect(() => JSON.parse(contents)).not.toThrow();
       expect(JSON.parse(contents).format).toBe("dukkanpro-backup");
+    });
+
+    it("two backups created on the same day produce two different files", async () => {
+      await seed("A2a");
+
+      const b1 = await createBackup();
+      await new Promise((r) => setTimeout(r, 10));
+      const b2 = await createBackup();
+
+      expect(b1.uri).not.toEqual(b2.uri);
+    });
+
+    it("throws BACKUP_IO_ERROR if a backup file already exists", async () => {
+      await seed("A2b");
+
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValueOnce({ exists: true });
+
+      await expect(createBackup()).rejects.toThrow("BACKUP_IO_ERROR");
     });
   });
 
@@ -326,6 +345,64 @@ describe("backupService", () => {
       await expect(restoreBackup(JSON.stringify(missingTables))).rejects.toThrow(
         "INVALID_BACKUP_FILE",
       );
+    });
+
+    it("validates 20,000 sale_items in under 2 seconds (O(N) validation)", async () => {
+      await seed("Perf1");
+      const backup = await buildBackup();
+      const largeBackup = JSON.parse(JSON.stringify(backup)) as BackupData;
+
+      // Build 20,000 sale items matching the sale
+      const saleId = largeBackup.tables.sales[0].id as number;
+      const productId = largeBackup.tables.products[0].id as number;
+      const items: any[] = [];
+      let totalSum = 0;
+
+      for (let i = 1; i <= 20000; i++) {
+        items.push({
+          id: i,
+          sale_id: saleId,
+          product_id: productId,
+          product_name_snapshot: `Item ${i}`,
+          quantity: 1,
+          unit_sale_price_centimes: 100,
+          unit_cost_price_centimes: 50,
+          line_total_centimes: 100,
+          created_at: "2026-01-01 00:00:00",
+        });
+        totalSum += 100;
+      }
+
+      largeBackup.tables.sale_items = items;
+      largeBackup.tables.sales[0].subtotal_centimes = totalSum;
+      largeBackup.tables.sales[0].total_centimes = totalSum;
+      largeBackup.tables.sales[0].amount_paid_centimes = 0;
+      largeBackup.tables.sales[0].remaining_balance_centimes = totalSum;
+
+      const startTime = Date.now();
+      const validated = validateBackup(largeBackup, CURRENT_VERSION);
+      const duration = Date.now() - startTime;
+
+      expect(validated).toBeTruthy();
+      expect(duration).toBeLessThan(2000);
+    });
+
+    it("leaves active store currency unchanged when a restore fails", async () => {
+      await seed("CurrencyFail");
+      const initialCurrency = getActiveStoreCurrency();
+
+      // Create a corrupted backup that pretends to be EUR
+      const backup = await buildBackup();
+      const corrupted = JSON.parse(JSON.stringify(backup)) as BackupData;
+      corrupted.tables.business_profiles[0].currency = "EUR";
+      corrupted.tables.sales[0].amount_paid_centimes = -9999 as never; // Invalid!
+
+      await expect(
+        restoreBackup(JSON.stringify(corrupted), { confirmOverwrite: true }),
+      ).rejects.toThrow();
+
+      // Currency must still be initialCurrency (e.g. DZD), NOT EUR
+      expect(getActiveStoreCurrency()).toBe(initialCurrency);
     });
   });
 
