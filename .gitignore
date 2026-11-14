@@ -26,6 +26,7 @@ android/app/debug.keystore
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+jest_output.log
 
 # macOS
 .DS_Store

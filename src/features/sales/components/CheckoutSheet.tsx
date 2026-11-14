@@ -804,11 +804,7 @@ export function CheckoutSheet({
                 testID="checkout-error-banner"
               >
                 <SymbolView
-                  name={{
-                    ios: "exclamationmark.triangle" as any,
-                    android: "warning" as any,
-                    web: "warning" as any,
-                  }}
+                  name={sym("exclamationmark.triangle", "warning")}
                   size={16}
                   tintColor={theme.error}
                 />

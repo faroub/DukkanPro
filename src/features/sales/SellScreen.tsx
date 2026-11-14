@@ -1,4 +1,7 @@
-import { SymbolView } from "expo-symbols";
+import { SymbolView, SymbolViewProps } from "expo-symbols";
+
+const sym = (iosName: string, androidName: string): SymbolViewProps["name"] =>
+  ({ ios: iosName, android: androidName, web: androidName }) as unknown as SymbolViewProps["name"];
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
@@ -292,11 +295,7 @@ export default function SellScreen() {
               })}
             >
               <SymbolView
-                name={{
-                  ios: "barcode.viewfinder" as any,
-                  android: "qr_code_scanner" as any,
-                  web: "qr_code_scanner" as any,
-                }}
+                name={sym("barcode.viewfinder", "qr_code_scanner")}
                 size={22}
                 tintColor={theme.primary}
               />
@@ -410,11 +409,7 @@ export default function SellScreen() {
                         ]}
                       >
                         <SymbolView
-                          name={{
-                            ios: cartQty > 0 ? ("checkmark" as any) : ("bag" as any),
-                            android: cartQty > 0 ? ("check" as any) : ("shopping_bag" as any),
-                            web: cartQty > 0 ? ("check" as any) : ("shopping_bag" as any),
-                          }}
+                          name={sym(cartQty > 0 ? "checkmark" : "bag", cartQty > 0 ? "check" : "shopping_bag")}
                           size={18}
                           tintColor={cartQty > 0 ? theme.surface : theme.primary}
                         />
@@ -458,7 +453,7 @@ export default function SellScreen() {
                           accessibilityLabel="Decrease quantity"
                         >
                           <SymbolView
-                            name={{ ios: "minus" as any, android: "remove" as any, web: "remove" as any }}
+                            name={sym("minus", "remove")}
                             size={12}
                             tintColor={theme.primary}
                           />
@@ -476,7 +471,7 @@ export default function SellScreen() {
                           accessibilityLabel="Increase quantity"
                         >
                           <SymbolView
-                            name={{ ios: "plus" as any, android: "add" as any, web: "add" as any }}
+                            name={sym("plus", "add")}
                             size={12}
                             tintColor={theme.primary}
                           />
@@ -492,7 +487,7 @@ export default function SellScreen() {
                         accessibilityLabel={`Add ${p.name}`}
                       >
                         <SymbolView
-                          name={{ ios: "plus" as any, android: "add" as any, web: "add" as any }}
+                          name={sym("plus", "add")}
                           size={12}
                           tintColor="#FFFFFF"
                         />
@@ -517,11 +512,7 @@ export default function SellScreen() {
           ) : filteredProducts.length === 0 ? (
             <View style={styles.emptyContainer}>
               <SymbolView
-                name={{
-                  ios: "cart" as any,
-                  android: "shopping_cart" as any,
-                  web: "shopping_cart" as any,
-                }}
+                name={sym("cart", "shopping_cart")}
                 size={48}
                 tintColor={theme.textMuted}
               />
@@ -690,11 +681,7 @@ export default function SellScreen() {
                           accessibilityLabel={`${t("sell.add", { defaultValue: "Ajouter" })} ${item.name}`}
                         >
                           <SymbolView
-                            name={{
-                              ios: "plus" as any,
-                              android: "add" as any,
-                              web: "add" as any,
-                            }}
+                            name={sym("plus", "add")}
                             size={14}
                             tintColor="#FFFFFF"
                           />
@@ -730,11 +717,7 @@ export default function SellScreen() {
                             accessibilityLabel={`-`}
                           >
                             <SymbolView
-                              name={{
-                                ios: "minus" as any,
-                                android: "remove" as any,
-                                web: "remove" as any,
-                              }}
+                              name={sym("minus", "remove")}
                               size={14}
                               tintColor={theme.primary}
                             />
@@ -759,11 +742,7 @@ export default function SellScreen() {
                             accessibilityLabel={`+`}
                           >
                             <SymbolView
-                              name={{
-                                ios: "plus" as any,
-                                android: "add" as any,
-                                web: "add" as any,
-                              }}
+                              name={sym("plus", "add")}
                               size={14}
                               tintColor="#FFFFFF"
                             />
@@ -816,11 +795,7 @@ export default function SellScreen() {
             <View style={styles.cartBarLeft}>
               <View style={styles.cartBadgeContainer}>
                 <SymbolView
-                  name={{
-                    ios: "bag.fill" as any,
-                    android: "shopping_bag" as any,
-                    web: "shopping_bag" as any,
-                  }}
+                  name={sym("bag.fill", "shopping_bag")}
                   size={20}
                   tintColor={itemCount > 0 ? "#FFFFFF" : theme.textSecondary}
                 />
@@ -882,11 +857,7 @@ export default function SellScreen() {
                 {t("sell.cart.seeCart", { defaultValue: "Voir le panier" })}
               </Text>
               <SymbolView
-                name={{
-                  ios: "chevron.right" as any,
-                  android: "chevron_right" as any,
-                  web: "chevron_right" as any,
-                }}
+                name={sym("chevron.right", "chevron_right")}
                 size={16}
                 tintColor={itemCount > 0 ? "#FFFFFF" : theme.textSecondary}
               />
@@ -974,7 +945,7 @@ export default function SellScreen() {
             onNavigateToCreateProduct={(sku) => {
               setScannerVisible(false);
               router.push({
-                pathname: "/products/new" as any,
+                pathname: "/products/new",
                 params: { sku },
               });
             }}
