@@ -191,7 +191,7 @@ export default function SellScreen() {
         const saleItemsInput =
           details.validatedItems && details.validatedItems.length > 0
             ? details.validatedItems
-            : items.map((item: any) => ({
+            : items.map((item) => ({
                 productId: item.product.id,
                 quantity: item.quantity,
                 unitSalePriceCentimes: item.product.sale_price_centimes,

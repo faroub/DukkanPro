@@ -324,4 +324,40 @@ describe("customerBalanceService", () => {
       expect(shopDebt).toBe(0);
     });
   });
+
+  describe("consolidated debt functions agreement", () => {
+    it("agrees across getTotalShopDebt, getTotalShopCredit, and getAllCustomerDebts for a mixed fixture", async () => {
+      const p1 = await makeProduct("MIX1", 10000);
+      const c1 = await makeCustomer(); // Active, has debt
+      const c2 = await makeCustomer(); // Active, has credit
+      const c3 = await makeCustomer(); // Archived, settled
+
+      // Customer 1: 20,000 credit sale - 5,000 payment = 15,000 debt
+      await makeCreditSale(c1.id, p1.id, 2, 10000);
+      await customerBalanceService.recordPayment(c1.id, 5000, "cash");
+
+      // Customer 2: 10,000 cash sale cancelled = 10,000 credit
+      const sale2 = await createSale({
+        customerId: c2.id,
+        paymentMethod: "cash",
+        amountPaidCentimes: 10000,
+        items: [{ productId: p1.id, quantity: 1, unitSalePriceCentimes: 10000 }],
+      });
+      await cancelSale(sale2.id, "cancelled");
+
+      // Customer 3: Archived
+      const db = await getDatabase();
+      await db.runAsync("UPDATE customers SET is_active = 0 WHERE id = ?", [c3.id]);
+
+      const totalDebt = await customerBalanceService.getTotalShopDebt();
+      const totalCredit = await customerBalanceService.getTotalShopCredit();
+      const debtsMap = await customerBalanceService.getAllCustomerDebts();
+
+      expect(totalDebt).toBe(15000);
+      expect(totalCredit).toBe(10000);
+      expect(debtsMap[c1.id]).toBe(15000);
+      expect(debtsMap[c2.id]).toBe(0);
+      expect(debtsMap[c3.id]).toBeUndefined();
+    });
+  });
 });

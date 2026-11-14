@@ -14,6 +14,7 @@ import {
     create,
     getAll,
     getById,
+    getBySku,
     getInventoryHistory,
     getTopSellingProducts,
     search,
@@ -259,6 +260,49 @@ describe("productRepository", () => {
       // The rejected update must not have changed the stored SKU.
       const unchanged = await getById(other!.id);
       expect(unchanged?.sku).toBe("UPD-DUP-B");
+    });
+
+    it("trims whitespace and converts empty SKU string to null on update", async () => {
+      const p1 = await create({
+        name: "SKU Trim Test",
+        sku: "  SKU-TRIM-1  ",
+        category: "Test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 10,
+        minimum_stock_quantity: 2,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      const updated1 = await update(p1!.id, { sku: "   SKU-UPDATED-1   " });
+      expect(updated1?.sku).toBe("SKU-UPDATED-1");
+
+      const updated2 = await update(p1!.id, { sku: "   " });
+      expect(updated2?.sku).toBeNull();
+    });
+
+    it("performs case-insensitive and leading-zero tolerant SKU lookups in getBySku", async () => {
+      const p = await create({
+        name: "Barcode Test Product",
+        sku: "0012345ABC",
+        category: "Test",
+        sale_price_centimes: 2000,
+        cost_price_centimes: 1000,
+        stock_quantity: 15,
+        minimum_stock_quantity: 2,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      // Match exact case
+      expect((await getBySku("0012345ABC"))?.id).toBe(p.id);
+
+      // Match lowercase
+      expect((await getBySku("0012345abc"))?.id).toBe(p.id);
+
+      // Match without leading zeros
+      expect((await getBySku("12345abc"))?.id).toBe(p.id);
     });
   });
 

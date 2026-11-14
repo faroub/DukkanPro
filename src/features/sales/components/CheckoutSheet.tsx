@@ -9,7 +9,10 @@
  * - Prevents rapid double-tap duplicate sales via synchronous ref guards and blocks zero-item checkout creation.
  */
 
-import { SymbolView } from "expo-symbols";
+import { SymbolView, SymbolViewProps } from "expo-symbols";
+
+const sym = (iosName: string, androidName: string): SymbolViewProps["name"] =>
+  ({ ios: iosName, android: androidName, web: androidName }) as unknown as SymbolViewProps["name"];
 import { useCallback, useState, useEffect, useRef } from "react";
 import {
   Alert,
@@ -64,12 +67,11 @@ interface CheckoutSheetProps {
   cartTotal: number;
   isSaving: boolean;
   error?: string | null;
-  setPaymentMethod?: any;
+  setPaymentMethod?: (method: "cash" | "electronic" | "credit" | "partial") => void;
   customerId?: number;
-  setCustomerId?: any;
+  setCustomerId?: (id: number | null) => void;
   note?: string;
-  setNote?: any;
-  t?: any;
+  setNote?: (note: string) => void;
 }
 
 export function CheckoutSheet({
@@ -426,11 +428,7 @@ export function CheckoutSheet({
               hitSlop={8}
             >
               <SymbolView
-                name={{
-                  ios: "xmark" as any,
-                  android: "close" as any,
-                  web: "close" as any,
-                }}
+                name={sym("xmark", "close")}
                 size={18}
                 tintColor={theme.textSecondary}
               />
@@ -463,11 +461,7 @@ export function CheckoutSheet({
               <View style={styles.customerHeader}>
                 <View style={styles.customerHeaderLeft}>
                   <SymbolView
-                    name={{
-                      ios: "person.crop.circle" as any,
-                      android: "person" as any,
-                      web: "person" as any,
-                    }}
+                    name={sym("person.crop.circle", "person")}
                     size={16}
                     tintColor={theme.textSecondary}
                   />
@@ -560,11 +554,7 @@ export function CheckoutSheet({
                 >
                   <View style={[styles.paymentIcon, { backgroundColor: theme.primaryLight }]}>
                     <SymbolView
-                      name={{
-                        ios: "banknote" as any,
-                        android: "payments" as any,
-                        web: "payments" as any,
-                      }}
+                      name={sym("banknote", "payments")}
                       size={22}
                       tintColor={
                         paymentMethod === "cash"
@@ -594,11 +584,7 @@ export function CheckoutSheet({
                 >
                   <View style={[styles.paymentIcon, { backgroundColor: theme.primaryLight }]}>
                     <SymbolView
-                      name={{
-                        ios: "creditcard" as any,
-                        android: "credit_card" as any,
-                        web: "credit_card" as any,
-                      }}
+                      name={sym("creditcard", "credit_card")}
                       size={22}
                       tintColor={
                         paymentMethod === "electronic"
@@ -628,11 +614,7 @@ export function CheckoutSheet({
                 >
                   <View style={[styles.paymentIcon, { backgroundColor: theme.primaryLight }]}>
                     <SymbolView
-                      name={{
-                        ios: "book.closed" as any,
-                        android: "menu_book" as any,
-                        web: "menu_book" as any,
-                      }}
+                      name={sym("book.closed", "menu_book")}
                       size={22}
                       tintColor={
                         paymentMethod === "credit"
@@ -662,11 +644,7 @@ export function CheckoutSheet({
                 >
                   <View style={[styles.paymentIcon, { backgroundColor: theme.primaryLight }]}>
                     <SymbolView
-                      name={{
-                        ios: "price_change" as any,
-                        android: "price_change" as any,
-                        web: "price_change" as any,
-                      }}
+                      name={sym("price_change", "price_change")}
                       size={22}
                       tintColor={
                         paymentMethod === "partial"
@@ -861,7 +839,7 @@ export function CheckoutSheet({
           <ConfirmDialog
             title={t("sales:underpaidCashTitle", { defaultValue: "Record Customer Debt?" })}
             message={t("sales:underpaidCashMessage", {
-              amount: formatCentimes(underpaidInfo.remaining, i18n.language as any, storeCurrency),
+              amount: formatCentimes(underpaidInfo.remaining, i18n.language, storeCurrency),
               customer: underpaidInfo.customerName,
               defaultValue: `An underpayment of ${formatCentimes(underpaidInfo.remaining)} will be recorded as debt for ${underpaidInfo.customerName}.`,
             })}

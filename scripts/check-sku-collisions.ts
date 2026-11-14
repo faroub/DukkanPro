@@ -1,18 +1,19 @@
-/**
- * Read-only script to list existing products where two SKUs collide case-insensitively
- * or with leading zero normalization.
- */
-import { getDatabase } from "../src/database/database";
 import { normalizeSkuForLookup } from "../src/database/repositories/productRepository";
 
-async function main() {
-  const db = await getDatabase();
-  const rows: any[] = await db.getAllAsync(
-    `SELECT id, name, sku FROM products WHERE sku IS NOT NULL AND sku != ''`
-  );
+export interface SkuProductRecord {
+  id: number;
+  name: string;
+  sku: string;
+}
 
-  const skuMap = new Map<string, Array<{ id: number; name: string; sku: string }>>();
-  for (const r of rows) {
+/**
+ * Detect case-insensitive and leading-zero SKU collisions across a list of product records.
+ */
+export function findSkuCollisions(products: SkuProductRecord[]) {
+  const skuMap = new Map<string, SkuProductRecord[]>();
+
+  for (const r of products) {
+    if (!r.sku) continue;
     const normalized = normalizeSkuForLookup(r.sku);
     if (!normalized) continue;
     const existing = skuMap.get(normalized) || [];
@@ -20,16 +21,5 @@ async function main() {
     skuMap.set(normalized, existing);
   }
 
-  const collisions = Array.from(skuMap.entries()).filter(([, list]) => list.length > 1);
-
-  if (collisions.length === 0) {
-    console.log("✅ No SKU collisions found across existing products.");
-  } else {
-    console.warn(`⚠️ Found ${collisions.length} SKU collision group(s):`);
-    for (const [norm, list] of collisions) {
-      console.warn(` - Normalized key "${norm}":`, list);
-    }
-  }
+  return Array.from(skuMap.entries()).filter(([, list]) => list.length > 1);
 }
-
-main().catch(console.error);
