@@ -110,24 +110,41 @@ export async function getById(id: number): Promise<Product | null> {
 }
 
 /**
- * Retrieve a single product by SKU.
+ * Centralized SKU normalization helper.
+ * Strips whitespace, converts to lowercase, and strips leading zeros
+ * for flexible barcode and SKU matching.
+ */
+export function normalizeSkuForLookup(rawSku: string | null | undefined): string | null {
+  if (!rawSku) return null;
+  const trimmed = rawSku.trim().toLowerCase();
+  if (!trimmed) return null;
+  const unpadded = trimmed.replace(/^0+/, "");
+  return unpadded === "" ? "0" : unpadded;
+}
+
+/**
+ * Retrieve a single product by SKU (case-insensitive & leading-zero tolerant).
  */
 export async function getBySku(sku: string): Promise<Product | null> {
+  const target = normalizeSkuForLookup(sku);
+  if (!target) return null;
+
   const rows: any[] = await executeRead(
     // language=SQLite
     `SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
             stock_quantity, minimum_stock_quantity, unit, is_active,
             created_at, updated_at
      FROM products
-     WHERE sku = ?`,
-    [sku],
+     WHERE sku IS NOT NULL AND sku != ''`,
   );
 
-  if (rows.length === 0) {
-    return null;
+  for (const r of rows) {
+    if (normalizeSkuForLookup(r.sku) === target) {
+      return mapProductRow(r);
+    }
   }
 
-  return mapProductRow(rows[0]);
+  return null;
 }
 
 function validatePrice(priceCentimes: number, fieldName: string): void {
@@ -214,8 +231,12 @@ export async function update(
     values.push(product.name);
   }
   if (product.sku !== undefined) {
+    const normalizedSku =
+      product.sku && typeof product.sku === "string"
+        ? product.sku.trim() || null
+        : null;
     fields.push("sku = ?");
-    values.push(product.sku);
+    values.push(normalizedSku);
   }
   if (product.category !== undefined) {
     fields.push("category = ?");

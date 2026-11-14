@@ -8,6 +8,14 @@
 import { getDatabase } from "@/database/database";
 import { get as getProfile } from "../businessProfileRepository";
 import { clearBusinessData, resetDatabase } from "../resetRepository";
+import * as FileSystem from "expo-file-system/legacy";
+
+jest.mock("expo-file-system/legacy", () => ({
+  documentDirectory: "/mock/documents/",
+  getInfoAsync: jest.fn(() => Promise.resolve({ exists: true })),
+  readDirectoryAsync: jest.fn(() => Promise.resolve(["db_pre_migration_13.bak"])),
+  deleteAsync: jest.fn(() => Promise.resolve()),
+}));
 
 let db: any;
 
@@ -84,5 +92,15 @@ describe("resetRepository", () => {
       `SELECT name FROM sqlite_sequence WHERE name IN ('business_profiles', 'app_settings')`
     );
     expect(seqRows).toEqual([]);
+  });
+
+  it("deletes local backup files and pre-migration snapshots on hard reset", async () => {
+    await seedRows();
+    await resetDatabase();
+
+    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
+      expect.stringContaining("DukkanPro/backups"),
+      expect.objectContaining({ idempotent: true }),
+    );
   });
 });
