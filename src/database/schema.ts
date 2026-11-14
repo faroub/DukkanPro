@@ -263,4 +263,13 @@ export const schema = {
     CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status);
     CREATE INDEX IF NOT EXISTS idx_sales_remaining_balance ON sales(remaining_balance_centimes);
   `,
+
+  // ============================================================
+  // canonical normalized_sku v15 (migration 15)
+  // Adds normalized_sku column to products and UNIQUE index on normalized_sku.
+  // ============================================================
+  normalizedSkuV15: `
+    ALTER TABLE products ADD COLUMN normalized_sku TEXT;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_products_normalized_sku ON products(normalized_sku) WHERE normalized_sku IS NOT NULL;
+  `,
 };

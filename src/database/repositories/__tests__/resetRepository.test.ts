@@ -13,7 +13,14 @@ import * as FileSystem from "expo-file-system/legacy";
 jest.mock("expo-file-system/legacy", () => ({
   documentDirectory: "/mock/documents/",
   getInfoAsync: jest.fn(() => Promise.resolve({ exists: true })),
-  readDirectoryAsync: jest.fn(() => Promise.resolve(["db_pre_migration_13.bak"])),
+  readDirectoryAsync: jest.fn(() =>
+    Promise.resolve([
+      "DukkanPro.db",
+      "DukkanPro.db-wal",
+      "DukkanPro.db.pre-v13-2026-10-25T14-00-00-000Z",
+      "unrelated_user_doc.pdf",
+    ])
+  ),
   deleteAsync: jest.fn(() => Promise.resolve()),
 }));
 
@@ -53,6 +60,7 @@ async function tableCount(table: string): Promise<number> {
 describe("resetRepository", () => {
   afterEach(async () => {
     // Return to a clean slate between tests.
+    (FileSystem.deleteAsync as jest.Mock).mockClear();
     await resetDatabase();
   });
 
@@ -94,13 +102,47 @@ describe("resetRepository", () => {
     expect(seqRows).toEqual([]);
   });
 
-  it("deletes local backup files and pre-migration snapshots on hard reset", async () => {
+  it("deletes pre-v... snapshots and backup folder on hard reset while preserving active DB and unrelated files", async () => {
     await seedRows();
     await resetDatabase();
 
+    // 1. Backups directory deleted
     expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
       expect.stringContaining("DukkanPro/backups"),
       expect.objectContaining({ idempotent: true }),
     );
+
+    // 2. Pre-v13 snapshot file deleted
+    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
+      expect.stringContaining("DukkanPro.db.pre-v13-2026-10-25T14-00-00-000Z"),
+      expect.objectContaining({ idempotent: true }),
+    );
+
+    // 3. Active database DukkanPro.db and DukkanPro.db-wal NEVER deleted
+    expect(FileSystem.deleteAsync).not.toHaveBeenCalledWith(
+      expect.stringMatching(/DukkanPro\.db$/),
+      expect.anything(),
+    );
+    expect(FileSystem.deleteAsync).not.toHaveBeenCalledWith(
+      expect.stringMatching(/DukkanPro\.db-wal$/),
+      expect.anything(),
+    );
+
+    // 4. Unrelated user document NEVER deleted
+    expect(FileSystem.deleteAsync).not.toHaveBeenCalledWith(
+      expect.stringContaining("unrelated_user_doc.pdf"),
+      expect.anything(),
+    );
+  });
+
+  it("handles file cleanup failure gracefully with a warning without reverting database wipe", async () => {
+    await seedRows();
+
+    (FileSystem.deleteAsync as jest.Mock).mockRejectedValueOnce(
+      new Error("Disk permission denied"),
+    );
+
+    await expect(resetDatabase()).resolves.not.toThrow();
+    expect(await tableCount("products")).toBe(0);
   });
 });

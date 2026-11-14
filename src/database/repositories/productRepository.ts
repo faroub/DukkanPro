@@ -166,6 +166,12 @@ export async function create(
     validatePrice(product.cost_price_centimes, "cost_price_centimes");
   }
 
+  const cleanSku =
+    product.sku && typeof product.sku === "string"
+      ? product.sku.trim() || null
+      : null;
+  const normalizedSku = normalizeSkuForLookup(cleanSku);
+
   try {
     const db = await getDatabase();
     const result = await transaction(db, async (tx: any) => {
@@ -173,12 +179,13 @@ export async function create(
         tx,
         // language=SQLite
         `INSERT INTO products
-         (name, sku, category, sale_price_centimes, cost_price_centimes,
+         (name, sku, normalized_sku, category, sale_price_centimes, cost_price_centimes,
           stock_quantity, minimum_stock_quantity, unit, is_active, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
         [
           product.name,
-          product.sku,
+          cleanSku,
+          normalizedSku,
           product.category,
           product.sale_price_centimes,
           product.cost_price_centimes,
@@ -209,7 +216,10 @@ export async function create(
     if (!created) throw new Error("Failed to create product");
     return created;
   } catch (err: any) {
-    if (err?.message?.includes("UNIQUE constraint failed: products.sku")) {
+    if (
+      err?.message?.includes("UNIQUE constraint failed: products.normalized_sku") ||
+      err?.message?.includes("UNIQUE constraint failed: products.sku")
+    ) {
       throw new Error("DUPLICATE_SKU: A product with this SKU already exists");
     }
     throw err;
@@ -278,7 +288,10 @@ export async function update(
   try {
     await executeWrite(sql, values);
   } catch (err: any) {
-    if (err?.message?.includes("UNIQUE constraint failed: products.sku")) {
+    if (
+      err?.message?.includes("UNIQUE constraint failed: products.normalized_sku") ||
+      err?.message?.includes("UNIQUE constraint failed: products.sku")
+    ) {
       throw new Error("DUPLICATE_SKU: A product with this SKU already exists");
     }
     throw err;

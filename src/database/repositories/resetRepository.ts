@@ -12,7 +12,7 @@
  * sqlite_sequence is cleared so autoincrement IDs restart from 1.
  */
 
-import { getDatabase, transaction } from "../database";
+import { getDatabase, transaction, DATABASE_FILE_NAME } from "../database";
 import * as FileSystem from "expo-file-system/legacy";
 
 const TRANSACTION_TABLES = [
@@ -75,7 +75,23 @@ async function cleanHardResetFiles(): Promise<void> {
       if (info && info.exists) {
         const files = await FileSystem.readDirectoryAsync(sqliteDir);
         for (const file of files) {
-          if (file.includes("bak") || file.includes("migration_")) {
+          // Explicitly protect active database file and journal/WAL/SHM files
+          if (
+            file === DATABASE_FILE_NAME ||
+            file === `${DATABASE_FILE_NAME}-wal` ||
+            file === `${DATABASE_FILE_NAME}-shm` ||
+            file === `${DATABASE_FILE_NAME}-journal`
+          ) {
+            continue;
+          }
+
+          // Delete pre-migration database snapshots (.pre-v..., .bak, migration_)
+          if (
+            file.includes(".pre-v") ||
+            file.includes(".bak") ||
+            file.includes("migration_") ||
+            file.includes("pre_migration_")
+          ) {
             await FileSystem.deleteAsync(`${sqliteDir}/${file}`, { idempotent: true });
           }
         }

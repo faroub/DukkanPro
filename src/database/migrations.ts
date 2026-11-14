@@ -22,6 +22,7 @@ import * as FileSystem from "expo-file-system/legacy";
 
 import { rawTransaction } from "./query";
 import { schema } from "./schema";
+import { normalizeSkuForLookup } from "./repositories/productRepository";
 
 export type Migration = {
   version: number;
@@ -67,6 +68,46 @@ async function assertNoNegativeMoneyOrStock(db: any): Promise<void> {
     throw new Error(
       `Migration 14 aborted: negative data would violate the new non-negative constraints (${violations.join("; ")}). Correct or remove the offending rows before upgrading.`,
     );
+  }
+}
+
+export async function assertNoSkuCollisions(db: any): Promise<void> {
+  const columns: any[] = await db.getAllAsync("PRAGMA table_info(products)");
+  const hasCol = columns.some((c: any) => c.name.toLowerCase() === "normalized_sku");
+  if (!hasCol) {
+    await db.execAsync("ALTER TABLE products ADD COLUMN normalized_sku TEXT");
+  }
+
+  const rows: any[] = await db.getAllAsync(
+    `SELECT id, name, sku FROM products WHERE sku IS NOT NULL AND sku != ''`
+  );
+  const skuMap = new Map<string, Array<{ id: number; name: string; sku: string }>>();
+
+  for (const r of rows) {
+    const normalized = normalizeSkuForLookup(r.sku);
+    if (!normalized) continue;
+    const existing = skuMap.get(normalized) || [];
+    existing.push(r);
+    skuMap.set(normalized, existing);
+  }
+
+  const collisions = Array.from(skuMap.entries()).filter(([, list]) => list.length > 1);
+
+  if (collisions.length > 0) {
+    const details = collisions
+      .map(([key, list]) => `"${key}": [${list.map((p) => `${p.name} (#${p.id}, "${p.sku}")`).join(", ")}]`)
+      .join("; ");
+    throw new Error(
+      `Migration 15 aborted: ${collisions.length} SKU collision group(s) exist in the database: ${details}. Existing products must be updated to distinct SKUs before canonical uniqueness can be enforced.`
+    );
+  }
+
+  // Populate normalized_sku for existing rows
+  for (const r of rows) {
+    const normalized = normalizeSkuForLookup(r.sku);
+    if (normalized) {
+      await db.runAsync(`UPDATE products SET normalized_sku = ? WHERE id = ?`, [normalized, r.id]);
+    }
   }
 }
 
@@ -128,6 +169,11 @@ const ALL_MIGRATIONS: Migration[] = [
     sql: schema.integrityConstraintsV14,
     runsOutsideTransaction: true,
     precheck: assertNoNegativeMoneyOrStock,
+  },
+  {
+    version: 15,
+    sql: schema.normalizedSkuV15,
+    precheck: assertNoSkuCollisions,
   },
 ];
 
@@ -384,6 +430,9 @@ export async function runMigrations(
           await db.execAsync("PRAGMA foreign_keys = ON");
         }
       } else {
+        if (migration.precheck) {
+          await migration.precheck(db);
+        }
         await rawTransaction(db, async (tx) => {
           await execDefensiveSql(tx, migration.sql);
           await tx.runAsync(

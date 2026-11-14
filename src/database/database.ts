@@ -21,7 +21,8 @@ import {
   rawTransaction,
 } from "./query";
 
-const DATABASE_NAME = "DukkanPro.db";
+export const DATABASE_FILE_NAME = "DukkanPro.db";
+const DATABASE_NAME = DATABASE_FILE_NAME;
 
 let database: SQLiteDatabase | null = null;
 let databasePromise: Promise<SQLiteDatabase> | null = null;

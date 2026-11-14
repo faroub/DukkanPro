@@ -18,7 +18,7 @@ async function makeDatabaseAtVersion(version: number) {
 
 describe("migrations", () => {
   it("exposes a contiguous, ordered set of migration versions", () => {
-    expect(migrationVersions).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+    expect(migrationVersions).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
   });
 
   describe("migration 14 — integrity constraints", () => {
@@ -135,6 +135,57 @@ describe("migrations", () => {
       await runMigrations(db);
       const pragma = await db.getFirstAsync(`PRAGMA foreign_keys`);
       expect(pragma?.foreign_keys).toBe(1);
+    });
+  });
+
+  describe("migration 15 — canonical normalized_sku", () => {
+    it("populates normalized_sku and enforces unique constraint on canonical representation", async () => {
+      const db = await makeDatabaseAtVersion(14);
+
+      await db.runAsync(
+        `INSERT INTO products (name, sku, sale_price_centimes, cost_price_centimes, stock_quantity)
+         VALUES (?, ?, ?, ?, ?)`,
+        ["Normal Product", "0012345ABC", 1000, 500, 10],
+      );
+
+      await runMigrations(db);
+
+      const product = await db.getFirstAsync(
+        `SELECT normalized_sku FROM products WHERE name = 'Normal Product'`,
+      );
+      expect(product?.normalized_sku).toBe("12345abc");
+
+      // Attempting to insert a canonical duplicate (leading zero / lowercase variation) fails unique constraint
+      await expect(
+        db.runAsync(
+          `INSERT INTO products (name, sku, normalized_sku, sale_price_centimes, cost_price_centimes, stock_quantity)
+           VALUES ('Duplicate', '12345ABC', '12345abc', 1000, 500, 10)`,
+        ),
+      ).rejects.toThrow(/UNIQUE constraint failed/i);
+    });
+
+    it("aborts migration 15 before applying if existing products have colliding normalized SKUs", async () => {
+      const db = await makeDatabaseAtVersion(14);
+
+      // Seed two products whose SKUs normalize to the same key "12345abc"
+      await db.runAsync(
+        `INSERT INTO products (name, sku, sale_price_centimes, cost_price_centimes, stock_quantity)
+         VALUES (?, ?, ?, ?, ?)`,
+        ["Product A", "0012345ABC", 1000, 500, 10],
+      );
+      await db.runAsync(
+        `INSERT INTO products (name, sku, sale_price_centimes, cost_price_centimes, stock_quantity)
+         VALUES (?, ?, ?, ?, ?)`,
+        ["Product B", "12345abc", 1000, 500, 10],
+      );
+
+      await expect(runMigrations(db)).rejects.toThrow(/Migration 15 aborted.*SKU collision group/i);
+
+      // Migration 15 should NOT be recorded as applied
+      const appliedRows: any[] = await db.getAllAsync(
+        `SELECT version FROM _migration_version`,
+      );
+      expect(appliedRows.map((r: any) => r.version)).not.toContain(15);
     });
   });
 
