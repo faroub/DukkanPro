@@ -154,6 +154,14 @@ function validatePrice(priceCentimes: number, fieldName: string): void {
   }
 }
 
+function validateSafeNonNegativeInteger(val: unknown, fieldName: string): void {
+  if (typeof val !== "number" || !Number.isSafeInteger(val) || val < 0) {
+    throw new Error(
+      `Invalid ${fieldName}: ${val}. Must be a non-negative safe integer.`
+    );
+  }
+}
+
 /**
  * Create a new product.
  */
@@ -164,6 +172,8 @@ export async function create(
   if (product.cost_price_centimes !== undefined && product.cost_price_centimes !== null) {
     validatePrice(product.cost_price_centimes, "cost_price_centimes");
   }
+  validateSafeNonNegativeInteger(product.stock_quantity ?? 0, "stock_quantity");
+  validateSafeNonNegativeInteger(product.minimum_stock_quantity ?? 0, "minimum_stock_quantity");
 
   const cleanSku =
     product.sku && typeof product.sku === "string"
@@ -265,6 +275,7 @@ export async function update(
     values.push(product.cost_price_centimes);
   }
   if (product.minimum_stock_quantity !== undefined) {
+    validateSafeNonNegativeInteger(product.minimum_stock_quantity, "minimum_stock_quantity");
     fields.push("minimum_stock_quantity = ?");
     values.push(product.minimum_stock_quantity);
   }
@@ -332,9 +343,9 @@ export async function adjustStock(
   quantityChange: number,
   reason: string,
 ): Promise<InventoryMovement> {
-  if (!Number.isInteger(quantityChange)) {
+  if (typeof quantityChange !== "number" || !Number.isSafeInteger(quantityChange)) {
     throw new Error(
-      `INVALID_QUANTITY: quantityChange must be an integer, received ${quantityChange}.`,
+      `INVALID_QUANTITY: quantityChange must be a safe integer, received ${quantityChange}.`,
     );
   }
   if (quantityChange === 0) {

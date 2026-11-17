@@ -175,6 +175,27 @@ describe("productRepository", () => {
       expect(created?.name).toBe("تمر");
     });
 
+    it("rejects negative, fractional, NaN, Infinity or unsafe integers for stock_quantity or minimum_stock_quantity", async () => {
+      const base = {
+        name: "Invalid Stock Item",
+        sku: null,
+        category: "Test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        unit: "pcs",
+        is_active: true,
+      };
+
+      await expect(create({ ...base, stock_quantity: -5, minimum_stock_quantity: 0 })).rejects.toThrow(/stock_quantity/i);
+      await expect(create({ ...base, stock_quantity: 5.5, minimum_stock_quantity: 0 })).rejects.toThrow(/stock_quantity/i);
+      await expect(create({ ...base, stock_quantity: NaN, minimum_stock_quantity: 0 })).rejects.toThrow(/stock_quantity/i);
+      await expect(create({ ...base, stock_quantity: Infinity, minimum_stock_quantity: 0 })).rejects.toThrow(/stock_quantity/i);
+      await expect(create({ ...base, stock_quantity: Number.MAX_SAFE_INTEGER + 1, minimum_stock_quantity: 0 })).rejects.toThrow(/stock_quantity/i);
+
+      await expect(create({ ...base, stock_quantity: 10, minimum_stock_quantity: -2 })).rejects.toThrow(/minimum_stock_quantity/i);
+      await expect(create({ ...base, stock_quantity: 10, minimum_stock_quantity: 2.5 })).rejects.toThrow(/minimum_stock_quantity/i);
+    });
+
     it("throws when a product with the same SKU already exists", async () => {
       await create({
         name: "تمر Dup",
