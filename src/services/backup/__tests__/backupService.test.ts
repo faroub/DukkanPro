@@ -340,6 +340,21 @@ describe("backupService", () => {
       expect(await tableCount("sale_items")).toBe(0);
     });
 
+    it("rejects a backup containing duplicate primary key IDs", async () => {
+      await seed("DupID");
+      const backup = await buildBackup();
+      await resetDatabase();
+
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+      const p1 = tampered.tables.products[0];
+      tampered.tables.products.push({ ...p1, name: "Duplicate ID Product" });
+
+      await expect(restoreBackup(JSON.stringify(tampered))).rejects.toThrow(
+        /duplicate id/i,
+      );
+      expect(await tableCount("products")).toBe(0);
+    });
+
     it("rejects a backup made by a newer app", async () => {
       await seed("A9");
       const backup = await buildBackup();

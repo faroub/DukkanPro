@@ -272,6 +272,21 @@ export function validateBackup(
     });
   }
 
+  // Check for duplicate primary key IDs in each table
+  for (const table of BACKUP_TABLES) {
+    const rows = tables[table] as TableRow[];
+    const seenIds = new Set<number | string>();
+    rows.forEach((row, index) => {
+      const idKey = table === "app_settings" ? row.key : row.id;
+      if (idKey !== undefined && idKey !== null) {
+        if (seenIds.has(idKey)) {
+          throw invalidContent(table, `duplicate id "${idKey}" (row ${index})`);
+        }
+        seenIds.add(idKey);
+      }
+    });
+  }
+
   // Check for canonical SKU collisions across product rows in backup
   const productRows = tables.products as TableRow[];
   const canonicalSkuSet = new Set<string>();
