@@ -147,7 +147,7 @@ describe("CSV export quoting", () => {
     // The newline lives inside the quoted field — a CSV parser reads this as
     // one record with a two-line name. Doubled quoting would corrupt it.
     expect(csv).toBe(
-      `"customers.id","customers.name","customers.phone"\n"1","Line one\nLine two","0550000000"`,
+      `"customers.id","customers.name","customers.phone"\n"1","Line one\nLine two","'0550000000"`,
     );
   });
 });
@@ -339,7 +339,7 @@ describe("CSV export currency column", () => {
 });
 
 describe("CSV export formula neutralization", () => {
-  it("exports phone numbers unchanged, without a leading apostrophe (F5)", () => {
+  it("exports phone numbers with leading apostrophe to preserve leading zeros in spreadsheets", () => {
     const csv = exportCustomers(
       [
         {
@@ -351,24 +351,21 @@ describe("CSV export formula neutralization", () => {
       t as never,
     );
     const dataLine = csv.split("\n")[1];
-    expect(dataLine).toBe(`"1","Samir","+213555123456"`);
+    expect(dataLine).toBe(`"1","Samir","'+213555123456"`);
   });
 
-  it("keeps a phone number unchanged only when it is plain digits with an optional leading +", () => {
+  it("prefixes phone numbers with leading apostrophe for both international and local formats", () => {
     const csv = exportCustomers(
       [
         { id: 1, name: "Samir", phone: "+213555123456" },
-        { id: 2, name: "Amina", phone: "0661 11 22 33" },
+        { id: 2, name: "Amina", phone: "0661112233" },
         { id: 3, name: "Karim", phone: "-1+cmd|x" },
       ],
       t as never,
     );
     const lines = csv.split("\n");
-    // Plain digits (with an optional leading +) export unchanged.
-    expect(lines[1]).toBe(`"1","Samir","+213555123456"`);
-    // A local spaced number starts with a digit, so it is not a formula.
-    expect(lines[2]).toBe(`"2","Amina","0661 11 22 33"`);
-    // Anything else starting with - is neutralized like any other text field.
+    expect(lines[1]).toBe(`"1","Samir","'+213555123456"`);
+    expect(lines[2]).toBe(`"2","Amina","'0661112233"`);
     expect(lines[3]).toBe(`"3","Karim","'-1+cmd|x"`);
   });
 
@@ -471,5 +468,40 @@ describe("CSV export customer names", () => {
     );
     const dataLine = csv.split("\n")[1];
     expect(dataLine).toContain("sales.unknown_client");
+  });
+});
+
+describe("CSV export Unicode & Historical Currency", () => {
+  it("preserves Arabic Unicode strings in names, notes, and categories without corruption", () => {
+    const csv = exportCustomers(
+      [
+        {
+          id: 1,
+          name: "سمير بن علي",
+          phone: "0550123456",
+        },
+      ],
+      t as never,
+    );
+    expect(csv).toContain("سمير بن علي");
+  });
+
+  it("exports exact historical currency recorded on transaction regardless of current active currency", () => {
+    const csvSales = exportSales(
+      [
+        {
+          id: 1,
+          customer_name: "Yassine",
+          payment_method: "cash",
+          subtotal_centimes: 1000,
+          total_centimes: 1000,
+          status: "completed",
+          sold_at: "2026-11-07 14:30:00",
+          currency: "EUR",
+        },
+      ],
+      t as never,
+    );
+    expect(csvSales).toContain('"EUR"');
   });
 });

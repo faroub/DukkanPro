@@ -57,15 +57,15 @@ function csvSafe(value: string): string {
 }
 
 /**
- * Escape quotes only, without formula neutralization — used for the phone
- * column, whose legitimate values begin with + (e.g. +213555123456) and must
- * be exported unchanged. Values that are not plain digits (with an optional
- * leading +) get the same neutralization as any other text field.
+ * Escape quotes and neutralize formula injection while preserving phone number text.
+ * Prefixes phone numbers starting with '0' or '+' with an apostrophe (') so spreadsheet software
+ * (Excel, Calc) treats them as literal text strings and preserves leading zeros and pluses.
  */
 function csvSafePhone(value: string): string {
+  if (!value) return "";
   const escaped = value.replace(/"/g, '""');
   if (/^\+?\d+$/.test(escaped)) {
-    return escaped;
+    return `'${escaped}`;
   }
   if (/^[=@\t\r]/.test(escaped) || /^[-+]/.test(escaped)) {
     return `'${escaped}`;
