@@ -43,8 +43,15 @@ function localDateRangeToUtcBounds(
   endDateStr: string,
 ): [string, string] {
   const parseLocalDate = (str: string) => {
-    const parts = str.slice(0, 10).split("-").map((p) => parseInt(p, 10));
-    return new Date(parts[0], parts[1] - 1, parts[2] || 1);
+    if (!str || typeof str !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(str.slice(0, 10))) {
+      throw new Error(`Invalid date format '${str}'. Expected YYYY-MM-DD.`);
+    }
+    const [year, month, day] = str.slice(0, 10).split("-").map((p) => parseInt(p, 10));
+    const d = new Date(year, month - 1, day);
+    if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) {
+      throw new Error(`Invalid calendar date '${str}'. Date does not exist in calendar.`);
+    }
+    return d;
   };
 
   const startLocal = parseLocalDate(startDateStr);
@@ -259,14 +266,20 @@ export async function create(saleInput: {
   }
 
   for (const item of saleInput.items) {
-    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+    if (typeof item.quantity !== "number" || !Number.isSafeInteger(item.quantity) || item.quantity <= 0) {
       throw new Error(
         `Invalid quantity ${item.quantity} for product id=${item.productId}. Quantity must be a positive integer.`
       );
     }
-    if (!Number.isSafeInteger(item.unitSalePriceCentimes) || item.unitSalePriceCentimes < 0) {
+    if (typeof item.unitSalePriceCentimes !== "number" || !Number.isSafeInteger(item.unitSalePriceCentimes) || item.unitSalePriceCentimes < 0) {
       throw new Error(
         `Invalid unitSalePriceCentimes ${item.unitSalePriceCentimes} for product id=${item.productId}. Price must be a non-negative integer.`
+      );
+    }
+    const computedLine = item.unitSalePriceCentimes * item.quantity;
+    if (!Number.isSafeInteger(computedLine)) {
+      throw new Error(
+        `OVERFLOW: Line total (${item.unitSalePriceCentimes} * ${item.quantity}) exceeds MAX_SAFE_INTEGER.`
       );
     }
   }
@@ -340,6 +353,17 @@ export async function create(saleInput: {
       const historicalCost = product.cost_price_centimes;
       const unitSalePrice = item.unitSalePriceCentimes;
       const lineTotal = unitSalePrice * item.quantity;
+
+      if (!Number.isSafeInteger(lineTotal)) {
+        throw new Error(
+          `OVERFLOW: Line total (${unitSalePrice} * ${item.quantity}) exceeds MAX_SAFE_INTEGER.`
+        );
+      }
+      if (!Number.isSafeInteger(subtotal + lineTotal)) {
+        throw new Error(
+          `OVERFLOW: Subtotal calculation (${subtotal} + ${lineTotal}) exceeds MAX_SAFE_INTEGER.`
+        );
+      }
 
       subtotal += lineTotal;
 

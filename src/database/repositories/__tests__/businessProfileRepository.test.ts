@@ -94,6 +94,29 @@ describe("businessProfileRepository", () => {
       expect(p1?.id).toBe(p2?.id);
       expect(p1?.business_name).toBe(p2?.business_name);
     });
+
+    it("handles concurrent create calls gracefully and enforces single profile row", async () => {
+      const p1Promise = create({
+        business_name: "Shop Concurrent A",
+        owner_name: "Owner A",
+        business_type: "grocery",
+        currency: "DZD",
+        selected_locale: "fr",
+      });
+      const p2Promise = create({
+        business_name: "Shop Concurrent B",
+        owner_name: "Owner B",
+        business_type: "baker",
+        currency: "DZD",
+        selected_locale: "en",
+      });
+
+      const [p1, p2] = await Promise.all([p1Promise, p2Promise]);
+      expect(p1.id).toBe(p2.id);
+
+      const rows: any[] = await db.getAllAsync(`SELECT COUNT(*) AS c FROM business_profiles`);
+      expect(rows[0].c).toBe(1);
+    });
   });
 
   describe("update()", () => {

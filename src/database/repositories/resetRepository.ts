@@ -49,13 +49,24 @@ export async function clearBusinessData(): Promise<void> {
   });
 }
 
+export interface FileCleanupResult {
+  success: boolean;
+  deletedFiles: string[];
+  errors: string[];
+}
+
 /**
- * Helper to perform best-effort cleanup of plaintext backup JSON files
- * and pre-migration database snapshots on hard reset.
+ * Perform idempotent cleanup of application-owned backup files and pre-migration database snapshots.
+ * Explicitly protects the active database file (DukkanPro.db), WAL/SHM journal files, and unrelated user files.
  */
-async function cleanHardResetFiles(): Promise<void> {
+export async function cleanHardResetFiles(): Promise<FileCleanupResult> {
+  const deletedFiles: string[] = [];
+  const errors: string[] = [];
+
   try {
-    if (!FileSystem.documentDirectory) return;
+    if (!FileSystem.documentDirectory) {
+      return { success: true, deletedFiles, errors };
+    }
 
     // 1. Delete backups directory
     const backupsDir = `${FileSystem.documentDirectory}DukkanPro/backups`;
@@ -63,9 +74,12 @@ async function cleanHardResetFiles(): Promise<void> {
       const info = await FileSystem.getInfoAsync(backupsDir);
       if (info && info.exists) {
         await FileSystem.deleteAsync(backupsDir, { idempotent: true });
+        deletedFiles.push(backupsDir);
       }
-    } catch (e) {
-      console.warn("Failed to delete backups directory on hard reset:", e);
+    } catch (e: any) {
+      const msg = `Failed to delete backups directory: ${e?.message ?? String(e)}`;
+      console.warn(msg);
+      errors.push(msg);
     }
 
     // 2. Delete pre-migration DB copies in SQLite directory
@@ -85,23 +99,35 @@ async function cleanHardResetFiles(): Promise<void> {
             continue;
           }
 
-          // Delete pre-migration database snapshots (.pre-v..., .bak, migration_)
+          // Delete pre-migration database snapshots (.pre-v..., .bak, migration_, pre_migration_)
           if (
             file.includes(".pre-v") ||
             file.includes(".bak") ||
             file.includes("migration_") ||
             file.includes("pre_migration_")
           ) {
-            await FileSystem.deleteAsync(`${sqliteDir}/${file}`, { idempotent: true });
+            const filePath = `${sqliteDir}/${file}`;
+            await FileSystem.deleteAsync(filePath, { idempotent: true });
+            deletedFiles.push(filePath);
           }
         }
       }
-    } catch (e) {
-      console.warn("Failed to clean pre-migration DB snapshots on hard reset:", e);
+    } catch (e: any) {
+      const msg = `Failed to clean pre-migration DB snapshots: ${e?.message ?? String(e)}`;
+      console.warn(msg);
+      errors.push(msg);
     }
-  } catch (err) {
-    console.warn("Best-effort file cleanup on hard reset encountered error:", err);
+  } catch (err: any) {
+    const msg = `File cleanup encountered error: ${err?.message ?? String(err)}`;
+    console.warn(msg);
+    errors.push(msg);
   }
+
+  return {
+    success: errors.length === 0,
+    deletedFiles,
+    errors,
+  };
 }
 
 /**
@@ -109,7 +135,7 @@ async function cleanHardResetFiles(): Promise<void> {
  * Also cleans backup files and pre-migration snapshots from local storage.
  * The app will route back to onboarding afterwards.
  */
-export async function resetDatabase(): Promise<void> {
+export async function resetDatabase(): Promise<FileCleanupResult> {
   const db = await getDatabase();
   await transaction(db, async (tx) => {
     for (const table of ALL_TABLES) {
@@ -124,5 +150,5 @@ export async function resetDatabase(): Promise<void> {
   });
 
   // Best-effort file cleanup after DB transaction commits
-  await cleanHardResetFiles();
+  return await cleanHardResetFiles();
 }

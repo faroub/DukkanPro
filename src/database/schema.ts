@@ -272,4 +272,12 @@ export const schema = {
     ALTER TABLE products ADD COLUMN normalized_sku TEXT;
     CREATE UNIQUE INDEX IF NOT EXISTS idx_products_normalized_sku ON products(normalized_sku) WHERE normalized_sku IS NOT NULL;
   `,
+
+  // ============================================================
+  // singleton business_profiles v16 (migration 16)
+  // Enforces at most 1 business profile row in SQLite via singleton index.
+  // ============================================================
+  singletonBusinessProfileV16: `
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_business_profiles_singleton ON business_profiles ((1));
+  `,
 };

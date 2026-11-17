@@ -347,6 +347,23 @@ describe("backupService", () => {
       );
     });
 
+    it("rejects backup string content exceeding maximum file size limit (15 MB)", async () => {
+      await seed("SizeLimit");
+      const fakeLargeContent = "a".repeat(16 * 1024 * 1024);
+
+      await expect(restoreBackup(fakeLargeContent)).rejects.toThrow("MAX_BACKUP_SIZE_EXCEEDED");
+    });
+
+    it("rejects a backup containing excessive table rows", async () => {
+      await seed("RowLimit");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+
+      tampered.tables.products = new Array(100001).fill(tampered.tables.products[0]);
+
+      expect(() => validateBackup(tampered, CURRENT_VERSION)).toThrow("MAX_BACKUP_ROWS_EXCEEDED");
+    });
+
     it("validates 20,000 sale_items in under 2 seconds (O(N) validation)", async () => {
       await seed("Perf1");
       const backup = await buildBackup();

@@ -8,7 +8,8 @@
  * - negative data aborts the migration with a clear error and is left untouched.
  */
 import { openDatabaseAsync } from "expo-sqlite";
-import { migrationVersions, runMigrations } from "../migrations";
+import { migrationVersions, runMigrations, snapshotDatabaseFile } from "../migrations";
+import * as FileSystem from "expo-file-system/legacy";
 
 async function makeDatabaseAtVersion(version: number) {
   const db: any = await openDatabaseAsync("migrations-test.db");
@@ -18,7 +19,7 @@ async function makeDatabaseAtVersion(version: number) {
 
 describe("migrations", () => {
   it("exposes a contiguous, ordered set of migration versions", () => {
-    expect(migrationVersions).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+    expect(migrationVersions).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
   });
 
   describe("migration 14 — integrity constraints", () => {
@@ -186,6 +187,46 @@ describe("migrations", () => {
         `SELECT version FROM _migration_version`,
       );
       expect(appliedRows.map((r: any) => r.version)).not.toContain(15);
+    });
+  });
+
+  describe("migration 16 — singleton business_profiles", () => {
+    it("enforces at most one business profile row in SQLite via singleton index", async () => {
+      const db = await makeDatabaseAtVersion(15);
+      await runMigrations(db);
+
+      await db.runAsync(
+        `INSERT INTO business_profiles (business_name, owner_name, business_type, currency, selected_locale)
+         VALUES ('Profile 1', 'Owner 1', 'grocery', 'DZD', 'fr')`,
+      );
+
+      // Attempting to insert a second profile fails unique constraint
+      await expect(
+        db.runAsync(
+          `INSERT INTO business_profiles (business_name, owner_name, business_type, currency, selected_locale)
+           VALUES ('Profile 2', 'Owner 2', 'baker', 'DZD', 'fr')`,
+        ),
+      ).rejects.toThrow(/UNIQUE constraint failed/i);
+    });
+
+    it("aborts migration 16 before applying if multiple business profiles exist", async () => {
+      const db = await makeDatabaseAtVersion(15);
+
+      await db.runAsync(
+        `INSERT INTO business_profiles (business_name, owner_name, business_type, currency, selected_locale)
+         VALUES ('Profile 1', 'Owner 1', 'grocery', 'DZD', 'fr')`,
+      );
+      await db.runAsync(
+        `INSERT INTO business_profiles (business_name, owner_name, business_type, currency, selected_locale)
+         VALUES ('Profile 2', 'Owner 2', 'baker', 'DZD', 'fr')`,
+      );
+
+      await expect(runMigrations(db)).rejects.toThrow(/Migration 16 aborted.*Only one profile may exist/i);
+
+      const appliedRows: any[] = await db.getAllAsync(
+        `SELECT version FROM _migration_version`,
+      );
+      expect(appliedRows.map((r: any) => r.version)).not.toContain(16);
     });
   });
 
@@ -402,25 +443,40 @@ INSERT INTO probe_ln (note) VALUES ('offending; semicolon');`,
     });
   });
 
-  // @ts-ignore - the mock tests use the internal function directly
   describe("snapshotDatabaseFile (internal)", () => {
     it("executes PRAGMA wal_checkpoint(TRUNCATE) and PRAGMA integrity_check before copying", async () => {
-      // Mock a DB with explicit runAsync and getAllAsync to capture calls.
+      (FileSystem.copyAsync as jest.Mock).mockClear();
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValueOnce({ exists: true });
+
       const db: any = {
         runAsync: jest.fn(),
         getAllAsync: jest.fn().mockResolvedValue([{ integrity_check: "ok" }]),
       };
 
-      // Call the internal snapshot function with minimal mocking to avoid real file I/O.
-      // Since we are testing an internal function, we can just let the failure happen in the FileSystem.locationCheck.
-      // This test focuses on verifying the DB calls for checkpoint and integrity.
-      await require("../migrations").snapshotDatabaseFile(db, 1).catch(() => {});
+      await snapshotDatabaseFile(db, 14);
 
-      // Verify the checkpoint was called via runAsync.
       expect(db.runAsync).toHaveBeenCalledWith("PRAGMA wal_checkpoint(TRUNCATE)");
-
-      // Verify the integrity check was called via getAllAsync.
       expect(db.getAllAsync).toHaveBeenCalledWith("PRAGMA integrity_check");
+      expect(FileSystem.copyAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: expect.stringContaining("DukkanPro.db"),
+          to: expect.stringMatching(/DukkanPro\.db\.pre-v14-.*$/),
+        }),
+      );
+    });
+
+    it("handles missing DB file or unavailable documentDirectory safely", async () => {
+      (FileSystem.copyAsync as jest.Mock).mockClear();
+      (FileSystem.getInfoAsync as jest.Mock).mockResolvedValueOnce({ exists: false });
+
+      const db: any = {
+        runAsync: jest.fn(),
+        getAllAsync: jest.fn().mockResolvedValue([{ integrity_check: "ok" }]),
+      };
+
+      await snapshotDatabaseFile(db, 14);
+
+      expect(FileSystem.copyAsync).not.toHaveBeenCalled();
     });
   });
 });

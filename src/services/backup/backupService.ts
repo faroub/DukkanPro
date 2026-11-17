@@ -25,6 +25,7 @@ import {
   SUPPORTED_BACKUP_VERSION,
   TABLE_SPECS,
   TableRow,
+  MAX_BACKUP_FILE_SIZE_BYTES,
   type BackupData,
   type BackupTable,
   validateBackup,
@@ -157,6 +158,12 @@ export async function restoreBackup(
   fileContents: string,
   options: { confirmOverwrite?: boolean } = {},
 ): Promise<RestoreSummary> {
+  if (typeof fileContents === "string" && fileContents.length > MAX_BACKUP_FILE_SIZE_BYTES) {
+    throw new Error(
+      `MAX_BACKUP_SIZE_EXCEEDED: Backup file size (${Math.round(fileContents.length / (1024 * 1024))} MB) exceeds maximum allowed limit of 15 MB.`,
+    );
+  }
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(fileContents);

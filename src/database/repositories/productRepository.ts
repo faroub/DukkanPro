@@ -123,7 +123,7 @@ export function normalizeSkuForLookup(rawSku: string | null | undefined): string
 }
 
 /**
- * Retrieve a single product by SKU (case-insensitive & leading-zero tolerant).
+ * Retrieve a single product by SKU (indexed, case-insensitive & leading-zero tolerant).
  */
 export async function getBySku(sku: string): Promise<Product | null> {
   const target = normalizeSkuForLookup(sku);
@@ -135,16 +135,15 @@ export async function getBySku(sku: string): Promise<Product | null> {
             stock_quantity, minimum_stock_quantity, unit, is_active,
             created_at, updated_at
      FROM products
-     WHERE sku IS NOT NULL AND sku != ''`,
+     WHERE normalized_sku = ?`,
+    [target],
   );
 
-  for (const r of rows) {
-    if (normalizeSkuForLookup(r.sku) === target) {
-      return mapProductRow(r);
-    }
+  if (rows.length === 0) {
+    return null;
   }
 
-  return null;
+  return mapProductRow(rows[0]);
 }
 
 function validatePrice(priceCentimes: number, fieldName: string): void {

@@ -253,6 +253,24 @@ describe("saleRepository", () => {
       ).rejects.toThrow(/Amount paid must be a non-negative integer/i);
     });
 
+    it("rejects item quantity or unit price that overflows MAX_SAFE_INTEGER", async () => {
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          items: [{ productId: 1, quantity: 2, unitSalePriceCentimes: Number.MAX_SAFE_INTEGER }],
+        })
+      ).rejects.toThrow(/OVERFLOW/i);
+
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          items: [{ productId: 1, quantity: 1.5, unitSalePriceCentimes: 5000 }],
+        })
+      ).rejects.toThrow(/Quantity must be a positive integer/i);
+    });
+
     it("rejects a sale whose submitted unit price no longer matches the catalogue (PRICE_CHANGED)", async () => {
       // Product 1 currently sells for 5000; the cart snapshot is stale at 4000.
       await expect(
@@ -642,6 +660,16 @@ describe("saleRepository", () => {
 
       expect(filteredSales.length).toBeGreaterThan(0);
       expect(filteredSales.some((s) => s.note === "Midday Sale Test")).toBe(true);
+    });
+
+    it("rejects malformed or non-existent calendar dates in date range queries", async () => {
+      await expect(
+        getAll({ startDate: "invalid-date", endDate: "2026-10-25" })
+      ).rejects.toThrow(/Invalid date format/i);
+
+      await expect(
+        getAll({ startDate: "2026-02-31", endDate: "2026-02-31" })
+      ).rejects.toThrow(/Invalid calendar date/i);
     });
   });
 

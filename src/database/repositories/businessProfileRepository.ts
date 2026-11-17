@@ -7,7 +7,7 @@
  */
 
 import { BusinessProfile } from "../../types/entities";
-import { executeAll, executeWrite } from "../database";
+import { executeAll, executeRead, executeWrite, getDatabase, transaction } from "../database";
 import { setActiveStoreCurrency } from "@/utils/money";
 
 export type BusinessProfileFilters = {
@@ -40,13 +40,13 @@ type BusinessProfileUpdate = Omit<
  - Retrieve the first (or only) business profile.
  - Returns null if none exists (supports idempotent creation workflow).
  */
-export async function get(): Promise<BusinessProfile | null> {
-  const rows: any[] = await executeAll(
-    // No WHERE clause — we expect at most one row.
-    `SELECT id, business_name, owner_name, business_type, currency,
+export async function get(tx?: any): Promise<BusinessProfile | null> {
+  const sql = `SELECT id, business_name, owner_name, business_type, currency,
      selected_locale, phone_number, address, rc_number, created_at, updated_at
-     FROM business_profiles`,
-  );
+     FROM business_profiles ORDER BY id ASC LIMIT 1`;
+  const rows: any[] = tx
+    ? await executeRead(tx, sql)
+    : await executeAll(sql);
   if (rows.length === 0) {
     return null;
   }
@@ -77,41 +77,56 @@ export async function get(): Promise<BusinessProfile | null> {
 export async function create(
   profile: BusinessProfileInput,
 ): Promise<BusinessProfile> {
-  // Check if a profile already exists.
-  const existing: BusinessProfile | null = await get();
-  if (existing) {
-    if (existing.currency) {
-      setActiveStoreCurrency(existing.currency);
+  const db = await getDatabase();
+  return await transaction(db, async (tx: any) => {
+    // Check if a profile already exists.
+    const existing: BusinessProfile | null = await get(tx);
+    if (existing) {
+      if (existing.currency) {
+        setActiveStoreCurrency(existing.currency);
+      }
+      return existing;
     }
-    return existing;
-  }
 
-  await executeWrite(
-    // language=SQLite
-    `INSERT INTO business_profiles
-     (business_name, owner_name, business_type, currency, selected_locale,
-      phone_number, address, rc_number, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
-    [
-      profile.business_name,
-      profile.owner_name,
-      profile.business_type,
-      profile.currency,
-      profile.selected_locale,
-      profile.phone_number ?? null,
-      profile.address ?? null,
-      profile.rc_number ?? null,
-    ],
-  );
+    try {
+      await executeWrite(
+        tx,
+        // language=SQLite
+        `INSERT INTO business_profiles
+         (business_name, owner_name, business_type, currency, selected_locale,
+          phone_number, address, rc_number, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        [
+          profile.business_name,
+          profile.owner_name,
+          profile.business_type,
+          profile.currency,
+          profile.selected_locale,
+          profile.phone_number ?? null,
+          profile.address ?? null,
+          profile.rc_number ?? null,
+        ],
+      );
+    } catch (err: any) {
+      if (err?.message?.includes("UNIQUE constraint failed")) {
+        const afterExisting = await get(tx);
+        if (afterExisting) {
+          if (afterExisting.currency) setActiveStoreCurrency(afterExisting.currency);
+          return afterExisting;
+        }
+      }
+      throw err;
+    }
 
-  if (profile.currency) {
-    setActiveStoreCurrency(profile.currency);
-  }
+    if (profile.currency) {
+      setActiveStoreCurrency(profile.currency);
+    }
 
-  // Re-fetch the newly inserted row.
-  const created = await get();
-  if (!created) throw new Error("Business profile was not created");
-  return created;
+    // Re-fetch the newly inserted row.
+    const created = await get(tx);
+    if (!created) throw new Error("Business profile was not created");
+    return created;
+  });
 }
 
 /**

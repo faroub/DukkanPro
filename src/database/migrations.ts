@@ -71,6 +71,16 @@ async function assertNoNegativeMoneyOrStock(db: any): Promise<void> {
   }
 }
 
+export async function assertSingleBusinessProfile(db: any): Promise<void> {
+  const rows: any[] = await db.getAllAsync(`SELECT id, business_name FROM business_profiles`);
+  if (rows.length > 1) {
+    const details = rows.map((r) => `#${r.id} ("${r.business_name}")`).join(", ");
+    throw new Error(
+      `Migration 16 aborted: ${rows.length} business profile records exist in the database: ${details}. Only one profile may exist. Please resolve duplicate profiles before running this migration.`
+    );
+  }
+}
+
 export async function assertNoSkuCollisions(db: any): Promise<void> {
   const columns: any[] = await db.getAllAsync("PRAGMA table_info(products)");
   const hasCol = columns.some((c: any) => c.name.toLowerCase() === "normalized_sku");
@@ -174,6 +184,11 @@ const ALL_MIGRATIONS: Migration[] = [
     version: 15,
     sql: schema.normalizedSkuV15,
     precheck: assertNoSkuCollisions,
+  },
+  {
+    version: 16,
+    sql: schema.singletonBusinessProfileV16,
+    precheck: assertSingleBusinessProfile,
   },
 ];
 

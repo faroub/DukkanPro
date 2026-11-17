@@ -120,12 +120,19 @@ export function DataResetScreen() {
           onPress: async () => {
             setIsLoading(true);
             try {
-              await resetDatabase();
+              const cleanup = await resetDatabase();
               useCartStore.getState().clearCart();
-              showToast(
-                t("dataReset.success") ||
-                  "Database wiped. Returning to onboarding...",
-              );
+              if (cleanup && !cleanup.success) {
+                showToast(
+                  t("dataReset.partialSuccessWarning") ||
+                    "Database wiped, but some backup files could not be removed.",
+                );
+              } else {
+                showToast(
+                  t("dataReset.success") ||
+                    "Database wiped. Returning to onboarding...",
+                );
+              }
               router.replace("/onboarding");
             } catch (error) {
               console.error("Data reset error:", error);

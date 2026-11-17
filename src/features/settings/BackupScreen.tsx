@@ -47,6 +47,12 @@ function restoreErrorMessage(message: string, t: Translate): string {
   if (message.startsWith("UNSUPPORTED_BACKUP_VERSION")) {
     return t("backup.unsupportedVersion");
   }
+  if (message.startsWith("MAX_BACKUP_SIZE_EXCEEDED")) {
+    return t("backup.backupTooLarge") || "Backup file size exceeds the maximum limit of 15 MB.";
+  }
+  if (message.startsWith("MAX_BACKUP_ROWS_EXCEEDED")) {
+    return t("backup.backupRowsExceeded") || "Backup row count exceeds allowed limits.";
+  }
   if (message.startsWith("BACKUP_NEWER_VERSION")) {
     return t("backup.newerVersion");
   }

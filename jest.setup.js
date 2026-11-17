@@ -3,6 +3,18 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
+jest.mock('expo-file-system/legacy', () => ({
+  documentDirectory: '/mock/documents/',
+  getInfoAsync: jest.fn(() => Promise.resolve({ exists: true })),
+  copyAsync: jest.fn(() => Promise.resolve()),
+  makeDirectoryAsync: jest.fn(() => Promise.resolve()),
+  writeAsStringAsync: jest.fn(() => Promise.resolve()),
+  readAsStringAsync: jest.fn(() => Promise.resolve("{}")),
+  deleteAsync: jest.fn(() => Promise.resolve()),
+  readDirectoryAsync: jest.fn(() => Promise.resolve([])),
+  EncodingType: { UTF8: 'utf8' },
+}));
+
 jest.mock('expo-camera', () => ({
   useCameraPermissions: () => [{ granted: true, canAskAgain: true }, jest.fn()],
   CameraView: ({ children }) => children,

@@ -16,8 +16,10 @@ export interface LowStockItem {
 
 const SNOOZE_KEY = "dukkanpro_low_stock_snooze_until";
 
-// Memory cache for synchronous checks
+// Memory cache & readiness contract
 let inMemorySnoozeUntil = 0;
+let isSnoozeInitialized = false;
+let snoozeInitPromise: Promise<void> | null = null;
 
 export function isWebNotificationSupported(): boolean {
   return (
@@ -60,38 +62,97 @@ export async function requestNotificationPermission(): Promise<
   }
 }
 
-export function snoozeNotifications(minutes: number = 60): void {
-  const snoozeUntil = Date.now() + minutes * 60 * 1000;
-  inMemorySnoozeUntil = snoozeUntil;
-  AsyncStorage.setItem(SNOOZE_KEY, snoozeUntil.toString()).catch(() => {});
-}
-
-export function isNotificationSnoozed(): boolean {
-  if (inMemorySnoozeUntil > 0 && Date.now() < inMemorySnoozeUntil) {
-    return true;
-  }
-  return false;
-}
-
-export function clearSnooze(): void {
-  inMemorySnoozeUntil = 0;
-  AsyncStorage.removeItem(SNOOZE_KEY).catch(() => {});
-}
-
 /**
  * Initializes snooze state from AsyncStorage on app startup.
  */
 export async function initSnoozeState(): Promise<void> {
-  try {
-    const snoozeUntilStr = await AsyncStorage.getItem(SNOOZE_KEY);
-    if (snoozeUntilStr) {
-      const snoozeUntil = parseInt(snoozeUntilStr, 10);
-      if (!isNaN(snoozeUntil)) {
-        inMemorySnoozeUntil = snoozeUntil;
+  if (snoozeInitPromise) return snoozeInitPromise;
+
+  snoozeInitPromise = (async () => {
+    try {
+      const snoozeUntilStr = await AsyncStorage.getItem(SNOOZE_KEY);
+      if (snoozeUntilStr) {
+        const snoozeUntil = parseInt(snoozeUntilStr, 10);
+        if (Number.isFinite(snoozeUntil) && snoozeUntil > Date.now()) {
+          inMemorySnoozeUntil = snoozeUntil;
+        } else {
+          inMemorySnoozeUntil = 0;
+          await AsyncStorage.removeItem(SNOOZE_KEY).catch(() => {});
+        }
+      } else {
+        inMemorySnoozeUntil = 0;
       }
+    } catch (err) {
+      console.warn("Failed to load snooze state from AsyncStorage:", err);
+      inMemorySnoozeUntil = 0;
+    } finally {
+      isSnoozeInitialized = true;
     }
-  } catch {
-    // Ignore storage read issues
+  })();
+
+  return snoozeInitPromise;
+}
+
+/** Reset readiness state (for testing isolation) */
+export function _resetSnoozeStateForTesting(): void {
+  inMemorySnoozeUntil = 0;
+  isSnoozeInitialized = false;
+  snoozeInitPromise = null;
+}
+
+/**
+ * Ensure snooze state is initialized before checking notifications.
+ */
+export async function ensureSnoozeInitialized(): Promise<void> {
+  if (!isSnoozeInitialized) {
+    await initSnoozeState();
+  }
+}
+
+/**
+ * Snooze low stock notifications for a specified duration in minutes.
+ */
+export async function snoozeNotifications(minutes: number = 60): Promise<number> {
+  if (typeof minutes !== "number" || !Number.isFinite(minutes) || minutes <= 0 || minutes > 10080) {
+    throw new Error(
+      `INVALID_SNOOZE_DURATION: minutes must be a positive finite number <= 10080 (7 days), received ${minutes}`,
+    );
+  }
+
+  const snoozeUntil = Date.now() + minutes * 60 * 1000;
+  inMemorySnoozeUntil = snoozeUntil;
+  isSnoozeInitialized = true;
+
+  try {
+    await AsyncStorage.setItem(SNOOZE_KEY, snoozeUntil.toString());
+  } catch (err) {
+    console.warn("Failed to persist snooze state:", err);
+    throw err;
+  }
+
+  return snoozeUntil;
+}
+
+export function isNotificationSnoozed(): boolean {
+  if (inMemorySnoozeUntil > 0) {
+    if (Date.now() < inMemorySnoozeUntil) {
+      return true;
+    }
+    // Expired
+    inMemorySnoozeUntil = 0;
+    AsyncStorage.removeItem(SNOOZE_KEY).catch(() => {});
+  }
+  return false;
+}
+
+export async function clearSnooze(): Promise<void> {
+  inMemorySnoozeUntil = 0;
+  isSnoozeInitialized = true;
+  try {
+    await AsyncStorage.removeItem(SNOOZE_KEY);
+  } catch (err) {
+    console.warn("Failed to clear snooze from AsyncStorage:", err);
+    throw err;
   }
 }
 
@@ -99,7 +160,7 @@ export async function initSnoozeState(): Promise<void> {
 initSnoozeState();
 
 /**
- * Triggers a push notification for low stock products (Web Notification API on Web, in-app on Native).
+ * Triggers a push notification for low stock products.
  */
 export function triggerLowStockPushNotification(
   products: LowStockItem[],

@@ -17,6 +17,11 @@
 export const BACKUP_FORMAT = "dukkanpro-backup";
 export const SUPPORTED_BACKUP_VERSION = 1;
 
+export const MAX_BACKUP_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
+export const MAX_BACKUP_ROW_COUNT_PER_TABLE = 100000; // 100,000 rows per table
+export const MAX_BACKUP_TOTAL_ROW_COUNT = 500000; // 500,000 total rows
+export const MAX_BACKUP_STRING_LENGTH = 10000; // 10,000 chars per text field
+
 /** A SQLite cell as JSON: INTEGER, TEXT or NULL. */
 export type SqlJsonValue = number | string | null;
 export type TableRow = Record<string, SqlJsonValue>;
@@ -187,10 +192,24 @@ export function validateBackup(
   }
   const tables = root.tables as Record<string, unknown>;
 
+  let totalRows = 0;
   for (const table of BACKUP_TABLES) {
-    if (!Array.isArray(tables[table])) {
+    const rows = tables[table];
+    if (!Array.isArray(rows)) {
       throw invalid(`tables.${table} is missing or not an array`);
     }
+    if (rows.length > MAX_BACKUP_ROW_COUNT_PER_TABLE) {
+      throw new Error(
+        `MAX_BACKUP_ROWS_EXCEEDED: Table "${table}" contains ${rows.length} rows, exceeding limit of ${MAX_BACKUP_ROW_COUNT_PER_TABLE}.`,
+      );
+    }
+    totalRows += rows.length;
+  }
+
+  if (totalRows > MAX_BACKUP_TOTAL_ROW_COUNT) {
+    throw new Error(
+      `MAX_BACKUP_ROWS_EXCEEDED: Total backup row count (${totalRows}) exceeds limit of ${MAX_BACKUP_TOTAL_ROW_COUNT}.`,
+    );
   }
 
   for (const table of BACKUP_TABLES) {
@@ -213,6 +232,11 @@ export function validateBackup(
           }
         } else if (typeof value !== "string") {
           throw invalidContent(table, `column "${key}" must be a string (row ${index})`);
+        } else if (value.length > MAX_BACKUP_STRING_LENGTH) {
+          throw invalidContent(
+            table,
+            `column "${key}" string length (${value.length}) exceeds maximum limit of ${MAX_BACKUP_STRING_LENGTH} chars (row ${index})`,
+          );
         }
       }
     });
