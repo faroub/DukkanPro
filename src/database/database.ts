@@ -65,6 +65,7 @@ export async function getDatabase() {
       // A rejected promise would poison every subsequent getDatabase() call
       // until the app restarts. Clearing it lets the caller retry the open
       // and migration once the transient cause is resolved.
+      database = null;
       databasePromise = null;
       throw error instanceof Error
         ? error
@@ -76,19 +77,35 @@ export async function getDatabase() {
 }
 
 /**
- * Closes the database connection.
- * Call on app unload (e.g., in an Effect cleanup).
+ * Closes the database connection safely through the mutex queue.
+ * Ensures queued operations or active transactions complete before closing.
  */
 export async function closeDatabase(): Promise<void> {
-  if (database) {
-    await database.closeAsync();
-    database = null;
-    databasePromise = null;
-  }
+  return dbMutex.runExclusive(async () => {
+    if (databasePromise) {
+      try {
+        await databasePromise;
+      } catch {}
+    }
+    if (database) {
+      try {
+        await database.closeAsync();
+      } catch (err) {
+        console.warn("Error closing database connection:", err);
+      }
+      database = null;
+      databasePromise = null;
+    }
+  });
 }
 
 function isSQLiteDatabase(obj: any): obj is SQLiteDatabase {
-  return obj && typeof obj === "object" && typeof obj.runAsync === "function";
+  return (
+    obj &&
+    typeof obj === "object" &&
+    typeof obj.runAsync === "function" &&
+    typeof obj.getAllAsync === "function"
+  );
 }
 
 /**
@@ -159,14 +176,22 @@ export async function executeWrite(
 
 /**
  * Run a function inside a SQLite transaction, serialized via dbMutex.
+ * Standalone calls acquire dbMutex to serialize BEGIN IMMEDIATE ... COMMIT across concurrent callers.
+ * If called with a transaction handle (tx) from inside an active transaction,
+ * executes fn(tx) directly without beginning a nested transaction or deadlock.
  */
 export async function transaction<T>(
   firstArg: SQLiteDatabase | ((db: SQLiteDatabase) => Promise<T>),
   secondArg?: (db: SQLiteDatabase) => Promise<T>,
 ): Promise<T> {
-  const fn = isSQLiteDatabase(firstArg) ? secondArg! : firstArg;
+  const fn = typeof firstArg === "function" ? firstArg : secondArg!;
+
+  if (isSQLiteDatabase(firstArg) && dbMutex.locked) {
+    return fn(firstArg);
+  }
+
   return dbMutex.runExclusive(async () => {
-    const db = await getDatabase();
+    const db = isSQLiteDatabase(firstArg) ? firstArg : await getDatabase();
     return rawTransaction(db, fn);
   });
 }
