@@ -55,23 +55,42 @@ export const useCartStore = create<CartState>()(
 
       // Expects a full product object; converts to CartProduct before storing
       addItemWithProduct: (product: Product, quantity: number) => {
+        if (!product || typeof product.id !== "number" || !Number.isSafeInteger(product.id)) {
+          return;
+        }
+        const validQuantity =
+          typeof quantity === "number" && Number.isSafeInteger(quantity) && quantity > 0
+            ? quantity
+            : 1;
+
         // Convert to CartProduct (exclude sensitive fields)
         const cartProduct: CartProduct = {
           id: product.id,
           name: product.name,
-          sku: product.sku,
-          category: product.category,
-          sale_price_centimes: product.sale_price_centimes,
-          stock_quantity: product.stock_quantity,
-          unit: product.unit,
-          is_active: product.is_active,
+          sku: product.sku ?? null,
+          category: product.category ?? null,
+          sale_price_centimes:
+            typeof product.sale_price_centimes === "number" &&
+            Number.isSafeInteger(product.sale_price_centimes) &&
+            product.sale_price_centimes >= 0
+              ? product.sale_price_centimes
+              : 0,
+          stock_quantity:
+            typeof product.stock_quantity === "number" &&
+            Number.isSafeInteger(product.stock_quantity) &&
+            product.stock_quantity >= 0
+              ? product.stock_quantity
+              : 0,
+          unit: product.unit || "pcs",
+          is_active: product.is_active !== false,
         };
+
         set((state) => {
           const existingItem = state.items.find(item => item.product.id === cartProduct.id);
           const maxAvailable = Math.max(0, cartProduct.stock_quantity ?? 0);
 
           if (existingItem) {
-            const desiredQty = existingItem.quantity + quantity;
+            const desiredQty = existingItem.quantity + validQuantity;
             const clampedQty = Math.min(desiredQty, maxAvailable);
             if (clampedQty <= 0) return state;
 
@@ -83,7 +102,7 @@ export const useCartStore = create<CartState>()(
               ),
             };
           } else {
-            const initialQty = Math.min(quantity, maxAvailable);
+            const initialQty = Math.min(validQuantity, maxAvailable);
             if (initialQty <= 0) return state;
 
             return {
@@ -93,13 +112,34 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      // Replaces each cart item's product snapshot with the given fresh record
-      // (used after a catalogue change, e.g. a price detected as stale at checkout)
+      // Replaces each cart item's product snapshot with the given fresh record,
+      // strictly ensuring only CartProduct fields are retained (stripping cost_price_centimes)
       refreshItemProducts: (products: Product[]) => {
         set((state) => ({
           items: state.items.map((item) => {
             const fresh = products.find((p) => p.id === item.product.id);
-            return fresh ? { ...item, product: fresh } : item;
+            if (!fresh) return item;
+            const cartProduct: CartProduct = {
+              id: fresh.id,
+              name: fresh.name,
+              sku: fresh.sku ?? null,
+              category: fresh.category ?? null,
+              sale_price_centimes:
+                typeof fresh.sale_price_centimes === "number" &&
+                Number.isSafeInteger(fresh.sale_price_centimes) &&
+                fresh.sale_price_centimes >= 0
+                  ? fresh.sale_price_centimes
+                  : 0,
+              stock_quantity:
+                typeof fresh.stock_quantity === "number" &&
+                Number.isSafeInteger(fresh.stock_quantity) &&
+                fresh.stock_quantity >= 0
+                  ? fresh.stock_quantity
+                  : 0,
+              unit: fresh.unit || "pcs",
+              is_active: fresh.is_active !== false,
+            };
+            return { ...item, product: cartProduct };
           }),
         }));
       },
@@ -111,11 +151,16 @@ export const useCartStore = create<CartState>()(
       },
 
       subtractItem: (productId: number, quantity: number = 1) => {
+        const validQuantity =
+          typeof quantity === "number" && Number.isSafeInteger(quantity) && quantity > 0
+            ? quantity
+            : 1;
+
         set((state) => {
           const existingItem = state.items.find(item => item.product.id === productId);
           if (!existingItem) return state;
 
-          const newQuantity = existingItem.quantity - quantity;
+          const newQuantity = existingItem.quantity - validQuantity;
           if (newQuantity <= 0) {
             return {
               items: state.items.filter(item => item.product.id !== productId),
@@ -133,13 +178,14 @@ export const useCartStore = create<CartState>()(
       },
 
       updateQuantity: (productId: number, quantity: number) => {
-        set((state) => {
-          if (quantity <= 0) {
-            return {
-              items: state.items.filter(item => item.product.id !== productId),
-            };
-          }
+        if (!Number.isSafeInteger(quantity) || quantity <= 0) {
+          set((state) => ({
+            items: state.items.filter(item => item.product.id !== productId),
+          }));
+          return;
+        }
 
+        set((state) => {
           return {
             items: state.items.map(item => {
               if (item.product.id !== productId) return item;
@@ -159,14 +205,20 @@ export const useCartStore = create<CartState>()(
       },
 
       setDiscount: (value: number) => {
-        set({ discount: value });
+        const cleanDiscount =
+          typeof value === "number" && Number.isSafeInteger(value) && value >= 0
+            ? Math.floor(value)
+            : 0;
+        set({ discount: cleanDiscount });
       },
 
       // Getters
       subtotal: () => {
         const state = get();
         return state.items.reduce((sum, item) => {
-          return sum + (item.product.sale_price_centimes * item.quantity);
+          const price = item.product.sale_price_centimes || 0;
+          const qty = item.quantity || 0;
+          return sum + (price * qty);
         }, 0);
       },
 
@@ -183,12 +235,65 @@ export const useCartStore = create<CartState>()(
 
       itemCount: () => {
         const state = get();
-        return state.items.reduce((count, item) => count + item.quantity, 0);
+        return state.items.reduce((count, item) => count + (item.quantity || 0), 0);
       },
     }),
     {
       name: 'dukkanos-cart-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const rawItems = state.items || [];
+        const sanitizedItems: CartItem[] = [];
+
+        for (const item of rawItems) {
+          if (
+            item &&
+            item.product &&
+            typeof item.product.id === "number" &&
+            Number.isSafeInteger(item.product.id) &&
+            item.product.id > 0 &&
+            typeof item.product.sale_price_centimes === "number" &&
+            Number.isSafeInteger(item.product.sale_price_centimes) &&
+            item.product.sale_price_centimes >= 0 &&
+            typeof item.quantity === "number" &&
+            Number.isSafeInteger(item.quantity) &&
+            item.quantity > 0
+          ) {
+            const cleanProduct: CartProduct = {
+              id: item.product.id,
+              name: String(item.product.name || ""),
+              sku: item.product.sku ? String(item.product.sku) : null,
+              category: item.product.category ? String(item.product.category) : null,
+              sale_price_centimes: item.product.sale_price_centimes,
+              stock_quantity:
+                typeof item.product.stock_quantity === "number" &&
+                Number.isSafeInteger(item.product.stock_quantity) &&
+                item.product.stock_quantity >= 0
+                  ? item.product.stock_quantity
+                  : 0,
+              unit: item.product.unit ? String(item.product.unit) : "pcs",
+              is_active: item.product.is_active !== false,
+            };
+            sanitizedItems.push({
+              product: cleanProduct,
+              quantity: item.quantity,
+            });
+          }
+        }
+
+        const sanitizedDiscount =
+          typeof state.discount === "number" &&
+          Number.isSafeInteger(state.discount) &&
+          state.discount >= 0
+            ? state.discount
+            : 0;
+
+        useCartStore.setState({
+          items: sanitizedItems,
+          discount: sanitizedDiscount,
+        });
+      },
       partialize: (state) => ({
         items: state.items.map((item) => ({
           product: {

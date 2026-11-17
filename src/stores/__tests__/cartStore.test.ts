@@ -101,4 +101,42 @@ it('does not persist sensitive product fields (cost_price_centimes)', async () =
     expect(persistedProduct).not.toHaveProperty('created_at');
     expect(persistedProduct).not.toHaveProperty('updated_at');
   });
+
+  it('strips cost_price_centimes when refreshItemProducts is called with fresh Product records', () => {
+    useCartStore.getState().addItemWithProduct(mockProduct, 2);
+
+    const freshProductWithCost: Product = {
+      ...mockProduct,
+      sale_price_centimes: 15000,
+      cost_price_centimes: 11000,
+    };
+
+    useCartStore.getState().refreshItemProducts([freshProductWithCost]);
+
+    const updatedItem = useCartStore.getState().items[0];
+    expect(updatedItem.product.sale_price_centimes).toBe(15000);
+    expect(updatedItem.product).not.toHaveProperty('cost_price_centimes');
+  });
+
+  it('sanitizes corrupted storage data during rehydration', () => {
+    const corruptedState = {
+      items: [
+        { product: { id: 1, name: 'Valid Item', sale_price_centimes: 5000, stock_quantity: 10 }, quantity: 2 },
+        { product: { id: 2, name: 'Bad Price Item', sale_price_centimes: -1000, stock_quantity: 10 }, quantity: 1 },
+        { product: { id: 3, name: 'Bad Qty Item', sale_price_centimes: 1000, stock_quantity: 10 }, quantity: -5 },
+      ],
+      preserveCart: false,
+      discount: -500,
+    };
+
+    useCartStore.setState(corruptedState as any);
+
+    const rehydrateFn = (useCartStore.persist.getOptions().onRehydrateStorage as any)();
+    rehydrateFn(useCartStore.getState());
+
+    const sanitized = useCartStore.getState();
+    expect(sanitized.items).toHaveLength(1);
+    expect(sanitized.items[0].product.name).toBe('Valid Item');
+    expect(sanitized.discountAmount()).toBe(0);
+  });
 });
