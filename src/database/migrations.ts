@@ -81,13 +81,12 @@ export async function assertSingleBusinessProfile(db: any): Promise<void> {
   }
 }
 
+/**
+ * Read-only migration 15 precheck.
+ * Detects canonical SKU collisions before any schema change or data write.
+ * Never modifies database schema or business data.
+ */
 export async function assertNoSkuCollisions(db: any): Promise<void> {
-  const columns: any[] = await db.getAllAsync("PRAGMA table_info(products)");
-  const hasCol = columns.some((c: any) => c.name.toLowerCase() === "normalized_sku");
-  if (!hasCol) {
-    await db.execAsync("ALTER TABLE products ADD COLUMN normalized_sku TEXT");
-  }
-
   const rows: any[] = await db.getAllAsync(
     `SELECT id, name, sku FROM products WHERE sku IS NOT NULL AND sku != ''`
   );
@@ -110,14 +109,6 @@ export async function assertNoSkuCollisions(db: any): Promise<void> {
     throw new Error(
       `Migration 15 aborted: ${collisions.length} SKU collision group(s) exist in the database: ${details}. Existing products must be updated to distinct SKUs before canonical uniqueness can be enforced.`
     );
-  }
-
-  // Populate normalized_sku for existing rows
-  for (const r of rows) {
-    const normalized = normalizeSkuForLookup(r.sku);
-    if (normalized) {
-      await db.runAsync(`UPDATE products SET normalized_sku = ? WHERE id = ?`, [normalized, r.id]);
-    }
   }
 }
 
@@ -450,6 +441,17 @@ export async function runMigrations(
         }
         await rawTransaction(db, async (tx) => {
           await execDefensiveSql(tx, migration.sql);
+          if (migration.version === 15) {
+            const productRows: any[] = await tx.getAllAsync(
+              `SELECT id, sku FROM products WHERE sku IS NOT NULL AND sku != ''`
+            );
+            for (const r of productRows) {
+              const normalized = normalizeSkuForLookup(r.sku);
+              if (normalized) {
+                await tx.runAsync(`UPDATE products SET normalized_sku = ? WHERE id = ?`, [normalized, r.id]);
+              }
+            }
+          }
           await tx.runAsync(
             "INSERT INTO _migration_version (version) VALUES (?)",
             [migration.version],

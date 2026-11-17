@@ -131,12 +131,17 @@ export async function create(
 
 /**
  * Helper to check if any financial transactions (sales or customer payments) exist.
+ * Accepts an optional transaction handle `tx` to perform the read atomically inside an active transaction.
  */
-export async function hasExistingTransactions(): Promise<boolean> {
-  const saleRows: any[] = await executeAll(`SELECT COUNT(*) AS c FROM sales`);
+export async function hasExistingTransactions(tx?: any): Promise<boolean> {
+  const saleRows: any[] = tx
+    ? await executeRead(tx, `SELECT COUNT(*) AS c FROM sales`)
+    : await executeAll(`SELECT COUNT(*) AS c FROM sales`);
   if (saleRows[0]?.c > 0) return true;
 
-  const paymentRows: any[] = await executeAll(`SELECT COUNT(*) AS c FROM customer_payments`);
+  const paymentRows: any[] = tx
+    ? await executeRead(tx, `SELECT COUNT(*) AS c FROM customer_payments`)
+    : await executeAll(`SELECT COUNT(*) AS c FROM customer_payments`);
   if (paymentRows[0]?.c > 0) return true;
 
   return false;
@@ -146,49 +151,56 @@ export async function hasExistingTransactions(): Promise<boolean> {
  * Update an existing business profile.
  * Only the provided fields are updated; id, created_at remain unchanged.
  * Rejects currency changes if sales or payments already exist.
+ * Entire validation and update sequence is atomic inside one SQLite transaction.
  */
 export async function update(
   profile: BusinessProfileUpdate,
 ): Promise<BusinessProfile> {
-  const current = await get();
-  if (current && profile.currency && profile.currency !== current.currency) {
-    const hasTx = await hasExistingTransactions();
-    if (hasTx) {
-      throw new Error(
-        "CURRENCY_LOCKED: Currency cannot be changed after sales or payments have been recorded."
-      );
+  const db = await getDatabase();
+  return await transaction(db, async (tx: any) => {
+    const current = await get(tx);
+    if (current && profile.currency && profile.currency !== current.currency) {
+      const hasTx = await hasExistingTransactions(tx);
+      if (hasTx) {
+        throw new Error(
+          "CURRENCY_LOCKED: Currency cannot be changed after sales or payments have been recorded."
+        );
+      }
     }
-  }
 
-  await executeWrite(
-    // language=SQLite
-    `UPDATE business_profiles
-     SET business_name = ?,
-         owner_name = ?,
-         business_type = ?,
-         currency = ?,
-         selected_locale = ?,
-         phone_number = ?,
-         address = ?,
-         rc_number = ?,
-         updated_at = datetime('now')
-     WHERE id = ?`,
-    [
-      profile.business_name,
-      profile.owner_name,
-      profile.business_type,
-      profile.currency,
-      profile.selected_locale,
-      profile.phone_number ?? null,
-      profile.address ?? null,
-      profile.rc_number ?? null,
-      profile.id,
-    ],
-  );
-  if (profile.currency) {
-    setActiveStoreCurrency(profile.currency);
-  }
-  const updated = await get();
-  if (!updated) throw new Error("Business profile was not updated");
-  return updated;
+    await executeWrite(
+      tx,
+      // language=SQLite
+      `UPDATE business_profiles
+       SET business_name = ?,
+           owner_name = ?,
+           business_type = ?,
+           currency = ?,
+           selected_locale = ?,
+           phone_number = ?,
+           address = ?,
+           rc_number = ?,
+           updated_at = datetime('now')
+       WHERE id = ?`,
+      [
+        profile.business_name,
+        profile.owner_name,
+        profile.business_type,
+        profile.currency,
+        profile.selected_locale,
+        profile.phone_number ?? null,
+        profile.address ?? null,
+        profile.rc_number ?? null,
+        profile.id,
+      ],
+    );
+
+    if (profile.currency) {
+      setActiveStoreCurrency(profile.currency);
+    }
+
+    const updated = await get(tx);
+    if (!updated) throw new Error("Business profile was not updated");
+    return updated;
+  });
 }

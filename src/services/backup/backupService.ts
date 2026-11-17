@@ -19,6 +19,7 @@ import * as FileSystem from "expo-file-system/legacy";
 
 import { executeAll, executeRead, executeWrite, getDatabase, transaction } from "@/database/database";
 import { migrationVersions } from "@/database/migrations";
+import { normalizeSkuForLookup } from "@/database/repositories/productRepository";
 import {
   BACKUP_FORMAT,
   BACKUP_TABLES,
@@ -26,6 +27,7 @@ import {
   TABLE_SPECS,
   TableRow,
   MAX_BACKUP_FILE_SIZE_BYTES,
+  getUtf8ByteLength,
   type BackupData,
   type BackupTable,
   validateBackup,
@@ -158,10 +160,13 @@ export async function restoreBackup(
   fileContents: string,
   options: { confirmOverwrite?: boolean } = {},
 ): Promise<RestoreSummary> {
-  if (typeof fileContents === "string" && fileContents.length > MAX_BACKUP_FILE_SIZE_BYTES) {
-    throw new Error(
-      `MAX_BACKUP_SIZE_EXCEEDED: Backup file size (${Math.round(fileContents.length / (1024 * 1024))} MB) exceeds maximum allowed limit of 15 MB.`,
-    );
+  if (typeof fileContents === "string") {
+    const byteLength = getUtf8ByteLength(fileContents);
+    if (byteLength > MAX_BACKUP_FILE_SIZE_BYTES) {
+      throw new Error(
+        `MAX_BACKUP_SIZE_EXCEEDED: Backup file size (${Math.round(byteLength / (1024 * 1024))} MB) exceeds maximum allowed limit of 15 MB.`,
+      );
+    }
   }
 
   let parsed: unknown;
@@ -202,13 +207,28 @@ export async function restoreBackup(
     //    statements; foreign keys hold throughout the order).
     let rowsImported = 0;
     for (const table of INSERT_ORDER) {
-      const cols = columnsOf(table);
-      const sql = `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols
-        .map(() => "?")
-        .join(", ")})`;
-      for (const row of backup.tables[table]) {
-        await executeWrite(tx, sql, cols.map((c) => row[c] ?? null));
-        rowsImported++;
+      if (table === "products") {
+        const cols = [...columnsOf("products"), "normalized_sku"];
+        const sql = `INSERT INTO products (${cols.join(", ")}) VALUES (${cols
+          .map(() => "?")
+          .join(", ")})`;
+        for (const row of backup.tables.products) {
+          const rawSku = row.sku ? String(row.sku).trim() || null : null;
+          const normalized = normalizeSkuForLookup(rawSku);
+          const values = columnsOf("products").map((c) => (c === "sku" ? rawSku : row[c] ?? null));
+          values.push(normalized);
+          await executeWrite(tx, sql, values);
+          rowsImported++;
+        }
+      } else {
+        const cols = columnsOf(table);
+        const sql = `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols
+          .map(() => "?")
+          .join(", ")})`;
+        for (const row of backup.tables[table]) {
+          await executeWrite(tx, sql, cols.map((c) => row[c] ?? null));
+          rowsImported++;
+        }
       }
     }
 

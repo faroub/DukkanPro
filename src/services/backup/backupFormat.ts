@@ -17,10 +17,40 @@
 export const BACKUP_FORMAT = "dukkanpro-backup";
 export const SUPPORTED_BACKUP_VERSION = 1;
 
+import { normalizeSkuForLookup } from "@/database/repositories/productRepository";
+
 export const MAX_BACKUP_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
 export const MAX_BACKUP_ROW_COUNT_PER_TABLE = 100000; // 100,000 rows per table
 export const MAX_BACKUP_TOTAL_ROW_COUNT = 500000; // 500,000 total rows
 export const MAX_BACKUP_STRING_LENGTH = 10000; // 10,000 chars per text field
+
+/**
+ * Calculate the exact UTF-8 byte length of a string without unnecessary memory allocations.
+ */
+export function getUtf8ByteLength(str: string): number {
+  if (!str) return 0;
+  if (typeof TextEncoder !== "undefined") {
+    return new TextEncoder().encode(str).length;
+  }
+  if (typeof Buffer !== "undefined") {
+    return Buffer.byteLength(str, "utf8");
+  }
+  let bytes = 0;
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code <= 0x7f) {
+      bytes += 1;
+    } else if (code <= 0x7ff) {
+      bytes += 2;
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      bytes += 4;
+      i++;
+    } else {
+      bytes += 3;
+    }
+  }
+  return bytes;
+}
 
 /** A SQLite cell as JSON: INTEGER, TEXT or NULL. */
 export type SqlJsonValue = number | string | null;
@@ -241,6 +271,25 @@ export function validateBackup(
       }
     });
   }
+
+  // Check for canonical SKU collisions across product rows in backup
+  const productRows = tables.products as TableRow[];
+  const canonicalSkuSet = new Set<string>();
+  productRows.forEach((prod, index) => {
+    const rawSku = prod.sku;
+    if (typeof rawSku === "string" && rawSku.trim().length > 0) {
+      const normalized = normalizeSkuForLookup(rawSku);
+      if (normalized) {
+        if (canonicalSkuSet.has(normalized)) {
+          throw invalidContent(
+            "products",
+            `canonical SKU collision on "${normalized}" (row ${index}, sku "${rawSku}")`,
+          );
+        }
+        canonicalSkuSet.add(normalized);
+      }
+    }
+  });
 
   // Foreign-key shape: every non-null reference must resolve to a parent row
   // inside the backup itself.

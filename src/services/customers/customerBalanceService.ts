@@ -247,11 +247,11 @@ export async function recordPayment(
     return null;
   }
 
-  const profile = await getBusinessProfile();
-  const activeCurrency = profile?.currency || "DZD";
-
   const db = await getDatabase();
   return await transaction(db, async (tx) => {
+    const profile = await getBusinessProfile(tx);
+    const activeCurrency = profile?.currency || "DZD";
+
     // Re-check the debt INSIDE the transaction using explicit tx handle
     const debt = await getCustomerDebt(customerId, tx);
     if (amount > debt) {
@@ -307,11 +307,11 @@ export async function recordRefund(
     return null;
   }
 
-  const profile = await getBusinessProfile();
-  const activeCurrency = profile?.currency || "DZD";
-
   const db = await getDatabase();
   return await transaction(db, async (tx) => {
+    const profile = await getBusinessProfile(tx);
+    const activeCurrency = profile?.currency || "DZD";
+
     // Re-check the credit INSIDE the transaction using explicit tx handle
     const credit = await getCustomerCredit(customerId, tx);
     if (amount > credit) {

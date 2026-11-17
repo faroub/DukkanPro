@@ -282,6 +282,34 @@ describe("productRepository", () => {
       expect(updated2?.sku).toBeNull();
     });
 
+    it("updates SKU and normalized_sku together so new SKU resolves and old SKU no longer resolves", async () => {
+      const p = await create({
+        name: "SKU Update Product",
+        sku: "OLD-SKU-123",
+        category: "Test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 10,
+        minimum_stock_quantity: 2,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      expect((await getBySku("OLD-SKU-123"))?.id).toBe(p.id);
+
+      await update(p.id, { sku: "  00NEW-SKU-456  " });
+
+      // Old SKU must no longer resolve
+      expect(await getBySku("OLD-SKU-123")).toBeNull();
+
+      // New SKU resolves via case-insensitive / zero-tolerant lookup
+      expect((await getBySku("new-sku-456"))?.id).toBe(p.id);
+
+      // Clearing SKU to null clears normalized_sku
+      await update(p.id, { sku: null });
+      expect(await getBySku("new-sku-456")).toBeNull();
+    });
+
     it("performs case-insensitive and leading-zero tolerant SKU lookups in getBySku", async () => {
       const p = await create({
         name: "Barcode Test Product",

@@ -165,7 +165,7 @@ describe("migrations", () => {
       ).rejects.toThrow(/UNIQUE constraint failed/i);
     });
 
-    it("aborts migration 15 before applying if existing products have colliding normalized SKUs", async () => {
+    it("aborts migration 15 before applying if existing products have colliding normalized SKUs without mutating schema or data", async () => {
       const db = await makeDatabaseAtVersion(14);
 
       // Seed two products whose SKUs normalize to the same key "12345abc"
@@ -182,11 +182,30 @@ describe("migrations", () => {
 
       await expect(runMigrations(db)).rejects.toThrow(/Migration 15 aborted.*SKU collision group/i);
 
-      // Migration 15 should NOT be recorded as applied
+      // 1. Version 15 not recorded
       const appliedRows: any[] = await db.getAllAsync(
         `SELECT version FROM _migration_version`,
       );
       expect(appliedRows.map((r: any) => r.version)).not.toContain(15);
+
+      // 2. Schema remains unchanged (normalized_sku column not added)
+      const columns: any[] = await db.getAllAsync("PRAGMA table_info(products)");
+      expect(columns.some((c: any) => c.name.toLowerCase() === "normalized_sku")).toBe(false);
+
+      // 3. Existing products and SKUs remain unchanged
+      const pA = await db.getFirstAsync("SELECT name, sku FROM products WHERE name = 'Product A'");
+      expect(pA?.sku).toBe("0012345ABC");
+
+      // 4. Correct collision by updating Product B to a distinct SKU
+      await db.runAsync("UPDATE products SET sku = 'DISTINCT-SKU-999' WHERE name = 'Product B'");
+
+      // 5. Re-running runMigrations now succeeds idempotently
+      await expect(runMigrations(db)).resolves.not.toThrow();
+
+      const appliedAfter: any[] = await db.getAllAsync(
+        `SELECT version FROM _migration_version`,
+      );
+      expect(appliedAfter.map((r: any) => r.version)).toContain(15);
     });
   });
 

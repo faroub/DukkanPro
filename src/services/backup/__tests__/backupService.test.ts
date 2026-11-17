@@ -14,7 +14,7 @@
 import * as FileSystem from "expo-file-system/legacy";
 
 import { getDatabase } from "@/database/database";
-import { create as createProduct, adjustStock } from "@/database/repositories/productRepository";
+import { create as createProduct, adjustStock, getBySku } from "@/database/repositories/productRepository";
 import { create as createCustomer } from "@/database/repositories/customerRepository";
 import { create as createSale } from "@/database/repositories/saleRepository";
 import { getActiveStoreCurrency } from "@/utils/money";
@@ -212,6 +212,36 @@ describe("backupService", () => {
       expect(saleRows[0].currency).toBe("DZD");
     });
 
+    it("reconstructs normalized_sku on restore so getBySku and canonical uniqueness work", async () => {
+      await seed("SKURestore");
+      const backup = await buildBackup();
+      await resetDatabase();
+
+      await restoreBackup(JSON.stringify(backup));
+
+      const restored = await getBySku("bkp-skurestore");
+      expect(restored).not.toBeNull();
+      expect(restored?.name).toBe("Item SKURestore");
+    });
+
+    it("rejects a backup containing canonical SKU collisions before touching database", async () => {
+      await seed("SKUCollision");
+      const backup = await buildBackup();
+      const tampered = JSON.parse(JSON.stringify(backup)) as BackupData;
+
+      // Add a second product with a colliding canonical SKU ("00bkp-skucollision")
+      const p1 = tampered.tables.products[0];
+      const p2 = { ...p1, id: 999, name: "Colliding Item", sku: "00" + p1.sku };
+      tampered.tables.products.push(p2);
+
+      await resetDatabase();
+
+      await expect(restoreBackup(JSON.stringify(tampered))).rejects.toThrow(
+        /canonical SKU collision/i,
+      );
+      expect(await tableCount("products")).toBe(0);
+    });
+
     it("replaces existing data when confirmOverwrite is set", async () => {
       const seededA = await seed("A4");
       const backupA = await buildBackup();
@@ -352,6 +382,14 @@ describe("backupService", () => {
       const fakeLargeContent = "a".repeat(16 * 1024 * 1024);
 
       await expect(restoreBackup(fakeLargeContent)).rejects.toThrow("MAX_BACKUP_SIZE_EXCEEDED");
+    });
+
+    it("rejects a multibyte Arabic backup exceeding 15MB UTF-8 bytes even if char count is less than 15M", async () => {
+      await seed("ArabicMultibyte");
+      // 8 million 2-byte Arabic characters = 8 million chars, but 16 MB UTF-8 bytes!
+      const multibyteArabicContent = "م".repeat(8 * 1024 * 1024);
+
+      await expect(restoreBackup(multibyteArabicContent)).rejects.toThrow("MAX_BACKUP_SIZE_EXCEEDED");
     });
 
     it("rejects a backup containing excessive table rows", async () => {

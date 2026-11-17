@@ -284,11 +284,11 @@ export async function create(saleInput: {
     }
   }
 
-  const profile = await getBusinessProfile();
-  const activeCurrency = profile?.currency || "DZD";
-
   const db = await getDatabase();
   return await transaction(db, async (tx: any) => {
+    const profile = await getBusinessProfile(tx);
+    const activeCurrency = profile?.currency || "DZD";
+
     // 1. Insert initial sale header placeholder
     const saleResult = await executeWrite(
       tx,

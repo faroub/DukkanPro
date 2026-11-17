@@ -240,11 +240,14 @@ export async function update(
     values.push(product.name);
   }
   if (product.sku !== undefined) {
-    const normalizedSku =
+    const cleanSku =
       product.sku && typeof product.sku === "string"
         ? product.sku.trim() || null
         : null;
+    const normalizedSku = normalizeSkuForLookup(cleanSku);
     fields.push("sku = ?");
+    values.push(cleanSku);
+    fields.push("normalized_sku = ?");
     values.push(normalizedSku);
   }
   if (product.category !== undefined) {
