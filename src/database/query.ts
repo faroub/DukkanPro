@@ -1,5 +1,26 @@
 import { type SQLiteDatabase } from "expo-sqlite";
 
+export const TX_BRAND = Symbol("DukkanPro_TxBrand");
+
+export interface TransactionContext extends SQLiteDatabase {
+  [TX_BRAND]: true;
+}
+
+export function createTransactionContext(db: SQLiteDatabase): TransactionContext {
+  const tx = Object.create(db);
+  Object.defineProperty(tx, TX_BRAND, {
+    value: true,
+    writable: false,
+    enumerable: false,
+    configurable: false,
+  });
+  return tx as TransactionContext;
+}
+
+export function isTransactionContext(obj: any): obj is TransactionContext {
+  return Boolean(obj && typeof obj === "object" && obj[TX_BRAND] === true);
+}
+
 /**
  * Single-threaded promise-chain Async Mutex.
  * Serializes all SQLite database reads, writes, and transactions on the singleton connection.
@@ -85,9 +106,15 @@ export async function rawTransaction<T>(
   db: SQLiteDatabase,
   fn: (db: SQLiteDatabase) => Promise<T>,
 ): Promise<T> {
+  const tx = isTransactionContext(db) ? db : createTransactionContext(db);
+
+  if (isTransactionContext(db)) {
+    return await fn(tx);
+  }
+
   await db.execAsync("BEGIN IMMEDIATE");
   try {
-    const result = await fn(db);
+    const result = await fn(tx);
     await db.execAsync("COMMIT");
     return result;
   } catch (error) {

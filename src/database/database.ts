@@ -15,6 +15,7 @@ import { seed } from "./seed";
 import {
   dbMutex,
   escapeLike,
+  isTransactionContext,
   rawExecuteAll,
   rawExecuteRead,
   rawExecuteWrite,
@@ -111,19 +112,20 @@ function isSQLiteDatabase(obj: any): obj is SQLiteDatabase {
 /**
  * Execute a read query returning all rows.
  * Overloaded for both standalone usage executeAll(sql, params) and
- * transactional usage executeAll(db, sql, params).
+ * transactional usage executeAll(tx, sql, params).
  */
 export async function executeAll<T>(
   firstArg: SQLiteDatabase | string,
   secondArg?: string | any[],
   thirdArg: any[] = [],
 ): Promise<T[]> {
-  if (isSQLiteDatabase(firstArg)) {
+  if (isTransactionContext(firstArg)) {
     return rawExecuteAll<T>(firstArg, secondArg as string, thirdArg);
   }
 
-  const sql = firstArg as string;
-  const params = (secondArg as any[]) || [];
+  const sql = (isSQLiteDatabase(firstArg) ? secondArg : firstArg) as string;
+  const params = (isSQLiteDatabase(firstArg) ? thirdArg : (secondArg as any[])) || [];
+
   return dbMutex.runExclusive(async () => {
     const db = await getDatabase();
     return rawExecuteAll<T>(db, sql, params);
@@ -133,19 +135,20 @@ export async function executeAll<T>(
 /**
  * Execute a read query returning first row.
  * Overloaded for both standalone usage executeRead(sql, params) and
- * transactional usage executeRead(db, sql, params).
+ * transactional usage executeRead(tx, sql, params).
  */
 export async function executeRead<T>(
   firstArg: SQLiteDatabase | string,
   secondArg?: string | any[],
   thirdArg: any[] = [],
 ): Promise<T[]> {
-  if (isSQLiteDatabase(firstArg)) {
+  if (isTransactionContext(firstArg)) {
     return rawExecuteRead<T>(firstArg, secondArg as string, thirdArg);
   }
 
-  const sql = firstArg as string;
-  const params = (secondArg as any[]) || [];
+  const sql = (isSQLiteDatabase(firstArg) ? secondArg : firstArg) as string;
+  const params = (isSQLiteDatabase(firstArg) ? thirdArg : (secondArg as any[])) || [];
+
   return dbMutex.runExclusive(async () => {
     const db = await getDatabase();
     return rawExecuteRead<T>(db, sql, params);
@@ -155,19 +158,20 @@ export async function executeRead<T>(
 /**
  * Execute a write query (INSERT / UPDATE / DELETE).
  * Overloaded for both standalone usage executeWrite(sql, params) and
- * transactional usage executeWrite(db, sql, params).
+ * transactional usage executeWrite(tx, sql, params).
  */
 export async function executeWrite(
   firstArg: SQLiteDatabase | string,
   secondArg?: string | any[],
   thirdArg: any[] = [],
 ): Promise<number> {
-  if (isSQLiteDatabase(firstArg)) {
+  if (isTransactionContext(firstArg)) {
     return rawExecuteWrite(firstArg, secondArg as string, thirdArg);
   }
 
-  const sql = firstArg as string;
-  const params = (secondArg as any[]) || [];
+  const sql = (isSQLiteDatabase(firstArg) ? secondArg : firstArg) as string;
+  const params = (isSQLiteDatabase(firstArg) ? thirdArg : (secondArg as any[])) || [];
+
   return dbMutex.runExclusive(async () => {
     const db = await getDatabase();
     return rawExecuteWrite(db, sql, params);
@@ -177,21 +181,21 @@ export async function executeWrite(
 /**
  * Run a function inside a SQLite transaction, serialized via dbMutex.
  * Standalone calls acquire dbMutex to serialize BEGIN IMMEDIATE ... COMMIT across concurrent callers.
- * If called with a transaction handle (tx) from inside an active transaction,
- * executes fn(tx) directly without beginning a nested transaction or deadlock.
+ * If called with an active TransactionContext (tx) from inside an existing transaction,
+ * executes fn(tx) directly without beginning a nested transaction or re-locking dbMutex.
  */
 export async function transaction<T>(
   firstArg: SQLiteDatabase | ((db: SQLiteDatabase) => Promise<T>),
   secondArg?: (db: SQLiteDatabase) => Promise<T>,
 ): Promise<T> {
-  const fn = typeof firstArg === "function" ? firstArg : secondArg!;
-
-  if (isSQLiteDatabase(firstArg) && dbMutex.locked) {
-    return fn(firstArg);
+  if (isTransactionContext(firstArg)) {
+    const fn = secondArg!;
+    return rawTransaction(firstArg, fn);
   }
 
+  const fn = typeof firstArg === "function" ? firstArg : secondArg!;
   return dbMutex.runExclusive(async () => {
-    const db = isSQLiteDatabase(firstArg) ? firstArg : await getDatabase();
+    const db = await getDatabase();
     return rawTransaction(db, fn);
   });
 }
