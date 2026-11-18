@@ -271,6 +271,20 @@ describe("saleRepository", () => {
       ).rejects.toThrow(/Quantity must be a positive integer/i);
     });
 
+    it("rejects negative discounts and ensures validation failure rolls back any transaction", async () => {
+      await expect(
+        create({
+          customerId: 1,
+          paymentMethod: "cash",
+          discountCentimes: -100,
+          items: [{ productId: 1, quantity: 1, unitSalePriceCentimes: 5000 }],
+        })
+      ).rejects.toThrow(/Discount must be a non-negative integer/i);
+
+      const allSales = await getAll({});
+      expect(allSales).toHaveLength(0);
+    });
+
     it("rejects a sale whose submitted unit price no longer matches the catalogue (PRICE_CHANGED)", async () => {
       // Product 1 currently sells for 5000; the cart snapshot is stale at 4000.
       await expect(

@@ -370,9 +370,9 @@ export async function adjustStock(
     const currentStock = product.stock_quantity || 0;
     const newStock = currentStock + quantityChange;
 
-    if (newStock < 0) {
+    if (!Number.isSafeInteger(newStock) || newStock < 0) {
       throw new Error(
-        `INSUFFICIENT_STOCK: Cannot reduce stock of product id=${product.id} by ${-quantityChange}; only ${currentStock} available.`,
+        `INSUFFICIENT_STOCK: Cannot adjust stock of product id=${product.id} by ${quantityChange}; resulting stock ${newStock} is negative or exceeds MAX_SAFE_INTEGER.`,
       );
     }
 
