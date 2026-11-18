@@ -15,13 +15,18 @@ export type ProductFilters = {
   is_active?: boolean;
   category?: string;
   search?: string;
+  limit?: number;
+  offset?: number;
 };
 
 /**
  * Retrieve all products, optionally filtered by is_active, category, or search query.
  */
-export async function getAll(filters: ProductFilters = {}): Promise<Product[]> {
-  const { is_active, category, search } = filters;
+export async function getAll(
+  filters: ProductFilters = {},
+  tx?: any,
+): Promise<Product[]> {
+  const { is_active, category, search, limit, offset } = filters;
   let sql = `
     SELECT id, name, sku, category, sale_price_centimes, cost_price_centimes,
            stock_quantity, minimum_stock_quantity, unit, is_active,
@@ -50,7 +55,18 @@ export async function getAll(filters: ProductFilters = {}): Promise<Product[]> {
   }
   sql += ` ORDER BY name ASC`;
 
-  const rows: any[] = await executeAll(sql, params);
+  if (limit !== undefined && limit > 0) {
+    sql += ` LIMIT ?`;
+    params.push(limit);
+    if (offset !== undefined && offset >= 0) {
+      sql += ` OFFSET ?`;
+      params.push(offset);
+    }
+  }
+
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, params)
+    : await executeAll(sql, params);
   return rows.map(mapProductRow);
 }
 

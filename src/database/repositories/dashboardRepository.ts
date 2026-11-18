@@ -7,7 +7,7 @@
  * - Stock counts exclude inactive/archived products.
  */
 
-import { executeAll } from "../database";
+import { executeAll, executeRead } from "../database";
 
 export type DashboardResult = {
   todayRevenue: number;    // centimes
@@ -35,17 +35,16 @@ function localDayBounds(): [string, string] {
  * Get today's revenue from completed sales (centimes).
  * "Today" means the merchant's local calendar day.
  */
-export async function getTodayRevenue(): Promise<number> {
+export async function getTodayRevenue(tx?: any): Promise<number> {
   const [start, end] = localDayBounds();
-  const rows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT COALESCE(SUM(s.total_centimes), 0) as total
+  const sql = `SELECT COALESCE(SUM(s.total_centimes), 0) as total
        FROM sales s
       WHERE s.status = 'completed'
         AND s.sold_at >= ?
-        AND s.sold_at < ?`,
-    [start, end],
-  );
+        AND s.sold_at < ?`;
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, [start, end])
+    : await executeAll(sql, [start, end]);
   return rows[0]?.total as number;
 }
 
@@ -53,17 +52,16 @@ export async function getTodayRevenue(): Promise<number> {
  * Get today's actual cash collected from sales (centimes).
  * "Today" means the merchant's local calendar day.
  */
-export async function getTodayCashSales(): Promise<number> {
+export async function getTodayCashSales(tx?: any): Promise<number> {
   const [start, end] = localDayBounds();
-  const rows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT COALESCE(SUM(s.amount_paid_centimes), 0) as total
+  const sql = `SELECT COALESCE(SUM(s.amount_paid_centimes), 0) as total
        FROM sales s
       WHERE s.status = 'completed'
         AND s.sold_at >= ?
-        AND s.sold_at < ?`,
-    [start, end],
-  );
+        AND s.sold_at < ?`;
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, [start, end])
+    : await executeAll(sql, [start, end]);
   return rows[0]?.total as number;
 }
 
@@ -71,18 +69,17 @@ export async function getTodayCashSales(): Promise<number> {
  * Get today's cost of goods sold (centimes).
  * Computed as historical cost of items sold in completed sales today.
  */
-export async function getTodayCost(): Promise<number> {
+export async function getTodayCost(tx?: any): Promise<number> {
   const [start, end] = localDayBounds();
-  const rows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT COALESCE(SUM(si.unit_cost_price_centimes * si.quantity), 0) as total
+  const sql = `SELECT COALESCE(SUM(si.unit_cost_price_centimes * si.quantity), 0) as total
        FROM sale_items si
       JOIN sales s ON s.id = si.sale_id
      WHERE s.status = 'completed'
        AND s.sold_at >= ?
-       AND s.sold_at < ?`,
-    [start, end],
-  );
+       AND s.sold_at < ?`;
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, [start, end])
+    : await executeAll(sql, [start, end]);
   return rows[0]?.total as number;
 }
 
@@ -91,16 +88,15 @@ export async function getTodayCost(): Promise<number> {
  * positively, refunds (negative rows) subtract. "Today" means the merchant's
  * local calendar day, by paid_at.
  */
-export async function getTodayPaymentsReceived(): Promise<number> {
+export async function getTodayPaymentsReceived(tx?: any): Promise<number> {
   const [start, end] = localDayBounds();
-  const rows: any[] = await executeAll(
-    // language=SQLite
-    `SELECT COALESCE(SUM(amount_centimes), 0) as total
+  const sql = `SELECT COALESCE(SUM(amount_centimes), 0) as total
        FROM customer_payments
       WHERE paid_at >= ?
-        AND paid_at < ?`,
-    [start, end],
-  );
+        AND paid_at < ?`;
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, [start, end])
+    : await executeAll(sql, [start, end]);
   return rows[0]?.total as number;
 }
 
@@ -117,9 +113,9 @@ export async function getTodayPaymentsReceived(): Promise<number> {
  * Business expenses (rent, salaries, utilities) are not tracked in this
  * version, so this is a gross margin, not a net profit.
  */
-export async function getTodayProfit(): Promise<number> {
-  const revenue = await getTodayRevenue();
-  const cost = await getTodayCost();
+export async function getTodayProfit(tx?: any): Promise<number> {
+  const revenue = await getTodayRevenue(tx);
+  const cost = await getTodayCost(tx);
   return revenue - cost;
 }
 

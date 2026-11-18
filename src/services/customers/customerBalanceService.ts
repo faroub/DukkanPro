@@ -344,28 +344,33 @@ export async function recordRefund(
 
 /**
  * Get summary of a customer's financial status.
+ * Executes both balance and payment reads within an atomic point-in-time read transaction when standalone.
  */
-export async function getCustomerBalanceSummary(customerId: number) {
-  const [balance, payments] = await Promise.all([
-    getCustomerBalance(customerId),
-    getCustomerPayments(customerId),
-  ]);
+export async function getCustomerBalanceSummary(customerId: number, tx?: SQLiteDatabase) {
+  const readFn = async (t: any) => {
+    const balance = await getCustomerBalance(customerId, t);
+    const payments = await getCustomerPayments(customerId, t);
 
-  const totalPaid = payments
-    .filter((p) => p.amount_centimes > 0)
-    .reduce((sum, p) => sum + p.amount_centimes, 0);
-  const totalRefunded = payments
-    .filter((p) => p.amount_centimes < 0)
-    .reduce((sum, p) => sum - p.amount_centimes, 0);
+    const totalPaid = payments
+      .filter((p) => p.amount_centimes > 0)
+      .reduce((sum, p) => sum + p.amount_centimes, 0);
+    const totalRefunded = payments
+      .filter((p) => p.amount_centimes < 0)
+      .reduce((sum, p) => sum - p.amount_centimes, 0);
 
-  return {
-    customerId,
-    balance_centimes: balance,
-    debt_centimes: Math.max(0, balance),
-    credit_centimes: Math.max(0, -balance),
-    total_paid_centimes: totalPaid,
-    total_refunded_centimes: totalRefunded,
-    net_payments_centimes: totalPaid - totalRefunded,
-    paymentCount: payments.length,
+    return {
+      customerId,
+      balance_centimes: balance,
+      debt_centimes: Math.max(0, balance),
+      credit_centimes: Math.max(0, -balance),
+      total_paid_centimes: totalPaid,
+      total_refunded_centimes: totalRefunded,
+      net_payments_centimes: totalPaid - totalRefunded,
+      paymentCount: payments.length,
+    };
   };
+
+  if (tx) return readFn(tx);
+  const db = await getDatabase();
+  return await transaction(db, readFn);
 }

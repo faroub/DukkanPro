@@ -1,4 +1,5 @@
 import { executeAll, executeWrite, getDatabase, transaction } from "../database";
+import { create as createSale } from "../repositories/saleRepository";
 
 describe("Database Concurrency & Transaction Isolation (AsyncMutex)", () => {
   beforeEach(async () => {
@@ -74,5 +75,39 @@ describe("Database Concurrency & Transaction Isolation (AsyncMutex)", () => {
     );
     expect(products).toHaveLength(1);
     expect(products[0].name).toBe("Standalone Merchant Edit");
+  });
+
+  it("prevents overselling when multiple simultaneous checkout requests target the last stock item", async () => {
+    const db = await getDatabase();
+
+    const productResult = await executeWrite(
+      `INSERT INTO products (name, sale_price_centimes, cost_price_centimes, stock_quantity) VALUES (?, ?, ?, ?)`,
+      ["Last Stock Unit", 5000, 3000, 1]
+    );
+
+    const checkout1 = createSale({
+      paymentMethod: "cash",
+      items: [{ productId: productResult, quantity: 1, unitSalePriceCentimes: 5000 }],
+    }).then(() => "ok").catch((e) => e.message);
+
+    const checkout2 = createSale({
+      paymentMethod: "cash",
+      items: [{ productId: productResult, quantity: 1, unitSalePriceCentimes: 5000 }],
+    }).then(() => "ok").catch((e) => e.message);
+
+    const [r1, r2] = await Promise.all([checkout1, checkout2]);
+
+    const succeeded = [r1, r2].filter((res) => res === "ok");
+    const failed = [r1, r2].filter((res) => res !== "ok");
+
+    expect(succeeded).toHaveLength(1);
+    expect(failed).toHaveLength(1);
+    expect(failed[0]).toMatch(/Insufficient stock/i);
+
+    const prodRows = await executeAll<{ stock_quantity: number }>(
+      `SELECT stock_quantity FROM products WHERE id = ?`,
+      [productResult]
+    );
+    expect(prodRows[0].stock_quantity).toBe(0);
   });
 });
