@@ -456,6 +456,30 @@ describe("productRepository", () => {
       expect(product?.stock_quantity).toBe(12);
     });
 
+    it("handles concurrent stock adjustments cleanly without losing updates or corrupting stock", async () => {
+      const p = await create({
+        name: "Concurrent Stock Item",
+        sku: "CONC-STK-1",
+        category: "Test",
+        sale_price_centimes: 1000,
+        cost_price_centimes: 500,
+        stock_quantity: 100,
+        minimum_stock_quantity: 5,
+        unit: "pcs",
+        is_active: true,
+      });
+
+      // Launch 5 concurrent adjustments of +10 each
+      const adjPromises = Array.from({ length: 5 }, (_, i) =>
+        adjustStock(p.id, 10, `Concurrent restock ${i + 1}`)
+      );
+
+      await Promise.all(adjPromises);
+
+      const updated = await getById(p.id);
+      expect(updated?.stock_quantity).toBe(150);
+    });
+
     it("rejects a reduction larger than current stock with INSUFFICIENT_STOCK instead of clamping (F4)", async () => {
       const created = await create({
         name: "Stock Over-removal Test",

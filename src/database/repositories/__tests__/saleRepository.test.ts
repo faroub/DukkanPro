@@ -578,6 +578,12 @@ describe("saleRepository", () => {
       // Cancel should work atomically
       await cancel(saleId, "Test");
 
+      // Repeated cancel attempt must throw error
+      await expect(cancel(saleId, "Second cancel")).rejects.toThrow(/already cancelled/i);
+
+      // Attempting return on cancelled sale must throw error
+      await expect(returnSale(saleId, "Return cancelled sale")).rejects.toThrow(/already cancelled/i);
+
       // After cancel, the sale status should be cancelled
       const cancelledSale = await getById(saleId);
       expect(cancelledSale?.status).toBe("cancelled");
