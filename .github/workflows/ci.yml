@@ -1,32 +1,101 @@
-name: CI
+name: CI Quality Gates & Build Verification
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
 
 jobs:
-  quality:
+  quality-gates:
+    name: Code Quality & Financial Safety Checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci
 
-      - name: Type check
+      - name: Type Check (TypeScript Strict)
         run: npx tsc --noEmit
 
-      - name: Lint
+      - name: ESLint
         run: npm run lint
 
-      - name: Unit tests
-        run: npx jest --ci
-
-      - name: No-RTL guard
+      - name: No-RTL Architecture Guard
         run: npm run check:no-rtl
 
-      - name: Architecture guard
+      - name: Module Router Architecture Guard
         run: npm run check:architecture
+
+      - name: Test Suite Execution (Unit, Integration & Invariants)
+        run: npx jest --ci --coverage
+
+      - name: Upload Test Coverage Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-report
+          path: coverage/
+          retention-days: 7
+
+  android-export-build:
+    name: Android Bundle Build Verification
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Export Android Hermes JS Bundle
+        run: npx expo export --platform android
+
+      - name: Upload Android Bundle Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-export-dist
+          path: dist/
+          retention-days: 7
+
+  web-export-build:
+    name: Web Bundle Build Verification
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Export Web Bundle
+        run: npx expo export --platform web
+
+      - name: Upload Web Bundle Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-export-dist
+          path: dist/
+          retention-days: 7
