@@ -471,4 +471,35 @@ describe("Task 1: Financial Transaction Integrity Suite", () => {
     const pOverflow = await recordPayment(customer.id, Number.MAX_SAFE_INTEGER + 1, "cash");
     expect(pOverflow).toBeNull();
   });
+
+  it("Scenario 10: Large customer balance reconciliation and multi-item subtotal safe integer limits", async () => {
+    const p1 = await createProduct({
+      name: "High-Value Item",
+      sku: "HV-PROP-1",
+      category: "Jewelry",
+      sale_price_centimes: 100000000000,
+      cost_price_centimes: 50000000000,
+      stock_quantity: 100,
+      minimum_stock_quantity: 1,
+      unit: "pcs",
+      is_active: true,
+    });
+
+    const customer = await createCustomer({
+      name: "High Net Worth Customer",
+      phone: "0559999999",
+      note: "VIP",
+      is_active: true,
+    });
+
+    const largeSale = await createSale({
+      customerId: customer.id,
+      paymentMethod: "credit",
+      items: [{ productId: p1.id, quantity: 100, unitSalePriceCentimes: 100000000000 }],
+    });
+
+    expect(largeSale.status).toBe("completed");
+    expect(largeSale.total_centimes).toBe(10000000000000);
+    expect(await getCustomerDebt(customer.id)).toBe(10000000000000);
+  });
 });
