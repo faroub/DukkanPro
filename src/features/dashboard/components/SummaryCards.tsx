@@ -167,10 +167,10 @@ export function SummaryCards({
           </View>
           <ThemedText style={[styles.subText, { color: theme.textSecondary }]} numberOfLines={1}>
             {locale === "ar"
-              ? "هامش نقدي"
+              ? "هامش إجمالي"
               : locale === "fr"
-              ? "Marge encaissée"
-              : "Cash margin"}
+              ? "Marge brute est."
+              : "Est. gross margin"}
           </ThemedText>
         </View>
       </TouchableOpacity>

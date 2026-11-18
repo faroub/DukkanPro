@@ -278,6 +278,51 @@ describe("dashboardRepository", () => {
       );
       expect(await getTodayProfit()).toBe(3000);
     });
+
+    it("uses historical COGS from sale_items even if product cost price changes later", async () => {
+      // 1. Insert product with initial cost 2000
+      await db.runAsync(
+        `INSERT INTO products (id, name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
+         VALUES (99, 'Cost Change Item', 5000, 2000, 10, 'pcs', 1)`,
+      );
+
+      // 2. Insert sale with historical cost snapshot 2000
+      await db.runAsync(
+        `INSERT INTO sales (id, customer_id, status, subtotal_centimes, discount_centimes, total_centimes, amount_paid_centimes, remaining_balance_centimes, payment_method, sold_at)
+         VALUES (99, 1, 'completed', 5000, 0, 5000, 5000, 0, 'cash', datetime('now'))`,
+      );
+      await db.runAsync(
+        `INSERT INTO sale_items (sale_id, product_id, product_name_snapshot, quantity, unit_sale_price_centimes, unit_cost_price_centimes, line_total_centimes)
+         VALUES (99, 99, 'Cost Change Item', 1, 5000, 2000, 5000)`,
+      );
+
+      // 3. Product cost price is updated to 4000 in catalogue AFTER the sale
+      await db.runAsync(`UPDATE products SET cost_price_centimes = 4000 WHERE id = 99`);
+
+      // Gross profit MUST still use historical cost (2000): revenue 5000 - cost 2000 = 3000 profit
+      expect(await getTodayCost()).toBe(2000);
+      expect(await getTodayRevenue()).toBe(5000);
+      expect(await getTodayProfit()).toBe(3000);
+    });
+
+    it("excludes returned sales from completed revenue and cost", async () => {
+      await db.runAsync(
+        `INSERT INTO products (id, name, sale_price_centimes, cost_price_centimes, stock_quantity, unit, is_active)
+         VALUES (88, 'Returned Item', 4000, 2000, 10, 'pcs', 1)`,
+      );
+      await db.runAsync(
+        `INSERT INTO sales (id, customer_id, status, subtotal_centimes, discount_centimes, total_centimes, amount_paid_centimes, remaining_balance_centimes, payment_method, sold_at)
+         VALUES (88, 1, 'returned', 4000, 0, 4000, 4000, 0, 'cash', datetime('now'))`,
+      );
+      await db.runAsync(
+        `INSERT INTO sale_items (sale_id, product_id, product_name_snapshot, quantity, unit_sale_price_centimes, unit_cost_price_centimes, line_total_centimes)
+         VALUES (88, 88, 'Returned Item', 1, 4000, 2000, 4000)`,
+      );
+
+      expect(await getTodayRevenue()).toBe(0);
+      expect(await getTodayCost()).toBe(0);
+      expect(await getTodayProfit()).toBe(0);
+    });
   });
 
   describe("getLowStockCount", () => {
