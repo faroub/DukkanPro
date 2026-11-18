@@ -14,10 +14,10 @@
  *   rejected before the database is touched — never silently dropped.
  */
 
+import { normalizeSkuForLookup } from "@/database/repositories/productRepository";
+
 export const BACKUP_FORMAT = "dukkanpro-backup";
 export const SUPPORTED_BACKUP_VERSION = 1;
-
-import { normalizeSkuForLookup } from "@/database/repositories/productRepository";
 
 export const MAX_BACKUP_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
 export const MAX_BACKUP_ROW_COUNT_PER_TABLE = 100000; // 100,000 rows per table
@@ -68,7 +68,13 @@ export const BACKUP_TABLES = [
 ] as const;
 export type BackupTable = (typeof BACKUP_TABLES)[number];
 
-type ColumnSpec = { name: string; kind: "int" | "text" };
+type ColumnSpec = {
+  name: string;
+  kind: "int" | "text";
+  nullable?: boolean;
+  allowedValues?: readonly string[];
+  isTimestamp?: boolean;
+};
 
 /**
  * Fixed table → column whitelist (column name → JSON type). Column order is
@@ -77,91 +83,91 @@ type ColumnSpec = { name: string; kind: "int" | "text" };
  */
 export const TABLE_SPECS: Record<BackupTable, ColumnSpec[]> = {
   business_profiles: [
-    { name: "id", kind: "int" },
-    { name: "business_name", kind: "text" },
-    { name: "owner_name", kind: "text" },
-    { name: "business_type", kind: "text" },
-    { name: "currency", kind: "text" },
-    { name: "selected_locale", kind: "text" },
-    { name: "phone_number", kind: "text" },
-    { name: "address", kind: "text" },
-    { name: "rc_number", kind: "text" },
-    { name: "created_at", kind: "text" },
-    { name: "updated_at", kind: "text" },
+    { name: "id", kind: "int", nullable: false },
+    { name: "business_name", kind: "text", nullable: false },
+    { name: "owner_name", kind: "text", nullable: false },
+    { name: "business_type", kind: "text", nullable: false },
+    { name: "currency", kind: "text", nullable: false, allowedValues: ["DZD", "EUR", "USD"] },
+    { name: "selected_locale", kind: "text", nullable: false, allowedValues: ["ar", "fr", "en"] },
+    { name: "phone_number", kind: "text", nullable: true },
+    { name: "address", kind: "text", nullable: true },
+    { name: "rc_number", kind: "text", nullable: true },
+    { name: "created_at", kind: "text", nullable: true, isTimestamp: true },
+    { name: "updated_at", kind: "text", nullable: true, isTimestamp: true },
   ],
   app_settings: [
-    { name: "key", kind: "text" },
-    { name: "value", kind: "text" },
-    { name: "updated_at", kind: "text" },
+    { name: "key", kind: "text", nullable: false },
+    { name: "value", kind: "text", nullable: false },
+    { name: "updated_at", kind: "text", nullable: true, isTimestamp: true },
   ],
   customers: [
-    { name: "id", kind: "int" },
-    { name: "name", kind: "text" },
-    { name: "phone", kind: "text" },
-    { name: "note", kind: "text" },
-    { name: "is_active", kind: "int" },
-    { name: "created_at", kind: "text" },
-    { name: "updated_at", kind: "text" },
+    { name: "id", kind: "int", nullable: false },
+    { name: "name", kind: "text", nullable: false },
+    { name: "phone", kind: "text", nullable: true },
+    { name: "note", kind: "text", nullable: true },
+    { name: "is_active", kind: "int", nullable: false, allowedValues: ["0", "1"] },
+    { name: "created_at", kind: "text", nullable: true, isTimestamp: true },
+    { name: "updated_at", kind: "text", nullable: true, isTimestamp: true },
   ],
   products: [
-    { name: "id", kind: "int" },
-    { name: "name", kind: "text" },
-    { name: "sku", kind: "text" },
-    { name: "category", kind: "text" },
-    { name: "sale_price_centimes", kind: "int" },
-    { name: "cost_price_centimes", kind: "int" },
-    { name: "stock_quantity", kind: "int" },
-    { name: "minimum_stock_quantity", kind: "int" },
-    { name: "unit", kind: "text" },
-    { name: "is_active", kind: "int" },
-    { name: "created_at", kind: "text" },
-    { name: "updated_at", kind: "text" },
+    { name: "id", kind: "int", nullable: false },
+    { name: "name", kind: "text", nullable: false },
+    { name: "sku", kind: "text", nullable: true },
+    { name: "category", kind: "text", nullable: true },
+    { name: "sale_price_centimes", kind: "int", nullable: false },
+    { name: "cost_price_centimes", kind: "int", nullable: true },
+    { name: "stock_quantity", kind: "int", nullable: false },
+    { name: "minimum_stock_quantity", kind: "int", nullable: false },
+    { name: "unit", kind: "text", nullable: false },
+    { name: "is_active", kind: "int", nullable: false, allowedValues: ["0", "1"] },
+    { name: "created_at", kind: "text", nullable: true, isTimestamp: true },
+    { name: "updated_at", kind: "text", nullable: true, isTimestamp: true },
   ],
   sales: [
-    { name: "id", kind: "int" },
-    { name: "customer_id", kind: "int" },
-    { name: "status", kind: "text" },
-    { name: "subtotal_centimes", kind: "int" },
-    { name: "discount_centimes", kind: "int" },
-    { name: "total_centimes", kind: "int" },
-    { name: "amount_paid_centimes", kind: "int" },
-    { name: "remaining_balance_centimes", kind: "int" },
-    { name: "payment_method", kind: "text" },
-    { name: "currency", kind: "text" },
-    { name: "note", kind: "text" },
-    { name: "sold_at", kind: "text" },
-    { name: "created_at", kind: "text" },
-    { name: "updated_at", kind: "text" },
+    { name: "id", kind: "int", nullable: false },
+    { name: "customer_id", kind: "int", nullable: true },
+    { name: "status", kind: "text", nullable: false, allowedValues: ["completed", "cancelled", "returned"] },
+    { name: "subtotal_centimes", kind: "int", nullable: false },
+    { name: "discount_centimes", kind: "int", nullable: false },
+    { name: "total_centimes", kind: "int", nullable: false },
+    { name: "amount_paid_centimes", kind: "int", nullable: false },
+    { name: "remaining_balance_centimes", kind: "int", nullable: false },
+    { name: "payment_method", kind: "text", nullable: false, allowedValues: ["cash", "electronic", "mixed", "partial", "credit"] },
+    { name: "currency", kind: "text", nullable: false, allowedValues: ["DZD", "EUR", "USD"] },
+    { name: "note", kind: "text", nullable: true },
+    { name: "sold_at", kind: "text", nullable: true, isTimestamp: true },
+    { name: "created_at", kind: "text", nullable: true, isTimestamp: true },
+    { name: "updated_at", kind: "text", nullable: true, isTimestamp: true },
   ],
   sale_items: [
-    { name: "id", kind: "int" },
-    { name: "sale_id", kind: "int" },
-    { name: "product_id", kind: "int" },
-    { name: "product_name_snapshot", kind: "text" },
-    { name: "quantity", kind: "int" },
-    { name: "unit_sale_price_centimes", kind: "int" },
-    { name: "unit_cost_price_centimes", kind: "int" },
-    { name: "line_total_centimes", kind: "int" },
-    { name: "created_at", kind: "text" },
+    { name: "id", kind: "int", nullable: false },
+    { name: "sale_id", kind: "int", nullable: false },
+    { name: "product_id", kind: "int", nullable: true },
+    { name: "product_name_snapshot", kind: "text", nullable: false },
+    { name: "quantity", kind: "int", nullable: false },
+    { name: "unit_sale_price_centimes", kind: "int", nullable: false },
+    { name: "unit_cost_price_centimes", kind: "int", nullable: true },
+    { name: "line_total_centimes", kind: "int", nullable: false },
+    { name: "created_at", kind: "text", nullable: true, isTimestamp: true },
   ],
   customer_payments: [
-    { name: "id", kind: "int" },
-    { name: "customer_id", kind: "int" },
-    { name: "amount_centimes", kind: "int" },
-    { name: "payment_method", kind: "text" },
-    { name: "currency", kind: "text" },
-    { name: "note", kind: "text" },
-    { name: "paid_at", kind: "text" },
-    { name: "created_at", kind: "text" },
+    { name: "id", kind: "int", nullable: false },
+    { name: "customer_id", kind: "int", nullable: false },
+    { name: "amount_centimes", kind: "int", nullable: false },
+    { name: "payment_method", kind: "text", nullable: false, allowedValues: ["cash", "electronic", "mixed", "partial", "credit"] },
+    { name: "currency", kind: "text", nullable: false, allowedValues: ["DZD", "EUR", "USD"] },
+    { name: "note", kind: "text", nullable: true },
+    { name: "paid_at", kind: "text", nullable: true, isTimestamp: true },
+    { name: "created_at", kind: "text", nullable: true, isTimestamp: true },
   ],
   inventory_movements: [
-    { name: "id", kind: "int" },
-    { name: "product_id", kind: "int" },
-    { name: "movement_type", kind: "text" },
-    { name: "quantity_change", kind: "int" },
-    { name: "reference_sale_id", kind: "int" },
-    { name: "note", kind: "text" },
-    { name: "created_at", kind: "text" },
+    { name: "id", kind: "int", nullable: false },
+    { name: "product_id", kind: "int", nullable: false },
+    { name: "movement_type", kind: "text", nullable: false, allowedValues: ["in", "out"] },
+    { name: "quantity_change", kind: "int", nullable: false },
+    { name: "reference_sale_id", kind: "int", nullable: true },
+    { name: "note", kind: "text", nullable: true },
+    { name: "created_at", kind: "text", nullable: true, isTimestamp: true },
   ],
 };
 
@@ -217,10 +223,26 @@ export function validateBackup(
     );
   }
 
+  if (
+    !root.createdAt ||
+    typeof root.createdAt !== "string" ||
+    isNaN(new Date(root.createdAt).getTime())
+  ) {
+    throw invalid("createdAt is missing or not a valid date string");
+  }
+
   if (!root.tables || typeof root.tables !== "object" || Array.isArray(root.tables)) {
     throw invalid("the tables object is missing");
   }
   const tables = root.tables as Record<string, unknown>;
+
+  // Reject unknown table names in tables object
+  const validTableSet = new Set<string>(BACKUP_TABLES);
+  for (const tableName of Object.keys(tables)) {
+    if (!validTableSet.has(tableName)) {
+      throw invalid(`unknown table "${tableName}" in tables object`);
+    }
+  }
 
   let totalRows = 0;
   for (const table of BACKUP_TABLES) {
@@ -246,16 +268,30 @@ export function validateBackup(
     const spec = TABLE_SPECS[table];
     const known = new Set(spec.map((c) => c.name));
     const rows = tables[table] as unknown[];
+
     rows.forEach((rawRow, index) => {
       if (!rawRow || typeof rawRow !== "object" || Array.isArray(rawRow)) {
         throw invalidContent(table, `row ${index} is not an object`);
       }
-      for (const [key, value] of Object.entries(rawRow as Record<string, unknown>)) {
+      const rowRecord = rawRow as Record<string, unknown>;
+
+      // Check required non-nullable columns
+      for (const col of spec) {
+        if (col.nullable === false) {
+          const val = rowRecord[col.name];
+          if (val === undefined || val === null) {
+            throw invalidContent(table, `column "${col.name}" cannot be null (row ${index})`);
+          }
+        }
+      }
+
+      for (const [key, value] of Object.entries(rowRecord)) {
         if (!known.has(key)) {
           throw invalidContent(table, `unknown column "${key}" (row ${index})`);
         }
         const column = spec.find((c) => c.name === key)!;
         if (value === null) continue;
+
         if (column.kind === "int") {
           if (typeof value !== "number" || !Number.isSafeInteger(value)) {
             throw invalidContent(table, `column "${key}" must be an integer (row ${index})`);
@@ -267,6 +303,27 @@ export function validateBackup(
             table,
             `column "${key}" string length (${value.length}) exceeds maximum limit of ${MAX_BACKUP_STRING_LENGTH} chars (row ${index})`,
           );
+        }
+
+        // Validate allowed values for enums and currencies
+        if (column.allowedValues && value !== null) {
+          if (!column.allowedValues.includes(String(value))) {
+            throw invalidContent(
+              table,
+              `invalid value "${value}" for column "${key}" (row ${index})`,
+            );
+          }
+        }
+
+        // Validate timestamp format
+        if (column.isTimestamp && value !== null) {
+          const timeMs = new Date(String(value)).getTime();
+          if (isNaN(timeMs)) {
+            throw invalidContent(
+              table,
+              `invalid timestamp format "${value}" for column "${key}" (row ${index})`,
+            );
+          }
         }
       }
     });
@@ -342,16 +399,23 @@ export function validateBackup(
 
   // 1. Compute sum of sale_items line_total per sale.
   const itemSumBySaleId = new Map<number, number>();
-  const itemRowBySaleId = new Map<number, number>(); // to reference a row index for error
+  const itemRowBySaleId = new Map<number, number>();
   saleItemsRows.forEach((item, idx) => {
     const saleId = item.sale_id as number;
     const lineTotal = item.line_total_centimes as number;
     const unitPrice = item.unit_sale_price_centimes as number;
     const quantity = item.quantity as number;
 
+    if (quantity <= 0) {
+      throw invalidContent("sale_items", `quantity must be positive (row ${idx}: ${quantity})`);
+    }
+
     // Rule: line_total = unit_price * quantity
     if (lineTotal !== undefined && unitPrice !== undefined && quantity !== undefined) {
       const computedTotal = unitPrice * quantity;
+      if (!Number.isSafeInteger(computedTotal)) {
+        throw invalidContent("sale_items", `line_total calculation exceeds MAX_SAFE_INTEGER (row ${idx})`);
+      }
       if (lineTotal !== computedTotal) {
         throw invalidContent(
           "sale_items",
@@ -360,9 +424,13 @@ export function validateBackup(
       }
     }
 
-    // Accumulate sum per sale.
+    // Accumulate sum per sale safely.
     const currentSum = itemSumBySaleId.get(saleId) || 0;
-    itemSumBySaleId.set(saleId, currentSum + lineTotal);
+    const newSum = currentSum + lineTotal;
+    if (!Number.isSafeInteger(newSum)) {
+      throw invalidContent("sale_items", `aggregate sale items subtotal exceeds MAX_SAFE_INTEGER for sale_id ${saleId}`);
+    }
+    itemSumBySaleId.set(saleId, newSum);
     itemRowBySaleId.set(saleId, idx);
   });
 
@@ -375,7 +443,6 @@ export function validateBackup(
     const remaining = sale.remaining_balance_centimes as number | null | undefined;
     const saleId = sale.id as number;
 
-    // Option: all money fields must be non-negative (from migration 14 constraints).
     if (subtotal !== null && subtotal !== undefined && subtotal < 0) {
       throw invalidContent("sales", `subtotal_centimes must be non-negative (row ${saleIdx}: ${subtotal})`);
     }
@@ -395,6 +462,9 @@ export function validateBackup(
     // Rule: total = subtotal - discount.
     if (subtotal !== null && subtotal !== undefined && discount !== null && discount !== undefined && total !== null && total !== undefined) {
       const computedTotal = subtotal - discount;
+      if (!Number.isSafeInteger(computedTotal)) {
+        throw invalidContent("sales", `total calculation exceeds MAX_SAFE_INTEGER (row ${saleIdx})`);
+      }
       if (total !== computedTotal) {
         throw invalidContent(
           "sales",
@@ -416,6 +486,9 @@ export function validateBackup(
     // Rule: remaining = total - amount_paid.
     if (remaining !== null && remaining !== undefined && total !== null && total !== undefined && amountPaid !== null && amountPaid !== undefined) {
       const computedRemaining = total - amountPaid;
+      if (!Number.isSafeInteger(computedRemaining)) {
+        throw invalidContent("sales", `remaining balance calculation exceeds MAX_SAFE_INTEGER (row ${saleIdx})`);
+      }
       if (remaining !== computedRemaining) {
         throw invalidContent(
           "sales",

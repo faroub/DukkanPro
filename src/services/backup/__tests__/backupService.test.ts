@@ -392,6 +392,32 @@ describe("backupService", () => {
       );
     });
 
+    it("rejects unknown tables, missing required fields, invalid currencies/enums and malformed timestamps", async () => {
+      await seed("ValidationExt");
+      const backup = await buildBackup();
+      await resetDatabase();
+
+      // 1. Unknown table
+      const unknownTable = JSON.parse(JSON.stringify(backup)) as any;
+      unknownTable.tables.unknown_table = [];
+      await expect(restoreBackup(JSON.stringify(unknownTable))).rejects.toThrow(/unknown table/i);
+
+      // 2. Missing required non-nullable field (product.name)
+      const missingName = JSON.parse(JSON.stringify(backup)) as any;
+      delete missingName.tables.products[0].name;
+      await expect(restoreBackup(JSON.stringify(missingName))).rejects.toThrow(/column "name" cannot be null/i);
+
+      // 3. Invalid currency enum
+      const invalidCurrency = JSON.parse(JSON.stringify(backup)) as any;
+      invalidCurrency.tables.sales[0].currency = "INVALID_CURRENCY";
+      await expect(restoreBackup(JSON.stringify(invalidCurrency))).rejects.toThrow(/invalid value "INVALID_CURRENCY"/i);
+
+      // 4. Malformed timestamp
+      const malformedTime = JSON.parse(JSON.stringify(backup)) as any;
+      malformedTime.tables.sales[0].sold_at = "not-a-date";
+      await expect(restoreBackup(JSON.stringify(malformedTime))).rejects.toThrow(/invalid timestamp format/i);
+    });
+
     it("rejects backup string content exceeding maximum file size limit (15 MB)", async () => {
       await seed("SizeLimit");
       const fakeLargeContent = "a".repeat(16 * 1024 * 1024);

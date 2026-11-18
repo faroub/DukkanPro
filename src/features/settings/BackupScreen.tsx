@@ -28,6 +28,7 @@ import { useCartStore } from "@/stores/cartStore";
 import { useTheme } from "@/hooks/use-theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBackup, restoreBackup } from "@/services/backup/backupService";
+import { MAX_BACKUP_FILE_SIZE_BYTES } from "@/services/backup/backupFormat";
 import type { RestoreSummary } from "@/services/backup/backupService";
 
 /**
@@ -43,7 +44,8 @@ type Translate = ReturnType<typeof useTranslation>["t"];
 
 /** Map a typed restoreBackup error prefix to a localized message. */
 function restoreErrorMessage(message: string, t: Translate): string {
-  const detail = message.slice(message.indexOf(":") + 1).trim();
+  const rawDetail = message.slice(message.indexOf(":") + 1).trim();
+  const detail = rawDetail.length > 100 ? `${rawDetail.slice(0, 100)}...` : rawDetail;
   if (message.startsWith("UNSUPPORTED_BACKUP_VERSION")) {
     return t("backup.unsupportedVersion");
   }
@@ -196,8 +198,33 @@ export function BackupScreen() {
         showToast(t("backup.pickCanceled") || "No file selected.");
         return;
       }
+      const fileAsset = result.assets[0];
+
+      // Check size metadata BEFORE reading file into memory
+      if (
+        fileAsset.size !== undefined &&
+        fileAsset.size !== null &&
+        fileAsset.size > MAX_BACKUP_FILE_SIZE_BYTES
+      ) {
+        showToast(t("backup.backupTooLarge") || "Backup file size exceeds the maximum limit of 15 MB.");
+        return;
+      }
+
+      try {
+        const info = await FileSystem.getInfoAsync(fileAsset.uri);
+        if (
+          info.exists &&
+          !info.isDirectory &&
+          typeof info.size === "number" &&
+          info.size > MAX_BACKUP_FILE_SIZE_BYTES
+        ) {
+          showToast(t("backup.backupTooLarge") || "Backup file size exceeds the maximum limit of 15 MB.");
+          return;
+        }
+      } catch {}
+
       const fileContents = await FileSystem.readAsStringAsync(
-        result.assets[0].uri,
+        fileAsset.uri,
         { encoding: FileSystem.EncodingType.UTF8 },
       );
       await runRestore(fileContents, false);
