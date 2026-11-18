@@ -13,6 +13,9 @@ import { mapCustomerRow } from "./mappers";
 
 export type CustomerFilters = {
   is_active?: boolean;
+  search?: string;
+  limit?: number;
+  offset?: number;
 };
 
 export type CustomerResult = {
@@ -36,22 +39,46 @@ export function normalizePhone(phone: string): string {
 }
 
 /**
- - Retrieve all customers, optionally filtered by is_active.
+ * Retrieve all customers, optionally filtered by is_active, search query, limit, offset.
  */
 export async function getAll(
   filters: CustomerFilters = {},
+  tx?: any,
 ): Promise<Customer[]> {
-  const { is_active } = filters;
+  const { is_active, search, limit, offset } = filters;
   let sql = `SELECT id, name, phone, note, is_active, created_at, updated_at FROM customers`;
   const params: unknown[] = [];
+  const conditions: string[] = [];
 
   if (is_active !== undefined) {
-    sql += ` WHERE is_active = ?`;
+    conditions.push(`is_active = ?`);
     params.push(is_active ? 1 : 0);
   }
+
+  if (search) {
+    conditions.push(`(name LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR note LIKE ? ESCAPE '\\')`);
+    const likeQuery = `%${escapeLike(search)}%`;
+    params.push(likeQuery, likeQuery, likeQuery);
+  }
+
+  if (conditions.length > 0) {
+    sql += ` WHERE ` + conditions.join(" AND ");
+  }
+
   sql += ` ORDER BY name ASC`;
 
-  const rows: any[] = await executeAll(sql, params);
+  if (limit !== undefined && limit > 0) {
+    sql += ` LIMIT ?`;
+    params.push(limit);
+    if (offset !== undefined && offset >= 0) {
+      sql += ` OFFSET ?`;
+      params.push(offset);
+    }
+  }
+
+  const rows: any[] = tx
+    ? await executeRead(tx, sql, params)
+    : await executeAll(sql, params);
   return rows.map(mapCustomerRow);
 }
 
