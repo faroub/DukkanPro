@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -49,19 +49,34 @@ export function DataResetScreen() {
   const [expectedBusinessName, setExpectedBusinessName] = useState("");
   const [productCount, setProductCount] = useState(0);
   const [saleCount, setSaleCount] = useState(0);
+  const isResettingRef = useRef(false);
 
   // Load the real profile name (used as the type-to-confirm gate) and live row
   // counts for the impact chips, so the screen never shows fabricated numbers.
   useEffect(() => {
-    businessProfile.get().then((profile) => {
-      if (profile) setExpectedBusinessName(profile.business_name);
-    });
-    executeAll<{ c: number }>("SELECT COUNT(*) AS c FROM products").then(
-      (rows) => setProductCount(rows[0]?.c ?? 0),
-    );
-    executeAll<{ c: number }>("SELECT COUNT(*) AS c FROM sales").then(
-      (rows) => setSaleCount(rows[0]?.c ?? 0),
-    );
+    let isMounted = true;
+    businessProfile
+      .get()
+      .then((profile) => {
+        if (isMounted && profile) setExpectedBusinessName(profile.business_name);
+      })
+      .catch((err) => console.error("Error fetching business profile for reset:", err));
+
+    executeAll<{ c: number }>("SELECT COUNT(*) AS c FROM products")
+      .then((rows) => {
+        if (isMounted) setProductCount(rows[0]?.c ?? 0);
+      })
+      .catch((err) => console.error("Error fetching product count:", err));
+
+    executeAll<{ c: number }>("SELECT COUNT(*) AS c FROM sales")
+      .then((rows) => {
+        if (isMounted) setSaleCount(rows[0]?.c ?? 0);
+      })
+      .catch((err) => console.error("Error fetching sale count:", err));
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const isMatched =
@@ -69,6 +84,7 @@ export function DataResetScreen() {
     businessNameInput.trim() === expectedBusinessName;
 
   const handleSoftReset = useCallback(() => {
+    if (isResettingRef.current || isLoading) return;
     Alert.alert(
       t("dataReset.clearDemoTitle") || "Clear Demo Data",
       t("dataReset.clearDemoDesc") ||
@@ -78,6 +94,8 @@ export function DataResetScreen() {
         {
           text: t("dataReset.clearDemoTitle") || "Clear Demo Data",
           onPress: async () => {
+            if (isResettingRef.current) return;
+            isResettingRef.current = true;
             try {
               await clearBusinessData();
               useCartStore.getState().clearCart();
@@ -92,14 +110,17 @@ export function DataResetScreen() {
               showToast(
                 t("dataReset.error") || "Error clearing demo data",
               );
+            } finally {
+              isResettingRef.current = false;
             }
           },
         },
       ],
     );
-  }, [t, productCount, saleCount]);
+  }, [t, productCount, saleCount, isLoading]);
 
   const handleHardReset = useCallback(() => {
+    if (isResettingRef.current || isLoading) return;
     if (!isMatched) {
       showToast(
         t("dataReset.wrongBusinessName") ||
@@ -118,6 +139,8 @@ export function DataResetScreen() {
           text: t("dataReset.factoryResetButton") || "Delete All Data",
           style: "destructive",
           onPress: async () => {
+            if (isResettingRef.current) return;
+            isResettingRef.current = true;
             setIsLoading(true);
             try {
               const cleanup = await resetDatabase();
@@ -138,13 +161,14 @@ export function DataResetScreen() {
               console.error("Data reset error:", error);
               showToast(t("dataReset.error") || "Error during data reset");
             } finally {
+              isResettingRef.current = false;
               setIsLoading(false);
             }
           },
         },
       ],
     );
-  }, [expectedBusinessName, isMatched, router, t]);
+  }, [expectedBusinessName, isMatched, router, t, isLoading]);
 
   return (
     <ScrollView

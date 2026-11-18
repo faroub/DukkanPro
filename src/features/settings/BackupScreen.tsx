@@ -75,6 +75,8 @@ export function BackupScreen() {
 
   const [isCreating, setIsCreating] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const isCreatingRef = useRef(false);
+  const isRestoringRef = useRef(false);
 
   // The overwrite-confirmation alert is triggered from inside runRestore, and
   // its confirm action must re-run runRestore — a ref breaks that self
@@ -84,6 +86,8 @@ export function BackupScreen() {
   >(async () => {});
 
   const handleCreateBackup = useCallback(async () => {
+    if (isCreatingRef.current || isRestoringRef.current || isCreating || isRestoring) return;
+    isCreatingRef.current = true;
     setIsCreating(true);
     try {
       const { uri } = await createBackup();
@@ -125,12 +129,14 @@ export function BackupScreen() {
       console.error("Backup creation error:", error);
       showToast(t("backup.error") || "Backup operation failed.");
     } finally {
+      isCreatingRef.current = false;
       setIsCreating(false);
     }
-  }, [t]);
+  }, [t, isCreating, isRestoring]);
 
   const runRestore = useCallback(
     async (fileContents: string, confirmOverwrite: boolean) => {
+      isRestoringRef.current = true;
       setIsRestoring(true);
       try {
         const summary: RestoreSummary = await restoreBackup(fileContents, {
@@ -178,6 +184,7 @@ export function BackupScreen() {
         console.error("Backup restore error:", error);
         showToast(restoreErrorMessage(message, t));
       } finally {
+        isRestoringRef.current = false;
         setIsRestoring(false);
       }
     },
@@ -189,6 +196,7 @@ export function BackupScreen() {
   }, [runRestore]);
 
   const handleRestoreBackup = useCallback(async () => {
+    if (isCreatingRef.current || isRestoringRef.current || isCreating || isRestoring) return;
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "application/json",
@@ -232,7 +240,7 @@ export function BackupScreen() {
       console.error("Backup file read error:", error);
       showToast(t("backup.error") || "Backup operation failed.");
     }
-  }, [runRestore, t]);
+  }, [runRestore, t, isCreating, isRestoring]);
 
   return (
     <ScrollView
